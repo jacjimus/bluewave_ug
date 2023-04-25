@@ -15,5 +15,5 @@
       "./src/**/__tests__/*.ts"
   ],
   "include": [
-      "src/**/*.ts"]
+      "src/**/*.ts", "app.ts"]
 }   

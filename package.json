@@ -4,9 +4,9 @@
   "description": "Airtel ussd medical insurance project",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/app.ts",
-    "live": "nodemon --config nodemon.json src/app.ts"
-    
+    "start": "ts-node app.ts",
+    "live": "nodemon --config nodemon.json app.ts"
+
   },
   "keywords": [
     "insurance",

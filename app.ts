@@ -1,10 +1,10 @@
 import express from 'express';
 const cookieParser = require('cookie-parser');
-const userRoutes = require ('./routes/userRoutes');
-const policyRoutes = require ('./routes/policyRoutes');
-const paymentRoutes = require ('./routes/paymentRoutes');
-const claimRoutes = require ('./routes/claimRoutes');
-const ussdRoutes = require ('./routes/ussdRoutes');
+const userRoutes = require ('./src/routes/userRoutes');
+const policyRoutes = require ('./src/routes/policyRoutes');
+const paymentRoutes = require ('./src/routes/paymentRoutes');
+const claimRoutes = require ('./src/routes/claimRoutes');
+const ussdRoutes = require ('./src/routes/ussdRoutes');
 
 
 
@@ -20,6 +20,13 @@ app.use(cookieParser())
 // db.sequelize.sync({ force: true }).then(() => {
 //     console.log("db has been re sync")
 // })
+
+
+//route health check
+
+app.get('/status', (req:any, res:any) => res.send({status: "I'm up and running"}));
+
+
 
 //routes for the user API
 app.use('/api/v1/users', userRoutes)
