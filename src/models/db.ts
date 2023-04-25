@@ -2,7 +2,9 @@
 const {Sequelize, DataTypes} = require('sequelize')
 
 
-const sequelize = new Sequelize(`postgres://postgres:test123@localhost:5432/airtel`, {dialect: "postgres"})
+//const sequelize = new Sequelize(`postgres://postgres:test123@localhost:5432/airtel`, {dialect: "postgres"})
+const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@bluewave-postgres.cemxniymyjt7.us-east-1.rds.amazonaws.com:5432/airtelDB`, {dialect: "postgres"})
+
 
 //checking if connection is done
     sequelize.authenticate().then(() => {

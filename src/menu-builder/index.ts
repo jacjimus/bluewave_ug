@@ -1251,7 +1251,7 @@ export default function (args: RequestBody, db: any) {
                         let policy_deduction_amount = policy.policy_deduction_amount;
 
 
-                        menu.con('Congratulations you are now covered. \n' +
+                        menu.end('Congratulations you are now covered. \n' +
 
                             `To stay covered Kes ${policy_deduction_amount} will be deducted on day ${day} of every month`
 
