@@ -1,0 +1,50 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+//importing modules
+const express = require("express");
+const db_1 = require("../models/db");
+//Assigning db.users to User variable
+const User = db_1.db.users;
+//Function to check if username or email already exist in the database
+//this is to avoid having two users with the same username and email
+const saveUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    //search the database to see if user exist
+    try {
+        const username = yield User.findOne({
+            where: {
+                name: req.body.name,
+            },
+        });
+        //if username exist in the database respond with a status of 409
+        if (username) {
+            return res.json(409).send("username already taken");
+        }
+        //checking if email already exist
+        const emailcheck = yield User.findOne({
+            where: {
+                email: req.body.email,
+            },
+        });
+        //if email exist in the database respond with a status of 409
+        if (emailcheck) {
+            return res.json(409).send("Authentication failed");
+        }
+        next();
+    }
+    catch (error) {
+        console.log(error);
+    }
+});
+//exporting module
+module.exports = {
+    saveUser,
+};
