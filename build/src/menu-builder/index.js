@@ -35,6 +35,10 @@ function default_1(args, db) {
             let Session = db.sessions;
             let Beneficiary = db.beneficiaries;
             //check if user exis
+            //if  args.phoneNumber has a + then remove it
+            if (args.phoneNumber.charAt(0) == "+") {
+                args.phoneNumber = args.phoneNumber.substring(1);
+            }
             let user = yield User.findOne({
                 where: {
                     phone_number: args.phoneNumber

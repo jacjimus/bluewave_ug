@@ -34,7 +34,13 @@ export default function (args: RequestBody, db: any) {
             let Beneficiary = db.beneficiaries;
             //check if user exis
 
+//if  args.phoneNumber has a + then remove it
+            if (args.phoneNumber.charAt(0) == "+") {
 
+                args.phoneNumber = args.phoneNumber.substring(1);
+            }
+
+            
             let user = await User.findOne({
                 where: {
                     phone_number: args.phoneNumber
