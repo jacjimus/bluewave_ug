@@ -114,7 +114,6 @@ function default_1(args, db) {
             //LEVEL 1
             menu.state('insurance', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Financial Services' +
                         '\n1. Banks' +
                         '\n2. Group Collections' +
@@ -136,7 +135,6 @@ function default_1(args, db) {
             //LEVEL 2
             menu.state('medical_cover', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Insurance ' +
                         '\n1. Medical cover' +
                         '\n2. Auto Insurance' +
@@ -150,7 +148,6 @@ function default_1(args, db) {
             //LEVEL 3
             menu.state('account', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Medical cover ' +
                         '\n1. Buy for self' +
                         '\n2. Buy (family)' +
@@ -175,7 +172,6 @@ function default_1(args, db) {
             //faqs
             menu.state('faqs', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    // use menu.end() to send response and terminate session
                     menu.con('FAQs ' +
                         '\n1. Eligibility' +
                         '\n2. Bronze cover' +
@@ -204,7 +200,6 @@ function default_1(args, db) {
             //eligibility
             menu.state('eligibility', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    // use menu.end() to send response and terminate session
                     menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
                         '\nTs&Cs apply');
                 }),
@@ -220,7 +215,6 @@ function default_1(args, db) {
             //silver cover
             menu.state('silverCover', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    // use menu.end() to send response and terminate session
                     menu.end('Outpatient limit of Kes 300,000' +
                         '\nMaternity covered up to Kes 100,000' +
                         '\nCan cover up to 6 dependents' +
@@ -279,7 +273,7 @@ function default_1(args, db) {
                     const to = '254' + buildInput.phone.substring(1);
                     const message = 'Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS';
                     const from = 'Airtel';
-                    africastalking.SMS.send({
+                    yield africastalking.SMS.send({
                         to,
                         message,
                         from
@@ -296,7 +290,6 @@ function default_1(args, db) {
             //my account
             menu.state('myAccount', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    // use menu.end() to send response and terminate session    
                     menu.con('My Account ' +
                         '\n1. Pay Now' +
                         '\n2. Manage auto-renew' +
@@ -350,7 +343,6 @@ function default_1(args, db) {
             //cancel policy pin
             menu.state('cancelPolicyPin', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    // use menu.end() to send response and terminate session
                     menu.con('By cancelling, you will no longer be covered for Hospital + Life Insurance as of DD/MM/YYYY.' +
                         'Enter PIN to  Confirm cancellation' +
                         '0.Back     00.Main Menu');
@@ -377,7 +369,6 @@ function default_1(args, db) {
                         console.error(error);
                     });
                     let pin = menu.val;
-                    // use menu.end() to send response and terminate session
                     menu.con('Your policy will expire on DD/MM/YYYY and will not be renewed. Dial *187*7# to reactivate.' +
                         '0.Back     00.Main Menu');
                 }),
@@ -438,7 +429,6 @@ function default_1(args, db) {
             //pay now
             menu.state('payNow', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    // use menu.end() to send response and terminate session
                     menu.con('Your outstanding premium is Kes 1,353 ' +
                         '\n1. Enter PIN to Pay Now' +
                         '\n0.Back' +
@@ -472,7 +462,6 @@ function default_1(args, db) {
                     nextMonth.setMonth(nextMonth.getMonth() + 1).toLocaleString();
                     // check if pin is correct
                     if (user.pin == pin) {
-                        // use menu.end() to send response and terminate session
                         //send sms
                         const to = '254' + buildInput.phone.substring(1);
                         const message = `PYour monthly auto premium payment of Kes ${policy_deduction_amount} for ${policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy_end_date}. Next payment is on DD/MM/YY
@@ -561,7 +550,6 @@ function default_1(args, db) {
             //LEVEL 4
             menu.state('buyForSelf', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Buy for self ' +
                         '\n1. Bronze  – Kes 300' +
                         '\n2. Silver – Kes 650' +
@@ -586,8 +574,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // use menu.end() to send response and terminate session
-                    menu.end(` Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
+                    menu.con(` Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
                         '\nPAY' +
                         '\n1. Kes 300 deducted monthly \n' +
                         '\n 2-3,294 yearly' +
@@ -607,7 +594,6 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // use menu.end() to send response and terminate session
                     menu.con(` Hospital cover for  ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
                         '\nPAY' +
                         '\n1. Kes 650 deducted monthly \n' +
@@ -628,7 +614,6 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // use menu.end() to send response and terminate session
                     menu.con(` Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
                         '\nPAY' +
                         '\n1. Kes 1400 deducted monthly \n' +
@@ -645,7 +630,6 @@ function default_1(args, db) {
             //LEVEL 6
             menu.state('buyForSelf.bronze.pay', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Pay Kes 300  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -660,7 +644,6 @@ function default_1(args, db) {
             });
             menu.state('buyForSelf.silver.pay', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Pay Kes 650  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -675,7 +658,6 @@ function default_1(args, db) {
             });
             menu.state('buyForSelf.gold.pay', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
                     menu.con('Pay Kes 1400  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -700,7 +682,6 @@ function default_1(args, db) {
                     });
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                        // use menu.end() to send response and terminate session
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 300 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -730,7 +711,6 @@ function default_1(args, db) {
                     });
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                        // use menu.end() to send response and terminate session
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 650 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -760,7 +740,6 @@ function default_1(args, db) {
                     });
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                        // use menu.end() to send response and terminate session
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -815,7 +794,7 @@ function default_1(args, db) {
                         console.log(newPolicy);
                     }
                     else {
-                        menu.end('You already have an active policy. \n' +
+                        menu.con('You already have an active policy. \n' +
                             '\n0.Back ' + ' 00.Main Menu');
                     }
                     //SEND SMS TO USER
@@ -978,8 +957,7 @@ function default_1(args, db) {
             //Buy for family
             menu.state('buyForFamily', {
                 run: () => {
-                    // use menu.end() to send response and terminate session        
-                    menu.end('Buy for family ' +
+                    menu.con('Buy for family ' +
                         '\n1. Self  – Kes 650' +
                         '\n2. Self + Spouse – Kes 1,040' +
                         '\n3. Self + Spouse + 1 Child -Kes 1,300' +
@@ -998,7 +976,6 @@ function default_1(args, db) {
             menu.state('buyForFamily.self', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     //save premium to db users collection
-                    // use menu.end() to send response and terminate session
                     menu.con('\nEnter day of the month you want to deduct premium' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1061,11 +1038,141 @@ function default_1(args, db) {
                     '00': 'insurance'
                 }
             });
+            //buyForFamily.selfSpouse
+            menu.state('buyForFamily.selfSpouse', {
+                run: () => {
+                    //save policy details to db
+                    menu.con('\nEnter Spouse name' +
+                        '\n0.Back' +
+                        '\n00.Main Menu');
+                },
+                next: {
+                    '*[a-zA-Z]+': 'buyForFamily.selfSpouse.spouse',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
+            });
+            //buyForFamily.selfSpouse.spouse
+            menu.state('buyForFamily.selfSpouse.spouse', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    // use menu.val to access user input value
+                    let spouse = menu.val;
+                    console.log("SPOUSE NAME 1", spouse);
+                    //save spouse name to db users collection
+                    let user = yield User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    });
+                    //update policy details in db
+                    //policy end date equals policy start date + 1 year
+                    let date = new Date();
+                    const policy = {
+                        policy_type: 'family',
+                        beneficiary: 'selfSpouse',
+                        policy_status: 'active',
+                        policy_start_date: new Date(),
+                        policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
+                        policy_deduction_amount: 1300,
+                        user_id: user.id
+                    };
+                    let newPolicy = yield Policy.create(policy).catch(err => console.log(err));
+                    console.log("new policy 1", newPolicy);
+                    //create beneficiary
+                    let beneficiary = {
+                        full_name: spouse,
+                        relationship: 'spouse',
+                        user_id: user.id
+                    };
+                    let newBeneficiary = yield Beneficiary.create(beneficiary);
+                    console.log("new beneficiary 1", newBeneficiary);
+                    menu.con('\n Enter Spouse ID' +
+                        '\n0.Back' +
+                        '\n00.Main Menu');
+                }),
+                next: {
+                    '*\\d+': 'buyForFamily.selfSpouse.spouse.id',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
+            });
+            //buyForFamily.selfSpouse.spouse.id
+            menu.state('buyForFamily.selfSpouse.spouse.id', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    // use menu.val to access user input value
+                    let id_number = menu.val;
+                    console.log("National id 2", id_number);
+                    //save spouse id to db users collection
+                    let user = yield User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    });
+                    console.log("user 2", user.id);
+                    //update beneficiary national id
+                    let beneficiary = yield Beneficiary.findOne({
+                        where: {
+                            user_id: user.id
+                        }
+                    });
+                    console.log("new beneficiary 2", beneficiary);
+                    if (beneficiary) {
+                        beneficiary.national_id = id_number;
+                        beneficiary.save().catch(err => console.log(err));
+                    }
+                    else {
+                        menu.con('No beneficiary found. \n' +
+                            '\n0.Back ' + ' 00.Main Menu');
+                    }
+                    menu.con('\nEnter day of the month you want to deduct premium' +
+                        '\n0.Back' +
+                        '\n00.Main Menu');
+                }),
+                next: {
+                    '*[0-9]+': 'buyForFamily.selfSpouse.confirm',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
+            });
+            //buyForFamily.selfSpouse.confirm
+            menu.state('buyForFamily.selfSpouse.confirm', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    const day = Number(menu.val);
+                    const date = new Date();
+                    const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    //update policy details in db
+                    let user = yield User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    });
+                    console.log("user 5", user.id);
+                    let policy = yield Policy.findOne({
+                        where: {
+                            user_id: user.id
+                        }
+                    });
+                    console.log("policy 5", policy);
+                    if (policy) {
+                        policy.policy_deduction_day = day;
+                        policy.policy_next_deduction_date = nextDeduction;
+                        policy.save();
+                    }
+                    menu.con('Confirm \n' +
+                        ` Deduct Kes 1,040  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        '\n1.Confirm \n' +
+                        '\n0.Back ' + ' 00.Main Menu');
+                }),
+                next: {
+                    '1': 'confirmation',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
+            });
             //buy for family selfSpouse1Child
             menu.state('buyForFamily.selfSpouse1Child', {
                 run: () => {
                     //save policy details to db
-                    // use menu.end() to send response and terminate session
                     menu.con('\nEnter Spouse name' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1110,7 +1217,6 @@ function default_1(args, db) {
                     };
                     let newBeneficiary = yield Beneficiary.create(beneficiary);
                     console.log("new beneficiary 1", newBeneficiary);
-                    // use menu.end() to send response and terminate session
                     menu.con('\n Enter Spouse ID' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1149,7 +1255,6 @@ function default_1(args, db) {
                         menu.con('No beneficiary found. \n' +
                             '\n0.Back ' + ' 00.Main Menu');
                     }
-                    // use menu.end() to send response and terminate session
                     // menu.con(` Hospital cover for ${id_number} ${beneficiary.full_name} Kes 1M a year /n` +
                     //     '\nPAY' +
                     //     '\n1. Kes 1300 deducted monthly \n' +
@@ -1187,8 +1292,6 @@ function default_1(args, db) {
                     };
                     let newBeneficiary = yield Beneficiary.create(beneficiary);
                     console.log("new beneficiary 3", newBeneficiary);
-                    // use menu.end() to send response and terminate session
-                    // use menu.end() to send response and terminate session
                     menu.con('\nEnter day of the month you want to deduct premium' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1223,7 +1326,6 @@ function default_1(args, db) {
                         policy.policy_next_deduction_date = nextDeduction;
                         policy.save();
                     }
-                    // use menu.end() to send response and terminate session
                     menu.con('Confirm \n' +
                         ` Deduct Kes 1456  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
@@ -1283,7 +1385,6 @@ function default_1(args, db) {
                     };
                     let newBeneficiary = yield Beneficiary.create(beneficiary);
                     console.log("new beneficiary 1", newBeneficiary);
-                    // use menu.end() to send response and terminate session
                     menu.con('\n Enter Spouse ID' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1348,7 +1449,6 @@ function default_1(args, db) {
                     };
                     let newBeneficiary = yield Beneficiary.create(beneficiary);
                     console.log("new beneficiary 3", newBeneficiary);
-                    // use menu.end() to send response and terminate session
                     menu.con('\n Enter Child 2 name' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1409,7 +1509,6 @@ function default_1(args, db) {
             menu.state('buyForFamilyPin', {
                 run: () => {
                     console.log("buyForFamilyPin");
-                    // use menu.end() to send response and terminate session
                     menu.con('Pay Kes 1300  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -1435,7 +1534,6 @@ function default_1(args, db) {
                     });
                     // check if pin is correct
                     if (user.pin == pin) {
-                        // use menu.end() to send response and terminate session
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1300 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +

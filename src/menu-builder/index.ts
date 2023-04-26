@@ -1289,6 +1289,8 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
+          
+
             //buy for family self
             menu.state('buyForFamily.self', {
                 run: async () => {
@@ -1383,14 +1385,190 @@ export default function (args: RequestBody, db: any) {
             });
 
 
+              //buyForFamily.selfSpouse
+
+              menu.state('buyForFamily.selfSpouse', {
+                run: () => {
+
+                    //save policy details to db
+                   
+                    menu.con('\nEnter Spouse name' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+                next: {
+                    '*[a-zA-Z]+': 'buyForFamily.selfSpouse.spouse',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
+            });
+
+
+            //buyForFamily.selfSpouse.spouse
+            menu.state('buyForFamily.selfSpouse.spouse', {
+                run: async () => {
+
+                    // use menu.val to access user input value
+                    let spouse = menu.val;
+                    console.log("SPOUSE NAME 1", spouse)
+                    //save spouse name to db users collection
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    //update policy details in db
+
+                   //policy end date equals policy start date + 1 year
+                    let date = new Date();
+
+
+
+                    const policy = {
+                        policy_type: 'family',
+                        beneficiary: 'selfSpouse',
+                        policy_status: 'active',
+                        policy_start_date: new Date(),
+                        policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
+                        policy_deduction_amount: 1300,
+                        user_id: user.id
+                    }
+
+                    let newPolicy = await Policy.create(policy).catch(err => console.log(err));
+                    console.log("new policy 1", newPolicy)
+
+
+
+                    //create beneficiary
+                    let beneficiary = {
+                        full_name: spouse,
+                        relationship: 'spouse',
+                        user_id: user.id
+                    }
+
+                    let newBeneficiary = await Beneficiary.create(beneficiary);
+
+                    console.log("new beneficiary 1", newBeneficiary)
+
+
+                   
+                    menu.con('\n Enter Spouse ID' +
+
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+
+                },
+                next: {
+                    '*\\d+': 'buyForFamily.selfSpouse.spouse.id',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+
+                }
+            });
+//buyForFamily.selfSpouse.spouse.id
+            menu.state('buyForFamily.selfSpouse.spouse.id', {
+                run: async () => {
+
+                    // use menu.val to access user input value
+                    let id_number = menu.val;
+                    console.log("National id 2", id_number)
+                    //save spouse id to db users collection
+
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+                    console.log("user 2", user.id)
+
+                    //update beneficiary national id
+                    let beneficiary = await Beneficiary.findOne({
+                        where: {
+                            user_id: user.id
+                        }
+                    })
+                    console.log("new beneficiary 2", beneficiary)
+
+                    if (beneficiary) {
+                        beneficiary.national_id = id_number ;
+                        beneficiary.save().catch(err => console.log(err));
+                    }else{
+                        menu.con('No beneficiary found. \n' +
+
+                        '\n0.Back ' + ' 00.Main Menu'
+                    );
+                    }
+
+
+                    menu.con('\nEnter day of the month you want to deduct premium' +
+                    '\n0.Back' +
+                    '\n00.Main Menu'
+
+                )
+            },
+            next: {
+                '*[0-9]+': 'buyForFamily.selfSpouse.confirm',
+                '0': 'buyForFamily',
+                '00': 'insurance'
+
+            }
+            });
+
+            //buyForFamily.selfSpouse.confirm
+            menu.state('buyForFamily.selfSpouse.confirm', {
+                run: async () => {
+    
+                    const day: any = Number(menu.val);
+                    const date = new Date();
+                    const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+
+                    //update policy details in db
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+                    console.log("user 5", user.id)
+
+                    let policy = await Policy.findOne({
+                        where: {
+                            user_id: user.id
+                        }
+                    })
+                    console.log("policy 5", policy)
+
+                    if (policy) {
+                        policy.policy_deduction_day = day;
+                        policy.policy_next_deduction_date = nextDeduction;
+                        policy.save();
+                    }
+
+                   
+                    menu.con('Confirm \n' +
+                    ` Deduct Kes 1,040  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                    '\n1.Confirm \n' +
+                    '\n0.Back ' + ' 00.Main Menu'
+                );
+
+                },
+                next: {
+                    '1': 'confirmation',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
+
+            });
+
+
 
             //buy for family selfSpouse1Child
             menu.state('buyForFamily.selfSpouse1Child', {
                 run: () => {
 
                     //save policy details to db
-
-
                    
                     menu.con('\nEnter Spouse name' +
                         '\n0.Back' +
