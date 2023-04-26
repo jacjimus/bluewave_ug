@@ -1,0 +1,17 @@
+::ffff:127.0.0.1 - - [25/Apr/2023:21:53:03 +0000] "POST /api/v1/users/login HTTP/1.1" 201 322
+::ffff:127.0.0.1 - - [25/Apr/2023:21:54:35 +0000] "GET /api/v1/users HTTP/1.1" 401 46
+::ffff:127.0.0.1 - - [25/Apr/2023:21:54:52 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:55:56 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:55:58 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:56:48 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:56:54 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:57:08 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:57:28 +0000] "POST /api/v1/users/login HTTP/1.1" 201 322
+::ffff:127.0.0.1 - - [25/Apr/2023:21:57:36 +0000] "POST /api/v1/users/login HTTP/1.1" 201 322
+::ffff:127.0.0.1 - - [25/Apr/2023:21:57:42 +0000] "POST /api/v1/users/login HTTP/1.1" 201 322
+::ffff:127.0.0.1 - - [25/Apr/2023:21:57:50 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:59:49 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:21:59:53 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:22:01:24 +0000] "GET /api/v1/users HTTP/1.1" 401 60
+::ffff:127.0.0.1 - - [25/Apr/2023:22:27:32 +0000] "POST /api/v1/users/login HTTP/1.1" 201 322
+::ffff:127.0.0.1 - - [25/Apr/2023:22:28:01 +0000] "GET /api/v1/users HTTP/1.1" 401 60

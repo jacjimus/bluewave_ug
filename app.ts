@@ -5,7 +5,15 @@ const policyRoutes = require ('./src/routes/policyRoutes');
 const paymentRoutes = require ('./src/routes/paymentRoutes');
 const claimRoutes = require ('./src/routes/claimRoutes');
 const ussdRoutes = require ('./src/routes/ussdRoutes');
+import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config()
+const fs = require('fs')
+const morgan = require('morgan')
+const path = require('path')
+ 
 
+
+ 
 
 
 const app: express.Application = express();
@@ -14,7 +22,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
 
-
+// log only 4xx and 5xx responses to console
+app.use(morgan('dev', {
+    skip: function (req:any, res:any) { return res.statusCode < 400 }
+  }))
+   
+  // log all requests to access.log
+  app.use(morgan('common', {
+    stream: fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+  }))
+  
 
 //synchronizing the database and forcing it to false so we dont lose data
 // db.sequelize.sync({ force: true }).then(() => {

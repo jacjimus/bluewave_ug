@@ -7,13 +7,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userController = require('../controllers/userController');
 const { signup, login } = userController;
-const userAuth = require('../middleware/userAuth');
+const { saveUser, isAdmin } = require('../middleware/userAuth');
 const router = express_1.default.Router();
 //signup endpoint
 //passing the middleware function to the signup
-router.post('/signup', userAuth.saveUser, signup);
+router.post('/signup', saveUser, signup);
 //login route
 router.post('/login', login);
-router.get('/', userController.getUsers);
+router.get('/', isAdmin, userController.getUsers);
 router.get('/:user_id', userController.getUser);
 module.exports = router;

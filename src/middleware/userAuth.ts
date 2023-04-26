@@ -1,5 +1,6 @@
 //importing modules
 const express = require("express");
+const jwt = require('jsonwebtoken');
 import {db} from "../models/db";
 //Assigning db.users to User variable
  const User = db.users;
@@ -37,7 +38,34 @@ import {db} from "../models/db";
  }
 };
 
+//only admin middleware
+
+
+function isAdmin(req:any, res:any, next:any) {
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      console.log(user)
+      if (err) {
+        return res.status(403).json({ message: 'Token is not valid' });
+      }
+      if (user.user) {
+        req.user = user;
+        next();
+      } else {
+        return res.status(401).json({ message: 'You are not authorized to access this resource' });
+      }
+    });
+  } else {
+    return res.status(401).json({ message: 'Authorization header is required' });
+  }
+}
+
+
+
 //exporting module
  module.exports = {
+    isAdmin,
  saveUser,
 };

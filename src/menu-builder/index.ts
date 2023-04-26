@@ -130,7 +130,7 @@ export default function (args: RequestBody, db: any) {
             //LEVEL 1
             menu.state('insurance', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
+                   
              
 
                     menu.con('Financial Services' +
@@ -156,7 +156,7 @@ export default function (args: RequestBody, db: any) {
             //LEVEL 2
             menu.state('medical_cover', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Insurance ' +
                         '\n1. Medical cover' +
                         '\n2. Auto Insurance' +
@@ -174,7 +174,7 @@ export default function (args: RequestBody, db: any) {
             //LEVEL 3
             menu.state('account', {
                 run: () => {
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Medical cover ' +
                         '\n1. Buy for self' +
                         '\n2. Buy (family)' +
@@ -203,7 +203,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('faqs', {
                 run: async () => {
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('FAQs ' +
                         '\n1. Eligibility' +
                         '\n2. Bronze cover' +
@@ -235,7 +235,7 @@ export default function (args: RequestBody, db: any) {
             //eligibility
             menu.state('eligibility', {
                 run: async () => {
-                    // use menu.end() to send response and terminate session
+                   
 
                     menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
 
@@ -261,7 +261,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('silverCover', {
 
                 run: async () => {
-                    // use menu.end() to send response and terminate session
+                   
                     menu.end('Outpatient limit of Kes 300,000' +
                         '\nMaternity covered up to Kes 100,000' +
                         '\nCan cover up to 6 dependents' +
@@ -366,7 +366,7 @@ export default function (args: RequestBody, db: any) {
                     const from = 'Airtel';
 
 
-                    africastalking.SMS.send({
+                    await africastalking.SMS.send({
                         to,
                         message,
                         from
@@ -390,7 +390,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('myAccount', {
                 run: async () => {
-                    // use menu.end() to send response and terminate session    
+                       
                     menu.con('My Account ' +
 
                         '\n1. Pay Now' +
@@ -452,7 +452,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('cancelPolicyPin', {
                 run: async () => {
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('By cancelling, you will no longer be covered for Hospital + Life Insurance as of DD/MM/YYYY.' +
                         'Enter PIN to  Confirm cancellation' +
                         '0.Back     00.Main Menu'
@@ -486,7 +486,7 @@ export default function (args: RequestBody, db: any) {
                         });
 
                     let pin = menu.val
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Your policy will expire on DD/MM/YYYY and will not be renewed. Dial *187*7# to reactivate.' +
                         '0.Back     00.Main Menu'
                     )
@@ -569,7 +569,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('payNow', {
                 run: async () => {
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Your outstanding premium is Kes 1,353 ' +
 
                         '\n1. Enter PIN to Pay Now' +
@@ -614,7 +614,7 @@ export default function (args: RequestBody, db: any) {
 
                     // check if pin is correct
                     if (user.pin == pin) {
-                        // use menu.end() to send response and terminate session
+                       
                         //send sms
 
                         const to = '254' + buildInput.phone.substring(1);
@@ -719,7 +719,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf', {
                 run: () => {
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Buy for self ' +
                         '\n1. Bronze  – Kes 300' +
                         '\n2. Silver – Kes 650' +
@@ -750,8 +750,8 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // use menu.end() to send response and terminate session
-                    menu.end(` Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
+                   
+                    menu.con(` Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
                         '\nPAY' +
                         '\n1. Kes 300 deducted monthly \n' +
                         '\n 2-3,294 yearly' +
@@ -776,7 +776,7 @@ export default function (args: RequestBody, db: any) {
                     })
 
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con(` Hospital cover for  ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
                         '\nPAY' +
                         '\n1. Kes 650 deducted monthly \n' +
@@ -802,7 +802,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con(` Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
                         '\nPAY' +
                         '\n1. Kes 1400 deducted monthly \n' +
@@ -823,7 +823,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf.bronze.pay', {
                 run: () => {
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Pay Kes 300  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -841,7 +841,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf.silver.pay', {
                 run: () => {
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Pay Kes 650  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -859,7 +859,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf.gold.pay', {
                 run: () => {
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Pay Kes 1400  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -892,7 +892,7 @@ export default function (args: RequestBody, db: any) {
 
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                        // use menu.end() to send response and terminate session
+                       
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 300 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -928,7 +928,7 @@ export default function (args: RequestBody, db: any) {
 
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                        // use menu.end() to send response and terminate session
+                       
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 650 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -964,7 +964,7 @@ export default function (args: RequestBody, db: any) {
 
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                        // use menu.end() to send response and terminate session
+                       
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -1038,7 +1038,7 @@ export default function (args: RequestBody, db: any) {
                         console.log(newPolicy)
 
                     } else {
-                        menu.end('You already have an active policy. \n' +
+                        menu.con('You already have an active policy. \n' +
                             '\n0.Back ' + ' 00.Main Menu'
                         );
                     }
@@ -1270,8 +1270,8 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForFamily', {
                 run: () => {
 
-                    // use menu.end() to send response and terminate session        
-                    menu.end('Buy for family ' +
+                           
+                    menu.con('Buy for family ' +
                         '\n1. Self  – Kes 650' +
                         '\n2. Self + Spouse – Kes 1,040' +
                         '\n3. Self + Spouse + 1 Child -Kes 1,300' +
@@ -1295,7 +1295,7 @@ export default function (args: RequestBody, db: any) {
 
                     //save premium to db users collection
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('\nEnter day of the month you want to deduct premium' +
                         '\n0.Back' +
                         '\n00.Main Menu'
@@ -1391,7 +1391,7 @@ export default function (args: RequestBody, db: any) {
                     //save policy details to db
 
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('\nEnter Spouse name' +
                         '\n0.Back' +
                         '\n00.Main Menu'
@@ -1453,7 +1453,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 1", newBeneficiary)
 
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('\n Enter Spouse ID' +
 
                         '\n0.Back' +
@@ -1508,7 +1508,7 @@ export default function (args: RequestBody, db: any) {
 
 
 
-                    // use menu.end() to send response and terminate session
+                   
                     // menu.con(` Hospital cover for ${id_number} ${beneficiary.full_name} Kes 1M a year /n` +
                     //     '\nPAY' +
                     //     '\n1. Kes 1300 deducted monthly \n' +
@@ -1560,8 +1560,8 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 3", newBeneficiary)
 
 
-                    // use menu.end() to send response and terminate session
-                        // use menu.end() to send response and terminate session
+                   
+                       
                         menu.con('\nEnter day of the month you want to deduct premium' +
                             '\n0.Back' +
                             '\n00.Main Menu'
@@ -1607,7 +1607,7 @@ export default function (args: RequestBody, db: any) {
                             policy.save();
                         }
 
-                        // use menu.end() to send response and terminate session
+                       
                         menu.con('Confirm \n' +
                         ` Deduct Kes 1456  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
@@ -1688,7 +1688,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 1", newBeneficiary)
 
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('\n Enter Spouse ID' +
 
                         '\n0.Back' +
@@ -1774,7 +1774,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 3", newBeneficiary)
 
 
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('\n Enter Child 2 name' +
 
 
@@ -1861,7 +1861,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForFamilyPin', {
                 run: () => {
                     console.log("buyForFamilyPin")
-                    // use menu.end() to send response and terminate session
+                   
                     menu.con('Pay Kes 1300  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -1893,7 +1893,7 @@ export default function (args: RequestBody, db: any) {
 
                     // check if pin is correct
                     if (user.pin == pin) {
-                        // use menu.end() to send response and terminate session
+                       
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1300 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +

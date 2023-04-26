@@ -37,7 +37,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //generate token with the user's id and the secretKey in the env file
         // set cookie with the token generated
         if (user) {
-            let token = jwt.sign({ id: user.id }, process.env.secretKey || "apple123", {
+            let token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || "apple123", {
                 expiresIn: 1 * 24 * 60 * 60 * 1000,
             });
             res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
@@ -70,7 +70,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             //if password is the same
             //generate token with the user's id and the secretKey in the env file
             if (isSame) {
-                let token = jwt.sign({ id: user.id }, process.env.secretKey || "apple123", {
+                let token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || "apple123", {
                     expiresIn: 1 * 24 * 60 * 60 * 1000,
                 });
                 //if password matches wit the one in the database

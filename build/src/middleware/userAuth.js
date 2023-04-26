@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 //importing modules
 const express = require("express");
+const jwt = require('jsonwebtoken');
 const db_1 = require("../models/db");
 //Assigning db.users to User variable
 const User = db_1.db.users;
@@ -44,7 +45,31 @@ const saveUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         console.log(error);
     }
 });
+//only admin middleware
+function isAdmin(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+            console.log(user);
+            if (err) {
+                return res.status(403).json({ message: 'Token is not valid' });
+            }
+            if (user.user) {
+                req.user = user;
+                next();
+            }
+            else {
+                return res.status(401).json({ message: 'You are not authorized to access this resource' });
+            }
+        });
+    }
+    else {
+        return res.status(401).json({ message: 'Authorization header is required' });
+    }
+}
 //exporting module
 module.exports = {
+    isAdmin,
     saveUser,
 };
