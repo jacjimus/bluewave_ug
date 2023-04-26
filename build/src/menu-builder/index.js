@@ -40,9 +40,9 @@ function default_1(args, db) {
                     phone_number: args.phoneNumber
                 }
             }).then((user) => {
-                console.log("USER1: ", user);
+                console.log("USER1 start: ", user);
             }).catch((err) => {
-                console.log("USER1: ", err);
+                console.log("USER1 start: ", err);
             });
             // BUILD INPUT VARIABLE
             let buildInput = {
@@ -279,7 +279,7 @@ function default_1(args, db) {
                         from
                     })
                         .then(response => {
-                        console.log(response);
+                        console.log("AFRICASTALKING: ", response);
                     })
                         .catch(error => {
                         console.error(error);
@@ -321,11 +321,12 @@ function default_1(args, db) {
                                 user_id: user.id,
                             },
                         });
+                        console.log("POLICY: ", policy);
                         if (policy) {
                             // 1. Cancel Policy
-                            menu.con(`Hospital cover of Kes 1M a year(100k per night, max 10 nights)
-                            Life cover of Kes 4M Funeral Benefit
-                            \n1. Cancel Policy`);
+                            menu.con('Hospital cover of Kes 1M a year(100k per night, max 10 nights)' +
+                                'Life cover of Kes 4M Funeral Benefit' +
+                                '\n1. Cancel Policy');
                         }
                         else {
                             menu.con("Your policy is INACTIVE\n0 Buy cover");
@@ -344,8 +345,9 @@ function default_1(args, db) {
             menu.state('cancelPolicyPin', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     menu.con('By cancelling, you will no longer be covered for Hospital + Life Insurance as of DD/MM/YYYY.' +
-                        'Enter PIN to  Confirm cancellation' +
-                        '0.Back     00.Main Menu');
+                        'Enter PIN to  Confirm cancellation\n' +
+                        '0.Back\n' +
+                        '00.Main Menu');
                 }),
                 next: {
                     '*[0-9]': 'cancelPolicyConfirm',
@@ -448,7 +450,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //get policy
+                    console.log("USER pin: ", user); //get policy
                     let policy = yield Policy.findOne({
                         where: {
                             user_id: user.id
@@ -479,7 +481,8 @@ function default_1(args, db) {
                             console.error(error);
                         });
                         //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
-                        menu.end(`Paid Kes ${policy_deduction_amount} for Medical cover. Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`);
+                        menu.end(`Paid Kes ${policy_deduction_amount} for Medical cover. 
+                        Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`);
                     }
                     else {
                         menu.end('Incorrect PIN. Please try again');
@@ -512,14 +515,14 @@ function default_1(args, db) {
                                 phone_number: args.phoneNumber,
                             },
                         });
-                        console.log("user:", user);
+                        console.log("USER claim:", user);
                         if (user) {
                             const policy = yield Policy.findOne({
                                 where: {
                                     user_id: user.id,
                                 },
                             });
-                            console.log("policy:", policy);
+                            console.log("POLICY:", policy);
                             if (policy) {
                                 const claim = yield Claim.create({
                                     policy_id: policy.policy_id,
@@ -527,7 +530,7 @@ function default_1(args, db) {
                                     claim_date: new Date(),
                                     claim_status: "Pending",
                                 });
-                                console.log("claim:", claim);
+                                console.log("CLAIM:", claim);
                                 menu.con("Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu");
                             }
                             else {
@@ -574,15 +577,17 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    menu.con(` Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
-                        '\nPAY' +
-                        '\n1. Kes 300 deducted monthly \n' +
-                        '\n 2-3,294 yearly' +
-                        '\n0.Back' +
-                        '\n00.Main Menu');
+                    console.log("USER: ", user);
+                    menu.con(`Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} Kes 1M a year
+                                PAY
+                                1. Kes 300 deducted monthly
+                                2. Kes 3,294 yearly
+                                0. Back
+                                00. Main Menu`);
                 }),
                 next: {
                     '1': 'buyForSelf.bronze.pay',
+                    '2': 'buyForSelf.bronze.pay.yearly',
                     '0': 'account',
                     '00': 'insurance'
                 }
@@ -594,12 +599,13 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    menu.con(` Hospital cover for  ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
-                        '\nPAY' +
-                        '\n1. Kes 650 deducted monthly \n' +
-                        '\n 2-3,294 yearly' +
-                        '\n0.Back' +
-                        '\n00.Main Menu');
+                    console.log("USER: ", user);
+                    menu.con(`Hospital cover for  ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year 
+                                PAY' +
+                                1. Kes 650 deducted monthly 
+                                2. Kes 3,294 yearly
+                                0.Back
+                                00.Main Menu`);
                 }),
                 next: {
                     '1': 'buyForSelf.silver.pay',
@@ -614,12 +620,13 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    menu.con(` Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
-                        '\nPAY' +
-                        '\n1. Kes 1400 deducted monthly \n' +
-                        '\n 2-3,294 yearly' +
-                        '\n0.Back' +
-                        '\n00.Main Menu');
+                    console.log("USER: ", user);
+                    menu.con(`Hospital cover for ${user === null || user === void 0 ? void 0 : user.name} ${buildInput.phone} John Doe Kes 1M a year
+                        PAY
+                        1. Kes 1400 deducted monthly 
+                        2. Kes 3,294 yearly
+                        0.Back
+                        00.Main Menu`);
                 }),
                 next: {
                     '1': 'buyForSelf.gold.pay',
@@ -638,6 +645,20 @@ function default_1(args, db) {
                 },
                 next: {
                     '*\\d+': 'buyForSelf.bronze.pin',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+            menu.state('buyForSelf.bronze.pay.yearly', {
+                run: () => {
+                    menu.con('Pay Kes 3,294 deducted yearly.' +
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu');
+                },
+                next: {
+                    '*\\d+': 'buyForSelf.bronze.yearly.pin',
                     '0': 'account',
                     '00': 'insurance'
                 }
@@ -680,6 +701,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
+                    console.log("USER: ", user);
                     // check if pin is correct
                     if (user && user.pin == pin) {
                         menu.con('SCHEDULE' +
@@ -698,6 +720,35 @@ function default_1(args, db) {
                     '00': 'insurance'
                 }
             });
+            menu.state('buyForSelf.bronze.yearly.pin', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    // use menu.val to access user input value
+                    let pin = Number(menu.val);
+                    //get user by pin
+                    let user = yield User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    });
+                    console.log("USER: ", user);
+                    // check if pin is correct
+                    if (user && user.pin == pin) {
+                        menu.con('SCHEDULE' +
+                            '\n Enter day of month to deduct Kes 3,294 premium yearly (e.g. 1, 2, 3…31)' +
+                            '\n0.Back' +
+                            '\n00.Main Menu');
+                    }
+                    else {
+                        // use menu.con() to send response without terminating session
+                        menu.con('PIN incorrect. Try again');
+                    }
+                }),
+                next: {
+                    '*\\d+': 'buyForSelf.bronze.yearly.confirm',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
             menu.state('buyForSelf.silver.pin', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     // use menu.val to access user input value
@@ -709,6 +760,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
+                    console.log("USER: ", user);
                     // check if pin is correct
                     if (user && user.pin == pin) {
                         menu.con('SCHEDULE' +
@@ -738,7 +790,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // check if pin is correct
+                    console.log("USER: ", user); // check if pin is correct
                     if (user && user.pin == pin) {
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
@@ -770,7 +822,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // policy that is active
+                    console.log("USER: ", user); // policy that is active
                     let activePolicy = yield Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -814,7 +866,75 @@ function default_1(args, db) {
                         console.error(error);
                     });
                     menu.con('Confirm \n' +
-                        ` Deduct Kes 300  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct Kes 300  on day ${day} each month. Next deduction will be on ${nextDeduction} 
+                         1.Confirm 
+                         0.Back 
+                         00.Main Menu`);
+                }),
+                next: {
+                    '1': 'confirmation',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+            menu.state('buyForSelf.bronze.yearly.confirm', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    // use menu.val to access user input value
+                    let day = Number(menu.val);
+                    let date = new Date();
+                    let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    //nextDeduction to be formatted to MM/DD/YYYY
+                    //update user details in db
+                    let user = yield User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    });
+                    console.log("USER: ", user); // policy that is active
+                    let activePolicy = yield Policy.findOne({
+                        where: {
+                            user_id: user.id,
+                            policy_status: 'active'
+                        }
+                    });
+                    if (user && !activePolicy) {
+                        //save policy details
+                        let policy = {
+                            policy_type: 'bronze',
+                            beneficiary: 'self',
+                            policy_status: 'active',
+                            policy_start_date: new Date(),
+                            policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                            policy_deduction_day: day * 1,
+                            policy_deduction_amount: 3294,
+                            policy_next_deduction_date: nextDeduction,
+                            user_id: user.id
+                        };
+                        let newPolicy = yield Policy.create(policy);
+                        console.log(newPolicy);
+                    }
+                    else {
+                        menu.con('You already have an active policy. \n' +
+                            '\n0.Back ' + ' 00.Main Menu');
+                    }
+                    //SEND SMS TO USER
+                    const to = buildInput.phone; //  '+2547xxxxxxxx';
+                    const from = 'BLUEWAVE INSURANCE';
+                    const message = `PAID Kes 3,294 to AAR Kenya for Bronze Cover Cover Charge Kes 0. Bal Kes 10,000. TID: 715XXXXXXXX. 
+                    Date: ${new Date().toLocaleDateString()}. `;
+                    africastalking.SMS.send({
+                        to,
+                        message,
+                        from
+                    })
+                        .then(response => {
+                        console.log(response);
+                    })
+                        .catch(error => {
+                        console.error(error);
+                    });
+                    menu.con('Confirm \n' +
+                        ` Deduct Kes 3,294  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu');
                 }),
@@ -837,7 +957,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // policy that is active
+                    console.log("USER: ", user); // policy that is active
                     let activePolicy = yield Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -888,7 +1008,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // policy that is active
+                    console.log("USER: ", user); // policy that is active
                     let activePolicy = yield Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -935,6 +1055,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
+                    console.log("USER: ", user);
                     let policy = yield Policy.findOne({
                         where: {
                             user_id: user.id
@@ -1000,7 +1121,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // policy that is active
+                    console.log("USER: ", user); // policy that is active
                     let activePolicy = yield Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -1064,7 +1185,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //update policy details in db
+                    console.log("USER: ", user); //update policy details in db
                     //policy end date equals policy start date + 1 year
                     let date = new Date();
                     const policy = {
@@ -1109,6 +1230,7 @@ function default_1(args, db) {
                         }
                     });
                     console.log("user 2", user.id);
+                    console.log("USER: ", user);
                     //update beneficiary national id
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
@@ -1147,6 +1269,7 @@ function default_1(args, db) {
                         }
                     });
                     console.log("user 5", user.id);
+                    console.log("USER: ", user);
                     let policy = yield Policy.findOne({
                         where: {
                             user_id: user.id
@@ -1195,7 +1318,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //update policy details in db
+                    console.log("USER: ", user); //update policy details in db
                     //policy end date equals policy start date + 1 year
                     let date = new Date();
                     const policy = {
@@ -1240,6 +1363,7 @@ function default_1(args, db) {
                         }
                     });
                     console.log("user 2", user.id);
+                    console.log("USER: ", user);
                     //update beneficiary national id
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
@@ -1255,13 +1379,6 @@ function default_1(args, db) {
                         menu.con('No beneficiary found. \n' +
                             '\n0.Back ' + ' 00.Main Menu');
                     }
-                    // menu.con(` Hospital cover for ${id_number} ${beneficiary.full_name} Kes 1M a year /n` +
-                    //     '\nPAY' +
-                    //     '\n1. Kes 1300 deducted monthly \n' +
-                    //     '\n 2-3,294 yearly' +
-                    //     '\n0.Back' +
-                    //     '\n00.Main Menu'
-                    // )
                     menu.con('\nEnter Child s name' +
                         '\n0.Back' +
                         '\n00.Main Menu');
@@ -1284,7 +1401,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //create beneficiary
+                    console.log("USER: ", user); //create beneficiary
                     let beneficiary = {
                         full_name: child1,
                         relationship: 'child',
@@ -1363,7 +1480,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //update policy details in db
+                    console.log("USER: ", user); //update policy details in db
                     const policy = {
                         policy_type: 'family',
                         beneficiary: 'selfSpouse2Child',
@@ -1408,6 +1525,7 @@ function default_1(args, db) {
                         }
                     });
                     console.log("user", user.id);
+                    console.log("USER: ", user);
                     //update beneficiary national id
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
@@ -1441,7 +1559,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //create beneficiary
+                    console.log("USER: ", user); //create beneficiary
                     let beneficiary = {
                         full_name: child1,
                         relationship: 'child1',
@@ -1471,7 +1589,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    //create beneficiary
+                    console.log("USER: ", user); //create beneficiary
                     let beneficiary = {
                         full_name: child2,
                         relationship: 'child2',
@@ -1532,7 +1650,7 @@ function default_1(args, db) {
                             phone_number: buildInput.phone
                         }
                     });
-                    // check if pin is correct
+                    console.log("USER: ", user); // check if pin is correct
                     if (user.pin == pin) {
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1300 premium monthly (e.g. 1, 2, 3…31)' +

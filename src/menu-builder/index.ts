@@ -12,8 +12,8 @@ const username = "sandbox"
 const AfricasTalking = require('africastalking');
 
 const africastalking = AfricasTalking({
-  apiKey,
-  username
+    apiKey,
+    username
 });
 
 //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
@@ -41,10 +41,10 @@ export default function (args: RequestBody, db: any) {
 
                 }
             }).then((user: any) => {
-                console.log("USER1: ", user)
+                console.log("USER1 start: ", user)
             }
             ).catch((err: any) => {
-                console.log("USER1: ", err)
+                console.log("USER1 start: ", err)
             }
             )
 
@@ -130,8 +130,8 @@ export default function (args: RequestBody, db: any) {
             //LEVEL 1
             menu.state('insurance', {
                 run: () => {
-                   
-             
+
+
 
                     menu.con('Financial Services' +
                         '\n1. Banks' +
@@ -156,7 +156,7 @@ export default function (args: RequestBody, db: any) {
             //LEVEL 2
             menu.state('medical_cover', {
                 run: () => {
-                   
+
                     menu.con('Insurance ' +
                         '\n1. Medical cover' +
                         '\n2. Auto Insurance' +
@@ -174,7 +174,7 @@ export default function (args: RequestBody, db: any) {
             //LEVEL 3
             menu.state('account', {
                 run: () => {
-                   
+
                     menu.con('Medical cover ' +
                         '\n1. Buy for self' +
                         '\n2. Buy (family)' +
@@ -203,7 +203,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('faqs', {
                 run: async () => {
-                   
+
                     menu.con('FAQs ' +
                         '\n1. Eligibility' +
                         '\n2. Bronze cover' +
@@ -235,7 +235,7 @@ export default function (args: RequestBody, db: any) {
             //eligibility
             menu.state('eligibility', {
                 run: async () => {
-                   
+
 
                     menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
 
@@ -261,7 +261,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('silverCover', {
 
                 run: async () => {
-                   
+
                     menu.end('Outpatient limit of Kes 300,000' +
                         '\nMaternity covered up to Kes 100,000' +
                         '\nCan cover up to 6 dependents' +
@@ -372,7 +372,7 @@ export default function (args: RequestBody, db: any) {
                         from
                     })
                         .then(response => {
-                            console.log(response);
+                            console.log( "AFRICASTALKING: ",response);
                         })
                         .catch(error => {
                             console.error(error);
@@ -390,7 +390,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('myAccount', {
                 run: async () => {
-                       
+
                     menu.con('My Account ' +
 
                         '\n1. Pay Now' +
@@ -428,11 +428,13 @@ export default function (args: RequestBody, db: any) {
                                 user_id: user.id,
                             },
                         });
+
+                        console.log("POLICY: ", policy)
                         if (policy) {
                             // 1. Cancel Policy
-                            menu.con(`Hospital cover of Kes 1M a year(100k per night, max 10 nights)
-                            Life cover of Kes 4M Funeral Benefit
-                            \n1. Cancel Policy`);
+                            menu.con('Hospital cover of Kes 1M a year(100k per night, max 10 nights)' +
+                                'Life cover of Kes 4M Funeral Benefit' +
+                                '\n1. Cancel Policy');
                         } else {
                             menu.con("Your policy is INACTIVE\n0 Buy cover");
                         }
@@ -452,10 +454,11 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('cancelPolicyPin', {
                 run: async () => {
-                   
+
                     menu.con('By cancelling, you will no longer be covered for Hospital + Life Insurance as of DD/MM/YYYY.' +
-                        'Enter PIN to  Confirm cancellation' +
-                        '0.Back     00.Main Menu'
+                        'Enter PIN to  Confirm cancellation\n' +
+                        '0.Back\n' +
+                        '00.Main Menu'
                     )
                 },
                 next: {
@@ -486,7 +489,7 @@ export default function (args: RequestBody, db: any) {
                         });
 
                     let pin = menu.val
-                   
+
                     menu.con('Your policy will expire on DD/MM/YYYY and will not be renewed. Dial *187*7# to reactivate.' +
                         '0.Back     00.Main Menu'
                     )
@@ -569,7 +572,7 @@ export default function (args: RequestBody, db: any) {
 
             menu.state('payNow', {
                 run: async () => {
-                   
+
                     menu.con('Your outstanding premium is Kes 1,353 ' +
 
                         '\n1. Enter PIN to Pay Now' +
@@ -598,7 +601,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //get policy
+                    console.log("USER pin: ", user)                    //get policy
                     let policy = await Policy.findOne({
                         where: {
                             user_id: user.id
@@ -614,7 +617,7 @@ export default function (args: RequestBody, db: any) {
 
                     // check if pin is correct
                     if (user.pin == pin) {
-                       
+
                         //send sms
 
                         const to = '254' + buildInput.phone.substring(1);
@@ -636,7 +639,8 @@ export default function (args: RequestBody, db: any) {
 
 
                         //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
-                        menu.end(`Paid Kes ${policy_deduction_amount} for Medical cover. Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
+                        menu.end(`Paid Kes ${policy_deduction_amount} for Medical cover. 
+                        Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
 
                     } else {
                         menu.end('Incorrect PIN. Please try again')
@@ -676,14 +680,14 @@ export default function (args: RequestBody, db: any) {
                                 phone_number: args.phoneNumber,
                             },
                         });
-                        console.log("user:", user);
+                        console.log("USER claim:", user);
                         if (user) {
                             const policy = await Policy.findOne({
                                 where: {
                                     user_id: user.id,
                                 },
                             });
-                            console.log("policy:", policy);
+                            console.log("POLICY:", policy);
                             if (policy) {
                                 const claim = await Claim.create({
                                     policy_id: policy.policy_id,
@@ -691,7 +695,7 @@ export default function (args: RequestBody, db: any) {
                                     claim_date: new Date(),
                                     claim_status: "Pending",
                                 });
-                                console.log("claim:", claim);
+                                console.log("CLAIM:", claim);
                                 menu.con(
                                     "Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu"
                                 );
@@ -719,7 +723,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf', {
                 run: () => {
 
-                   
+
                     menu.con('Buy for self ' +
                         '\n1. Bronze  – Kes 300' +
                         '\n2. Silver – Kes 650' +
@@ -750,17 +754,18 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                   
-                    menu.con(` Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
-                        '\nPAY' +
-                        '\n1. Kes 300 deducted monthly \n' +
-                        '\n 2-3,294 yearly' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
-                    )
+                    console.log("USER: ", user)
+
+                    menu.con(`Hospital cover for ${user?.name} ${buildInput.phone} Kes 1M a year
+                                PAY
+                                1. Kes 300 deducted monthly
+                                2. Kes 3,294 yearly
+                                0. Back
+                                00. Main Menu`);
                 },
                 next: {
                     '1': 'buyForSelf.bronze.pay',
+                    '2': 'buyForSelf.bronze.pay.yearly',
                     '0': 'account',
                     '00': 'insurance'
                 }
@@ -775,14 +780,14 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
+                    console.log("USER: ", user)
 
-                   
-                    menu.con(` Hospital cover for  ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
-                        '\nPAY' +
-                        '\n1. Kes 650 deducted monthly \n' +
-                        '\n 2-3,294 yearly' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
+                    menu.con(`Hospital cover for  ${user?.name} ${buildInput.phone} John Doe Kes 1M a year 
+                                PAY' +
+                                1. Kes 650 deducted monthly 
+                                2. Kes 3,294 yearly
+                                0.Back
+                                00.Main Menu`
                     )
 
                 },
@@ -802,13 +807,13 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                   
-                    menu.con(` Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year /n` +
-                        '\nPAY' +
-                        '\n1. Kes 1400 deducted monthly \n' +
-                        '\n 2-3,294 yearly' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
+                    console.log("USER: ", user)
+                    menu.con(`Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year
+                        PAY
+                        1. Kes 1400 deducted monthly 
+                        2. Kes 3,294 yearly
+                        0.Back
+                        00.Main Menu`
                     )
 
                 },
@@ -823,7 +828,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf.bronze.pay', {
                 run: () => {
 
-                   
+
                     menu.con('Pay Kes 300  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -838,10 +843,29 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
+            menu.state('buyForSelf.bronze.pay.yearly', {
+                run: () => {
+
+
+                    menu.con('Pay Kes 3,294 deducted yearly.' +
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+                next: {
+                    '*\\d+': 'buyForSelf.bronze.yearly.pin',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+
+
             menu.state('buyForSelf.silver.pay', {
                 run: () => {
 
-                   
+
                     menu.con('Pay Kes 650  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -859,7 +883,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForSelf.gold.pay', {
                 run: () => {
 
-                   
+
                     menu.con('Pay Kes 1400  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -889,10 +913,10 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-
+                    console.log("USER: ", user)
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                       
+
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 300 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -913,6 +937,42 @@ export default function (args: RequestBody, db: any) {
 
                 }
             });
+
+            menu.state('buyForSelf.bronze.yearly.pin', {
+                run: async () => {
+                    // use menu.val to access user input value
+                    let pin = Number(menu.val);
+                    //get user by pin
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)
+                    // check if pin is correct
+                    if (user && user.pin == pin) {
+
+                        menu.con('SCHEDULE' +
+                            '\n Enter day of month to deduct Kes 3,294 premium yearly (e.g. 1, 2, 3…31)' +
+                            '\n0.Back' +
+                            '\n00.Main Menu'
+                        );
+
+
+                    } else {
+                        // use menu.con() to send response without terminating session
+                        menu.con('PIN incorrect. Try again');
+                    }
+                },
+
+                next: {
+                    '*\\d+': 'buyForSelf.bronze.yearly.confirm',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
             menu.state('buyForSelf.silver.pin', {
                 run: async () => {
                     // use menu.val to access user input value
@@ -925,10 +985,10 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-
+                    console.log("USER: ", user)
                     // check if pin is correct
                     if (user && user.pin == pin) {
-                       
+
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 650 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -962,9 +1022,9 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // check if pin is correct
+                    console.log("USER: ", user)                    // check if pin is correct
                     if (user && user.pin == pin) {
-                       
+
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
@@ -1007,7 +1067,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // policy that is active
+                    console.log("USER: ", user)                    // policy that is active
                     let activePolicy = await Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -1067,7 +1127,99 @@ export default function (args: RequestBody, db: any) {
 
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 300  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct Kes 300  on day ${day} each month. Next deduction will be on ${nextDeduction} 
+                         1.Confirm 
+                         0.Back 
+                         00.Main Menu`
+                    );
+
+                },
+                next: {
+                    '1': 'confirmation',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+
+            menu.state('buyForSelf.bronze.yearly.confirm', {
+                run: async () => {
+                    // use menu.val to access user input value
+
+                    let day: any = Number(menu.val);
+                    let date = new Date();
+
+                    let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    //nextDeduction to be formatted to MM/DD/YYYY
+                    //update user details in db
+
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)                    // policy that is active
+                    let activePolicy = await Policy.findOne({
+                        where: {
+                            user_id: user.id,
+                            policy_status: 'active'
+                        }
+                    })
+
+
+
+                    if (user && !activePolicy) {
+
+                        //save policy details
+                        let policy = {
+
+                            policy_type: 'bronze',
+                            beneficiary: 'self',
+                            policy_status: 'active',
+                            policy_start_date: new Date(),
+                            policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                            policy_deduction_day: day * 1,
+                            policy_deduction_amount: 3294,
+                            policy_next_deduction_date: nextDeduction,
+                            user_id: user.id
+                        }
+
+                        let newPolicy = await Policy.create(policy);
+
+                        console.log(newPolicy)
+
+                    } else {
+                        menu.con('You already have an active policy. \n' +
+                            '\n0.Back ' + ' 00.Main Menu'
+                        );
+                    }
+
+                    //SEND SMS TO USER
+
+                    const to = buildInput.phone; //  '+2547xxxxxxxx';
+
+                    const from = 'BLUEWAVE INSURANCE';
+                    const message = `PAID Kes 3,294 to AAR Kenya for Bronze Cover Cover Charge Kes 0. Bal Kes 10,000. TID: 715XXXXXXXX. 
+                    Date: ${new Date().toLocaleDateString()}. `
+                    africastalking.SMS.send({
+                        to,
+                        message,
+                        from
+                    })
+                        .then(response => {
+                            console.log(response);
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+
+
+
+
+                    menu.con('Confirm \n' +
+
+                        ` Deduct Kes 3,294  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -1080,6 +1232,7 @@ export default function (args: RequestBody, db: any) {
 
                 }
             });
+
 
 
             menu.state('buyForSelf.silver.confirm', {
@@ -1099,7 +1252,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // policy that is active
+                    console.log("USER: ", user)                    // policy that is active
                     let activePolicy = await Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -1172,7 +1325,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // policy that is active
+                    console.log("USER: ", user)                    // policy that is active
                     let activePolicy = await Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -1237,7 +1390,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-
+                    console.log("USER: ", user)
                     let policy = await Policy.findOne({
                         where: {
                             user_id: user.id
@@ -1256,10 +1409,10 @@ export default function (args: RequestBody, db: any) {
                             `To stay covered Kes ${policy_deduction_amount} will be deducted on day ${day} of every month`
 
                         )
-                    }else{
+                    } else {
                         menu.con('You do not have an active policy. \n' +
-                        '\n0.Back ' + ' 00.Main Menu'
-                    );
+                            '\n0.Back ' + ' 00.Main Menu'
+                        );
                     }
                 }
 
@@ -1270,7 +1423,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForFamily', {
                 run: () => {
 
-                           
+
                     menu.con('Buy for family ' +
                         '\n1. Self  – Kes 650' +
                         '\n2. Self + Spouse – Kes 1,040' +
@@ -1289,7 +1442,7 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
-          
+
 
             //buy for family self
             menu.state('buyForFamily.self', {
@@ -1297,7 +1450,7 @@ export default function (args: RequestBody, db: any) {
 
                     //save premium to db users collection
 
-                   
+
                     menu.con('\nEnter day of the month you want to deduct premium' +
                         '\n0.Back' +
                         '\n00.Main Menu'
@@ -1330,7 +1483,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // policy that is active
+                    console.log("USER: ", user)                    // policy that is active
                     let activePolicy = await Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -1385,13 +1538,13 @@ export default function (args: RequestBody, db: any) {
             });
 
 
-              //buyForFamily.selfSpouse
+            //buyForFamily.selfSpouse
 
-              menu.state('buyForFamily.selfSpouse', {
+            menu.state('buyForFamily.selfSpouse', {
                 run: () => {
 
                     //save policy details to db
-                   
+
                     menu.con('\nEnter Spouse name' +
                         '\n0.Back' +
                         '\n00.Main Menu'
@@ -1419,9 +1572,9 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //update policy details in db
+                    console.log("USER: ", user)                    //update policy details in db
 
-                   //policy end date equals policy start date + 1 year
+                    //policy end date equals policy start date + 1 year
                     let date = new Date();
 
 
@@ -1453,7 +1606,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 1", newBeneficiary)
 
 
-                   
+
                     menu.con('\n Enter Spouse ID' +
 
                         '\n0.Back' +
@@ -1468,7 +1621,7 @@ export default function (args: RequestBody, db: any) {
 
                 }
             });
-//buyForFamily.selfSpouse.spouse.id
+            //buyForFamily.selfSpouse.spouse.id
             menu.state('buyForFamily.selfSpouse.spouse.id', {
                 run: async () => {
 
@@ -1483,7 +1636,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
                     console.log("user 2", user.id)
-
+                    console.log("USER: ", user)
                     //update beneficiary national id
                     let beneficiary = await Beneficiary.findOne({
                         where: {
@@ -1493,34 +1646,34 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 2", beneficiary)
 
                     if (beneficiary) {
-                        beneficiary.national_id = id_number ;
+                        beneficiary.national_id = id_number;
                         beneficiary.save().catch(err => console.log(err));
-                    }else{
+                    } else {
                         menu.con('No beneficiary found. \n' +
 
-                        '\n0.Back ' + ' 00.Main Menu'
-                    );
+                            '\n0.Back ' + ' 00.Main Menu'
+                        );
                     }
 
 
                     menu.con('\nEnter day of the month you want to deduct premium' +
-                    '\n0.Back' +
-                    '\n00.Main Menu'
+                        '\n0.Back' +
+                        '\n00.Main Menu'
 
-                )
-            },
-            next: {
-                '*[0-9]+': 'buyForFamily.selfSpouse.confirm',
-                '0': 'buyForFamily',
-                '00': 'insurance'
+                    )
+                },
+                next: {
+                    '*[0-9]+': 'buyForFamily.selfSpouse.confirm',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
 
-            }
+                }
             });
 
             //buyForFamily.selfSpouse.confirm
             menu.state('buyForFamily.selfSpouse.confirm', {
                 run: async () => {
-    
+
                     const day: any = Number(menu.val);
                     const date = new Date();
                     const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
@@ -1532,7 +1685,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
                     console.log("user 5", user.id)
-
+                    console.log("USER: ", user)
                     let policy = await Policy.findOne({
                         where: {
                             user_id: user.id
@@ -1546,12 +1699,12 @@ export default function (args: RequestBody, db: any) {
                         policy.save();
                     }
 
-                   
+
                     menu.con('Confirm \n' +
-                    ` Deduct Kes 1,040  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
-                    '\n1.Confirm \n' +
-                    '\n0.Back ' + ' 00.Main Menu'
-                );
+                        ` Deduct Kes 1,040  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        '\n1.Confirm \n' +
+                        '\n0.Back ' + ' 00.Main Menu'
+                    );
 
                 },
                 next: {
@@ -1569,7 +1722,7 @@ export default function (args: RequestBody, db: any) {
                 run: () => {
 
                     //save policy details to db
-                   
+
                     menu.con('\nEnter Spouse name' +
                         '\n0.Back' +
                         '\n00.Main Menu'
@@ -1597,9 +1750,9 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //update policy details in db
+                    console.log("USER: ", user)                    //update policy details in db
 
-                   //policy end date equals policy start date + 1 year
+                    //policy end date equals policy start date + 1 year
                     let date = new Date();
 
 
@@ -1631,7 +1784,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 1", newBeneficiary)
 
 
-                   
+
                     menu.con('\n Enter Spouse ID' +
 
                         '\n0.Back' +
@@ -1664,7 +1817,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
                     console.log("user 2", user.id)
-
+                    console.log("USER: ", user)
                     //update beneficiary national id
                     let beneficiary = await Beneficiary.findOne({
                         where: {
@@ -1674,26 +1827,14 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 2", beneficiary)
 
                     if (beneficiary) {
-                        beneficiary.national_id = id_number ;
+                        beneficiary.national_id = id_number;
                         beneficiary.save().catch(err => console.log(err));
-                    }else{
+                    } else {
                         menu.con('No beneficiary found. \n' +
 
-                        '\n0.Back ' + ' 00.Main Menu'
-                    );
+                            '\n0.Back ' + ' 00.Main Menu'
+                        );
                     }
-
-
-
-
-                   
-                    // menu.con(` Hospital cover for ${id_number} ${beneficiary.full_name} Kes 1M a year /n` +
-                    //     '\nPAY' +
-                    //     '\n1. Kes 1300 deducted monthly \n' +
-                    //     '\n 2-3,294 yearly' +
-                    //     '\n0.Back' +
-                    //     '\n00.Main Menu'
-                    // )
 
                     menu.con('\nEnter Child s name' +
                         '\n0.Back' +
@@ -1702,7 +1843,7 @@ export default function (args: RequestBody, db: any) {
 
                 },
                 next: {
-                    '*[a-zA-Z]+':  'buyForFamily.selfSpouse1Child.child1',
+                    '*[a-zA-Z]+': 'buyForFamily.selfSpouse1Child.child1',
                     '0': 'buyForFamily',
                     '00': 'insurance'
                 }
@@ -1723,7 +1864,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //create beneficiary
+                    console.log("USER: ", user)                    //create beneficiary
 
                     let beneficiary = {
                         full_name: child1,
@@ -1738,71 +1879,71 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 3", newBeneficiary)
 
 
-                   
-                       
-                        menu.con('\nEnter day of the month you want to deduct premium' +
-                            '\n0.Back' +
-                            '\n00.Main Menu'
-    
-                        )
-                    },
-                    next: {
-                        '*[0-9]+': 'buyForFamily.selfSpouse1Child.confirm',
-                        '0': 'buyForFamily',
-                        '00': 'insurance'
-    
-                    }
+
+
+                    menu.con('\nEnter day of the month you want to deduct premium' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+
+                    )
+                },
+                next: {
+                    '*[0-9]+': 'buyForFamily.selfSpouse1Child.confirm',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+
+                }
 
             });
 
 
             //buy for family selfSpouse1Child confirm
             menu.state('buyForFamily.selfSpouse1Child.confirm', {
-                    run: async () => {
-    
-                        const day: any = Number(menu.val);
-                        const date = new Date();
-                        const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                run: async () => {
 
-                        //update policy details in db
-                        let user = await User.findOne({
-                            where: {
-                                phone_number: buildInput.phone
-                            }
-                        })
-                        console.log("user 5", user.id)
+                    const day: any = Number(menu.val);
+                    const date = new Date();
+                    const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
 
-                        let policy = await Policy.findOne({
-                            where: {
-                                user_id: user.id
-                            }
-                        })
-                        console.log("policy 5", policy)
-
-                        if (policy) {
-                            policy.policy_deduction_day = day;
-                            policy.policy_next_deduction_date = nextDeduction;
-                            policy.save();
+                    //update policy details in db
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
                         }
+                    })
+                    console.log("user 5", user.id)
 
-                       
-                        menu.con('Confirm \n' +
+                    let policy = await Policy.findOne({
+                        where: {
+                            user_id: user.id
+                        }
+                    })
+                    console.log("policy 5", policy)
+
+                    if (policy) {
+                        policy.policy_deduction_day = day;
+                        policy.policy_next_deduction_date = nextDeduction;
+                        policy.save();
+                    }
+
+
+                    menu.con('Confirm \n' +
                         ` Deduct Kes 1456  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
 
-                    },
-                    next: {
-                        '1': 'confirmation',
-                        '0': 'buyForFamily',
-                        '00': 'insurance'
-                    }
+                },
+                next: {
+                    '1': 'confirmation',
+                    '0': 'buyForFamily',
+                    '00': 'insurance'
+                }
 
-                        //save premium to db users collection
-    
-                    
-                });
+                //save premium to db users collection
+
+
+            });
 
             //buyForFamily.selfSpouse2Children
             menu.state('buyForFamily.selfSpouse2Children', {
@@ -1834,7 +1975,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //update policy details in db
+                    console.log("USER: ", user)                    //update policy details in db
 
                     const policy = {
                         policy_type: 'family',
@@ -1845,7 +1986,7 @@ export default function (args: RequestBody, db: any) {
                         policy_deduction_amount: 1456,
                         policy_deduction_day: 1,
                         policy_next_deduction_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-                       
+
                         user_id: user.id
                     }
 
@@ -1866,7 +2007,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 1", newBeneficiary)
 
 
-                   
+
                     menu.con('\n Enter Spouse ID' +
 
                         '\n0.Back' +
@@ -1898,7 +2039,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
                     console.log("user", user.id)
-
+                    console.log("USER: ", user)
                     //update beneficiary national id
                     let beneficiary = await Beneficiary.findOne({
                         where: {
@@ -1912,9 +2053,9 @@ export default function (args: RequestBody, db: any) {
                         beneficiary.save();
                     }
                     menu.con('\nEnter Child 1 name' +
-                    '\n0.Back' +
-                    '\n00.Main Menu'
-                )
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
 
                 },
                 next: {
@@ -1924,7 +2065,7 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
-            
+
 
             //buyForFamily.selfSpouse2Children child1 name
             menu.state('buyForFamily.selfSpouse2Child.child1.name', {
@@ -1940,7 +2081,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //create beneficiary
+                    console.log("USER: ", user)                    //create beneficiary
                     let beneficiary = {
                         full_name: child1,
                         relationship: 'child1',
@@ -1952,7 +2093,7 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 3", newBeneficiary)
 
 
-                   
+
                     menu.con('\n Enter Child 2 name' +
 
 
@@ -1983,7 +2124,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    //create beneficiary
+                    console.log("USER: ", user)                    //create beneficiary
                     let beneficiary = {
                         full_name: child2,
                         relationship: 'child2',
@@ -1997,11 +2138,11 @@ export default function (args: RequestBody, db: any) {
                     console.log("new beneficiary 4", newBeneficiary)
 
                     menu.con('Pay Kes 1456  deducted monthly.' +
-                    '\nTerms&Conditions - www.airtel.com' +
-                    '\nEnter PIN to Agree and Pay' +
-                    '\n0.Back' +
-                    '\n00.Main Menu'
-                )
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
 
 
                 },
@@ -2039,7 +2180,7 @@ export default function (args: RequestBody, db: any) {
             menu.state('buyForFamilyPin', {
                 run: () => {
                     console.log("buyForFamilyPin")
-                   
+
                     menu.con('Pay Kes 1300  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
@@ -2069,9 +2210,9 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    // check if pin is correct
+                    console.log("USER: ", user)                    // check if pin is correct
                     if (user.pin == pin) {
-                       
+
                         menu.con('SCHEDULE' +
                             '\n Enter day of month to deduct Kes 1300 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
