@@ -18,8 +18,6 @@ const africastalking = AfricasTalking({
 
 //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
 
-//f16ecdd2d74c746296367b7f34dcebe7b9f14ab45cfb2113f3e86077f906bc98
-
 
 
 export default function (args: RequestBody, db: any) {
@@ -32,15 +30,14 @@ export default function (args: RequestBody, db: any) {
             let Claim = db.claims;
             let Session = db.sessions;
             let Beneficiary = db.beneficiaries;
-            //check if user exis
 
-//if  args.phoneNumber has a + then remove it
+            //if  args.phoneNumber has a + then remove it
             if (args.phoneNumber.charAt(0) == "+") {
 
                 args.phoneNumber = args.phoneNumber.substring(1);
             }
 
-            
+
             let user = await User.findOne({
                 where: {
                     phone_number: args.phoneNumber
@@ -106,9 +103,7 @@ export default function (args: RequestBody, db: any) {
             }
 
             // SET MENU STATES
-
-
-            //LANDING PAGE
+            //=================START=================
             menu.startState({
                 run: () => {
                     // use menu.con() to send response without terminating session      
@@ -126,7 +121,6 @@ export default function (args: RequestBody, db: any) {
                         '\n11. BiZ Wallet'
                     );
                 },
-                // next object links to next state based on user input
                 next: {
                     '7': 'insurance',
                 }
@@ -205,527 +199,7 @@ export default function (args: RequestBody, db: any) {
             });
 
 
-            //faqs
-
-            menu.state('faqs', {
-                run: async () => {
-
-                    menu.con('FAQs ' +
-                        '\n1. Eligibility' +
-                        '\n2. Bronze cover' +
-                        '\n3. Silver Cover' +
-                        '\n4. Gold cover' +
-                        '\n5. Auto-renew' +
-                        '\n6. Waiting period' +
-                        '\n7. When to make claim' +
-                        '\n8. Claim Payment' +
-                        '\n9. Change Name' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
-                    )
-                },
-                next: {
-                    '1': 'eligibility',
-                    '2': 'bronzeCover',
-                    '3': 'silverCover',
-                    '4': 'goldCover',
-                    '5': 'autoRenew',
-                    '6': 'waitingPeriod',
-                    '7': 'whenToMakeClaim',
-                    '8': 'claimPayment',
-                    '9': 'changeName',
-                }
-            });
-
-
-            //eligibility
-            menu.state('eligibility', {
-                run: async () => {
-
-
-                    menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
-
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-            //bronze cover
-            menu.state('bronzeCover', {
-                run: async () => {
-                    menu.end('Get Free Cover for Bronze Hospitalization cover for 30 nights / year ' +
-
-                        '\nPays keys 4,500 per night from 2nd night. Payout for ICU is Kes9,000 for max 10 nights' +
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-            //silver cover
-            menu.state('silverCover', {
-
-                run: async () => {
-
-                    menu.end('Outpatient limit of Kes 300,000' +
-                        '\nMaternity covered up to Kes 100,000' +
-                        '\nCan cover up to 6 dependents' +
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-            //gold cover
-
-            menu.state('goldCover', {
-                run: async () => {
-
-                    menu.end('Outpatient limit of Kes 400,000' +
-
-                        '\nMaternity covered up to Kes 100,000' +
-                        '\nCan cover up to 6 dependents' +
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-            //auto renew
-
-            menu.state('autoRenew', {
-                run: async () => {
-
-                    menu.end('To stay covered, the premium amount will be deducted automatically from your Airtel Money account on the selected day per month' +
-
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-
-            //waiting period
-
-            menu.state('waitingPeriod', {
-                run: async () => {
-                    menu.end('This means the days before benefits become fully active. For the first 30 DAYS, only hospitalizations due to ACCIDENT will be covered. ' +
-
-                        '\n10 month waiting period for pre-existing conditions.' +
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-            //when to make claim
-
-            menu.state('whenToMakeClaim', {
-                run: async () => {
-                    menu.end('Make Hospital claim when you spend MORE THAN 1 NIGHT in the hospital. ' +
-
-                        '\nA' +
-
-
-                        '\nTs&Cs apply'
-
-                    )
-                },
-            });
-
-
-
-            //claim payment
-
-            menu.state('claimPayment', {
-                run: async () => {
-
-                    menu.end('Claims will be paid to customer’s Airtel  wallet (Bronze) or to the hospital for Silver and Gold' +
-
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-            //change name
-
-            menu.state('changeName', {
-                run: async () => {
-                    menu.end('Policy will cover person whose name SIM is registered in. To change, visit Airtel Service Center with your National ID to Register this SIM Card in your name' +
-
-                        '\nTs&Cs apply'
-                    )
-                },
-            });
-
-
-
-
-
-
-            //terms and conditions
-            menu.state('termsAndConditions', {
-                run: async () => {
-                    const to = '254' + buildInput.phone.substring(1);
-                    const message = 'Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS';
-                    const from = 'Airtel';
-
-
-                    await africastalking.SMS.send({
-                        to,
-                        message,
-                        from
-                    })
-                        .then(response => {
-                            console.log( "AFRICASTALKING: ",response);
-                        })
-                        .catch(error => {
-                            console.error(error);
-                        });
-
-
-                    menu.end('Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS')
-                },
-            });
-
-
-
-
-            //my account
-
-            menu.state('myAccount', {
-                run: async () => {
-
-                    menu.con('My Account ' +
-
-                        '\n1. Pay Now' +
-                        '\n2. Manage auto-renew' +
-                        '\n3. My insurance policy' +
-                        '\n4. Cancel policy' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
-                    )
-                },
-                next: {
-                    '1': 'payNow',
-                    '2': 'manageAutoRenew',
-                    '3': 'myInsurancePolicy',
-                    '4': 'cancelPolicy',
-                    '0': 'account',
-                    '00': 'insurance',
-                }
-            })
-
-
-            //cancel policy
-
-            menu.state('cancelPolicy', {
-                run: async () => {
-
-                    const user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone,
-                        },
-                    });
-                    if (user) {
-                        const policy = await Policy.findOne({
-                            where: {
-                                user_id: user.id,
-                            },
-                        });
-
-                        console.log("POLICY: ", policy)
-                        if (policy) {
-                            // 1. Cancel Policy
-                            menu.con('Hospital cover of Kes 1M a year(100k per night, max 10 nights)' +
-                                'Life cover of Kes 4M Funeral Benefit' +
-                                '\n1. Cancel Policy');
-                        } else {
-                            menu.con("Your policy is INACTIVE\n0 Buy cover");
-                        }
-                    } else {
-                        menu.end("User not found");
-                    }
-
-                },
-                next: {
-                    '0': 'account',
-                    '1': 'cancelPolicyPin',
-                }
-
-            })
-
-            //cancel policy pin
-
-            menu.state('cancelPolicyPin', {
-                run: async () => {
-
-                    menu.con('By cancelling, you will no longer be covered for Hospital + Life Insurance as of DD/MM/YYYY.' +
-                        'Enter PIN to  Confirm cancellation\n' +
-                        '0.Back\n' +
-                        '00.Main Menu'
-                    )
-                },
-                next: {
-                    '*[0-9]': 'cancelPolicyConfirm',
-                }
-            })
-
-
-            //cancel policy confirm
-
-            menu.state('cancelPolicyConfirm', {
-                run: async () => {
-                    const to = '254' + buildInput.phone.substring(1);
-                    const message = ' You CANCELLED your Medical cover cover. Your Policy will expire on DD/MM/YYYY and you will not be covered. Dial *187*7*1# to reactivate.';
-                    const from = 'Airtel';
-
-
-                    africastalking.SMS.send({
-                        to,
-                        message,
-                        from
-                    })
-                        .then(response => {
-                            console.log(response);
-                        })
-                        .catch(error => {
-                            console.error(error);
-                        });
-
-                    let pin = menu.val
-
-                    menu.con('Your policy will expire on DD/MM/YYYY and will not be renewed. Dial *187*7# to reactivate.' +
-                        '0.Back     00.Main Menu'
-                    )
-                },
-                next: {
-
-                    '0': 'myAccount',
-                    '00': 'insurance',
-
-                }
-            })
-
-
-
-            //my insurance policy
-
-            menu.state('myInsurancePolicy', {
-                run: async () => {
-
-                    //grt user by phone number
-
-                    const user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone,
-                        },
-                        include: [
-                            {
-                                model: Policy,
-                                where: {
-                                    policy_status: 'active',
-                                },
-                                attributes: [
-                                    'policy_status',
-                                    'policy_type',
-                                    'policy_end_date',
-                                    'policy_deduction_day',
-                                ],
-                                raw: true,
-                            },
-                        ],
-                        raw: true,
-                    });
-
-                    if (!user) {
-                        menu.con('User not found');
-                        return;
-                    }
-
-                    if (user['policies.policy_status'] === 'active') {
-
-
-                        menu.end(
-                            'My Insurance Policy ' +
-                            `${user['policies.policy_type']} cover ${user['policies.policy_status']} upto ${user['policies.policy_end_date']}\n` +
-                            `HOSPITAL: Kes 100k per night, ## nights remaining\n` +
-                            `FUNERAL: Kes 4M cover\n` +
-                            `Premium payment auto-deducted day ${user['policies.policy_deduction_day']} monthly`
-                        );
-                    } else {
-                        menu.con(
-                            'Your policy is INACTIVE\n' +
-                            '1 Buy cover\n' +
-                            '0.Back\n' +
-                            '00.Main Menu'
-                        );
-                    }
-
-                },
-                next: {
-                    '1': 'account',
-                    '0': 'account',
-                    '00': 'insurance',
-
-                }
-            })
-
-
-
-            //pay now
-
-            menu.state('payNow', {
-                run: async () => {
-
-                    menu.con('Your outstanding premium is Kes 1,353 ' +
-
-                        '\n1. Enter PIN to Pay Now' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
-                    )
-                },
-
-                next: {
-                    '*\\d+': 'payNowPin',
-                    '0': 'account',
-                    '00': 'insurance',
-                }
-
-            })
-
-
-            menu.state('payNowPin', {
-                run: async () => {
-
-                    let pin = menu.val
-
-                    let user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone
-                        }
-                    })
-
-                    console.log("USER pin: ", user)                    //get policy
-                    let policy = await Policy.findOne({
-                        where: {
-                            user_id: user.id
-                        }
-                    })
-                    let policy_deduction_amount = policy.policy_deduction_amount
-                    let policy_deduction_day = policy.policy_deduction_day
-                    let policy_type = policy.policy_type
-                    let policy_end_date = policy.policy_end_date
-
-                    let nextMonth = new Date()
-                    nextMonth.setMonth(nextMonth.getMonth() + 1).toLocaleString()
-
-                    // check if pin is correct
-                    if (user.pin == pin) {
-
-                        //send sms
-
-                        const to = '254' + buildInput.phone.substring(1);
-                        const message = `PYour monthly auto premium payment of Kes ${policy_deduction_amount} for ${policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy_end_date}. Next payment is on DD/MM/YY
-                        `;
-                        const from = 'Airtel';
-
-                        africastalking.SMS.send({
-                            to,
-                            message,
-                            from
-                        })
-                            .then(response => {
-                                console.log(response);
-                            })
-                            .catch(error => {
-                                console.error(error);
-                            });
-
-
-                        //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
-                        menu.end(`Paid Kes ${policy_deduction_amount} for Medical cover. 
-                        Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
-
-                    } else {
-                        menu.end('Incorrect PIN. Please try again')
-                    }
-
-
-                }
-            })
-
-
-            //makeClaim'
-            menu.state('makeClaim', {
-                run: async () => {
-
-                    //send sms
-                    const { phone: to } = buildInput;
-                    const from = "Bluewave Insurance";
-
-                    const messages = [
-                        `Your medicals details have been confirmed. You are covered for hospital cash of kes 4,500 per night payable from the second night`,
-                        `An amount of kes100,000 has been paid by AAR towards your hospital bill.: Your cover balanceis Kes 200,000`
-                    ];
-
-                    for (const message of messages) {
-                        try {
-                            const response = await africastalking.SMS.send({ to, message, from });
-                            console.log(response);
-                        } catch (error) {
-                            console.error(error);
-                        }
-                    }
-
-                    //get user
-                    try {
-                        const user = await User.findOne({
-                            where: {
-                                phone_number: args.phoneNumber,
-                            },
-                        });
-                        console.log("USER claim:", user);
-                        if (user) {
-                            const policy = await Policy.findOne({
-                                where: {
-                                    user_id: user.id,
-                                },
-                            });
-                            console.log("POLICY:", policy);
-                            if (policy) {
-                                const claim = await Claim.create({
-                                    policy_id: policy.policy_id,
-                                    user_id: buildInput.user_id,
-                                    claim_date: new Date(),
-                                    claim_status: "Pending",
-                                });
-                                console.log("CLAIM:", claim);
-                                menu.con(
-                                    "Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu"
-                                );
-                            } else {
-                                menu.con("Your policy is INACTIVE\n0. Buy cover");
-                            }
-                        } else {
-                            menu.end("User not found");
-                        }
-                    } catch (err) {
-                        console.log("err:", err);
-                    }
-
-                },
-                next: {
-                    '0': 'account',
-                    '00': 'insurance',
-                }
-            })
-
-
-
-            //LEVEL 4
-
+            //=================BUY FOR SELF=================
             menu.state('buyForSelf', {
                 run: () => {
 
@@ -748,7 +222,9 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
-            //LEVEL 5
+
+
+            //================= BUY FOR SELF BRONZE =================
             menu.state('buyForSelf.bronze', {
                 run: async () => {
 
@@ -761,8 +237,11 @@ export default function (args: RequestBody, db: any) {
                     })
 
                     console.log("USER: ", user)
+                    let user_name = user?.name.split(' ')[0]
+                    //capitalize first letter of name
+                    let name = user_name.charAt(0).toUpperCase() + user_name.slice(1)
 
-                    menu.con(`Hospital cover for ${user?.name} ${buildInput.phone} Kes 1M a year
+                    menu.con(`Hospital cover for ${name}, ${buildInput.phone} Kes 1M a year 
                                 PAY
                                 1. Kes 300 deducted monthly
                                 2. Kes 3,294 yearly
@@ -776,60 +255,6 @@ export default function (args: RequestBody, db: any) {
                     '00': 'insurance'
                 }
             });
-            menu.state('buyForSelf.silver', {
-                run: async () => {
-
-
-                    let user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone
-                        }
-                    })
-
-                    console.log("USER: ", user)
-
-                    menu.con(`Hospital cover for  ${user?.name} ${buildInput.phone} John Doe Kes 1M a year 
-                                PAY' +
-                                1. Kes 650 deducted monthly 
-                                2. Kes 3,294 yearly
-                                0.Back
-                                00.Main Menu`
-                    )
-
-                },
-                next: {
-                    '1': 'buyForSelf.silver.pay',
-                    '0': 'account',
-                    '00': 'insurance'
-
-                }
-            });
-            menu.state('buyForSelf.gold', {
-                run: async () => {
-
-                    let user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone
-                        }
-                    })
-
-                    console.log("USER: ", user)
-                    menu.con(`Hospital cover for ${user?.name} ${buildInput.phone} John Doe Kes 1M a year
-                        PAY
-                        1. Kes 1400 deducted monthly 
-                        2. Kes 3,294 yearly
-                        0.Back
-                        00.Main Menu`
-                    )
-
-                },
-                next: {
-                    '1': 'buyForSelf.gold.pay',
-                    '0': 'account',
-                    '00': 'insurance'
-                }
-            });
-            //LEVEL 6
 
             menu.state('buyForSelf.bronze.pay', {
                 run: () => {
@@ -868,46 +293,6 @@ export default function (args: RequestBody, db: any) {
             });
 
 
-            menu.state('buyForSelf.silver.pay', {
-                run: () => {
-
-
-                    menu.con('Pay Kes 650  deducted monthly.' +
-                        '\nTerms&Conditions - www.airtel.com' +
-                        '\nEnter PIN to Agree and Pay' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
-                    )
-
-                },
-                next: {
-                    '*\\d+': 'buyForSelf.silver.pin',
-                    '0': 'account',
-                    '00': 'insurance'
-                }
-            });
-            menu.state('buyForSelf.gold.pay', {
-                run: () => {
-
-
-                    menu.con('Pay Kes 1400  deducted monthly.' +
-                        '\nTerms&Conditions - www.airtel.com' +
-                        '\nEnter PIN to Agree and Pay' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
-                    )
-
-                },
-                next: {
-                    '*\\d+': 'buyForSelf.gold.pin',
-                    '0': 'account',
-                    '00': 'insurance'
-
-                }
-            });
-
-
-
             menu.state('buyForSelf.bronze.pin', {
                 run: async () => {
                     // use menu.val to access user input value
@@ -928,8 +313,6 @@ export default function (args: RequestBody, db: any) {
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
-
-
                     } else {
                         // use menu.con() to send response without terminating session
                         menu.con('PIN incorrect. Try again');
@@ -964,8 +347,6 @@ export default function (args: RequestBody, db: any) {
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
-
-
                     } else {
                         // use menu.con() to send response without terminating session
                         menu.con('PIN incorrect. Try again');
@@ -979,82 +360,6 @@ export default function (args: RequestBody, db: any) {
 
                 }
             });
-            menu.state('buyForSelf.silver.pin', {
-                run: async () => {
-                    // use menu.val to access user input value
-                    let pin = Number(menu.val);
-                    // check if pin is correct
-                    //get user by pin
-                    let user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone
-                        }
-                    })
-
-                    console.log("USER: ", user)
-                    // check if pin is correct
-                    if (user && user.pin == pin) {
-
-                        menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 650 premium monthly (e.g. 1, 2, 3…31)' +
-                            '\n0.Back' +
-                            '\n00.Main Menu'
-                        );
-
-
-                    } else {
-                        // use menu.con() to send response without terminating session
-                        menu.con('PIN incorrect. Try again');
-                    }
-                },
-
-                next: {
-                    '*\\d+': 'buyForSelf.silver.confirm',
-                    '0': 'account',
-                    '00': 'insurance'
-
-                }
-            });
-
-            menu.state('buyForSelf.gold.pin', {
-                run: async () => {
-                    // use menu.val to access user input value
-                    let pin = Number(menu.val);
-                    // check if pin is correct
-                    //get user by pin
-                    let user = await User.findOne({
-                        where: {
-                            phone_number: buildInput.phone
-                        }
-                    })
-
-                    console.log("USER: ", user)                    // check if pin is correct
-                    if (user && user.pin == pin) {
-
-                        menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
-                            '\n0.Back' +
-                            '\n00.Main Menu'
-                        );
-
-
-                    } else {
-                        // use menu.con() to send response without terminating session
-                        menu.con('PIN incorrect. Try again');
-                    }
-                },
-
-
-
-                next: {
-                    '*\\d+': 'buyForSelf.gold.confirm',
-                    '0': 'account',
-                    '00': 'insurance'
-
-                }
-            });
-
-            //LEVEL 7
 
             menu.state('buyForSelf.bronze.confirm', {
                 run: async () => {
@@ -1081,8 +386,6 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-
-
                     if (user && !activePolicy) {
 
                         //save policy details
@@ -1102,6 +405,8 @@ export default function (args: RequestBody, db: any) {
                         let newPolicy = await Policy.create(policy);
 
                         console.log(newPolicy)
+                        console.log( "NEW POLICY BRONZE SELF",newPolicy)
+
 
                     } else {
                         menu.con('You already have an active policy. \n' +
@@ -1128,9 +433,6 @@ export default function (args: RequestBody, db: any) {
                             console.error(error);
                         });
 
-
-
-
                     menu.con('Confirm \n' +
 
                         ` Deduct Kes 300  on day ${day} each month. Next deduction will be on ${nextDeduction} 
@@ -1155,9 +457,14 @@ export default function (args: RequestBody, db: any) {
                     let day: any = Number(menu.val);
                     let date = new Date();
 
-                    let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    //next deductin next year
+
+                    let nextDeduction = new Date(date.getFullYear() + 1, date.getMonth(), day);
+                    const month = nextDeduction.toLocaleString('default', { month: 'long' });
+
+                  
                     //nextDeduction to be formatted to MM/DD/YYYY
-                    //update user details in db
+                   
 
                     let user = await User.findOne({
                         where: {
@@ -1165,7 +472,7 @@ export default function (args: RequestBody, db: any) {
                         }
                     })
 
-                    console.log("USER: ", user)                    // policy that is active
+                    console.log("USER: ", user)                 
                     let activePolicy = await Policy.findOne({
                         where: {
                             user_id: user.id,
@@ -1194,6 +501,8 @@ export default function (args: RequestBody, db: any) {
                         let newPolicy = await Policy.create(policy);
 
                         console.log(newPolicy)
+                        console.log( "NEW POLICY BRONZE SELF",newPolicy)
+
 
                     } else {
                         menu.con('You already have an active policy. \n' +
@@ -1220,12 +529,9 @@ export default function (args: RequestBody, db: any) {
                             console.error(error);
                         });
 
-
-
-
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 3,294  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct Kes 3,294  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -1239,6 +545,150 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
+
+
+            //================= BUY FOR SELF SILVER =================
+            menu.state('buyForSelf.silver', {
+                run: async () => {
+
+
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)
+                    let user_name = user?.name.split(' ')[0]
+                    //capitalize first letter of name
+                    let name = user_name.charAt(0).toUpperCase() + user_name.slice(1)
+
+                    menu.con(`Hospital cover for ${name}, ${buildInput.phone} Kes 1M a year 
+                    PAY' +
+                    1. Kes 650 deducted monthly 
+                    2. Kes 7,650 yearly
+                    0.Back
+                    00.Main Menu`
+                    )
+
+                },
+                next: {
+                    '1': 'buyForSelf.silver.pay',
+                    '2': 'buyForSelf.silver.yearly.pay',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+            menu.state('buyForSelf.silver.pay', {
+                run: () => {
+
+
+                    menu.con('Pay Kes 650  deducted monthly.' +
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+                next: {
+                    '*\\d+': 'buyForSelf.silver.pin',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+            menu.state('buyForSelf.silver.yearly.pay', {
+                run: () => {
+
+
+                    menu.con('Pay Kes 7,650  deducted yearly.' +
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+
+                },
+                next: {
+                    '*\\d+': 'buyForSelf.silver.yearly.pin',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+
+
+            menu.state('buyForSelf.silver.pin', {
+                run: async () => {
+                    // use menu.val to access user input value
+                    let pin = Number(menu.val);
+                    // check if pin is correct
+                    //get user by pin
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)
+                    // check if pin is correct
+                    if (user && user.pin == pin) {
+
+                        menu.con('SCHEDULE' +
+                            '\n Enter day of month to deduct Kes 650 premium monthly (e.g. 1, 2, 3…31)' +
+                            '\n0.Back' +
+                            '\n00.Main Menu'
+                        );
+
+                    } else {
+                        // use menu.con() to send response without terminating session
+                        menu.con('PIN incorrect. Try again');
+                    }
+                },
+
+                next: {
+                    '*\\d+': 'buyForSelf.silver.confirm',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+
+            menu.state('buyForSelf.silver.yearly.pin', {
+                run: async () => {
+                    // use menu.val to access user input value
+                    let pin = Number(menu.val);
+                    // check if pin is correct
+                    //get user by pin
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)
+                    // check if pin is correct
+                    if (user && user.pin == pin) {
+
+                        menu.con('SCHEDULE' +
+                            '\n Enter day of month to deduct Kes 7,650 premium yearly (e.g. 1, 2, 3…31)' +
+                            '\n0.Back' +
+                            '\n00.Main Menu'
+                        );
+
+
+                    } else {
+                        // use menu.con() to send response without terminating session
+                        menu.con('PIN incorrect. Try again');
+                    }
+                },
+
+                next: {
+                    '*\\d+': 'buyForSelf.silver.yearly.confirm',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
 
 
             menu.state('buyForSelf.silver.confirm', {
@@ -1286,6 +736,7 @@ export default function (args: RequestBody, db: any) {
                         let newPolicy = await Policy.create(policy);
 
                         console.log(newPolicy)
+                        console.log( "NEW POLICY SILVER SELF",newPolicy)
 
 
                     } else {
@@ -1313,6 +764,170 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
+
+            menu.state('buyForSelf.silver.yearly.confirm', {
+                run: async () => {
+                    // use menu.val to access user input value
+
+
+                    let day: any = Number(menu.val);
+                    let date = new Date();
+
+                    let nextDeduction = new Date(date.getFullYear()+1, date.getMonth(), day);
+                    //get month from nextDeduction
+
+                    const month = nextDeduction.toLocaleString('default', { month: 'long' });
+                    //nextDeduction to be formatted to MM/DD/YYYY
+                    //update user details in db
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)                   
+                    let activePolicy = await Policy.findOne({
+                        where: {
+                            user_id: user.id,
+                            policy_status: 'active'
+                        }
+                    })
+
+
+                    if (user && !activePolicy) {
+                        //save policy details
+                        let policy = {
+
+                            policy_type: 'silver',
+                            beneficiary: 'self',
+                            policy_status: 'active',
+                            policy_start_date: new Date(),
+                            policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                            policy_deduction_day: day * 1,
+                            policy_deduction_amount: 7650,
+                            policy_next_deduction_date: nextDeduction,
+                            user_id: user.id
+                        }
+
+                        let newPolicy = await Policy.create(policy);
+
+                        console.log(newPolicy)
+                        console.log( "NEW POLICY SILVER SELF",newPolicy)
+
+
+
+                    } else {
+                        menu.con('You already have an active policy. \n' +
+                            '\n0.Back ' + ' 00.Main Menu'
+                        );
+                    }
+
+
+                    menu.con('Confirm \n' +
+
+                        ` Deduct Kes 7,650  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
+                        '\n1.Confirm \n' +
+                        '\n0.Back ' + ' 00.Main Menu'
+                    );
+
+                },
+                next: {
+                    '1': 'confirmation',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+
+
+
+
+            //================= BUY FOR SELF GOLD =================
+
+            menu.state('buyForSelf.gold', {
+                run: async () => {
+
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)
+                    let user_name = user?.name.split(' ')[0]
+                    //capitalize first letter of name
+                    let name = user_name.charAt(0).toUpperCase() + user_name.slice(1)
+
+                    menu.con(`Hospital cover for ${name}, ${buildInput.phone} Kes 1M a year 
+                        PAY
+                        1. Kes 1400 deducted monthly 
+                        2. Kes 16,800 yearly
+                        0.Back
+                        00.Main Menu`
+                    )
+                },
+                next: {
+                    '1': 'buyForSelf.gold.pay',
+                    '2': 'buyForSelf.gold.yearly.pay',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+            menu.state('buyForSelf.gold.pay', {
+                run: () => {
+
+
+                    menu.con('Pay Kes 1400  deducted monthly.' +
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+                next: {
+                    '*\\d+': 'buyForSelf.gold.pin',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+
+            menu.state('buyForSelf.gold.pin', {
+                run: async () => {
+                    // use menu.val to access user input value
+                    let pin = Number(menu.val);
+                    // check if pin is correct
+                    //get user by pin
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)                    // check if pin is correct
+                    if (user && user.pin == pin) {
+
+                        menu.con('SCHEDULE' +
+                            '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
+                            '\n0.Back' +
+                            '\n00.Main Menu'
+                        );
+
+
+                    } else {
+                        // use menu.con() to send response without terminating session
+                        menu.con('PIN incorrect. Try again');
+                    }
+                },
+
+                
+
+                next: {
+                    '*\\d+': 'buyForSelf.gold.confirm',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
 
             menu.state('buyForSelf.gold.confirm', {
                 run: async () => {
@@ -1361,6 +976,9 @@ export default function (args: RequestBody, db: any) {
 
                         console.log(newPolicy)
 
+                        console.log( "NEW POLICY GOLD SELF",newPolicy)
+
+
 
                     } else {
                         menu.con('You already have an active policy. \n' +
@@ -1383,8 +1001,137 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
+            menu.state('buyForSelf.gold.yearly.pay', {
+                run: () => {
 
 
+                    menu.con('Pay Kes 16,800  deducted yearly.' +
+                        '\nTerms&Conditions - www.airtel.com' +
+                        '\nEnter PIN to Agree and Pay' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+
+                },
+                next: {
+                    '*\\d+': 'buyForSelf.gold.yearly.pin',
+                    '0': 'account',
+                    '00': 'insurance'
+                }
+            });
+
+
+            menu.state('buyForSelf.gold.yearly.pin', {
+                run: async () => {
+                    // use menu.val to access user input value
+                    let pin = Number(menu.val);
+                    // check if pin is correct
+                    //get user by pin
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)
+                    // check if pin is correct
+                    if (user && user.pin == pin) {
+
+                        menu.con('SCHEDULE' +
+                            '\n Enter day of month to deduct Kes 16,800 premium yearly (e.g. 1, 2, 3…31)' +
+                            '\n0.Back' +
+                            '\n00.Main Menu'
+                        );
+
+
+                    } else {
+                        // use menu.con() to send response without terminating session
+                        menu.con('PIN incorrect. Try again');
+                    }
+                },
+
+                next: {
+                    '*\\d+': 'buyForSelf.gold.yearly.confirm',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+
+            menu.state('buyForSelf.gold.yearly.confirm', {
+                run: async () => {
+                    // use menu.val to access user input value
+
+
+                    let day: any = Number(menu.val);
+                    let date = new Date();
+
+                    let nextDeduction = new Date(date.getFullYear()+1, date.getMonth(), day);
+                    //get month from nextDeduction
+
+                    const month = nextDeduction.toLocaleString('default', { month: 'long' });
+                    //nextDeduction to be formatted to MM/DD/YYYY
+                    //update user details in db
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER: ", user)                   
+                    let activePolicy = await Policy.findOne({
+                        where: {
+                            user_id: user.id,
+                            policy_status: 'active'
+                        }
+                    })
+
+
+                    if (user && !activePolicy) {
+                        //save policy details
+                        let policy = {
+
+                            policy_type: 'gold',
+                            beneficiary: 'self',
+                            policy_status: 'active',
+                            policy_start_date: new Date(),
+                            policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                            policy_deduction_day: day * 1,
+                            policy_deduction_amount: 16800,
+                            policy_next_deduction_date: nextDeduction,
+                            user_id: user.id
+                        }
+
+                        let newPolicy = await Policy.create(policy);
+
+                        console.log( "NEW POLICY GOLD SELF",newPolicy)
+
+
+                    } else {
+                        menu.con('You already have an active policy. \n' +
+                            '\n0.Back ' + ' 00.Main Menu'
+                        );
+                    }
+
+
+                    menu.con('Confirm \n' +
+
+                        ` Deduct Kes 16,800  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
+                        '\n1.Confirm \n' +
+                        '\n0.Back ' + ' 00.Main Menu'
+                    );
+
+                },
+                next: {
+                    '1': 'confirmation',
+                    '0': 'account',
+                    '00': 'insurance'
+
+                }
+            });
+
+
+            //===============CONFIRMATION=================
             //LEVEL 8
             menu.state('confirmation', {
                 run: async () => {
@@ -1424,6 +1171,7 @@ export default function (args: RequestBody, db: any) {
 
             });
 
+            //============  BUY FOR FAMILY ===================
 
             //Buy for family
             menu.state('buyForFamily', {
@@ -1449,8 +1197,7 @@ export default function (args: RequestBody, db: any) {
             });
 
 
-
-            //buy for family self
+//================BUY FOR FAMILY SELF=================
             menu.state('buyForFamily.self', {
                 run: async () => {
 
@@ -1515,8 +1262,7 @@ export default function (args: RequestBody, db: any) {
                         }
 
                         let newPolicy = await Policy.create(policy);
-
-                        console.log(newPolicy)
+                        console.log( "NEW POLICY FAMILY SELF",newPolicy)
 
 
                     } else {
@@ -1543,8 +1289,7 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
-
-            //buyForFamily.selfSpouse
+//=============BUY FOR FAMILY SELF SPOUSE================
 
             menu.state('buyForFamily.selfSpouse', {
                 run: () => {
@@ -1596,7 +1341,7 @@ export default function (args: RequestBody, db: any) {
                     }
 
                     let newPolicy = await Policy.create(policy).catch(err => console.log(err));
-                    console.log("new policy 1", newPolicy)
+                    console.log( "NEW POLICY FAMILY SELFSPOUSE",newPolicy)
 
 
 
@@ -1690,7 +1435,6 @@ export default function (args: RequestBody, db: any) {
                             phone_number: buildInput.phone
                         }
                     })
-                    console.log("user 5", user.id)
                     console.log("USER: ", user)
                     let policy = await Policy.findOne({
                         where: {
@@ -1723,7 +1467,7 @@ export default function (args: RequestBody, db: any) {
 
 
 
-            //buy for family selfSpouse1Child
+          //=============BUY FOR FAMILY SELF SPOUSE 1 CHILD================
             menu.state('buyForFamily.selfSpouse1Child', {
                 run: () => {
 
@@ -1774,7 +1518,7 @@ export default function (args: RequestBody, db: any) {
                     }
 
                     let newPolicy = await Policy.create(policy).catch(err => console.log(err));
-                    console.log("new policy 1", newPolicy)
+                    console.log( "NEW POLICY FAMILY SELFSPOUSE1CHILD",newPolicy)
 
 
 
@@ -1822,7 +1566,6 @@ export default function (args: RequestBody, db: any) {
                             phone_number: buildInput.phone
                         }
                     })
-                    console.log("user 2", user.id)
                     console.log("USER: ", user)
                     //update beneficiary national id
                     let beneficiary = await Beneficiary.findOne({
@@ -1951,7 +1694,7 @@ export default function (args: RequestBody, db: any) {
 
             });
 
-            //buyForFamily.selfSpouse2Children
+         //===========BUY FOR FAMILY SELF SPOUSE 2 CHILDREN==================
             menu.state('buyForFamily.selfSpouse2Children', {
                 run: async () => {
                     menu.con('\nEnter Spouse name' +
@@ -1997,7 +1740,8 @@ export default function (args: RequestBody, db: any) {
                     }
 
                     let newPolicy = await Policy.create(policy);
-                    console.log("new policy 1", newPolicy)
+                    console.log( "NEW POLICY FAMILY SELFSPOUSE2CHILD",newPolicy)
+
 
 
 
@@ -2044,7 +1788,6 @@ export default function (args: RequestBody, db: any) {
                             phone_number: buildInput.phone
                         }
                     })
-                    console.log("user", user.id)
                     console.log("USER: ", user)
                     //update beneficiary national id
                     let beneficiary = await Beneficiary.findOne({
@@ -2238,6 +1981,516 @@ export default function (args: RequestBody, db: any) {
 
                 }
             });
+
+
+            //================MY ACCOUNT===================
+            menu.state('myAccount', {
+                run: async () => {
+
+                    menu.con('My Account ' +
+
+                        '\n1. Pay Now' +
+                        '\n2. Manage auto-renew' +
+                        '\n3. My insurance policy' +
+                        '\n4. Cancel policy' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+                next: {
+                    '1': 'payNow',
+                    '2': 'manageAutoRenew',
+                    '3': 'myInsurancePolicy',
+                    '4': 'cancelPolicy',
+                    '0': 'account',
+                    '00': 'insurance',
+                }
+            })
+
+
+            //============CANCEL POLICY=================
+
+            menu.state('cancelPolicy', {
+                run: async () => {
+
+                    const user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone,
+                        },
+                    });
+                    if (user) {
+                        const policy = await Policy.findOne({
+                            where: {
+                                user_id: user.id,
+                            },
+                        });
+
+                        console.log("POLICY: ", policy)
+                        if (policy) {
+                            // 1. Cancel Policy
+                            menu.con('Hospital cover of Kes 1M a year(100k per night, max 10 nights)' +
+                                'Life cover of Kes 4M Funeral Benefit' +
+                                '\n1. Cancel Policy');
+                        } else {
+                            menu.con("Your policy is INACTIVE\n0 Buy cover");
+                        }
+                    } else {
+                        menu.end("User not found");
+                    }
+
+                },
+                next: {
+                    '0': 'account',
+                    '1': 'cancelPolicyPin',
+                }
+
+            })
+
+            //cancel policy pin
+
+            menu.state('cancelPolicyPin', {
+                run: async () => {
+
+                    menu.con('By cancelling, you will no longer be covered for Hospital + Life Insurance as of DD/MM/YYYY.' +
+                        'Enter PIN to  Confirm cancellation\n' +
+                        '0.Back\n' +
+                        '00.Main Menu'
+                    )
+                },
+                next: {
+                    '*[0-9]': 'cancelPolicyConfirm',
+                }
+            })
+
+
+            //cancel policy confirm
+
+            menu.state('cancelPolicyConfirm', {
+                run: async () => {
+                    const to = '254' + buildInput.phone.substring(1);
+                    const message = ' You CANCELLED your Medical cover cover. Your Policy will expire on DD/MM/YYYY and you will not be covered. Dial *187*7*1# to reactivate.';
+                    const from = 'Airtel';
+
+
+                    africastalking.SMS.send({
+                        to,
+                        message,
+                        from
+                    })
+                        .then(response => {
+                            console.log(response);
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+
+                    let pin = menu.val
+
+                    menu.con('Your policy will expire on DD/MM/YYYY and will not be renewed. Dial *187*7# to reactivate.' +
+                        '0.Back     00.Main Menu'
+                    )
+                },
+                next: {
+
+                    '0': 'myAccount',
+                    '00': 'insurance',
+
+                }
+            })
+
+
+
+            //my insurance policy
+
+            menu.state('myInsurancePolicy', {
+                run: async () => {
+
+                    //grt user by phone number
+
+                    const user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone,
+                        },
+                        include: [
+                            {
+                                model: Policy,
+                                where: {
+                                    policy_status: 'active',
+                                },
+                                attributes: [
+                                    'policy_status',
+                                    'policy_type',
+                                    'policy_end_date',
+                                    'policy_deduction_day',
+                                ],
+                                raw: true,
+                            },
+                        ],
+                        raw: true,
+                    });
+
+                    if (!user) {
+                        menu.con('User not found');
+                        return;
+                    }
+
+                    if (user['policies.policy_status'] === 'active') {
+
+
+                        menu.end(
+                            'My Insurance Policy ' +
+                            `${user['policies.policy_type']} cover ${user['policies.policy_status']} upto ${user['policies.policy_end_date']}\n` +
+                            `HOSPITAL: Kes 100k per night, ## nights remaining\n` +
+                            `FUNERAL: Kes 4M cover\n` +
+                            `Premium payment auto-deducted day ${user['policies.policy_deduction_day']} monthly`
+                        );
+                    } else {
+                        menu.con(
+                            'Your policy is INACTIVE\n' +
+                            '1 Buy cover\n' +
+                            '0.Back\n' +
+                            '00.Main Menu'
+                        );
+                    }
+
+                },
+                next: {
+                    '1': 'account',
+                    '0': 'account',
+                    '00': 'insurance',
+
+                }
+            })
+
+
+//==================PAY NOW===================
+
+            menu.state('payNow', {
+                run: async () => {
+
+                    menu.con('Your outstanding premium is Kes 1,353 ' +
+
+                        '\n1. Enter PIN to Pay Now' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+
+                next: {
+                    '*\\d+': 'payNowPin',
+                    '0': 'account',
+                    '00': 'insurance',
+                }
+
+            })
+
+
+            menu.state('payNowPin', {
+                run: async () => {
+
+                    let pin = menu.val
+
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: buildInput.phone
+                        }
+                    })
+
+                    console.log("USER pin: ", user)                    //get policy
+                    let policy = await Policy.findOne({
+                        where: {
+                            user_id: user.id
+                        }
+                    })
+                    let policy_deduction_amount = policy.policy_deduction_amount
+                    let policy_deduction_day = policy.policy_deduction_day
+                    let policy_type = policy.policy_type
+                    let policy_end_date = policy.policy_end_date
+
+                    let nextMonth = new Date()
+                    nextMonth.setMonth(nextMonth.getMonth() + 1).toLocaleString()
+
+                    // check if pin is correct
+                    if (user.pin == pin) {
+
+                        //send sms
+
+                        const to = '254' + buildInput.phone.substring(1);
+                        const message = `Your monthly auto premium payment of Kes ${policy_deduction_amount} for ${policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy_end_date}. Next payment is on DD/MM/YY
+                        `;
+                        const from = 'Airtel';
+
+                        africastalking.SMS.send({
+                            to,
+                            message,
+                            from
+                        })
+                            .then(response => {
+                                console.log(response);
+                            })
+                            .catch(error => {
+                                console.error(error);
+                            });
+
+
+                        //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
+                        menu.end(`Paid Kes ${policy_deduction_amount} for Medical cover. 
+                        Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
+
+                    } else {
+                        menu.end('Incorrect PIN. Please try again')
+                    }
+
+
+                }
+            })
+
+//==================MAKE CLAIM===================
+            menu.state('makeClaim', {
+                run: async () => {
+
+                    //send sms
+                    const { phone: to } = buildInput;
+                    const from = "Bluewave Insurance";
+
+                    const messages = [
+                        `Your medicals details have been confirmed. You are covered for hospital cash of kes 4,500 per night payable from the second night`,
+                        `An amount of kes100,000 has been paid by AAR towards your hospital bill.: Your cover balanceis Kes 200,000`
+                    ];
+
+                    for (const message of messages) {
+                        try {
+                            const response = await africastalking.SMS.send({ to, message, from });
+                            console.log(response);
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
+
+                    //get user
+                    try {
+                        const user = await User.findOne({
+                            where: {
+                                phone_number: args.phoneNumber,
+                            },
+                        });
+                        console.log("USER claim:", user);
+                        if (user) {
+                            const policy = await Policy.findOne({
+                                where: {
+                                    user_id: user.id,
+                                },
+                            });
+                            console.log("POLICY:", policy);
+                            if (policy) {
+                                const claim = await Claim.create({
+                                    policy_id: policy.policy_id,
+                                    user_id: buildInput.user_id,
+                                    claim_date: new Date(),
+                                    claim_status: "Pending",
+                                });
+                                console.log("CLAIM:", claim);
+                                menu.con(
+                                    "Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu"
+                                );
+                            } else {
+                                menu.con("Your policy is INACTIVE\n0. Buy cover");
+                            }
+                        } else {
+                            menu.end("User not found");
+                        }
+                    } catch (err) {
+                        console.log("err:", err);
+                    }
+
+                },
+                next: {
+                    '0': 'account',
+                    '00': 'insurance',
+                }
+            })
+
+
+           //===================FAQS===================
+            menu.state('faqs', {
+                run: async () => {
+
+                    menu.con('FAQs ' +
+                        '\n1. Eligibility' +
+                        '\n2. Bronze cover' +
+                        '\n3. Silver Cover' +
+                        '\n4. Gold cover' +
+                        '\n5. Auto-renew' +
+                        '\n6. Waiting period' +
+                        '\n7. When to make claim' +
+                        '\n8. Claim Payment' +
+                        '\n9. Change Name' +
+                        '\n0.Back' +
+                        '\n00.Main Menu'
+                    )
+                },
+                next: {
+                    '1': 'eligibility',
+                    '2': 'bronzeCover',
+                    '3': 'silverCover',
+                    '4': 'goldCover',
+                    '5': 'autoRenew',
+                    '6': 'waitingPeriod',
+                    '7': 'whenToMakeClaim',
+                    '8': 'claimPayment',
+                    '9': 'changeName',
+                }
+            });
+
+
+            //eligibility
+            menu.state('eligibility', {
+                run: async () => {
+
+
+                    menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
+
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+            //bronze cover
+            menu.state('bronzeCover', {
+                run: async () => {
+                    menu.end('Get Free Cover for Bronze Hospitalization cover for 30 nights / year ' +
+
+                        '\nPays keys 4,500 per night from 2nd night. Payout for ICU is Kes9,000 for max 10 nights' +
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+            //silver cover
+            menu.state('silverCover', {
+
+                run: async () => {
+
+                    menu.end('Outpatient limit of Kes 300,000' +
+                        '\nMaternity covered up to Kes 100,000' +
+                        '\nCan cover up to 6 dependents' +
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+            //gold cover
+
+            menu.state('goldCover', {
+                run: async () => {
+
+                    menu.end('Outpatient limit of Kes 400,000' +
+
+                        '\nMaternity covered up to Kes 100,000' +
+                        '\nCan cover up to 6 dependents' +
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+            //auto renew
+
+            menu.state('autoRenew', {
+                run: async () => {
+
+                    menu.end('To stay covered, the premium amount will be deducted automatically from your Airtel Money account on the selected day per month' +
+
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+
+            //waiting period
+
+            menu.state('waitingPeriod', {
+                run: async () => {
+                    menu.end('This means the days before benefits become fully active. For the first 30 DAYS, only hospitalizations due to ACCIDENT will be covered. ' +
+
+                        '\n10 month waiting period for pre-existing conditions.' +
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+            //when to make claim
+
+            menu.state('whenToMakeClaim', {
+                run: async () => {
+                    menu.end('Make Hospital claim when you spend MORE THAN 1 NIGHT in the hospital. ' +
+
+                        '\nA' +
+
+
+                        '\nTs&Cs apply'
+
+                    )
+                },
+            });
+
+
+
+            //claim payment
+
+            menu.state('claimPayment', {
+                run: async () => {
+
+                    menu.end('Claims will be paid to customer’s Airtel  wallet (Bronze) or to the hospital for Silver and Gold' +
+
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+            //change name
+
+            menu.state('changeName', {
+                run: async () => {
+                    menu.end('Policy will cover person whose name SIM is registered in. To change, visit Airtel Service Center with your National ID to Register this SIM Card in your name' +
+
+                        '\nTs&Cs apply'
+                    )
+                },
+            });
+
+
+         //===================TERMS AND CONDITIONS===================
+            menu.state('termsAndConditions', {
+                run: async () => {
+                    const to = '254' + buildInput.phone.substring(1);
+                    const message = 'Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS';
+                    const from = 'Airtel';
+
+
+                    await africastalking.SMS.send({
+                        to,
+                        message,
+                        from
+                    })
+                        .then(response => {
+                            console.log("AFRICASTALKING: ", response);
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+
+
+                    menu.end('Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS')
+                },
+            });
+
+
 
             // RUN THE MENU
             let menu_res = await menu.run(args);
