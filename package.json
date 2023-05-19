@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "africastalking": "^0.6.2",
+    "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
@@ -33,6 +34,9 @@
     "pg-hstore": "^2.3.4",
     "redis": "^4.6.5",
     "sequelize": "^6.30.0",
-    "ussd-builder": "^1.2.5"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3",
+    "ussd-builder": "^1.2.5",
+    "uuid": "^9.0.0"
   }
 }

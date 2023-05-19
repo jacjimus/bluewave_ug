@@ -20,15 +20,6 @@ const User = db_1.db.users;
 const saveUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     //search the database to see if user exist
     try {
-        const username = yield User.findOne({
-            where: {
-                name: req.body.name,
-            },
-        });
-        //if username exist in the database respond with a status of 409
-        if (username) {
-            return res.json(409).send("username already taken");
-        }
         //checking if email already exist
         const emailcheck = yield User.findOne({
             where: {
@@ -37,7 +28,7 @@ const saveUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         });
         //if email exist in the database respond with a status of 409
         if (emailcheck) {
-            return res.json(409).send("Authentication failed");
+            return res.status(409).json({ message: "Email already exist" });
         }
         next();
     }
@@ -51,11 +42,33 @@ function isAdmin(req, res, next) {
     if (authHeader) {
         const token = authHeader.split(' ')[1];
         jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-            console.log(user);
+            console.log("USER: ", user);
             if (err) {
                 return res.status(403).json({ message: 'Token is not valid' });
             }
-            if (user.user) {
+            if (user.role === 'admin') {
+                req.user = user;
+                next();
+            }
+            else {
+                return res.status(401).json({ message: 'You are not authorized to access this resource' });
+            }
+        });
+    }
+    else {
+        return res.status(401).json({ message: 'Authorization header is required' });
+    }
+}
+function isUser(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+            console.log("USER: ", user);
+            if (err) {
+                return res.status(403).json({ message: 'Token is not valid' });
+            }
+            if (user.role === 'user' || user.role === 'admin' || user.role === 'postgres') {
                 req.user = user;
                 next();
             }
@@ -71,5 +84,6 @@ function isAdmin(req, res, next) {
 //exporting module
 module.exports = {
     isAdmin,
+    isUser,
     saveUser,
 };

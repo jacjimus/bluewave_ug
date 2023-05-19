@@ -22,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        payment_status_code: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         payment_type: {
             type: DataTypes.STRING,
             allowNull: false

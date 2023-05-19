@@ -1,0 +1,76 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dockerfile now dynamycally generated
+#Dockerfile
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Build directory
+dist/
+build/
+tmp/
+
+# ssl dir
+ssl/
+*.pem
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables
+back.env.*
+.env
+.env.test
+.env.dev
+.env.prod
+*.pem
+#creds.json
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+
+# next.js build output
+.next
+
+# Jetbins.gitignore
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/modules.xml
+.idea/*.iml
+
+.directory
+
+snippets/
+
+.DS_Store
+
+*.pdf
+.cache_ggshield
+
