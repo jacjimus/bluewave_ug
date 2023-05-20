@@ -1,10 +1,8 @@
-//importing modules
 const bcrypt = require("bcrypt");
-
 import {db} from "../models/db";
 const jwt = require("jsonwebtoken");
 const dotenv = require('dotenv').config()
-
+import {isValidKenyanPhoneNumber, getRandomInt, isValidEmail} from "../services/utils";
 
 
 // Assigning users to the variable User
@@ -32,7 +30,7 @@ const User = db.users;
 	*/
 
 const signup = async (req:any, res:any) => {
-  console.log(req.body)
+
  try {
    const { first_name, last_name, email, password, phone_number, national_id } = req.body;
    
@@ -41,17 +39,9 @@ const signup = async (req:any, res:any) => {
     
     }
 
-    function isValidKenyanPhoneNumber(phoneNumber: string) {
-      const kenyanPhoneNumberRegex = /^(\+?254|0)[17]\d{8}$/;
-      return kenyanPhoneNumberRegex.test(phoneNumber);
-    }
-
+   
     if(!isValidKenyanPhoneNumber(phone_number)) {
       return res.status(400).json({ message: "Please enter a valid phone number" });
-    }
-    function isValidEmail(email:string) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
     }
     if(!isValidEmail(email)) {
 
@@ -75,12 +65,6 @@ const signup = async (req:any, res:any) => {
     role: string;
   }
 
-  function getRandomInt(min:any, max:any) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-  
   // Generate a random integer for the primary key
   const randomId = getRandomInt(10000000, 99999999);
 
@@ -99,6 +83,18 @@ const signup = async (req:any, res:any) => {
    };
    //checking if the user already exists
    let user:any =await User.findAll({ where: { email: email } })
+   //check if national id exists
+    let nationalIdExists:any = await User.findAll({ where: { national_id: national_id } })
+    //check if phone number exists
+    let phoneNumberExists:any = await User.findAll({ where: { phone_number: phone_number } })
+    if(nationalIdExists && nationalIdExists.length > 0) {
+      return res.status(409).json({ message: "National ID already exists" });
+    }
+    if(phoneNumberExists && phoneNumberExists.length > 0) {
+      return res.status(409).json({ message: "Phone number already exists" });
+    }
+
+
    if(user && user.length > 0) {
 
       return res.status(409).json({ message: "User already exists" });
@@ -129,31 +125,36 @@ const signup = async (req:any, res:any) => {
 };
 
 
+
 /**
-	* @swagger
-	* /api/v1/users/login:
-	*   post:
-	*     tags:
-	*       - Users
-	*     description: Login User
-	*     operationId: loginUser
-	*     summary: Login User
-	*     security:
-	*       - ApiKeyAuth: []
-	*     parameters:
-	*     requestBody:
-	*       content:
-	*         application/json:
-	*           schema:
-	*             type: object
-	*             example: {  "email":"dickens@bluewaveinsurance.co.ke", "password": "test123" }
-	*     responses:
-	*       200:
-	*         description: Information fetched succussfuly
-	*       400:
-	*         description: Invalid request
-	*/
+ * @swagger
+  * /api/v1/users/login:
+  *   post:
+  *     tags:
+  *      - Users
+  *     summary: Authenticate user
+  *     description: Returns a JWT token upon successful login
+  *     security:
+  *       - bearerAuth: []
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             $ref: '#/components/schemas/LoginRequest'
+  *             example: {  "email":"dickens@bluewaveinsurance.co.ke", "password": "test123" }
+  *     responses:
+  *       200:
+  *         description: Successful authentication
+  */
+
+/**
+ * @typedef LoginRequest
+ * @property {string} email.required - User's email
+ * @property {string} password.required - User's password
+ */
 const login = async (req:any, res:any) => {
+  console.log("I WAS CALLED",req.body)
  try {
 const { email, password } = req.body;
 
@@ -163,13 +164,14 @@ if(!email || !password) {
 
 
    //find a user by their email
-   const user = await User.findAll({
+   const user = await User.findOne({
      where: {
      email: email
    } 
      
    });
-   console.log("USER",user)
+   //console.log("USER",user)
+   console.log(!user , user.length == 0 )
    if (!user || user.length === 0) {
      return res.status(401).json({ message: "Invalid credentials" });
    }
@@ -188,7 +190,7 @@ if(!email || !password) {
        //if password matches wit the one in the database
        //go ahead and generate a cookie for the user
        res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-       console.log("user", JSON.stringify(user, null, 2));
+     
        console.log(token);
    
        //send user data
@@ -198,7 +200,7 @@ if(!email || !password) {
    }
  } catch (error) {
    console.log(error);
-   return res.status(401).json({ message: "Invalid credentials" });
+   return res.status(400).json({ message: "Invalid credentials" });
     
  }
 };
@@ -261,16 +263,23 @@ const getUsers = async(req:any, res:any) => {
 	*         description: Invalid request
 	*/
 const getUser = async(req:any, res:any) => {
-  console.log(req.params)
   try {
     let user_id = parseInt(req.params.user_id)
-   const user = await User.findAll({
+  const user = await User.findOne({
       where: {
         id: user_id
   
       }
-    })
+    }).then((user:any) => {
+      //remove password from the response
+      delete user.dataValues.password;
+      delete user.dataValues.pin;
 
+      return user;
+    });
+
+
+   
     if(!user || user.length === 0) {
       return res.status(404).json({message: "No user found"});
     }
@@ -291,7 +300,7 @@ const updateUser = async (req:any, res:any) => {
  try {
    const { name, email, password, phone_number, national_id } = req.body;
 
-   let user = await User.findAll({
+   let user = await User.findOne({
 
       where: {  
 

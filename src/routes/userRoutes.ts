@@ -1,20 +1,17 @@
 
 import express from 'express';
 const userController = require('../controllers/userController');
-const { signup, login } = userController
 const {saveUser, isAdmin, isUser} = require('../middleware/userAuth');
 
 const router = express.Router()
 
-//signup endpoint
-//passing the middleware function to the signup
-router.post('/signup', saveUser, signup)
 
-//login route
-router.post('/login', login )
 
-router.get('/', isAdmin, userController.getUsers)
-router.get('/:user_id', isUser, userController.getUser)
+
+router.get('/', userController.getUsers)
+router.get('/:user_id',  userController.getUser)
+router.post('/login', userController.login )
+router.post('/signup', saveUser, userController.signup)
 router.put('/:user_id', isAdmin, userController.updateUser)
 router.delete('/:user_id', isAdmin, userController.deleteUser)
 
