@@ -8,6 +8,22 @@ import {isValidKenyanPhoneNumber, getRandomInt, isValidEmail} from "../services/
 // Assigning users to the variable User
 const User = db.users;
 
+async function getUserFunc(user_id:any) {
+  let user = await User.findOne({
+    where: {
+      id: user_id,
+    },
+  });
+  //remove password from the response
+  if(user) {
+    delete user.dataValues.password;
+    delete user.dataValues.pin;
+
+  }
+  return user;
+    
+  }
+
 /** @swagger
 	* /api/v1/users/signup:
 	*   post:
@@ -141,18 +157,13 @@ const signup = async (req:any, res:any) => {
   *       content:
   *         application/json:
   *           schema:
-  *             $ref: '#/components/schemas/LoginRequest'
   *             example: {  "email":"dickens@bluewaveinsurance.co.ke", "password": "test123" }
   *     responses:
   *       200:
   *         description: Successful authentication
   */
 
-/**
- * @typedef LoginRequest
- * @property {string} email.required - User's email
- * @property {string} password.required - User's password
- */
+
 const login = async (req:any, res:any) => {
   console.log("I WAS CALLED",req.body)
  try {
@@ -265,19 +276,11 @@ const getUsers = async(req:any, res:any) => {
 const getUser = async(req:any, res:any) => {
   try {
     let user_id = parseInt(req.params.user_id)
-  const user = await User.findOne({
-      where: {
-        id: user_id
-  
-      }
-    }).then((user:any) => {
-      //remove password from the response
-      delete user.dataValues.password;
-      delete user.dataValues.pin;
 
-      return user;
-    });
 
+ 
+   let user:any = await getUserFunc(user_id);
+   console.log(user)
 
    
     if(!user || user.length === 0) {
@@ -300,13 +303,7 @@ const updateUser = async (req:any, res:any) => {
  try {
    const { name, email, password, phone_number, national_id } = req.body;
 
-   let user = await User.findOne({
-
-      where: {  
-
-        id: req.params.user_id,
-      },
-    });
+   let user:any = getUserFunc(req.params.user_id);
 
     //check if user exists
     if(!user || user.length === 0) {

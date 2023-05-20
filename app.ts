@@ -5,6 +5,7 @@ const policyRoutes = require ('./src/routes/policyRoutes');
 const paymentRoutes = require ('./src/routes/paymentRoutes');
 const claimRoutes = require ('./src/routes/claimRoutes');
 const ussdRoutes = require ('./src/routes/ussdRoutes');
+const reportRoutes = require ('./src/routes/reportRoutes');
 import * as dotenv from 'dotenv'
 dotenv.config()
 const fs = require('fs')
@@ -77,6 +78,7 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/policies', policyRoutes)
 app.use('/api/v1/payments', paymentRoutes)
 app.use('/api/v1/claims', claimRoutes)
+app.use('/api/v1/reports', reportRoutes)
 app.use(errorHandler)
 
 // USSD ROUTE

@@ -215,11 +215,12 @@ const deletePolicy = async (req: any, res: any) => {
 
 
 
+
+
 module.exports = {
     getPolicies,
     getPolicy,
     getUserPolicies,
-    // getPolicyPayments,
     updatePolicy,
     deletePolicy
 
