@@ -85,5 +85,5 @@ app.use(errorHandler)
 app.use('/api/v1/ussd', ussdRoutes);
 
 
-const port =  process.env.PORT || 8081;
+const port =  process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));
