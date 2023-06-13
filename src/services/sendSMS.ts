@@ -5,8 +5,8 @@ dotenv.config();
 
 
 const africastalking = AfricasTalking({
-    apiKey: process.env.AFRICA_TALKING_API_KEY,
-    username: process.env.AFRICA_TALKING_USERNAME
+    apiKey: process.env.AFRICA_TALKING_API_KEY || '1718d7b52118cfef92bcc7bfb906ee258ed7c6bc420dd78c45b6328b99775c62',
+    username: process.env.AFRICA_TALKING_USERNAME || 'sandbox'
 });
 
 async function sendSMS(phoneNumber: string, message: string) {
