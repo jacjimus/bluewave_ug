@@ -51,7 +51,7 @@ const signup = async (req:any, res:any) => {
    const { first_name,middle_name, last_name, email, password, phone_number, national_id, dob, gender,marital_status,addressline,nationality, title,pinzip,weight,height } = req.body;
    
 
-   if(!first_name || !last_name || !email || !password || !phone_number || !national_id) {
+   if(!first_name || !last_name || !email || !password || !phone_number || !national_id ) {
      return res.status(400).json({ message: "Please provide all fields" });
     
     }
@@ -142,6 +142,8 @@ const signup = async (req:any, res:any) => {
 
     }
 
+    console.log("USER DATA",userData);
+
    //saving the user
    const newUser:any = await User.create(userData);
    
@@ -155,7 +157,7 @@ const signup = async (req:any, res:any) => {
       console.log(token);
       //send users details
     
-      return res.status(201).json({ message: "User login successfully", token: token });
+      return res.status(201).json({ message: "User login successfully", token: token, user: newUser });
     } 
   } catch (error) {
     console.log(error);

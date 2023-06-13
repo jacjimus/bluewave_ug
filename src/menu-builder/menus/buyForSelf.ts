@@ -61,12 +61,13 @@ menu.state('buyForSelf.bronze', {
     run: async () => {
 
 
-        const { id , name } = await getUser(args.phoneNumber);
-        let user_name = name?.split(' ')[0]
+        const { first_name, last_name } = await getUser(args.phoneNumber);
+       
         //capitalize first letter of name
-         user_name = user_name.charAt(0).toUpperCase() + user_name.slice(1)
 
-        menu.con(`Hospital cover for ${user_name}, ${args.phone} Kes 1M a year 
+         const full_name = first_name + " " + last_name;
+
+        menu.con(`Hospital cover for ${full_name}, ${args.phone} Kes 1M a year 
                     PAY
                     1. Kes 300 deducted monthly
                     2. Kes 3,294 yearly
@@ -122,6 +123,8 @@ menu.state('buyForSelf.bronze.pin', {
         // use menu.val to access user input value
         let user_pin = Number(menu.val);
         const { pin } = await getUser(args.phoneNumber);
+
+        console.log("USER PIN", user_pin, "PIN", pin)
 
         // check if pin is correct
         if (user_pin == pin) {
@@ -340,13 +343,10 @@ console.log("TO: ", to)
             menu.state('buyForSelf.silver', {
                 run: async () => {
 
-                    const { name } = await getUser(args.phoneNumber);
+                    const {first_name, last_name } = await getUser(args.phoneNumber);
 
-                    let user_name = name.split(' ')[0]
-                    //capitalize first letter of name
-                    user_name = user_name.charAt(0).toUpperCase() + user_name.slice(1)
-
-                    menu.con(`Hospital cover for ${user_name}, ${args.phoneNumber} Kes 1M a year 
+                    let full_name = first_name + " " + last_name;
+                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} Kes 1M a year 
                     PAY' +
                     1. Kes 650 deducted monthly 
                     2. Kes 7,650 yearly
@@ -611,11 +611,10 @@ console.log("TO: ", to)
                     })
 
                     console.log("USER: ", user)
-                    let user_name = user?.name.split(' ')[0]
-                    //capitalize first letter of name
-                    let name = user_name.charAt(0).toUpperCase() + user_name.slice(1)
+                    let full_name = user.first_name + ' ' + user.last_name;
+                    
 
-                    menu.con(`Hospital cover for ${name}, ${args.phoneNumber} Kes 1M a year 
+                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} Kes 1M a year 
                         PAY
                         1. Kes 1400 deducted monthly 
                         2. Kes 16,800 yearly

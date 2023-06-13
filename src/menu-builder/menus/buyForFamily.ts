@@ -787,13 +787,17 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                menu.state('confirmation', {
                 run: async () => {
 
-                    const { id: userId } = await getUser(args.phoneNumber);
+                    const user = await getUser(args.phoneNumber);
+
+                    const userId = user.id
 
                     const {id,policy_status, policy_deduction_amount,policy_deduction_day,policy_type} = await Policy.findOne({
                         where: {
                             user_id: userId
                         }
                     })
+
+                    console.log("POLICY ID",id)
                  
                     //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
                     if (policy_status == 'active') {
