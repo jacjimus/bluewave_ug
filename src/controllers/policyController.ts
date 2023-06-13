@@ -1,3 +1,4 @@
+import { Code } from "mongodb";
 import { db } from "../models/db";
 const Policy = db.policies;
 
@@ -5,8 +6,8 @@ const Policy = db.policies;
 import PolicyIssuance from "../services/PolicyIssuance";
 
 interface Policy {
-    user_id:  number,
-    policy_start_date: Date,    
+    user_id: number,
+    policy_start_date: Date,
     policy_status: string,
     beneficiary: string,
     policy_type: string,
@@ -17,12 +18,12 @@ interface Policy {
     installment_date: Date,
     installment_alert_date: Date,
     tax_rate_vat: number,
-    tax_rate_ext:  number,
+    tax_rate_ext: number,
     premium: number,
     sum_insured: number,
     excess_premium: number,
     discount_premium: number
-   }
+}
 
 
 /**
@@ -54,54 +55,59 @@ interface Policy {
     *         description: Invalid request
     */
 const getPolicies = async (req: any, res: any) => {
+    let status = {
+        code: 200,
+        result: {},
+
+    }
     try {
-        let policy:any = await Policy.findAll().then((policies: any) => {
-            return res.status(200).json(policies);
-        });
+        let policy: any = await Policy.findAll()
 
         if (!policy || policy.length === 0) {
             return res.status(404).json({ message: "No policies found" });
         }
 
-         //policy count
-            const policyCount = await Policy.count();
+        //policy count
+        const policyCount = await Policy.count();
 
-            //policy pagination
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const startIndex = (page - 1) * limit;
-            const endIndex = page * limit;
-            const total = policyCount;
+        //policy pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const total = policyCount;
 
-            const resultPolicy = policy.slice(startIndex, endIndex);
+        const resultPolicy = policy.slice(startIndex, endIndex);
 
-            const pagination: any = {};
+        const pagination: any = {};
 
-            if (endIndex < policyCount) {
-                pagination.next = {
-                    page: page + 1,
-                    limit: limit,
-                };
-            }
-
-            if (startIndex > 0) {
-                pagination.prev = {
-                    page: page - 1,
-                    limit: limit,
-                };
-            }
-
-            return res.status(200).json({
-                success: true,
-                count: resultPolicy.length,
-                pagination,
-                data: resultPolicy,
-            });
-        } catch (error) {
-            return res.status(404).json({ message: "Error fetching policies" });
+        if (endIndex < policyCount) {
+            pagination.next = {
+                page: page + 1,
+                limit: limit,
+            };
         }
-    };
-    
+
+        if (startIndex > 0) {
+            pagination.prev = {
+                page: page - 1,
+                limit: limit,
+            };
+        }
+
+        status.result = {
+            count: total,
+            pagination: pagination,
+            items: resultPolicy,
+
+        }
+
+        return res.status(status.code).json(status.result);
+    } catch (error) {
+        return res.status(500).json({message: "Internal server error"});
+    }
+};
+
 
 /**
   * @swagger
@@ -127,6 +133,11 @@ const getPolicies = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const getPolicy = async (req: any, res: any) => {
+    let status = {
+        code: 200,
+        result: {},
+
+    }
     try {
         const policy_id = parseInt(req.params.policy_id)
         const policy = await Policy.findAll({
@@ -137,11 +148,12 @@ const getPolicy = async (req: any, res: any) => {
         if (!policy || policy.length === 0) {
             return res.status(404).json({ message: "No policy found" });
         }
-
-        return res.status(200).json(policy);
+  
+        status.result = policy
+        return res.status(status.code).json(status.result);
     } catch (error) {
         console.log(error)
-        return res.status(404).json({ message: "error getting policy" });
+        return res.status(500).json({message: "Internal server error"});
     }
 
 }
@@ -171,21 +183,35 @@ const getPolicy = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const getUserPolicies = async (req: any, res: any) => {
+    let status = {
+        code: 200,
+        result: {},
+
+    }
     try {
         const user_id = parseInt(req.params.user_id)
-        let user = await Policy.findAll({
+        let users = await Policy.findAll({
             where: {
                 user_id: user_id
             }
         })
 
-        if (!user || user.length === 0) {
-            return res.status(404).json({ message: "No user found" });
+        if (!users || users.length === 0) {
+            status.code = 404;
+            status.result = { message: "No policy found" };
+            return res.status(status.code).json(status.result);
         }
-        return res.status(200).json(user);
+        let count = users.length;
+
+
+        status.result = {
+            count,
+            items: users
+        };
+        return res.status(status.code).json(status.result);
     } catch (error) {
         console.log(error)
-        return res.status(404).json({ message: "No policy found" });
+        return res.status(500).json({message: "Internal server error"});
     }
 
 
@@ -217,15 +243,22 @@ const getUserPolicies = async (req: any, res: any) => {
 
 const createPolicy = async (req: any, res: any) => {
     try {
-     
+
 
         const policy: Policy = req.body;
-        
+
         const newPolicy = await Policy.create(policy);
-        return res.status(200).json(newPolicy);
+        if(!newPolicy){
+            return res.status(500).json({ message: "Error creating policy" });
+        }
+
+        return res.status(200).json({
+            message: "Policy created successfully",
+            policy: newPolicy
+        });
     } catch (error) {
         console.log(error)
-        return res.status(404).json({ message: "Error creating policy" });
+        return res.status(500).json({message: "Internal server error"});
     }
 
 }
@@ -274,12 +307,8 @@ const policyIssuance = async (req: any, res: any) => {
         }
 
     } catch (error) {
-        console.log("ERROR ON POLICY ISSUARE",error)
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-
-        });
+        console.log("ERROR ON POLICY ISSURANC", error)
+        return res.status(500).json({message: "Internal server error"});
     }
 };
 
@@ -320,7 +349,7 @@ const updatePolicy = async (req: any, res: any) => {
 
         const {
             user_id,
-            policy_start_date,  
+            policy_start_date,
             policy_status,
             beneficiary,
             policy_type,
@@ -346,7 +375,7 @@ const updatePolicy = async (req: any, res: any) => {
                 policy_id: req.params.policy_id
             }
         })
-        if (!policy)  {
+        if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
 
@@ -370,7 +399,7 @@ const updatePolicy = async (req: any, res: any) => {
             discount_premium,
         };
         //saving the policy
-         await Policy.update(data, {
+        await Policy.update(data, {
             where: {
                 policy_id: req.params.policy_id,
             },
@@ -379,7 +408,7 @@ const updatePolicy = async (req: any, res: any) => {
         return res.status(201).json({ message: "Policy updated successfully" });
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ message: "Details are not correct" });
+        return res.status(500).json({message: "Internal server error"});
     }
 }
 
@@ -408,7 +437,7 @@ const updatePolicy = async (req: any, res: any) => {
   */
 const deletePolicy = async (req: any, res: any) => {
     try {
-       await Policy.destroy({
+        await Policy.destroy({
             where: {
                 policy_id: req.params.policy_id,
             },
@@ -417,7 +446,7 @@ const deletePolicy = async (req: any, res: any) => {
         return res.status(201).json({ message: "Policy deleted successfully" });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Details are not correct" });
+        return res.status(500).json({message: "Internal server error"});
 
     }
 }

@@ -38,14 +38,12 @@ const getPolicySummary = async (req: any, res: any) => {
             total_policies_cancelled: policy.filter((policy: any) => policy.policy_status === "cancelled").length,
             total_policies_expired: policy.filter((policy: any) => policy.policy_status === "expired").length,
             total_policies_terminated: policy.filter((policy: any) => policy.policy_status === "terminated").length,
-            total_preimum_amount: policy.reduce((a: any, b: any) => a + b.policy_deduction_amount *1 , 0),
+            total_preimum_amount: policy.reduce((a: any, b: any) => a + b.policy_deduction_amount * 1, 0),
         }
-
-
-
+        
         return res.status(200).json(summary);
     } catch (error) {
-        return res.status(404).json({ message: "Error fetching policies" });
+        return res.status(500).json({ message: "Internal server error" });
 
     }
 
@@ -92,12 +90,10 @@ const getClaimSummary = async (req: any, res: any) => {
 
         return res.status(200).json(summary);
     } catch (error) {
-        return res.status(404).json({ message: "Error fetching claims" });
+        return res.status(500).json({ message: "Internal server error" });
 
     }
 }
-
-
 
 
 
