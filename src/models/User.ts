@@ -1,17 +1,62 @@
 module.exports = (sequelize: any, DataTypes: any) => {
-    const User = sequelize.define( "user", {
-        
+    const User = sequelize.define("user", {
+
         id: {
             //BIGINT PRIMARY KEY 
             type: DataTypes.INTEGER,
             primaryKey: true,
             allowNull: false
-
         },
-        name: {
+        first_name: {
             type: DataTypes.STRING,
             allowNull: true
         },
+        middle_name: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        last_name: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        dob: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        gender: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        marital_status: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        addressline: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        nationality: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        title: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        pinzip: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        weight:{
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+
+        height:{
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+
         email: {
             type: DataTypes.STRING,
             unique: true,
@@ -48,8 +93,9 @@ module.exports = (sequelize: any, DataTypes: any) => {
         pin: {
             type: DataTypes.INTEGER,
             allowNull: true
-        }
-       
-    }, {timestamps: true}, )
+        },
+
+
+    }, { timestamps: true },)
     return User
- }
+}

@@ -73,7 +73,7 @@ export function displayAccount(menu:any, args:any, db:any):void {
                             policy_id: policy.policy_id,
                             user_id: user.id,
                             claim_date: new Date(),
-                            claim_status: "Pending",
+                            claim_status: "pending",
                         });
                         console.log("CLAIM:", claim);
                         menu.con(

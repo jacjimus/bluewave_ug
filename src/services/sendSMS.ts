@@ -1,18 +1,19 @@
 
 const AfricasTalking = require('africastalking');
+const dotenv = require('dotenv');
+dotenv.config();
 
-const apiKey = "f16ecdd2d74c746296367b7f34dcebe7b9f14ab45cfb2113f3e86077f906bc98"
-const username = "sandbox"
+
 const africastalking = AfricasTalking({
-    apiKey,
-    username
+    apiKey: process.env.AFRICA_TALKING_API_KEY,
+    username: process.env.AFRICA_TALKING_USERNAME
 });
 
-async function sendSMS(phoneNumber: any, message: any) {
+async function sendSMS(phoneNumber: string, message: string) {
 
     const sms = africastalking.SMS
     const options = {
-        from: 'BLUEWAVE',
+        from: "36667",
         to: phoneNumber,
         message: message
     }

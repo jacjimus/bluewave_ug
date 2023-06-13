@@ -120,7 +120,7 @@ export default function (args: RequestBody, db: any) {
             displayFaqsMenu(menu);
 
             //===================TERMS AND CONDITIONS===================
-            termsAndConditions(menu, buildInput);
+            termsAndConditions(menu, args);
 
 
 

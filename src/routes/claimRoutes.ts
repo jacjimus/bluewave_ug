@@ -1,6 +1,15 @@
-
-const express = require('express');
+import express from 'express'
 const claimController = require('../controllers/claimController');
+const {
+    isBluewave,
+  isAirtel,
+  isVodacom,
+  isAAR,
+  isUser,
+  isManager,
+  isSuperAdmin,
+  isUserOrAdmin,
+  isUserOrAdminOrManager } = require('../middleware/userAuth');
 
 const router = express.Router()
 

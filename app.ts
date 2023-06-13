@@ -35,9 +35,9 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'MEDICAL USSD API Documentation',
+      title: 'MEDICAL AIRTEL USSD API Documentation',
       version: '1.0.0',
-      description: 'MEDICAL USSD API Documentation',
+      description: 'MEDICAL AIRTEL USSD API Documentation',
     },
     components: {
       securitySchemes: {
@@ -85,5 +85,5 @@ app.use(errorHandler)
 app.use('/api/v1/ussd', ussdRoutes);
 
 
-const port =  process.env.PORT || 4000;
+const port =  process.env.PORT || 8081;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

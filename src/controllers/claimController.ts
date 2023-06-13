@@ -1,5 +1,7 @@
 import {db} from "../models/db";
 const Claim = db.claims;
+const User = db.users;
+const Policy = db.policies;
 
 
 
@@ -193,12 +195,17 @@ const getClaims = async(req:any, res:any) => {
 	*         required: false
 	*         schema:
 	*           type: string
+    *       - name: user_id
+	*         in: query
+	*         required: false
+	*         schema:
+	*           type: string
 	*     requestBody:
 	*       content:
 	*         application/json:
 	*           schema:
 	*             type: object
-	*             example:   {"claim_date": "2021-05-05","claim_status": "pending","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money","user_id": 1,"policy_id": 1}
+	*             example:   {"claim_date": "2021-05-05","claim_status": "pending","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money"}
 	*     responses:
 	*       200:
 	*         description: Information posted successfully
@@ -208,6 +215,7 @@ const getClaims = async(req:any, res:any) => {
     const createClaim = async (req:any, res:any) => {
         try {
               const policy_id = parseInt(req.query.policy_id)
+                const user_id = parseInt(req.query.user_id)
             const { 
                 claim_date,
                  claim_status,
@@ -216,20 +224,44 @@ const getClaims = async(req:any, res:any) => {
                   claim_type, 
                   claim_documents,
                    claim_comments, 
-                   user_id,
+                 
     
                  } = req.body;
                 
-                  
+           //check if policy exists
+           
+           let policy = await Policy.findAll({
 
+            where: {
+                policy_id: policy_id
+            }
+        })
+        if (!policy)  {
+            return res.status(404).json({ message: "No policy found" });
+        }
+                //check if user exists
+                const user = await User.findByPk(user_id)
+                if(!user) {
+                    return res.status(404).json({message: "User not found"});
+                }
 
-                 let claim = await Claim.findAll({
+                //check if user has policy
+                const userPolicy = await Policy.findByPk(policy_id).then((policy:any) => {
+                    return policy.user_id === user_id;
+                })
+
+                if(!userPolicy) {
+                    return res.status(404).json({message: "User does not have policy"});
+                }
+                //check if policy has claim and its active
+
+                const claim = await Claim.findOne({
                     where: {
-                        policy_id: policy_id
+                        policy_id: policy_id,
                     }
-                });
-                if(claim || claim.length !== 0) {
-                    return res.status(404).json({message: "Claim already exists"});
+                })
+                if(claim) {
+                    return res.status(404).json({message: "Policy already has active claim"});
                 }
 
 
@@ -262,7 +294,7 @@ const getClaims = async(req:any, res:any) => {
    /**
 	* @swagger
 	* /api/v1/claims/{claim_id}:
-	*   patch:
+	*   put:
 	*     tags:
 	*       - Claims
 	*     description: Edit Claim Status
@@ -276,12 +308,22 @@ const getClaims = async(req:any, res:any) => {
 	*         required: true
 	*         schema:
 	*           type: number
+	*       - name: policy_id
+	*         in: query
+	*         required: false
+	*         schema:
+	*           type: string
+    *       - name: user_id
+	*         in: query
+	*         required: false
+	*         schema:
+	*           type: string
 	*     requestBody:
 	*       content:
 	*         application/json:
 	*           schema:
 	*             type: object
-	*             example: {"claim_date": "2021-05-05","claim_status": "approved","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money","user_id": 1,"policy_id": 1}
+	*             example: {"claim_date": "2021-05-05","claim_status": "approved","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money"}
 	*     responses:
 	*       200:
 	*         description: Information posted successfully
@@ -290,8 +332,10 @@ const getClaims = async(req:any, res:any) => {
 	*/
     const updateClaim = async (req:any, res:any) => {
         try {
-            const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments, user_id, policy_id } = req.body;
+            const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments } = req.body;
             const claim_id = parseInt(req.params.claim_id)
+            const policy_id = parseInt(req.query.policy_id)
+            const user_id = parseInt(req.query.user_id)
             let claim = await Claim.findAll({
                 where: {
                     claim_id: claim_id

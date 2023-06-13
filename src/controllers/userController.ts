@@ -37,7 +37,7 @@ async function getUserFunc(user_id:any) {
 	*         application/json:
 	*           schema:
 	*             type: object
-	*             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583}
+	*             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170 }
 	*     responses:
 	*       200:
 	*         description: Information fetched succussfully
@@ -48,8 +48,9 @@ async function getUserFunc(user_id:any) {
 const signup = async (req:any, res:any) => {
 
  try {
-   const { first_name, last_name, email, password, phone_number, national_id } = req.body;
+   const { first_name,middle_name, last_name, email, password, phone_number, national_id, dob, gender,marital_status,addressline,nationality, title,pinzip,weight,height } = req.body;
    
+
    if(!first_name || !last_name || !email || !password || !phone_number || !national_id) {
      return res.status(400).json({ message: "Please provide all fields" });
     
@@ -70,15 +71,27 @@ const signup = async (req:any, res:any) => {
   //create a user interface 
   interface Person {
     id: number;
-    name: string;
+    first_name: string;
+    middle_name: string;
+    last_name:  string;
     email: string;
     phone_number: string;
-    national_id: number;
+    national_id: string;
     password: string;
     createdAt: Date;
     updatedAt: Date;
     pin: number;
     role: string;
+    dob: Date;
+    gender: string
+    marital_status: string;
+    addressline: string;
+    nationality: string;
+    title: string;
+    pinzip: string;
+    weight: number;
+    height:  number;
+
   }
 
   // Generate a random integer for the primary key
@@ -86,7 +99,9 @@ const signup = async (req:any, res:any) => {
 
     const userData: Person= {
       id: randomId,
-      name: first_name + " " + last_name,
+      first_name,
+      middle_name,
+      last_name,
       email,
       phone_number,
       national_id,
@@ -94,7 +109,17 @@ const signup = async (req:any, res:any) => {
       createdAt: new Date(),
       updatedAt: new Date(),
       pin: Math.floor(1000 + Math.random() * 9000),
-      role: "user"
+      role: "user",
+      dob,
+      gender,
+      marital_status,
+      addressline,
+      pinzip,
+      weight,
+      height,
+      nationality,
+      title,
+  
 
    };
    //checking if the user already exists
@@ -298,10 +323,37 @@ const getUser = async(req:any, res:any) => {
 }
 
 
-//updating a user
+
+/** @swagger
+	* /api/v1/users/{user_id}:
+	*   put:
+	*     tags:
+	*       - Users
+	*     description: Update User
+	*     operationId: updateUser
+	*     summary: update User
+  *     parameters:
+	*       - name: user_id
+	*         in: path
+	*         required: true
+	*         schema:
+	*           type: string
+	*     requestBody:
+	*       content:
+	*         application/json:
+	*           schema:
+	*             type: object
+	*             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170}
+	*     responses:
+	*       200:
+	*         description: Information fetched succussfully
+	*       400:
+	*         description: Invalid request
+	*/
+
 const updateUser = async (req:any, res:any) => {
  try {
-   const { name, email, password, phone_number, national_id } = req.body;
+  const { first_name,middle_name, last_name, email, password, phone_number, national_id, dob, gender,marital_status,addressline,nationality, title,pinzip,weight,height } = req.body;
 
    let user:any = getUserFunc(req.params.user_id);
 
@@ -311,13 +363,25 @@ const updateUser = async (req:any, res:any) => {
     }
 
    const data = {
-     name,
-     email,
-     phone_number,
-     national_id,
-     password: await bcrypt.hash(password, 10),
-     createdAt: new Date(),
-     updatedAt: new Date(),
+      first_name,
+      middle_name,
+      last_name,
+      email,
+      phone_number,
+      national_id,
+      password: await bcrypt.hash(password, 10),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      dob,
+      gender,
+      marital_status,
+      addressline,
+      nationality,
+      title,
+      pinzip,
+      weight,
+      height
+
    };
    //saving the user
    const updatedUser = await User.update(data, {

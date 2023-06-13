@@ -33,12 +33,12 @@ const getPolicySummary = async (req: any, res: any) => {
         let summary = {
             total_policies: policy.length,
             total_policies_active: policy.filter((policy: any) => policy.policy_status === "active").length,
-            total_policies_inactive: policy.filter((policy: any) => policy.policy_status === "inactive").length,
+            total_policies_inactive: policy.filter((policy: any) => policy.policy_status !== "active").length,
             total_policies_pending: policy.filter((policy: any) => policy.policy_status === "pending").length,
             total_policies_cancelled: policy.filter((policy: any) => policy.policy_status === "cancelled").length,
             total_policies_expired: policy.filter((policy: any) => policy.policy_status === "expired").length,
             total_policies_terminated: policy.filter((policy: any) => policy.policy_status === "terminated").length,
-            total_preimum_amount: policy.reduce((a: any, b: any) => a + b.policy_deduction_amount, 0),
+            total_preimum_amount: policy.reduce((a: any, b: any) => a + b.policy_deduction_amount *1 , 0),
         }
 
 

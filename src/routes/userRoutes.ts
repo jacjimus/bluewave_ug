@@ -1,7 +1,18 @@
 
 import express from 'express';
 const userController = require('../controllers/userController');
-const {saveUser, isAdmin, isUser} = require('../middleware/userAuth');
+const {
+    isBluewave,
+  isAirtel,
+  isVodacom,
+  isAAR,
+  isUser,
+  isManager,
+  isSuperAdmin,
+  isUserOrAdmin,
+  isUserOrAdminOrManager
+
+} = require('../middleware/userAuth');
 
 const router = express.Router()
 
@@ -9,11 +20,11 @@ const router = express.Router()
 
 
 router.get('/', userController.getUsers)
-router.get('/:user_id',  userController.getUser)
-router.post('/login', userController.login )
-router.post('/signup', saveUser, userController.signup)
-router.put('/:user_id', isAdmin, userController.updateUser)
-router.delete('/:user_id', isAdmin, userController.deleteUser)
+router.get('/:user_id', userController.getUser)
+router.post('/login', userController.login)
+router.post('/signup', userController.signup)
+router.put('/:user_id', userController.updateUser)
+router.delete('/:user_id',  userController.deleteUser)
 
 
 
