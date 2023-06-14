@@ -50,11 +50,11 @@ const getPayments = async (req: any, res: any) => {
             return res.status(404).json({ message: "No payments found" });
         }
 
-        return res.status(200).json({
+        return res.status(200).json({ result:{
             count: payments.length,
             items: payments,
 
-        });
+     } });
 
 
 
@@ -101,9 +101,9 @@ const getPayment = async (req: any, res: any) => {
                 payment_id: payment_id
             }
         }).then((payment: any) => {
-            res.status(200).json({
+            res.status(200).json({ result:{
                 item: payment
-            });
+           }   });
         }
         );
 
@@ -170,24 +170,26 @@ const getPolicyPayments = async (req: any, res: any) => {
                 let endIndex = page * limit;
                 let results = payments.slice(startIndex, endIndex);
 
-                res.status(200).json({
+                res.status(200).json({ result:{
                     count: payments.length,
-                    items: results
-                });
-            }
-        }
-        else {
+                    items: results } });
+         
+        }else {
             res.status(404).json({ message: "No payments found" });
         }
+    }
 
     } catch (error) {
         console.log("ERROR", error)
         return res.status(500).json({ message: "Internal server error" });
 
     }
-
-
 }
+
+
+
+  
+
 
 
 /**
@@ -246,10 +248,10 @@ const getUserPayments = async (req: any, res: any) => {
                 let endIndex = page * limit;
                 let results = payments.slice(startIndex, endIndex);
 
-                res.status(200).json({
+                res.status(200).json({ result:{
                     count: payments.length,
                     items: results
-                });
+              }  });
             }
 
         }

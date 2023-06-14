@@ -163,7 +163,7 @@ const signup = async (req: any, res: any) => {
       console.log(token);
       //send users details
 
-      return res.status(201).json({ message: "User login successfully", token: token, user: newUser });
+      return res.status(201).json({ result:{message: "User login successfully", token: token, user: newUser } });
     }
   } catch (error) {
     console.log("ERROR", error)
@@ -237,7 +237,7 @@ const login = async (req: any, res: any) => {
         console.log(token);
 
         //send user data
-        return res.status(201).json({ message: "User login successfully", token: token, user: user });
+        return res.status(201).json({ result: { message: "User login successfully", token: token, user: user }});
       }
 
     }
@@ -286,10 +286,8 @@ const getUsers = async (req: any, res: any) => {
     let users: any = await User.findAll({ offset: (page - 1) * limit, limit: limit });
     if (users && users.length > 0) {
       status.result = users;
-      return res.status(200).json({
-        count: users.length,
-        items: users,
-      });
+      return res.status(200).json({ result:{message: "Users fetched successfully", items: users } });
+      
 
     }
     return res.status(404).json({ message: "No users found" });
@@ -339,9 +337,8 @@ const getUser = async (req: any, res: any) => {
     }
 
 
-    return res.status(200).json({
-      item: user
-    });
+    return res.status(200).json({ result: { message: "User fetched successfully", item: user } });
+   
 
 
   } catch (error) {
@@ -418,7 +415,7 @@ const updateUser = async (req: any, res: any) => {
       },
     });
     //send users details
-    return res.status(201).json({ message: "User updated successfully", user: updatedUser });
+    return res.status(201).json({result:{message: "User updated successfully", item: updatedUser}  });
   } catch (error) {
     console.log(error);
     return res.status(409).json({ message: "Details are not correct" });
@@ -434,7 +431,7 @@ const deleteUser = async (req: any, res) => {
       },
     });
     //send users details
-    return res.status(201).json({ message: "User deleted successfully" })
+    return res.status(201).json({ result:{ message: "User deleted successfully"} })
   } catch (error) {
     console.log("ERROR", error)
     return res.status(409).send("Details are not correct");

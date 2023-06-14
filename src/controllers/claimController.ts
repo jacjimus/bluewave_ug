@@ -49,13 +49,13 @@ const getClaims = async (req: any, res: any) => {
                 limit: limit
             });
             return res.status(200).json(
-                {
+                { result: {
                     count: claim.length,
                     items: paginatedClaims
-                }
+                }}
             );
         }
-        return res.status(200).json(claim);
+        return res.status(200).json({result: claim});
 
     } catch (error) {
         console.log("ERROR", error)
@@ -96,7 +96,9 @@ const getClaim = async (req: any, res: any) => {
             return res.status(404).json({ message: "Claim not found" });
         }
         return res.status(200).json({
+            result: {
             item: claim
+            }
         });
     } catch (error) {
         console.log("ERROR", error)
@@ -163,10 +165,10 @@ const getUserClaims = async (req: any, res: any) => {
                 limit: limit
             });
             return res.status(200).json(
-                {
+                { result:{
                     count: claim.length,
                     items: paginatedClaims
-                }
+                }}
             );
         }
         return res.status(200).json(claim);
@@ -237,10 +239,10 @@ const getPolicyClaims = async (req: any, res: any) => {
                 limit: limit
             });
             return res.status(200).json(
-                {
+                { result:{
                     count: claim.length,
                     items: paginatedClaims
-                }
+                }}
             );
         }
         return res.status(200).json(claim);
@@ -358,9 +360,9 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (newClaim !== null) {
-            return res.status(200).json({
+            return res.status(200).json({ result:{
                 message: 'Claim created successfully'
-            })
+        }})
         }
     } catch (error) {
         console.log("ERROR", error)
@@ -442,9 +444,9 @@ const updateClaim = async (req: any, res: any) => {
         });
 
         if (updateClaim) {
-            return res.status(200).json({
+            return res.status(200).json({ result:{
                 message: 'Claim updated successfully'
-            })
+         } })
         }
     } catch (error) {
         console.log(error)

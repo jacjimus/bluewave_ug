@@ -1,6 +1,7 @@
 import { Code } from "mongodb";
 import { db } from "../models/db";
 const Policy = db.policies;
+const User = db.users;
 
 
 import PolicyIssuance from "../services/PolicyIssuance";
@@ -102,7 +103,7 @@ const getPolicies = async (req: any, res: any) => {
 
         }
 
-        return res.status(status.code).json(status.result);
+        return res.status(status.code).json({result: status.result});
     } catch (error) {
         return res.status(500).json({message: "Internal server error"});
     }
@@ -140,7 +141,7 @@ const getPolicy = async (req: any, res: any) => {
     }
     try {
         const policy_id = parseInt(req.params.policy_id)
-        const policy = await Policy.findAll({
+        const policy = await Policy.findOne({
             where: {
                 policy_id: policy_id
             }
@@ -149,8 +150,11 @@ const getPolicy = async (req: any, res: any) => {
             return res.status(404).json({ message: "No policy found" });
         }
   
-        status.result = policy
-        return res.status(status.code).json(status.result);
+        status.result = {
+            item: policy
+        };
+
+        return res.status(status.code).json({result: status.result});
     } catch (error) {
         console.log(error)
         return res.status(500).json({message: "Internal server error"});
@@ -208,7 +212,7 @@ const getUserPolicies = async (req: any, res: any) => {
             count,
             items: users
         };
-        return res.status(status.code).json(status.result);
+        return res.status(status.code).json({result: {item:status.result}});
     } catch (error) {
         console.log(error)
         return res.status(500).json({message: "Internal server error"});
@@ -252,9 +256,10 @@ const createPolicy = async (req: any, res: any) => {
             return res.status(500).json({ message: "Error creating policy" });
         }
 
-        return res.status(200).json({
+        return res.status(200).json({ result: {
             message: "Policy created successfully",
             policy: newPolicy
+        }
         });
     } catch (error) {
         console.log(error)
@@ -276,6 +281,17 @@ const createPolicy = async (req: any, res: any) => {
   *     summary: policyIssuance
   *     security:
   *       - ApiKeyAuth: []
+  *     parameters:
+  *       - name: user_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
+  *       - name: policy_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
   *     requestBody:
   *       content:
   *         application/json:
@@ -290,20 +306,64 @@ const createPolicy = async (req: any, res: any) => {
   */
 const policyIssuance = async (req: any, res: any) => {
     try {
+        const { PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
 
-        console.log("policyIssuance I WASS CALLED 1")
+        const  {user_id, policy_id} = req.query;
 
-        const { ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
+        //get user details
+        let user = await User.findOne({where: {id: user_id}});
+
+        //get policy details
+        let policy = await Policy.findOne({where: {id: policy_id}});
+
+        //use it to create client and policy request
+
+    let ClientCreation = {
+        Title: user.title,
+        First_Nm: user.first_name,
+        Middle_Nm: user.middle_name,
+        Last_Nm: user.last_name,
+        Dob: user.dob,
+        Gender: user.gender,
+        Pin_Zip: user.pin_zip,
+        idNo: user.national_id,
+        Marital_Status: user.marital_status,
+        Nationality: user.nationality,
+        Email1: user.email,
+        Contact_Mobile_No: user.phone_number,
+        Remarks: user.remarks || null,
+        Address_Line1: user.address_line
+    }
+
+    // let PolicyCreationRequest = {
+    //     Quotation_No: policy.quotation_no,
+    //     Intermediary_Cd: policy.intermediary_cd,
+    //     Source_System_Nm: policy.source_system_nm,
+    //     Employee_No: policy.employee_no,
+    //     Quotation_Dt: policy.quotation_dt,
+    //     IsPayment: policy.is_payment,
+    //     Policy_Tenure: policy.policy_tenure,
+    //     FamilyType_Cd: policy.familytype_cd,
+    //     Cal_Type: policy.cal_type,
+    //     Business_Type: policy.business_type,
+    //     Subsidiary_Cd: policy.subsidiary_cd
+    // }
+
+        
+
+
+
+
 
         const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
 
         if (policyIssuance) {
 
-            return res.status(200).json({
+            return res.status(200).json({ result : {
                 success: true,
                 message: 'Policy Issuance',
-                data: policyIssuance
-            });
+                item: policyIssuance
+          }  });
         }
 
     } catch (error) {
@@ -405,7 +465,7 @@ const updatePolicy = async (req: any, res: any) => {
             },
         });
         //send policy details
-        return res.status(201).json({ message: "Policy updated successfully" });
+        return res.status(201).json({ result:{message: "Policy updated successfully"} });
     } catch (error) {
         console.log(error)
         return res.status(500).json({message: "Internal server error"});
@@ -443,7 +503,7 @@ const deletePolicy = async (req: any, res: any) => {
             },
         });
         //send policy details
-        return res.status(201).json({ message: "Policy deleted successfully" });
+        return res.status(201).json({ result:{message: "Policy deleted successfully"}  });
     } catch (error) {
         console.log(error);
         return res.status(500).json({message: "Internal server error"});

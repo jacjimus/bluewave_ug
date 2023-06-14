@@ -41,7 +41,9 @@ const getPolicySummary = async (req: any, res: any) => {
             total_preimum_amount: policy.reduce((a: any, b: any) => a + b.policy_deduction_amount * 1, 0),
         }
         
-        return res.status(200).json(summary);
+        return res.status(200).json({result:{
+            items: summary
+        }});
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
 
@@ -88,7 +90,9 @@ const getClaimSummary = async (req: any, res: any) => {
         }
 
 
-        return res.status(200).json(summary);
+        return res.status(200).json({result:{
+            items: summary
+            }});
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
 
