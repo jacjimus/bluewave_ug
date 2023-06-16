@@ -13,6 +13,7 @@ const morgan = require('morgan')
 const path = require('path')
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+import cors from 'cors';
  
 
 const app: express.Application = express();
@@ -20,6 +21,8 @@ app.disable('etag').disable('x-powered-by');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
+app.use(cors());
+  
 
 // log only 4xx and 5xx responses to console
 app.use(morgan('dev', {
@@ -66,6 +69,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     res.status(status).send(error.message)
   }
   
+
+
 
 //route health check
 
