@@ -23,6 +23,7 @@ router.get('/', userController.getUsers)
 router.get('/:user_id', userController.getUser)
 router.post('/login', userController.login)
 router.post('/signup', userController.signup)
+router.post('/partner/register', userController.partnerRegistration)
 router.put('/:user_id', userController.updateUser)
 router.delete('/:user_id',  userController.deleteUser)
 

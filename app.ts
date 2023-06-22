@@ -6,6 +6,7 @@ const paymentRoutes = require ('./src/routes/paymentRoutes');
 const claimRoutes = require ('./src/routes/claimRoutes');
 const ussdRoutes = require ('./src/routes/ussdRoutes');
 const reportRoutes = require ('./src/routes/reportRoutes');
+const productRoutes = require ('./src/routes/productRoutes');
 import * as dotenv from 'dotenv'
 dotenv.config()
 const fs = require('fs')
@@ -38,9 +39,9 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'MEDICAL AIRTEL USSD API Documentation',
+      title: 'BLUEWAVE API Documentation',
       version: '1.0.0',
-      description: 'MEDICAL AIRTEL USSD API Documentation',
+      description: 'BLUEWAVE API Documentation',
     },
     components: {
       securitySchemes: {
@@ -84,6 +85,7 @@ app.use('/api/v1/policies', policyRoutes)
 app.use('/api/v1/payments', paymentRoutes)
 app.use('/api/v1/claims', claimRoutes)
 app.use('/api/v1/reports', reportRoutes)
+app.use('/api/v1/products', productRoutes)
 app.use(errorHandler)
 
 // USSD ROUTE

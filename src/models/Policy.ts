@@ -1,9 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
-        policy_id: {
+        product_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
             allowNull: false
         },
         user_id: {

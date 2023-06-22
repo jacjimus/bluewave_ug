@@ -32,9 +32,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         claim_documents: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
+            type: DataTypes.ARRAY(DataTypes.STRING), // Update to ARRAY of strings
+            allowNull: true,
+            defaultValue: [] // Set an empty array as the default value
+          },
         claim_comments: {
             type: DataTypes.STRING,
             allowNull: true

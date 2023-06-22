@@ -7,11 +7,15 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             allowNull: false
         },
+        claim_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         user_id: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-    
+        
         policy_id: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -24,10 +28,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        payment_status_code: {
-            type: DataTypes.INTEGER,
+        payment_metadata: {
+            type: DataTypes.JSONB,
             allowNull: false
         },
+
         payment_type: {
             type: DataTypes.STRING,
             allowNull: false
@@ -44,3 +49,6 @@ module.exports = (sequelize, DataTypes) => {
     })
     return Payment
 }
+
+
+// example of a payment object payload

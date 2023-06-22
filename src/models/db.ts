@@ -5,6 +5,9 @@ const {Sequelize, DataTypes} = require('sequelize')
 
 const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@bluewave-postgres.cemxniymyjt7.us-east-1.rds.amazonaws.com:5432/airtelDB`, {dialect: "postgres"})
 
+//const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@ashadb.cemxniymyjt7.us-east-1.rds.amazonaws.com:5432/asha_db`, {dialect: "postgres"})
+
+
 
 //checking if connection is done
     sequelize.authenticate().then(() => {
@@ -25,6 +28,8 @@ db.claims = require('./Claim') (sequelize, DataTypes)
 db.payments = require('./Payment') (sequelize, DataTypes)
 db.sessions = require('./Session') (sequelize, DataTypes)
 db.beneficiaries = require('./Beneficiary') (sequelize, DataTypes)
+db.partners = require('./Partner') (sequelize, DataTypes)
+db.products = require('./Product') (sequelize, DataTypes)
 
     //exporting the module
      module.exports =  {db}   

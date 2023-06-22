@@ -8,6 +8,7 @@ import PolicyIssuance from "../services/PolicyIssuance";
 
 interface Policy {
     user_id: number,
+    product_id: number,
     policy_start_date: Date,
     policy_status: string,
     beneficiary: string,
@@ -105,6 +106,7 @@ const getPolicies = async (req: any, res: any) => {
 
         return res.status(status.code).json({result: status.result});
     } catch (error) {
+        console.log(error);
         return res.status(500).json({message: "Internal server error"});
     }
 };
@@ -143,7 +145,7 @@ const getPolicy = async (req: any, res: any) => {
         const policy_id = parseInt(req.params.policy_id)
         const policy = await Policy.findOne({
             where: {
-                policy_id: policy_id
+                id: policy_id
             }
         })
         if (!policy || policy.length === 0) {
@@ -237,7 +239,7 @@ const getUserPolicies = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 58094169, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
+  *             example: {"user_id": 58094169, "product_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -282,6 +284,16 @@ const createPolicy = async (req: any, res: any) => {
   *     security:
   *       - ApiKeyAuth: []
   *     parameters:
+  *       - name: product_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
   *       - name: user_id
   *         in: query
   *         required: true
@@ -308,7 +320,7 @@ const policyIssuance = async (req: any, res: any) => {
     try {
         const { PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
 
-        const  {user_id, policy_id} = req.query;
+        const  {user_id, policy_id, partner_id, product_id} = req.query;
 
         //get user details
         let user = await User.findOne({where: {id: user_id}});
@@ -397,7 +409,7 @@ const policyIssuance = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 3, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
+  *             example: {"user_id": 3,"product_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -409,6 +421,7 @@ const updatePolicy = async (req: any, res: any) => {
 
         const {
             user_id,
+            product_id,
             policy_start_date,
             policy_status,
             beneficiary,
@@ -432,7 +445,7 @@ const updatePolicy = async (req: any, res: any) => {
         let policy = await Policy.findAll({
 
             where: {
-                policy_id: req.params.policy_id
+                id: req.params.policy_id
             }
         })
         if (!policy) {
@@ -457,6 +470,7 @@ const updatePolicy = async (req: any, res: any) => {
             sum_insured,
             excess_premium,
             discount_premium,
+            product_id
         };
         //saving the policy
         await Policy.update(data, {
@@ -499,7 +513,7 @@ const deletePolicy = async (req: any, res: any) => {
     try {
         await Policy.destroy({
             where: {
-                policy_id: req.params.policy_id,
+                id: req.params.policy_id,
             },
         });
         //send policy details
