@@ -1,6 +1,7 @@
-import { Code } from "mongodb";
+
 import { db } from "../models/db";
 const Product = db.products;
+const Op = db.Sequelize.Op;
 
 
 
@@ -41,6 +42,11 @@ interface Product {
     *         required: false
     *         schema:
     *           type: number
+    *       - name: filter
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -54,7 +60,40 @@ const getProducts = async (req: any, res: any) => {
 
     }
     try {
+        let filter = req.query.filter || '';
         let product: any = await Product.findAll()
+
+        //product filter
+        if (filter) {
+            product = await Product.findAll({
+
+                where: {
+
+                    product_name: {
+                        [Op.iLike]: `%${filter}%`
+                    },
+                    product_description: {
+                        [Op.iLike]: `%${filter}%`
+                    },
+                    product_type: {
+                        [Op.iLike]: `%${filter}%`
+                    },
+                    product_category: {
+                        [Op.iLike]: `%${filter}%`
+                    },
+                    product_premium: {
+                        [Op.iLike]: `%${filter}%`
+
+                    }
+                
+                },
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+                
+            
+            });
+        }
 
         if (!product || product.length === 0) {
             return res.status(404).json({ message: "No products found" });
@@ -98,7 +137,7 @@ const getProducts = async (req: any, res: any) => {
         return res.status(status.code).json({result: status.result});
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 };
 
@@ -150,7 +189,7 @@ const getProduct = async (req: any, res: any) => {
         return res.status(status.code).json({result: status.result});
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 
 }
@@ -197,7 +236,7 @@ const createProduct = async (req: any, res: any) => {
         });
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 
 }
@@ -291,7 +330,7 @@ const updateProduct = async (req: any, res: any) => {
         return res.status(201).json({ result:{message: "Product updated successfully"} });
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 }
 
@@ -329,7 +368,7 @@ const deleteProduct = async (req: any, res: any) => {
         return res.status(201).json({ result:{message: "Product deleted successfully"}  });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
 
     }
 }

@@ -2,6 +2,7 @@ import { db } from "../models/db";
 const Claim = db.claims;
 const User = db.users;
 const Policy = db.policies;
+const { Op } = require("sequelize");
 
 
 
@@ -17,6 +18,11 @@ const Policy = db.policies;
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
     *       - name: page
     *         in: query
     *         required: false
@@ -34,10 +40,58 @@ const Policy = db.policies;
     *         description: Invalid request
     */
 const getClaims = async (req: any, res: any) => {
+    const partner_id = req.query.partner_id;
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
+    const filter = req.query.filter;
     try {
-        const claim = await Claim.findAll()
+        const claim = await Claim.findAll(
+            {
+                where: {
+                    partner_id: partner_id,
+                    [Op.or]: [  
+                        {
+                            claim_number: {
+                                [Op.like]: `%${filter}%`
+                            }
+                        },
+                        {
+                            claim_status: {
+                                [Op.like]: `%${filter}%`
+                            }
+                        },
+                        {
+                            claim_type: {
+                                [Op.like]: `%${filter}%`
+                            }
+                        },
+                        {
+                            claim_description: {
+                                [Op.like]: `%${filter}%`
+                            }
+                        },
+                        {
+                            claim_amount: {
+                                [Op.like]: `%${filter}%`
+                            }
+                        },
+                        {
+                            claim_date: {
+                                [Op.like]: `%${filter}%`
+
+                            }
+                        },
+                    ]
+
+                },
+               
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+
+            }
+
+        )
         if (!claim || claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
@@ -59,7 +113,7 @@ const getClaims = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error fetching claims" });
+        return res.status(500).json({ message: "Error fetching claims", error: error });
 
     }
 
@@ -77,6 +131,11 @@ const getClaims = async (req: any, res: any) => {
   *     security:
   *       - ApiKeyAuth: []
   *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: number
   *       - name: claim_id
   *         in: path
   *         required: true
@@ -102,7 +161,7 @@ const getClaim = async (req: any, res: any) => {
         });
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error getting claim" });
+        return res.status(500).json({ message: "Error getting claim" , error: error});
 
 
     }
@@ -122,6 +181,11 @@ const getClaim = async (req: any, res: any) => {
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
  *       - name: user_id
  *         in: path
  *         required: true
@@ -146,13 +210,19 @@ const getClaim = async (req: any, res: any) => {
 const getUserClaims = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
+    const partner_id = req.query.partner_id;
 
     try {
         const user_id = parseInt(req.params.user_id)
         const claim = await Claim.findAll({
             where: {
-                user_id: user_id
-            }
+                user_id: user_id,
+                partner_id: partner_id,
+            },
+            order: [
+                ['createdAt', 'DESC']
+            ]
+            
         })
 
         if (!claim || claim.length === 0) {
@@ -176,7 +246,7 @@ const getUserClaims = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error fetching claims" });
+        return res.status(500).json({ message: "Error fetching claims", error: error });
 
 
     }
@@ -197,6 +267,11 @@ const getUserClaims = async (req: any, res: any) => {
 *     security:
 *       - ApiKeyAuth: []
 *     parameters:
+*       - name: partner_id
+*         in: query
+*         required: false
+*         schema:
+*           type: number
 *       - name: policy_id
 *         in: path
 *         required: true
@@ -221,11 +296,13 @@ const getUserClaims = async (req: any, res: any) => {
 const getPolicyClaims = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
+    const partner_id = req.query.partner_id;
     try {
         const policy_id = parseInt(req.params.policy_id)
         const claim = await Claim.findAll({
             where: {
-                policy_id: policy_id
+                policy_id: policy_id,
+                partner_id: partner_id
             }
         })
 
@@ -250,7 +327,7 @@ const getPolicyClaims = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error fetching claims" });
+        return res.status(500).json({ message: "Error fetching claims", error: error });
 
 
     }
@@ -272,6 +349,11 @@ const getPolicyClaims = async (req: any, res: any) => {
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
  *       - name: policy_id
  *         in: query
  *         required: false
@@ -287,7 +369,7 @@ const getPolicyClaims = async (req: any, res: any) => {
  *         application/json:
  *           schema:
  *             type: object
- *             example:   {"claim_date": "2021-05-05","claim_status": "pending","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money"}
+ *             example:   {"partner_id": 1, claim_date": "2021-05-05","claim_status": "pending","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money"}
  *     responses:
  *       200:
  *         description: Information posted successfully
@@ -298,6 +380,7 @@ const createClaim = async (req: any, res: any) => {
     try {
         const policy_id = parseInt(req.query.policy_id)
         const user_id = parseInt(req.query.user_id)
+        const partner_id = parseInt(req.query.partner_id)
         const {
             claim_date,
             claim_status,
@@ -308,6 +391,7 @@ const createClaim = async (req: any, res: any) => {
             claim_comments,
 
 
+
         } = req.body;
 
         //check if policy exists
@@ -315,7 +399,9 @@ const createClaim = async (req: any, res: any) => {
         let policy = await Policy.findAll({
 
             where: {
-                policy_id: policy_id
+                policy_id: policy_id,
+                partner_id: partner_id,
+                
             }
         })
         if (!policy) {
@@ -340,6 +426,9 @@ const createClaim = async (req: any, res: any) => {
         const claim = await Claim.findOne({
             where: {
                 policy_id: policy_id,
+                claim_status: "active",
+                partner_id: partner_id
+
             }
         })
         if (claim) {
@@ -356,7 +445,8 @@ const createClaim = async (req: any, res: any) => {
             claim_documents: claim_documents,
             claim_comments: claim_comments,
             user_id: user_id,
-            policy_id: policy_id
+            policy_id: policy_id,
+            partner_id: partner_id
         });
 
         if (newClaim !== null) {
@@ -366,7 +456,7 @@ const createClaim = async (req: any, res: any) => {
         }
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error creating claim" });
+        return res.status(500).json({ message: "Error creating claim", error: error });
 
     }
 }
@@ -385,6 +475,11 @@ const createClaim = async (req: any, res: any) => {
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
  *       - name: claim_id
  *         in: path
  *         required: true
@@ -418,9 +513,11 @@ const updateClaim = async (req: any, res: any) => {
         const claim_id = parseInt(req.params.claim_id)
         const policy_id = parseInt(req.query.policy_id)
         const user_id = parseInt(req.query.user_id)
+        const partner_id = req.query.partner_id
         let claim = await Claim.findAll({
             where: {
-                claim_id: claim_id
+                claim_id: claim_id,
+                partner_id: partner_id
             }
         });
         if (!claim || claim.length === 0) {
@@ -436,7 +533,8 @@ const updateClaim = async (req: any, res: any) => {
             claim_documents: claim_documents,
             claim_comments: claim_comments,
             user_id: user_id,
-            policy_id: policy_id
+            policy_id: policy_id,
+            partner_id: partner_id
         }, {
             where: {
                 claim_id: claim_id
@@ -450,7 +548,7 @@ const updateClaim = async (req: any, res: any) => {
         }
     } catch (error) {
         console.log(error)
-        return res.status(404).json({ message: "Error updating claim" });
+        return res.status(404).json({ message: "Error updating claim" , error: error});
 
     }
 }
@@ -459,9 +557,11 @@ const updateClaim = async (req: any, res: any) => {
 const deleteClaim = async (req: any, res: any) => {
     try {
         const claim_id = parseInt(req.params.claim_id)
+        const partner_id = req.query.partner_id
         const deleteClaim = await Claim.destroy({
             where: {
-                claim_id: claim_id
+                claim_id: claim_id,
+                partner_id: partner_id
             }
         });
 
@@ -472,7 +572,7 @@ const deleteClaim = async (req: any, res: any) => {
         }
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error deleting claim" });
+        return res.status(500).json({ message: "Error deleting claim", error: error });
 
     }
 }

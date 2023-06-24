@@ -1,7 +1,8 @@
-import { Code } from "mongodb";
+
 import { db } from "../models/db";
 const Policy = db.policies;
 const User = db.users;
+const { Op } = require("sequelize");
 
 
 import PolicyIssuance from "../services/PolicyIssuance";
@@ -24,7 +25,8 @@ interface Policy {
     premium: number,
     sum_insured: number,
     excess_premium: number,
-    discount_premium: number
+    discount_premium: number,
+    partner_id: number
 }
 
 
@@ -40,6 +42,11 @@ interface Policy {
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
     *       - name: page
     *         in: query
     *         required: false
@@ -50,6 +57,11 @@ interface Policy {
     *         required: false
     *         schema:
     *           type: number
+    *       - name: filter
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -63,7 +75,32 @@ const getPolicies = async (req: any, res: any) => {
 
     }
     try {
-        let policy: any = await Policy.findAll()
+
+        const filter = req.query.filter || "";
+        let policy: any = await Policy.findAll(
+            {
+              where: {
+                partner_id: req.query.partner_id,
+                [Op.or]: [
+                    {
+                      policy_type: {
+                        [Op.iLike]: `%${filter}%`
+                      }
+                    },
+
+                    {
+                        policy_status: {
+                            [Op.iLike]: `%${filter}%`
+                            }
+
+                    },
+
+                ]
+
+                }
+                
+            }
+        )
 
         if (!policy || policy.length === 0) {
             return res.status(404).json({ message: "No policies found" });
@@ -107,7 +144,7 @@ const getPolicies = async (req: any, res: any) => {
         return res.status(status.code).json({result: status.result});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 };
 
@@ -124,6 +161,11 @@ const getPolicies = async (req: any, res: any) => {
   *     security:
   *       - ApiKeyAuth: []
   *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
   *       - name: policy_id
   *         in: path
   *         required: true
@@ -143,9 +185,11 @@ const getPolicy = async (req: any, res: any) => {
     }
     try {
         const policy_id = parseInt(req.params.policy_id)
+        const partner_id = parseInt(req.query.partner_id)
         const policy = await Policy.findOne({
             where: {
-                id: policy_id
+                id: policy_id,
+                partner_id: partner_id
             }
         })
         if (!policy || policy.length === 0) {
@@ -159,7 +203,7 @@ const getPolicy = async (req: any, res: any) => {
         return res.status(status.code).json({result: status.result});
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 
 }
@@ -177,7 +221,12 @@ const getPolicy = async (req: any, res: any) => {
   *     security:
   *       - ApiKeyAuth: []
   *     parameters:
-  *       - name: user_id
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
+   *       - name: user_id
   *         in: path
   *         required: true
   *         schema:
@@ -196,9 +245,13 @@ const getUserPolicies = async (req: any, res: any) => {
     }
     try {
         const user_id = parseInt(req.params.user_id)
+        const partner_id = parseInt(req.query.partner_id)
+
         let users = await Policy.findAll({
             where: {
-                user_id: user_id
+                user_id: user_id,
+                partner_id: partner_id
+                
             }
         })
 
@@ -217,7 +270,7 @@ const getUserPolicies = async (req: any, res: any) => {
         return res.status(status.code).json({result: {item:status.result}});
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 
 
@@ -239,7 +292,7 @@ const getUserPolicies = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 58094169, "product_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
+  *             example: {"user_id": 58094169, "product_id": 1,"partner_id":1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -265,7 +318,7 @@ const createPolicy = async (req: any, res: any) => {
         });
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: error});
     }
 
 }
@@ -380,7 +433,7 @@ const policyIssuance = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR ON POLICY ISSURANC", error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error"}, error);
     }
 };
 
@@ -409,7 +462,7 @@ const policyIssuance = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 3,"product_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
+  *             example: {"user_id": 3,"product_id": 1,"partner_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -437,7 +490,8 @@ const updatePolicy = async (req: any, res: any) => {
             premium,
             sum_insured,
             excess_premium,
-            discount_premium
+            discount_premium,
+            partner_id
 
         } = req.body;
 
@@ -470,7 +524,8 @@ const updatePolicy = async (req: any, res: any) => {
             sum_insured,
             excess_premium,
             discount_premium,
-            product_id
+            product_id,
+            partner_id
         };
         //saving the policy
         await Policy.update(data, {
@@ -482,7 +537,7 @@ const updatePolicy = async (req: any, res: any) => {
         return res.status(201).json({ result:{message: "Policy updated successfully"} });
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error});
     }
 }
 
@@ -520,7 +575,7 @@ const deletePolicy = async (req: any, res: any) => {
         return res.status(201).json({ result:{message: "Policy deleted successfully"}  });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error});
 
     }
 }

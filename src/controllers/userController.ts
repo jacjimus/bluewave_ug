@@ -3,6 +3,7 @@ import { db } from "../models/db";
 const jwt = require("jsonwebtoken");
 const dotenv = require('dotenv').config()
 import { isValidKenyanPhoneNumber, getRandomInt, isValidEmail } from "../services/utils";
+const { Op } = require("sequelize");
 
 
 // Assigning users to the variable User
@@ -303,7 +304,7 @@ const login = async (req: any, res: any) => {
       //generate token with the user's id and the secretKey in the env file
 
       if (isSame) {
-        let token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || "apple123", {
+        let token = jwt.sign({ id: user.id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
           expiresIn: 1 * 24 * 60 * 60 * 1000,
         });
 
@@ -313,6 +314,9 @@ const login = async (req: any, res: any) => {
 
         console.log(token);
 
+        //remove password from the user object
+        user.password = undefined;
+        
         //send user data
         return res.status(201).json({ result: { message: "User login successfully", token: token, user: user }});
       }
@@ -320,7 +324,7 @@ const login = async (req: any, res: any) => {
     }
   } catch (error) {
     console.log("ERROR", error)
-    return res.status(400).json({ message: "Invalid credentials" });
+    return res.status(400).json({ message: "Invalid credentials", error: error });
 
   }
 };
@@ -350,6 +354,11 @@ const login = async (req: any, res: any) => {
  *         required: false
  *         schema:
  *           type: number
+ *       - name: filter
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
  *     description: Retrieve a list of users from the database
  *     responses:
  *       200:
@@ -357,6 +366,7 @@ const login = async (req: any, res: any) => {
  */
 const getUsers = async (req: any, res: any) => {
   let partner_id = req.query.partner_id;
+  let filter = req.query.filter || "";
 
   let page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
@@ -371,14 +381,54 @@ const getUsers = async (req: any, res: any) => {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
+
     let users: any = await User.findAll(
       {
         where: {
 
-          partner_id: partner_id
+        partner_id: partner_id,
+        [Op.or]: [
+          {
+            first_name: {
+              [Op.iLike]: `%${filter}%`
+            }
+          },
+          {
+            last_name: {
+              [Op.iLike]: `%${filter}%`
+            }
+          },
+          {
+            email: {
+              [Op.iLike]: `%${filter}%`
+
+            }
+
+          },
+          {
+            phone_number: {
+              [Op.iLike]: `%${filter}%`
+
+            }
+
+          },
+          {
+            national_id: {
+              [Op.iLike]: `%${filter}%`
+
+            }
+
+          },
+
+
+        ]
         },
         offset: (page - 1) * limit,
-        limit: limit
+        limit: limit,
+        order: [
+          ['createdAt', 'DESC']
+        ],
+        
       }
     );
     if (users && users.length > 0) {
@@ -391,7 +441,7 @@ const getUsers = async (req: any, res: any) => {
 
   } catch (error) {
     console.log("ERROR", error)
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" , error: error});
 
   }
 
@@ -446,7 +496,7 @@ const getUser = async (req: any, res: any) => {
 
   } catch (error) {
     console.log("ERROR", error)
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error", error: error });
   }
 }
 
@@ -527,7 +577,7 @@ const updateUser = async (req: any, res: any) => {
     return res.status(201).json({result:{message: "User updated successfully", item: updatedUser}  });
   } catch (error) {
     console.log(error);
-    return res.status(409).json({ message: "Details are not correct" });
+    return res.status(409).json({ message: "Details are not correct" , error: error});
   }
 };
 

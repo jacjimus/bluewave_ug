@@ -1,6 +1,7 @@
 import { db } from "../models/db";
 const Payment = db.payments;
 const Policy = db.policies;
+const  { Op } = require("sequelize");
 
 
 /**
@@ -15,7 +16,17 @@ const Policy = db.policies;
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
     *       - name: page
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
+    *       - name: limit
     *         in: query
     *         required: false
     *         schema:
@@ -34,10 +45,32 @@ const Policy = db.policies;
 const getPayments = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
+    const partner_id = req.query.partner_id;
+    const filter = req.query.filter || '';
 
 
     try {
         let payments = await Payment.findAll({
+            where: {
+                partner_id: partner_id,
+                [Op.or]: [
+                    {
+                        payment_description: {
+                            [Op.iLike]: `%${filter}%`
+                        }
+
+                    },
+                    {
+                        payment_type: {
+                            [Op.iLike]: `%${filter}%`
+                        }
+
+
+                    }
+                ]
+
+            },
+
             offset: (page - 1) * limit,
             limit: limit,
             order: [
@@ -59,7 +92,7 @@ const getPayments = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error: error });
     }
 
 }
@@ -77,6 +110,11 @@ const getPayments = async (req: any, res: any) => {
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
     *       - name: payment_id
     *         in: path
     *         required: true
@@ -91,12 +129,14 @@ const getPayments = async (req: any, res: any) => {
 const getPayment = async (req: any, res: any) => {
 
     let payment_id = parseInt(req.params.payment_id)
+    const partner_id = req.query.partner_id
 
     try {
 
         await Payment.findAll({
             where: {
-                payment_id: payment_id
+                payment_id: payment_id,
+                partner_id: partner_id
             }
         }).then((payment: any) => {
             res.status(200).json({ result:{
@@ -107,7 +147,7 @@ const getPayment = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error: error });
 
     }
 }
@@ -125,6 +165,11 @@ const getPayment = async (req: any, res: any) => {
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
     *       - name: policy_id
     *         in: path
     *         required: false
@@ -149,12 +194,14 @@ const getPayment = async (req: any, res: any) => {
 const getPolicyPayments = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
+    const partner_id = req.query.partner_id;
 
     try {
         let policy_id = parseInt(req.params.policy_id)
         let payments = await Payment.findAll({
             where: {
-                policy_id: policy_id
+                policy_id: policy_id,
+                partner_id: partner_id
             }
         })
 
@@ -179,7 +226,7 @@ const getPolicyPayments = async (req: any, res: any) => {
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" , error: error});
 
     }
 }
@@ -202,6 +249,11 @@ const getPolicyPayments = async (req: any, res: any) => {
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: number
     *       - name: user_id
     *         in: path
     *         required: false
@@ -226,6 +278,7 @@ const getPolicyPayments = async (req: any, res: any) => {
 const getUserPayments = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
+    const partner_id = req.query.partner_id
 
 let user_payments = []
     let user_id = parseInt(req.params.user_id)
@@ -233,7 +286,8 @@ let user_payments = []
 
     let user_policies = await Policy.findAll({  
         where: {
-            id: user_id
+            id: user_id,
+            partner_id: partner_id
         }
     })
     console.log("USER POLICIES",user_policies)
@@ -245,7 +299,8 @@ let user_payments = []
         let payments = await Payment.findAll({
             where: {
 
-                policy_id: policy_id
+                policy_id: policy_id,
+                partner_id: partner_id
 
             }
 
@@ -281,7 +336,7 @@ let user_payments = []
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" , error: error});
 
     }
 
@@ -298,12 +353,18 @@ let user_payments = []
   *     summary: 
   *     security:
   *       - ApiKeyAuth: []
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: number
   *     requestBody:
   *       content:
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "claim_id": 1,"user_id": 1, "policy_id": 3,"payment_date": "2023-6-22","payment_amount": 1000, "payment_metadata": { "payment_method": "mobile money","payment_reference": "1234567890","payment_phone_number": "256700000000","payment_email": "test@test","payment_country": "uganda","payment_currency": "ugx","payment_amount": 1000},"payment_type": "premium","payment_status": "paid","payment_description": "premium payment for policy 3"}
+  *             example: { "claim_id": 1,"user_id": 1,"partner_id":1, "policy_id": 3,"payment_date": "2023-6-22","payment_amount": 1000, "payment_metadata": { "payment_method": "mobile money","payment_reference": "1234567890","payment_phone_number": "256700000000","payment_email": "test@test","payment_country": "uganda","payment_currency": "ugx","payment_amount": 1000},"payment_type": "premium","payment_status": "paid","payment_description": "premium payment for policy 3"}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -327,7 +388,7 @@ const createPayment = async (req: any, res: any) => {
 
         console.log("ERROR", error)
 
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error: error });
 
     }
 }

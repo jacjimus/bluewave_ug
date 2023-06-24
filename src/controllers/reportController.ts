@@ -3,6 +3,9 @@ const Policy = db.policies;
 const User = db.users;
 const Session = db.sessions;
 const Claim = db.claims;
+const Product = db.products;
+const Payment = db.payments;
+const Partner = db.partners;
 
 
 /**
@@ -16,6 +19,12 @@ const Claim = db.claims;
     *     summary: Policy summary
     *     security:
     *       - ApiKeyAuth: []
+    *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: true
+    *         schema:
+    *           type: number
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -45,7 +54,7 @@ const getPolicySummary = async (req: any, res: any) => {
             items: summary
         }});
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error });
 
     }
 
@@ -94,17 +103,131 @@ const getClaimSummary = async (req: any, res: any) => {
             items: summary
             }});
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error: error });
 
     }
 }
+
+/**
+    * @swagger
+    * /api/v1/reports/summary/all:
+    *   get:
+    *     tags:
+    *       - Reports
+    *     description: Report summary
+    *     operationId: ReportSummary
+    *     summary: Report summary
+    *     security:
+    *       - ApiKeyAuth: []
+    *     responses:
+    *       200:
+    *         description: Information fetched successfuly
+    *       400:
+    *         description: Invalid request
+    */
+const getAllReportSummary = async (req: any, res: any) => {
+    let summary = {
+        user: {
+            total_users: 0,
+            total_users_active: 0,
+            total_users_inactive: 0,
+            total_users_pending: 0,
+            total_users_with_policy: 0,
+            total_users_with_claim: 0,
+            total_users_with_payment: 0,
+        },
+        policy: {
+            total_policies: 0,
+            total_policies_active: 0,
+            total_premium_amount: 0,    
+        },
+        claim: {
+            total_claims: 0,
+            total_claims_approved: 0,
+            total_claims_pending: 0,
+            total_claims_rejected: 0,
+        },
+        payment: {
+            total_payments: 0,
+            total_payments_paid: 0,
+            total_payments_unpaid: 0,
+            total_payments_pending: 0,
+        },
+        partner: {
+            total_partners: 0,
+            total_partners_active: 0,
+        },
+        product: {
+            total_products: 0,
+            total_products_active: 0,
+            total_products_inactive: 0,
+            total_products_pending: 0,
+        },
+        session: {
+            total_sessions: 0,
+        }
+    }
+
+    try {
+        let users = await User.findAll();
+        let policies = await Policy.findAll();
+        let claims = await Claim.findAll();
+        let payments = await Payment.findAll();
+        let partners = await Partner.findAll();
+        let products = await Product.findAll();
+        let sessions = await Session.findAll();
+
+        // Populate user summary
+        summary.user.total_users = users.length;
+        summary.user.total_users_active = users.filter((user:any) => user.is_active == true).length;
+        summary.user.total_users_inactive = users.filter((user:any) => user.is_active == false).length;
+       
+
+        // Populate policy summary
+        summary.policy.total_policies = policies.length;
+        summary.policy.total_policies_active = policies.filter(policy => policy.policy_status === 'active').length;
+        summary.policy.total_premium_amount = policies.reduce((a: any, b: any) => a + b.policy_deduction_amount * 1, 0);
+
+        // Populate claim summary
+        summary.claim.total_claims = claims.length;
+        summary.claim.total_claims_approved = claims.filter((claim:any) => claim.claim_status === 'approved').length;
+        summary.claim.total_claims_pending = claims.filter((claim:any) => claim.claim_status === 'pending').length;
+        summary.claim.total_claims_rejected = claims.filter((claim:any) => claim.claim_status === 'rejected').length;
+
+        // Populate payment summary
+        summary.payment.total_payments = payments.length;
+        summary.payment.total_payments_paid = payments.filter((payment:any) => payment.paymant_status === 'paid').length;
+        summary.payment.total_payments_unpaid = payments.filter((payment:any) => payment.payment_status === 'unpaid').length;
+        summary.payment.total_payments_pending = payments.filter((payment:any) => payment.payment_status === 'pending').length;
+
+        // Populate partner summary
+        summary.partner.total_partners = partners.length;
+        summary.partner.total_partners_active = partners.filter((partner:any) => partner.is_active == true).length;
+
+        // Populate product summary
+        summary.product.total_products = products.length;
+        summary.product.total_products_active = products.filter((product:any) => product.product_status === 'active').length;
+        summary.product.total_products_inactive = products.filter((product:any) => product.product_status === 'inactive').length;
+        summary.product.total_products_pending = products.filter((product:any) => product.product_status === 'pending').length;
+
+        // Populate session summary
+        summary.session.total_sessions = sessions.length;
+
+        // Return the summary
+        res.status(200).json({ summary });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error", error });
+    }
+}
+
 
 
 
 module.exports = {
 
     getPolicySummary,
-    getClaimSummary
+    getClaimSummary,
+    getAllReportSummary
 
 
 }

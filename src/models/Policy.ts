@@ -8,6 +8,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        partner_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+
         policy_start_date: {
             type: DataTypes.DATE,
             allowNull: false
