@@ -14,8 +14,9 @@ export function displayAccount(menu:any, args:any, db:any):void {
                 '\n3. Buy (others)' +
                 '\n4. Admission Claim' +
                 '\n5. My Account' +
-                '\n6. Terms & Conditions' +
-                '\n7. FAQs' +
+                '\n6. Choose Hopital' +
+                '\n7. Terms & Conditions' +
+                '\n8. FAQs' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -26,8 +27,9 @@ export function displayAccount(menu:any, args:any, db:any):void {
             '3': 'buyForOthers',
             '4': 'makeClaim',
             '5': 'myAccount',
-            '6': 'termsAndConditions',
-            '7': 'faqs',
+            '6': 'chooseHospital',
+            '7': 'termsAndConditions',
+            '8': 'faqs',
         }
     });
 

@@ -62,7 +62,7 @@ menu.state('buyForSelf.bronze', {
 
 
         const user = await getUser(args.phoneNumber);
-        let first_name = user.first_name;
+        let first_name = user.first_name 
         let last_name = user.last_name;
         console.log(user,"FIRST NAME", first_name, "LAST NAME", last_name)
        
@@ -70,8 +70,7 @@ menu.state('buyForSelf.bronze', {
         first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
         last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
 
-         const full_name = first_name + " " + last_name;
-
+         const full_name = first_name + " " + last_name
         menu.con(`Hospital cover for ${full_name}, ${args.phone} Kes 1M a year 
                     PAY
                     1. Kes 300 deducted monthly

@@ -13,6 +13,7 @@ export function myAccount(menu:any, args:any, db:any){
                 '\n2. Manage auto-renew' +
                 '\n3. My insurance policy' +
                 '\n4. Cancel policy' +
+                '\n5. My Hospital' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -22,6 +23,7 @@ export function myAccount(menu:any, args:any, db:any){
             '2': 'manageAutoRenew',
             '3': 'myInsurancePolicy',
             '4': 'cancelPolicy',
+            '5': 'myHospital',
             '0': 'account',
             '00': 'insurance',
         }
