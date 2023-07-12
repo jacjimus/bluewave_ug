@@ -61,9 +61,14 @@ menu.state('buyForSelf.bronze', {
     run: async () => {
 
 
-        const { first_name, last_name } = await getUser(args.phoneNumber);
+        const user = await getUser(args.phoneNumber);
+        let first_name = user.first_name;
+        let last_name = user.last_name;
+        console.log(user,"FIRST NAME", first_name, "LAST NAME", last_name)
        
         //capitalize first letter of name
+        first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
+        last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
 
          const full_name = first_name + " " + last_name;
 

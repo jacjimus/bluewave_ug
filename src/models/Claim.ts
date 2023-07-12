@@ -63,6 +63,9 @@ module.exports = (sequelize, DataTypes) => {
             sequelize.models.user.hasMany(Claim, {
             foreignKey: "user_id",
             });
-            
+
+           
     return Claim
 }
+
+//A.hasOne(B) and B.belongsTo(A)

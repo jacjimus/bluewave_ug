@@ -52,6 +52,33 @@ module.exports = (sequelize, DataTypes) => {
         },
 
     })
+
+    Payment.belongsTo(sequelize.models.claim, { 
+        as: "claim",
+        foreignKey: "claim_id",
+        });
+        sequelize.models.claim.hasMany(Payment, {
+        as: "payments",
+        foreignKey: "claim_id",
+        });
+
+        Payment.belongsTo(sequelize.models.user, {
+            as: "user",
+            foreignKey: "user_id",
+            });
+
+            sequelize.models.user.hasMany(Payment, {
+            as: "payments",
+            foreignKey: "user_id",
+            });
+
+            Payment.belongsTo(sequelize.models.policy, {
+                as: "policy",
+                foreignKey: "policy_id",
+                });
+                
+
+
     return Payment
 }
 

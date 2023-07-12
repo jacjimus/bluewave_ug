@@ -1,6 +1,8 @@
 import { db } from "../models/db";
 const Payment = db.payments;
 const Policy = db.policies;
+const User = db.users;
+const Claim = db.claims;
 const  { Op } = require("sequelize");
 
 
@@ -75,7 +77,14 @@ const getPayments = async (req: any, res: any) => {
             limit: limit,
             order: [
                 ['payment_id', 'DESC']
-            ]
+            ],
+            include: [
+
+                            { model: User, as: 'user' },
+                            { model: Policy, as: 'policy' },
+                            { model: Claim, as: 'claim'}
+                        ],
+
         });
 
         console.log(payments)

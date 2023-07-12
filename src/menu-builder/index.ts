@@ -47,7 +47,7 @@ export default function (args: RequestBody, db: any) {
             // BUILD INPUT VARIABLE
             let buildInput = {
                 current_input: args.text,
-                full_input: args.text,
+                full_input: args.text, 
                 masked_input: args.text,
                 active_state: configs.start_state,
                 sid: configs.session_prefix + args.sessionId,

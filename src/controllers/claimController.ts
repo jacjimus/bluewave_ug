@@ -2,6 +2,7 @@ import { db } from "../models/db";
 const Claim = db.claims;
 const User = db.users;
 const Policy = db.policies;
+const Partner = db.partners;
 const { Op } = require("sequelize");
 
 
@@ -44,64 +45,58 @@ const getClaims = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     const filter = req.query.filter;
+    console.log("FILTER", filter)
     try {
-        const claim = await Claim.findAll(
-            {
+        let claim: any;
+        if(!filter || filter == ""){
+            claim = await Claim.findAll({
                 where: {
-                    partner_id: partner_id,
-                    [Op.or]: [  
-                        {
-                            claim_number: {
-                                [Op.like]: `%${filter}%`
-                            }
-                        },
-                        {
-                            claim_status: {
-                                [Op.like]: `%${filter}%`
-                            }
-                        },
-                        {
-                            claim_type: {
-                                [Op.like]: `%${filter}%`
-                            }
-                        },
-                        {
-                            claim_description: {
-                                [Op.like]: `%${filter}%`
-                            }
-                        },
-                        {
-                            claim_amount: {
-                                [Op.like]: `%${filter}%`
-                            }
-                        },
-                        {
-                            claim_date: {
-                                [Op.like]: `%${filter}%`
-
-                            }
-                        },
-                    ]
-
+                    partner_id: partner_id
                 },
-               
                 order: [
                     ['createdAt', 'DESC']
                 ]
+                ,
+                include: [
+                    { model: User, as: 'user' },
+                    { model: Policy, as: 'policy' }
 
-            }
 
-        )
+                ]
+            })
+        }
+
+        //filter by claim status or claim type or description
+        if(filter){
+            claim = await Claim.findAll({
+                where: {
+                    [Op.or]: [
+                    { claim_status:{[Op.iLike]: `%${filter}%` } },
+                        { claim_type: {[Op.iLike]: `%${filter}%` } },
+                    { claim_description: {[Op.iLike]: `%${filter}%` } }
+
+                    ],
+                    partner_id: partner_id
+                },
+                order: [
+                    ['createdAt', 'DESC']
+                ],
+                include: [
+                    { model: User, as: 'user' },
+                    { model: Policy, as: 'policy' }
+                ]
+            })
+        }
+
+        
+       
         if (!claim || claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
 
         if (page && limit) {
             let offset = page * limit - limit;
-            let paginatedClaims = await Claim.findAll({
-                offset: offset,
-                limit: limit
-            });
+            let paginatedClaims =  claim.slice(offset, offset + limit);
             return res.status(200).json(
                 { result: {
                     count: claim.length,
@@ -109,6 +104,8 @@ const getClaims = async (req: any, res: any) => {
                 }}
             );
         }
+
+    
         return res.status(200).json({result: claim});
 
     } catch (error) {
@@ -150,7 +147,15 @@ const getClaims = async (req: any, res: any) => {
 const getClaim = async (req: any, res: any) => {
     try {
         const claim_id = parseInt(req.params.claim_id)
-        const claim = await Claim.findByPk(claim_id)
+        const claim = await Claim.findByPk(
+            claim_id,
+            {
+                include: [
+                    { model: User, as: 'user' }
+                ]
+            }
+
+        )
         if (!claim) {
             return res.status(404).json({ message: "Claim not found" });
         }
@@ -221,7 +226,11 @@ const getUserClaims = async (req: any, res: any) => {
             },
             order: [
                 ['createdAt', 'DESC']
+            ],
+            include: [
+                { model: User, as: 'user' }
             ]
+
             
         })
 
@@ -230,10 +239,7 @@ const getUserClaims = async (req: any, res: any) => {
         }
         if (page && limit) {
             let offset = page * limit - limit;
-            let paginatedClaims = await Claim.findAll({
-                offset: offset,
-                limit: limit
-            });
+            let paginatedClaims = claim.slice(offset, offset + limit);
             return res.status(200).json(
                 { result:{
                     count: claim.length,
@@ -303,7 +309,15 @@ const getPolicyClaims = async (req: any, res: any) => {
             where: {
                 policy_id: policy_id,
                 partner_id: partner_id
-            }
+            },
+            order: [
+                ['createdAt', 'DESC']
+            ],
+            include: [
+                { model: User, as: 'user' }
+            ]
+
+
         })
 
         if (!claim || claim.length === 0) {
@@ -311,10 +325,7 @@ const getPolicyClaims = async (req: any, res: any) => {
         }
         if (page && limit) {
             let offset = page * limit - limit;
-            let paginatedClaims = await Claim.findAll({
-                offset: offset,
-                limit: limit
-            });
+            let paginatedClaims = claim.slice(offset, offset + limit);
             return res.status(200).json(
                 { result:{
                     count: claim.length,

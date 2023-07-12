@@ -365,7 +365,8 @@ const login = async (req: any, res: any) => {
  *         description: Successful response
  */
 const getUsers = async (req: any, res: any) => {
-  let partner_id = req.query.partner_id;
+  let partner_id = req.query.partner_id 
+  console.log("PARTNER ID", partner_id)
   let filter = req.query.filter || "";
 
   let page = parseInt(req.query.page) || 1;
@@ -479,7 +480,7 @@ const getUsers = async (req: any, res: any) => {
 const getUser = async (req: any, res: any) => {
   try {
     let user_id = parseInt(req.params.user_id)
-    let partner_id = req.query.partner_id;
+    let partner_id = req.query.partner_id 
 
     let user: any = await getUserFunc(user_id, partner_id);
     console.log(user)

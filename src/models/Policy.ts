@@ -1,3 +1,10 @@
+import { Sequelize } from "sequelize";
+import { db } from "../models/db";
+const Claim = db.claims;
+const User = db.users;
+const Policy = db.policies;
+const Partner = db.partners;
+const Product = db.products;
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
         product_id: {
@@ -88,15 +95,15 @@ module.exports = (sequelize, DataTypes) => {
 
         { timestamps: true },)  
 
-    Policy.belongsTo(sequelize.models.user, {
+    Policy.belongsTo(User, {
+        as: "user",
         foreignKey: "user_id",
     });
-    sequelize.models.user.hasMany(Policy, {
-        foreignKey: "user_id",
-    });
+    
 
+    
     return Policy
 }
-//  User.hasMany(Policy, { foreignKey: 'user_id' });
-//  Policy.belongsTo(User, { foreignKey: 'user_id' });
+ 
 
+//A.hasOne(B) and B.belongsTo(A)

@@ -2,6 +2,7 @@
 import { db } from "../models/db";
 const Policy = db.policies;
 const User = db.users;
+const Product = db.products;
 const { Op } = require("sequelize");
 
 
@@ -95,9 +96,25 @@ const getPolicies = async (req: any, res: any) => {
 
                     },
 
+                ],
+
+                },
+                order: [
+                    ['id', 'DESC'],
+                ],
+
+                include: [
+                    {
+                        model: User,
+                        as: "user",
+
+                    },
+                    {
+                        model: Product,
+                        as: "product",
+                    }
                 ]
 
-                }
                 
             }
         )

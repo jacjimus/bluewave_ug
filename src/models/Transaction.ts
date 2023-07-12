@@ -67,6 +67,7 @@ module.exports = (sequelize, DataTypes) => {
         sequelize.models.beneficiary.hasMany(Transaction, {
         foreignKey: "beneficiary_id",
         });
+        
     
     return Transaction
     }

@@ -48,6 +48,20 @@ module.exports = (sequelize, DataTypes) => {
 
 
     })
+ Product.hasMany(sequelize.models.policy, {
+as: "policies",
+    foreignKey: "product_id",   
+    });
+    sequelize.models.policy.belongsTo(Product, {
+as: "product",
+
+    foreignKey: "product_id",
+    });
+    
+   
+
+
+
     return Product
 }
 
