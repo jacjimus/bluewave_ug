@@ -224,7 +224,7 @@ const partnerRegistration = async (req: any, res: any) => {
     };
 
     //checking if the partner already exists using email and partner id
-    let partner: any = await Partner.findAll({ where: { email: email, partner_id: partner_id } })
+    let partner: any = await Partner.findOne({ where: { email: email } })
     if (partner && partner.length > 0) {
       return res.status(409).json({ message: "Partner already exists" });
     }

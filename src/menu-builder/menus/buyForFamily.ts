@@ -34,10 +34,10 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
                     menu.con('Buy for family ' +
-                        '\n1. Self  – Kes 650' +
-                        '\n2. Self + Spouse – Kes 1,040' +
-                        '\n3. Self + Spouse + 1 Child -Kes 1,300' +
-                        '\n4. Self + Spouse + 2 children – Kes 1,456' +
+                        '\n1. Self  – UGX 10,000' +
+                        '\n2. Self + Spouse – UGX 20,000' +
+                        '\n3. Self + Spouse + 1 Child - UGX 30,000' +
+                        '\n4. Self + Spouse + 2 children – UGX 40,000' +
                         '\n0.Back' +
                         '\n00.Main Menu'
                     )
@@ -80,8 +80,10 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
                     let day: any = Number(menu.val);
                     let date = new Date();
+                    let premium = 650;
 
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    let nextAlert = new Date(date.getFullYear(), date.getMonth() + 1, day - 3);
                     //nextDeduction to be formatted to MM/DD/YYYY
                     //update user details in db
 
@@ -104,14 +106,24 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                         //save policy details
                         let policy = {
 
-                            policy_type: 'family',
+                            policy_type: 'FAMILY BRONZE SELF',
                             beneficiary: 'self',
                             policy_status: 'active',
                             policy_start_date: new Date(),
                             policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                             policy_deduction_day: day * 1,
-                            policy_deduction_amount: 650,
+                            policy_deduction_amount: 10000,
                             policy_next_deduction_date: nextDeduction,
+                            premium: 10000,
+                            installment_order: 1,
+                            installment_date: new Date(),
+                            installment_alert_date:  new Date(date.getFullYear(), date.getMonth() + 1, day - 3),
+                            tax_rate_vat: '0.2',
+                            tax_rate_ext: '0.25',
+                            sum_insured: '1500000',
+                            excess_premium: '0',
+                            discount_premium: '0',
+                            partner_id: User.partner_id,
                             user_id: id
                         }
 
@@ -129,7 +141,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 1400  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX ${premium}  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -181,13 +193,23 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
                     const policy = {
-                        policy_type: 'family',
-                        beneficiary: 'selfSpouse',
-                        policy_status: 'active',
-                        policy_start_date: new Date(),
-                        policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
-                        policy_deduction_amount: 1300,
-                        user_id: id
+                            policy_type: 'FAMILY BRONZE SELF+SPOUSE',
+                            beneficiary: 'selfSpouse',
+                            policy_status: 'active',
+                            policy_start_date: new Date(),
+                            policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
+                            policy_deduction_amount: 20000,
+                            premium: 20000,
+                            installment_order: 1,
+                            installment_date: new Date(),
+                            installment_alert_date:  new Date(),
+                            tax_rate_vat: '0.2',
+                            tax_rate_ext: '0.25',
+                            sum_insured: '1500000',
+                            excess_premium: '0',
+                            discount_premium: '0',
+                            partner_id: User.partner_id,
+                            user_id: id
                     }
 
                     let newPolicy = await Policy.create(policy).catch(err => console.log(err));
@@ -208,7 +230,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
 
-                    menu.con('\n Enter Spouse ID' +
+                    menu.con('\n Enter Spouse ID or Phone Number' +
 
                         '\n0.Back' +
                         '\n00.Main Menu'
@@ -274,6 +296,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                     const day: any = Number(menu.val);
                     const date = new Date();
                     const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    let premium = 20000;
 
                     //update policy details in db
                     const { id } = await getUser(args.phoneNumber);
@@ -293,7 +316,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
                     menu.con('Confirm \n' +
-                        ` Deduct Kes 1,040  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX 20,000 on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -345,12 +368,22 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
                     const policy = {
-                        policy_type: 'family',
+                        policy_type: 'FAMILY BRONZE SELF+SPOUSE+1 CHILD',
                         beneficiary: 'selfSpouse1Child',
                         policy_status: 'active',
                         policy_start_date: new Date(),
                         policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
-                        policy_deduction_amount: 1300,
+                        policy_deduction_amount: 30000,
+                        premium: 30000,
+                        installment_order: 1,
+                        installment_date: new Date(),
+                        installment_alert_date:  new Date(),
+                        tax_rate_vat: '0.2',
+                        tax_rate_ext: '0.25',
+                        sum_insured: '1500000',
+                        excess_premium: '0',
+                        discount_premium: '0',
+                        partner_id: User.partner_id,
                         user_id: id
                     }
 
@@ -482,6 +515,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                     const day: any = Number(menu.val);
                     const date = new Date();
                     const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
+                    let premium = 30000;
 
                     const { id } = await getUser(args.phoneNumber);
 
@@ -501,7 +535,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
                     menu.con('Confirm \n' +
-                        ` Deduct Kes 1456  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX ${policy.premium}  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -546,16 +580,26 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
 
                     const policy = {
-                        policy_type: 'family',
+                        policy_type: 'FAMILY BRONZE SELF+SPOUSE+2 CHILDREN',
                         beneficiary: 'selfSpouse2Child',
                         policy_status: 'active',
                         policy_start_date: new Date(),
                         policy_end_date: new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate()),
-                        policy_deduction_amount: 1456,
+                        policy_deduction_amount: 40000,
                         policy_deduction_day: 1,
                         policy_next_deduction_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-
+                        premium: 40000,
+                        installment_order: 1,
+                        installment_date: new Date(),
+                        installment_alert_date:  new Date(),
+                        tax_rate_vat: '0.2',
+                        tax_rate_ext: '0.25',
+                        sum_insured: '1500000',
+                        excess_premium: '0',
+                        discount_premium: '0',
+                        partner_id: User.partner_id,
                         user_id: id
+                        
                     }
 
                     let newPolicy = await Policy.create(policy);
@@ -679,7 +723,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                     //save child2 name to db users collection
                     const { id } = await getUser(args.phoneNumber);
                     
-
+                   let premium = 40000
                     //create beneficiary
                     let beneficiary = {
                         full_name: child2,
@@ -691,11 +735,11 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                     let newBeneficiary = await Beneficiary.create(beneficiary);
 
 
-                    menu.con('Pay Kes 1456  deducted monthly.' +
-                        '\nTerms&Conditions - www.airtel.com' +
-                        '\nEnter PIN to Agree and Pay' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
+                    menu.con(`Pay UGX ${premium}  deducted monthly.
+                    Terms&Conditions - www.airtel.com
+                    Enter PIN to Agree and Pay
+                    n0.Back
+                    00.Main Menu`
                     )
 
 
@@ -710,11 +754,13 @@ export function buyForFamily(menu: any, args:any, db:any): void {
             //buyForFamily.selfSpouse2Children pin
             menu.state('buyForFamily.selfSpouse2Child.pin', {
                 run: () => {
-                    menu.con('Pay Kes 1456  deducted monthly.' +
-                        '\nTerms&Conditions - www.airtel.com' +
-                        '\nEnter PIN to Agree and Pay' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
+                        
+                   let premium = 40000;
+                    menu.con(`Pay UGX ${premium} deducted monthly.
+                            Terms&Conditions - www.airtel.com
+                            Enter PIN to Agree and Pay
+                            n0.Back
+                            00.Main Menu`
                     )
 
                 },
@@ -734,14 +780,14 @@ export function buyForFamily(menu: any, args:any, db:any): void {
             menu.state('buyForFamilyPin', {
                 run: () => {
                     console.log("buyForFamilyPin")
+                  let premium = 40000;
 
-                    menu.con('Pay Kes 1300  deducted monthly.' +
-                        '\nTerms&Conditions - www.airtel.com' +
-                        '\nEnter PIN to Agree and Pay' +
-                        '\n0.Back' +
-                        '\n00.Main Menu'
+                    menu.con(`Pay UGX ${premium}  deducted monthly.
+                    Terms&Conditions - www.airtel.com
+                    Enter PIN to Agree and Pay
+                    n0.Back
+                    00.Main Menu`
                     )
-
                 },
                 next: {
                     '*\\d+': 'buyForFamilySChedule',
@@ -759,14 +805,21 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                     
                     // get user details
                     const { id ,pin} = await getUser(args.phoneNumber);
+                    const policy = await Policy.findOne({
+                        where: {
+                            user_id: id
+                        }
+                    })
+                    let policy_deduction_amount = policy.policy_deduction_amount;
+
 
                     // check if pin is correct
                     if (user_pin == pin) {
 
-                        menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 1300 premium monthly (e.g. 1, 2, 3…31)' +
-                            '\n0.Back' +
-                            '\n00.Main Menu'
+                        menu.con(`SCHEDULE
+                              Enter day of month to deduct UGX ${policy_deduction_amount} premium monthly (e.g. 1, 2, 3…31)
+                              0.Back
+                              00.Main Menu`
                         );
 
                     } else {
@@ -791,7 +844,7 @@ export function buyForFamily(menu: any, args:any, db:any): void {
 
                     const userId = user.id
 
-                    const {id,policy_status, policy_deduction_amount,policy_deduction_day,policy_type} = await Policy.findOne({
+                    const {id,policy_status, policy_deduction_amount,policy_deduction_day,policy_type, premium} = await Policy.findOne({
                         where: {
                             user_id: userId
                         }
@@ -811,13 +864,14 @@ export function buyForFamily(menu: any, args:any, db:any): void {
                         const reference = policy_type + id
 
 
-                        let payment: any = await airtelMoney(userId, phoneNumber, policy_deduction_amount, reference, uuid)
+                        //let payment: any = await airtelMoney(userId, phoneNumber, policy_deduction_amount, reference, uuid)
+                        let payment: any = 200
 
                         if (payment == 200) {
 
                             menu.end('Congratulations you are now covered. \n' +
 
-                                `To stay covered Kes ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`
+                                `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`
 
                             )
                         } else {

@@ -1,7 +1,7 @@
 
 import sendSMS from "../../services/sendSMS";
 
-export function myAccount(menu:any, args:any, db:any){
+export function myAccount(menu: any, args: any, db: any) {
     const User = db.users;
     const Policy = db.policies;
     menu.state('myAccount', {
@@ -107,68 +107,61 @@ export function myAccount(menu:any, args:any, db:any){
 
 
 
-            //my insurance policy
+    //my insurance policy
 
-            menu.state('myInsurancePolicy', {
-                run: async () => {
-
-                    //grt user by phone number
-
-                    const user = await User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                        include: [
-                            {
-                                model: Policy,
-                                where: {
-                                    policy_status: 'active',
-                                },
-                                attributes: [
-                                    'policy_status',
-                                    'policy_type',
-                                    'policy_end_date',
-                                    'policy_deduction_day',
-                                ],
-                                raw: true,
-                            },
-                        ],
-                        raw: true,
-                    });
-
-                    if (!user) {
-                        menu.con('User not found');
-                        return;
-                    }
-
-                    if (user['policies.policy_status'] === 'active') {
-
-
-                        menu.end(
-                            'My Insurance Policy ' +
-                            `${user['policies.policy_type']} cover ${user['policies.policy_status']} upto ${user['policies.policy_end_date']}\n` +
-                            `HOSPITAL: Kes 100k per night, ## nights remaining\n` +
-                            `FUNERAL: Kes 4M cover\n` +
-                            `Premium payment auto-deducted day ${user['policies.policy_deduction_day']} monthly`
-                        );
-                    } else {
-                        menu.con(
-                            'Your policy is INACTIVE\n' +
-                            '1 Buy cover\n' +
-                            '0.Back\n' +
-                            '00.Main Menu'
-                        );
-                    }
-
+    menu.state('myInsurancePolicy', {
+        run: async () => {
+            const user = await User.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
                 },
-                next: {
-                    '1': 'account',
-                    '0': 'account',
-                    '00': 'insurance',
+            });
+            console.log("USER: ", user)
+            const policy = await Policy.findOne({
+                where: {
+                    user_id: user.id,
+                },
+            });
+            console.log("POLICY: ", policy)
+            if (!user) {
+                menu.con('User not found');
+                return;
+            }
 
-                }
-            })
+            if (policy.policy_status == 'active') {
+                menu.end(
+                    'My Insurance Policy ' +
+                    `${policy.policy_type} ${policy.policy_status} to ${policy.policy_end_date}\n` +
+                    `Inpatient limit : UGX ${policy.sum_insured}\n` +
+                    `Remaining UGX ${policy.sum_insured}` 
+                );
+            } else {
+                menu.con(
+                    'Your policy is INACTIVE\n' +
+                    '1 Buy cover\n' +
+                    '0.Back\n' +
+                    '00.Main Menu'
+                );
+            }
 
+        },
+        next: {
+            '1': 'account',
+            '0': 'account',
+            '00': 'insurance',
 
+        }
+    })
+
+    menu.state('manageAutoRenew', {
+        run: async () => {
+            menu.con('Manage auto-renew ' +
+                '\n1. Activate auto-renew' +
+                '\n2. Deactivate auto-renew' +
+                '\n0.Back' +
+                '\n00.Main Menu'
+            )
+        }
+    })
 
 }

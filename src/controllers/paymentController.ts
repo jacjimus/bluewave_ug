@@ -404,11 +404,6 @@ const createPayment = async (req: any, res: any) => {
 
 
 
-
-
-
-
-
 module.exports = {
     getPayments,
     getPayment,

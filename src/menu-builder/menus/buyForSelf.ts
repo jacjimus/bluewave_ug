@@ -35,9 +35,9 @@ export function buyForSelf(menu: any, args:any, db:any): void {
 
 
         menu.con('Buy for self ' +
-            '\n1. Bronze  – Kes 300' +
-            '\n2. Silver – Kes 650' +
-            '\n3. Gold – Kes 1,400' +
+            '\n1. Bronze  – UGX 10,000' +
+            '\n2. Silver – UGX 14,000' +
+            '\n3. Gold – UGX 18,000' +
             '\n0.Back' +
             '\n00.Main Menu'
         )
@@ -71,10 +71,10 @@ menu.state('buyForSelf.bronze', {
         last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
 
          const full_name = first_name + " " + last_name
-        menu.con(`Hospital cover for ${full_name}, ${args.phone} Kes 1M a year 
+        menu.con(`Hospital cover for ${full_name}, ${args.phone} UGX 1,500,000 a year 
                     PAY
-                    1. Kes 300 deducted monthly
-                    2. Kes 3,294 yearly
+                    1. UGX 10,000 deducted monthly
+                    2. UGX 120,000 yearly
                     0. Back
                     00. Main Menu`);
     },
@@ -90,7 +90,7 @@ menu.state('buyForSelf.bronze.pay', {
     run: () => {
 
 
-        menu.con('Pay Kes 300  deducted monthly.' +
+        menu.con('Pay UGX 10,000  deducted monthly.' +
             '\nTerms&Conditions - www.airtel.com' +
             '\nEnter PIN to Agree and Pay' +
             '\n0.Back' +
@@ -108,7 +108,7 @@ menu.state('buyForSelf.bronze.pay.yearly', {
     run: () => {
 
 
-        menu.con('Pay Kes 3,294 deducted yearly.' +
+        menu.con('Pay UGX 120,000 deducted yearly.' +
             '\nTerms&Conditions - www.airtel.com' +
             '\nEnter PIN to Agree and Pay' +
             '\n0.Back' +
@@ -134,7 +134,7 @@ menu.state('buyForSelf.bronze.pin', {
         if (user_pin == pin) {
 
             menu.con('SCHEDULE' +
-                '\n Enter day of month to deduct Kes 300 premium monthly (e.g. 1, 2, 3…31)' +
+                '\n Enter day of month to deduct UGX 10,000 premium monthly (e.g. 1, 2, 3…31)' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             );
@@ -161,7 +161,7 @@ menu.state('buyForSelf.bronze.yearly.pin', {
         // check if pin is correct
         if (user_pin == pin) {
             menu.con('SCHEDULE' +
-                '\n Enter day of month to deduct Kes 3,294 premium yearly (e.g. 1, 2, 3…31)' +
+                '\n Enter day of month to deduct UGX 120,000 premium yearly (e.g. 1, 2, 3…31)' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             );
@@ -207,13 +207,13 @@ menu.state('buyForSelf.bronze.confirm', {
             //save policy details
             let policy = {
 
-                policy_type: 'bronze',
+                policy_type: 'Bronze self',
                 beneficiary: 'self',
                 policy_status: 'active',
                 policy_start_date: new Date(),
                 policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 policy_deduction_day: day * 1,
-                policy_deduction_amount: 300,
+                policy_deduction_amount: 10000,
                 policy_next_deduction_date: nextDeduction,
                 user_id: id
             }
@@ -236,7 +236,7 @@ menu.state('buyForSelf.bronze.confirm', {
         //const to = args.phoneNumber + "".replace('+', '');
         const to = '254' + args.phoneNumber.substring(1);
 
-        const message = `PAID KES 300 to AAR Kenya for Bronze Cover Cover Charge Kes 0. Bal Kes 10,000. TID: 715XXXXXXXX. 
+        const message = `PAID UGX 10,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. 
         Date: ${new Date().toLocaleDateString()}. `
 
         //send SMS
@@ -244,7 +244,7 @@ menu.state('buyForSelf.bronze.confirm', {
 
         menu.con('Confirm \n' +
 
-            ` Deduct Kes 300  on day ${day} each month. Next deduction will be on ${nextDeduction} 
+            ` Deduct 10,000  on day ${day} each month. Next deduction will be on ${nextDeduction} 
              1.Confirm 
              0.Back 
              00.Main Menu`
@@ -291,13 +291,13 @@ menu.state('buyForSelf.bronze.yearly.confirm', {
             //save policy details
             let policy = {
 
-                policy_type: 'bronze',
+                policy_type: 'Bronze self',
                 beneficiary: 'self',
                 policy_status: 'active',
                 policy_start_date: new Date(),
                 policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 policy_deduction_day: day * 1,
-                policy_deduction_amount: 3294,
+                policy_deduction_amount: 120000,
                 policy_next_deduction_date: nextDeduction,
                 user_id: id
             }
@@ -322,13 +322,13 @@ menu.state('buyForSelf.bronze.yearly.confirm', {
         
 console.log("TO: ", to)
 
-        const message = `PAID Kes 3,294 to AAR Kenya for Bronze Cover Cover Charge Kes 0. Bal Kes 10,000. TID: 715XXXXXXXX. 
+        const message = `PAID UGX 120,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal Kes 10,000. TID: 715XXXXXXXX. 
         Date: ${new Date().toLocaleDateString()}. `
         const sms = await sendSMS(to, message);
 
         menu.con('Confirm \n' +
 
-            ` Deduct Kes 3,294  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
+            ` Deduct UGX 120,0000  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
             '\n1.Confirm \n' +
             '\n0.Back ' + ' 00.Main Menu'
         );
@@ -350,10 +350,10 @@ console.log("TO: ", to)
                     const {first_name, last_name } = await getUser(args.phoneNumber);
 
                     let full_name = first_name + " " + last_name;
-                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} Kes 1M a year 
+                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} UGX 3,000,00 a year 
                     PAY' +
-                    1. Kes 650 deducted monthly 
-                    2. Kes 7,650 yearly
+                    1. UGX 14,000 deducted monthly 
+                    2. UGX 167,000 yearly
                     0.Back
                     00.Main Menu`
                     )
@@ -371,7 +371,7 @@ console.log("TO: ", to)
                 run: () => {
 
 
-                    menu.con('Pay Kes 650  deducted monthly.' +
+                    menu.con('Pay UGX 14,000 deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
                         '\n0.Back' +
@@ -388,7 +388,7 @@ console.log("TO: ", to)
                 run: () => {
 
 
-                    menu.con('Pay Kes 7,650  deducted yearly.' +
+                    menu.con('Pay UGX 167,000 deducted yearly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
                         '\n0.Back' +
@@ -413,7 +413,7 @@ console.log("TO: ", to)
                     if (user_pin == pin) {
 
                         menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 650 premium monthly (e.g. 1, 2, 3…31)' +
+                            '\n Enter day of month to deduct Kes UGX 14,000 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
@@ -441,7 +441,7 @@ console.log("TO: ", to)
                     if (user_pin == pin) {
 
                         menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 7,650 premium yearly (e.g. 1, 2, 3…31)' +
+                            '\n Enter day of month to deduct UGX 167,000 premium yearly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
@@ -490,13 +490,13 @@ console.log("TO: ", to)
                         //save policy details
                         let policy = {
 
-                            policy_type: 'silver',
+                            policy_type: 'Silver self',
                             beneficiary: 'self',
                             policy_status: 'active',
                             policy_start_date: new Date(),
                             policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                             policy_deduction_day: day * 1,
-                            policy_deduction_amount: 650,
+                            policy_deduction_amount: 14000,
                             policy_next_deduction_date: nextDeduction,
                             user_id: id
                         }
@@ -516,7 +516,7 @@ console.log("TO: ", to)
 
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 650  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX 14,000  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -565,7 +565,7 @@ console.log("TO: ", to)
                             policy_start_date: new Date(),
                             policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                             policy_deduction_day: day * 1,
-                            policy_deduction_amount: 7650,
+                            policy_deduction_amount: 167000,
                             policy_next_deduction_date: nextDeduction,
                             user_id: id
                         }
@@ -586,7 +586,7 @@ console.log("TO: ", to)
 
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 7,650  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX 167,000   on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -618,10 +618,10 @@ console.log("TO: ", to)
                     let full_name = user.first_name + ' ' + user.last_name;
                     
 
-                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} Kes 1M a year 
+                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} Kes 5,000,000 a year 
                         PAY
-                        1. Kes 1400 deducted monthly 
-                        2. Kes 16,800 yearly
+                        1. UGX 18,000 deducted monthly 
+                        2. UGX 208,000 yearly
                         0.Back
                         00.Main Menu`
                     )
@@ -668,7 +668,7 @@ console.log("TO: ", to)
                     if (user && user.pin == pin) {
 
                         menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 1400 premium monthly (e.g. 1, 2, 3…31)' +
+                            '\n Enter day of month to deduct UGX 18,000 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
@@ -727,7 +727,7 @@ console.log("TO: ", to)
                             policy_start_date: new Date(),
                             policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                             policy_deduction_day: day * 1,
-                            policy_deduction_amount: 1400,
+                            policy_deduction_amount: 18000,
                             policy_next_deduction_date: nextDeduction,
                             user_id: user.id
                         }
@@ -748,7 +748,7 @@ console.log("TO: ", to)
 
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 1400  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX 18,000  on day ${day} each month. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -765,7 +765,7 @@ console.log("TO: ", to)
                 run: () => {
 
 
-                    menu.con('Pay Kes 16,800  deducted yearly.' +
+                    menu.con('Pay UGX 208,000 deducted yearly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
                         '\n0.Back' +
@@ -789,7 +789,7 @@ console.log("TO: ", to)
                     // check if pin is correct
                     if (user_pin == pin) {
                         menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes 16,800 premium yearly (e.g. 1, 2, 3…31)' +
+                            '\n Enter day of month to deduct UGX 208,000 premium yearly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
@@ -836,13 +836,13 @@ console.log("TO: ", to)
                         //save policy details
                         let policy = {
 
-                            policy_type: 'gold',
+                            policy_type: 'GOLD SELF',
                             beneficiary: 'self',
                             policy_status: 'active',
                             policy_start_date: new Date(),
                             policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                             policy_deduction_day: day * 1,
-                            policy_deduction_amount: 16800,
+                            policy_deduction_amount: 208000,
                             policy_next_deduction_date: nextDeduction,
                             user_id: id
                         }

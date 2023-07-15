@@ -7,6 +7,7 @@ const claimRoutes = require ('./src/routes/claimRoutes');
 const ussdRoutes = require ('./src/routes/ussdRoutes');
 const reportRoutes = require ('./src/routes/reportRoutes');
 const productRoutes = require ('./src/routes/productRoutes');
+const  generalRoutes = require ('./src/routes/generalRoutes');
 import * as dotenv from 'dotenv'
 dotenv.config()
 const fs = require('fs')
@@ -15,6 +16,7 @@ const path = require('path')
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 import cors from 'cors';
+import mongoose from 'mongoose';
  
 
 const app: express.Application = express();
@@ -34,6 +36,21 @@ app.use(morgan('dev', {
   app.use(morgan('common', {
     stream: fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
   }))
+
+  const mongoURI = 'mongodb+srv://dickens:ugPUWKvrnAuiTs8@cluster0.yeyah.mongodb.net/bluewavedb?retryWrites=true&w=majority';
+
+  // Connect to MongoDB
+  mongoose.connect(mongoURI);
+  
+  // Get the default connection
+  const db = mongoose.connection;
+  
+  // Event listeners for MongoDB connection
+  db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+  db.once('open', () => {
+    console.log('Connected to Bluewave MongoDB');
+    // Start your application or perform other operations here
+  });
 // Swagger configuration options
 const swaggerOptions = {
   definition: {
@@ -86,6 +103,7 @@ app.use('/api/v1/payments', paymentRoutes)
 app.use('/api/v1/claims', claimRoutes)
 app.use('/api/v1/reports', reportRoutes)
 app.use('/api/v1/products', productRoutes)
+app.use('/api/v1/documents', generalRoutes)
 app.use(errorHandler)
 
 // USSD ROUTE

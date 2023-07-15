@@ -33,6 +33,57 @@ export function displayAccount(menu:any, args:any, db:any):void {
         }
     });
 
+    //buyForOthers
+
+    //ask for phone number and name of person to buy for
+    menu.state('buyForOthers', {
+        run: async () => {
+
+            menu.con('Enter full name or phone number of person to buy for');
+        },
+        next: {
+            '*[a-zA-Z]+': 'buyForOthersOptions',
+        }
+    });
+
+    menu.state('buyForOthersOptions', {
+        run: async () => {
+            let name = menu.val;
+            console.log("NAME: ", name)
+            let  user = await User.findOne({
+                where: {
+                    phone_number: args.phoneNumber
+                }
+            })
+            console.log("USER: ", user)
+            //update user name
+            user.name = name;
+            user.save().then((user:any) => {
+                
+                console.log("USER: ", user)
+                }).catch((err:any) => {
+                    console.log("ERR: ", err)
+                    });
+            console.log("USER: ", user)
+
+            menu.con('Buy for others ' +
+
+                '\n1. Bronze  – UGX 10,000' +
+                '\n2. Silver – UGX 14,000' +
+                '\n3. Gold – UGX 18,000' +
+                '\n0.Back' +
+                '\n00.Main Menu'
+            )
+        },
+        next: {
+            '1': 'buyForSelf.bronze',
+            '2': 'buyForSelf.silver',
+            '3': 'buyForSelf.gold',
+            '0': 'account',
+            '00': 'insurance',
+        }
+    });
+
 
       //==================MAKE CLAIM===================
       menu.state('makeClaim', {

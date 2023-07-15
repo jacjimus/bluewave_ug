@@ -83,4 +83,3 @@ module.exports = (sequelize, DataTypes) => {
 }
 
 
-// example of a payment object payload

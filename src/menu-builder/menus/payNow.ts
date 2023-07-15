@@ -75,7 +75,8 @@ export function payNow(menu:any, args:any, db:any):void{
                     const uuid = uuidv4();
                   
 
-                    const payment: any = await airtelMoney(user_id, phoneNumber, amount, reference, uuid)
+                    // const payment: any = await airtelMoney(user_id, phoneNumber, amount, reference, uuid)
+                    const payment: any = 200
                     if (payment == 200) {
                         //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
                         menu.end(`Paid Kes ${amount} for Medical cover. 
