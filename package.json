@@ -1,7 +1,7 @@
 {
-  "name": "airtel",
+  "name": "bluewave-insurance-api",
   "version": "1.0.0",
-  "description": "Airtel ussd medical insurance project",
+  "description": "BLUEWAVE INSURANCE API",
   "main": "index.js",
   "scripts": {
     "live": "nodemon --config nodemon.json app.ts",

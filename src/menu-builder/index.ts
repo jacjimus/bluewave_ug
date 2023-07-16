@@ -27,6 +27,7 @@ export default function (args: RequestBody, db: any) {
 
             const Session = db.sessions;
             const User = db.users;
+            const Policy = db.policies;
 
             //if  args.phoneNumber has a + then remove it
             if (args.phoneNumber.charAt(0) == "+") {
@@ -142,93 +143,180 @@ export default function (args: RequestBody, db: any) {
             termsAndConditions(menu, args);
 
             menu.state('chooseHospital', {
-                run: () => {
-                  menu.con('Welcome to Hospital Finder!\nPlease enter your district:');
-                },
-                next: {
-                  '*': 'selectRegion'
+              run: () => {
+                menu.con('Welcome to Hospital Finder!\nPlease enter your district:');
+              },
+              next: {
+                '*': 'selectRegion'
+              }
+            });
+            
+            menu.state('selectRegion', {
+              run: () => {
+                const district = menu.val;
+            
+                const hospitalRegions = {
+                  "Kampala District": ["Mulago National Referral Hospital - Kampala", "Uganda Cancer Institute - Kampala"],
+                  "Wakiso District": [],
+                  "Mukono District": [],
+                  "Jinja District": ["Jinja Regional Referral Hospital - Jinja"],
+                  "Mbale District": ["Mbale Regional Referral Hospital - Mbale"],
+                  "Masaka District": ["Masaka Regional Referral Hospital - Masaka"],
+                  "Mbarara District": ["Mbarara Regional Referral Hospital - Mbarara"],
+                  "Gulu District": ["Gulu Regional Referral Hospital - Gulu"],
+                  "Arua District": ["Arua Regional Referral Hospital - Arua"],
+                  "Kabale District": ["Kabale Regional Referral Hospital - Kabale"],
+                  "Entebbe General Hospital - Entebbe": []
+                };
+            
+                if (district in hospitalRegions) {
+                  const hospitals = hospitalRegions[district];
+            
+                  if (hospitals.length > 0) {
+                    let message = 'Select a hospital:\n';
+                    hospitals.forEach((hospital, index) => {
+                      message += `${index + 1}. ${hospital}\n`;
+                    });
+                    message += '0. Back';
+            
+                    menu.con(message);
+                  } else {
+                    menu.con('No hospitals found in the selected district. Please try a different district:');
+                  }
+                } else {
+                  menu.con('Invalid district. Please enter a valid district:');
                 }
-              });
-              
-              menu.state('selectRegion', {
-                run: () => {
-                  const district = menu.val;
-                  
-                //example of a district is "Kampala"
-                let regions = ['Central', 'Eastern', 'Northern', 'Western'];
-
-                let hospitalRegions = {
-                    "Central": ["Kampala", "Mukono", "Wakiso", "Mityana", "Mpigi", "Buikwe", "Kayunga", "Buvuma", "Nakaseke", "Nakasongola", "Luwero"],
-                    "Eastern": ["Mbale", "Soroti", "Tororo", "Kumi", "Kapchorwa", "Moroto", "Katakwi", "Kaberamaido", "Kotido", "Nakapiripirit", "Bukedea", "Budaka", "Bukwo", "Pallisa", "Amuria", "Bulambuli", "Kween", "Ngora", "Serere", "Butebo", "Kaliro", "Busia", "Bugiri", "Iganga", "Namayingo", "Jinja", "Mayuge", "Kamuli", "Buyende", "Luuka", "Kaliro"],
-                    "Northern": ["Gulu", "Lira", "Kitgum", "Arua", "Kotido", "Moroto", "Nebbi", "Yumbe", "Koboko", "Adjumani", "Moyo", "Maracha", "Zombo", "Pakwach", "Nwoya", "Amuru", "Agago", "Lamwo", "Pader", "Amudat", "Kaabong", "Abim", "Napak", "Karenga", "Kapelebyong", "Amuria", "Otuke", "Alebtong", "Dokolo", "Kole", "Oyam", "Amolatar", "Apac", "Kiryandongo", "Masindi", "Buliisa", "Hoima", "Kiryandongo", "Kibaale", "Kagadi", "Kakumiro", "Buliisa", "Ntoroko", "Kyegegwa", "Kiboga", "Kyankwanzi", "Kyenjojo", "Kyegegwa", "Kibale", "Kagadi", "Kakumiro", "Bunyangabu", "Kikuube", "Kiryandongo", "Kibaale", "Kagadi", "Kakumiro", "Buliisa", "Ntoroko", "Kyegegwa", "Kiboga", "Kyankwanzi", "Kyenjojo", "Kyegegwa", "Kibale", "Kagadi", "Kakumiro", "Bunyangabu", "Kikuube"],
-                    "Western": ["Kasese", "Kabarole", "Kamwenge", "Bundibugyo", "Kyenjojo", "Kyegegwa", "Ntoroko", "Kyegegwa", "Kiboga", "Kyankwanzi", "Kyenjojo", "Kyegegwa", "Kibale", "Kagadi", "Kakumiro", "Bunyangabu", "Kikuube", "Kiryandongo", "Masindi", "Buliisa", "Hoima", "Kiryandongo", "Kibaale", "Kagadi", "Kakumiro", "Buliisa", "Ntoroko", "Kyegegwa", "Kiboga", "Kyankwanzi", "Kyenjojo", "Kyegegwa", "Kibale", "Kagadi", "Kakumiro", "Bunyangabu", "Kikuube", "Kiryandongo", "Masindi", "Buliisa", "Hoima", "Kiryandongo", "Kibaale", "Kagadi", "Kakumiro", "Buliisa", "Ntoroko", "Kyegegwa", "Kiboga", "Kyankwanzi", "Kyenjojo", "Kyegegwa", "Kibale", "Kagadi", "Kakumiro", "Bunyangabu", "Kikuube"]
-                }
-                //check if the district is in the regions 
-
-
-                  // Here you can query your database or an API to get the hospitals in the specified district and region.
-                  // Assuming you have the hospitals data, you can display a list of options for the user to choose from.
-                  const hospitals = ['Hospital A', 'Hospital B', 'Hospital C'];
-                  
-                  let message = 'Select a hospital:\n';
-                  hospitals.forEach((hospital, index) => {
-                    message += `${index + 1}. ${hospital}\n`;
-                  });
-                  message += '0. Back';
-              
-                  menu.con(message);
-                },
-                next: {
-                  '*\\d+': 'hospitalDetails',
-                  '0': 'start'
-                }
-              });
-              
-              menu.state('hospitalDetails', {
-                run: () => {
-                  const hospitalIndex = parseInt(menu.val) - 1;
-                  const hospitals = ['Hospital A', 'Hospital B', 'Hospital C'];
-                  const selectedHospital = hospitals[hospitalIndex];
-              
-                  // Assuming you have the hospital details, you can display them to the user
+              },
+              next: {
+                '*\\d+': 'hospitalDetails',
+                '0': 'start'
+              }
+            });
+            
+            menu.state('hospitalDetails', {
+              run: async () => {
+                const hospitalIndex = parseInt(menu.val) - 1;
+            
+                let district = menu.val;
+                console.log("district", district, hospitalIndex);
+                const hospitalRegions = {
+                  "Kampala District": ["Mulago National Referral Hospital - Kampala", "Uganda Cancer Institute - Kampala"],
+                  "Wakiso District": [],
+                  "Mukono District": [],
+                  "Jinja District": ["Jinja Regional Referral Hospital - Jinja"],
+                  "Mbale District": ["Mbale Regional Referral Hospital - Mbale"],
+                  "Masaka District": ["Masaka Regional Referral Hospital - Masaka"],
+                  "Mbarara District": ["Mbarara Regional Referral Hospital - Mbarara"],
+                  "Gulu District": ["Gulu Regional Referral Hospital - Gulu"],
+                  "Arua District": ["Arua Regional Referral Hospital - Arua"],
+                  "Kabale District": ["Kabale Regional Referral Hospital - Kabale"],
+                  "Entebbe General Hospital - Entebbe": []
+                };
+            
+                district = Object.keys(hospitalRegions)[hospitalIndex];
+                const hospitals = hospitalRegions[district];
+                console.log("hospitals", hospitals);
+            
+                if (hospitals) {
                   const hospitalDetails = {
-                    "Hospital A": {
-                      address: "Address A",
-                      contact: "Contact A"
+                    "Mulago National Referral Hospital - Kampala": {
+                      address: "Mulago Hill P.O Box 7051, Kampala, Uganda",
+                      contact: "+256-414-554008/1, admin@mulagohospital.go.com"
                     },
-                    "Hospital B": {
+                    "Uganda Cancer Institute - Kampala": {
                       address: "Address B",
                       contact: "Contact B"
                     },
-                    "Hospital C": {
-                      address: "Address C",
-                      contact: "Contact C"
+                    "Jinja Regional Referral Hospital - Jinja": {
+                      address: "Rotary Rd, Jinja, Uganda",
+                      contact: "Telephone, +256 43 4256431"
+                    },
+                    "Mbale Regional Referral Hospital - Mbale": {
+                      address: "Address D",
+                      contact: "Contact D"
+                    },
+                    "Masaka Regional Referral Hospital - Masaka": {
+                      address: "Address E",
+                      contact: "Contact E"
+                    },
+                    "Mbarara Regional Referral Hospital - Mbarara": {
+                      address: "Address F",
+                      contact: "Contact F"
+                    },
+                    "Gulu Regional Referral Hospital - Gulu": {
+                      address: "Address G",
+                      contact: "Contact G"
+                    },
+                    "Arua Regional Referral Hospital - Arua": {
+                      address: "Address H",
+                      contact: "Contact H"
+                    },
+                    "Kabale Regional Referral Hospital - Kabale": {
+                      address: "Address I",
+                      contact: "Contact I"
+                    },
+                    "Entebbe General Hospital - Entebbe": {
+                      address: "Address J",
+                      contact: "Contact J"
                     }
                   };
-              
-                  menu.end(`Hospital: ${selectedHospital}\nAddress: ${hospitalDetails[selectedHospital].address}\nContact: ${hospitalDetails[selectedHospital].contact}`);
+            
+                  const selectedHospital = hospitals[hospitalIndex];
+                  console.log("selectedHospital", selectedHospital);
+                  const details = hospitalDetails[selectedHospital];
+                  console.log("details", details);
+
+                  let user = await User.findOne({
+                    where: {
+                      phone_number: args.phoneNumber
+                    }
+                  });
+  
+
+                  let updatePolicy = await Policy.update({
+                    hospital_details: {
+                      hospital_name: selectedHospital,
+                      hospital_address: details.address,
+                      hospital_contact: details.contact
+                    }
+                  }, {
+                    where: {
+                      user_id: user?.id
+                    }
+                  });
+            console.log("updatePolicy", updatePolicy);
+                  if (details) {
+                    menu.end(`Hospital: ${selectedHospital}\nAddress: ${details.address}\nContact: ${details.contact}`);
+                  } else {
+                    menu.end(`Hospital details not found.`);
+                  }
+                } else {
+                  menu.end(`Invalid hospital selection.`);
                 }
-              });
-              
-              menu.state('start', {
-                run: () => {
-                  menu.end('Thank you for using Hospital Finder. Goodbye!');
-                }
-              });
-              
-              menu.state('myHospital', {
-                run: () => {
-                    const hospitalDetails = {
-                        "Hospital A": {
-                          address: "Address A",
-                          contact: "Contact A"
-                        },
-                      };
-                  
-                      menu.end(`Hospital: ${"Hospital A"}\nAddress: ${hospitalDetails["Hospital A"].address}\nContact: ${hospitalDetails["Hospital A"].contact}`);
-                }
-              });
-              
+              }
+            });
+            
+            
+      
+            menu.state('myHospital', {
+              run: async () => {
+                let user = await User.findOne({
+                  where: {
+                    phone_number: args.phoneNumber
+                  }
+                });
+
+                let policy = await Policy.findOne({
+                  where: {
+                    user_id: user?.id
+                  }
+                });
+
+                const hospitalDetails = policy.hospital_details
+                console.log("hospitalDetails", hospitalDetails);
+                menu.end(`Hospital: ${hospitalDetails.hospital_name}\nAddress: ${hospitalDetails.hospital_address}\nContact: ${hospitalDetails.hospital_contact}`);
+              }
+            });
 
 
 

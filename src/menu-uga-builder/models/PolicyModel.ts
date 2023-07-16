@@ -30,6 +30,8 @@ const policySchema = new Schema({
     tax_rate_vat: { type: Number },
     tax_rate_ext: { type: Number },
     premium: { type: Number },
+    country_code: { type: String },
+    currency_code: { type: String },
     sum_insured: { type: Number },
     excess_premium: { type: Number },
     discount_premium: { type: Number },

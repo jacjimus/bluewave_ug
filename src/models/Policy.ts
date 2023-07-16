@@ -90,6 +90,10 @@ module.exports = (sequelize, DataTypes) => {
         discount_premium: {
             type: DataTypes.NUMBER,
             allowNull: true
+        },
+        hospital_details: {
+            type: DataTypes.JSONB,
+            allowNull: true
         }
     },
 
