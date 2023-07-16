@@ -309,7 +309,7 @@ const getUserPolicies = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 58094169, "product_id": 1,"partner_id":1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
+  *             example: {"user_id": 58094169, "product_id": 1,"partner_id":1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -479,7 +479,7 @@ const policyIssuance = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 3,"product_id": 1,"partner_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "active", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
+  *             example: {"user_id": 3,"product_id": 1,"partner_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly

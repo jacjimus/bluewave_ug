@@ -437,7 +437,7 @@ const createClaim = async (req: any, res: any) => {
         const claim = await Claim.findOne({
             where: {
                 policy_id: policy_id,
-                claim_status: "active",
+                claim_status: "pending",
                 partner_id: partner_id
 
             }
