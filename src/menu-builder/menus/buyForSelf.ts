@@ -201,6 +201,11 @@ menu.state('buyForSelf.bronze.confirm', {
                 policy_status: 'active'
             }
         })
+        let user = await User.findOne({
+            where: {
+                phone_number: args.phoneNumber
+            }
+        })
 
         if (id && !activePolicy) {
 
@@ -215,7 +220,19 @@ menu.state('buyForSelf.bronze.confirm', {
                 policy_deduction_day: day * 1,
                 policy_deduction_amount: 10000,
                 policy_next_deduction_date: nextDeduction,
-                user_id: id
+                user_id: id,
+                product_id: 2,
+                premium: 10000,
+                installment_order: 1,
+                installment_date: new Date(),
+                installment_alert_date:  new Date(),
+                tax_rate_vat: '0.2',
+                tax_rate_ext: '0.25',
+                sum_insured: '1500000',
+                excess_premium: '0',
+                discount_premium: '0',
+                partner_id: user.partner_id,
+            
             }
 
             let newPolicy = await Policy.create(policy);
@@ -284,7 +301,11 @@ menu.state('buyForSelf.bronze.yearly.confirm', {
             }
         })
 
-
+        let user = await User.findOne({
+            where: {
+                phone_number: args.phoneNumber
+            }
+        })
 
         if (id && !activePolicy) {
 
@@ -299,7 +320,18 @@ menu.state('buyForSelf.bronze.yearly.confirm', {
                 policy_deduction_day: day * 1,
                 policy_deduction_amount: 120000,
                 policy_next_deduction_date: nextDeduction,
-                user_id: id
+                user_id: id,
+                product_id: 2,
+                premium: 120000,
+                installment_order: 1,
+                installment_date: new Date(),
+                installment_alert_date:  new Date(),
+                tax_rate_vat: '0.2',
+                tax_rate_ext: '0.25',
+                sum_insured: '1500000',
+                excess_premium: '0',
+                discount_premium: '0',
+                partner_id: user.partner_id,
             }
 
             let newPolicy = await Policy.create(policy);
@@ -322,7 +354,7 @@ menu.state('buyForSelf.bronze.yearly.confirm', {
         
 console.log("TO: ", to)
 
-        const message = `PAID UGX 120,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal Kes 10,000. TID: 715XXXXXXXX. 
+        const message = `PAID UGX 120,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. 
         Date: ${new Date().toLocaleDateString()}. `
         const sms = await sendSMS(to, message);
 
@@ -413,7 +445,7 @@ console.log("TO: ", to)
                     if (user_pin == pin) {
 
                         menu.con('SCHEDULE' +
-                            '\n Enter day of month to deduct Kes UGX 14,000 premium monthly (e.g. 1, 2, 3…31)' +
+                            '\n Enter day of month to deduct UGX 14,000 premium monthly (e.g. 1, 2, 3…31)' +
                             '\n0.Back' +
                             '\n00.Main Menu'
                         );
@@ -483,7 +515,11 @@ console.log("TO: ", to)
                             policy_status: 'active'
                         }
                     })
-
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber
+                        }
+                    })
 
 
                     if (id && !activePolicy) {
@@ -498,7 +534,18 @@ console.log("TO: ", to)
                             policy_deduction_day: day * 1,
                             policy_deduction_amount: 14000,
                             policy_next_deduction_date: nextDeduction,
-                            user_id: id
+                            user_id: id,
+                            product_id: 2,
+                            premium: 14000,
+                            installment_order: 1,
+                            installment_date: new Date(),
+                            installment_alert_date:  new Date(),
+                            tax_rate_vat: '0.2',
+                            tax_rate_ext: '0.25',
+                            sum_insured: '3000000',
+                            excess_premium: '0',
+                            discount_premium: '0',
+                            partner_id: user.partner_id,
                         }
 
                         let newPolicy = await Policy.create(policy);
@@ -554,6 +601,12 @@ console.log("TO: ", to)
                         }
                     })
 
+                    let user = await User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber
+                        }
+                    })
+
 
                     if (id && !activePolicy) {
                         //save policy details
@@ -567,7 +620,18 @@ console.log("TO: ", to)
                             policy_deduction_day: day * 1,
                             policy_deduction_amount: 167000,
                             policy_next_deduction_date: nextDeduction,
-                            user_id: id
+                            user_id: id,
+                            product_id: 2,
+                            premium: 167000,
+                            installment_order: 1,
+                            installment_date: new Date(),
+                            installment_alert_date:  new Date(),
+                            tax_rate_vat: '0.2',
+                            tax_rate_ext: '0.25',
+                            sum_insured: '3000000',
+                            excess_premium: '0',
+                            discount_premium: '0',
+                            partner_id: user.partner_id,
                         }
 
                         let newPolicy = await Policy.create(policy);
@@ -618,7 +682,7 @@ console.log("TO: ", to)
                     let full_name = user.first_name + ' ' + user.last_name;
                     
 
-                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} Kes 5,000,000 a year 
+                    menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} UGX 5,000,000 a year 
                         PAY
                         1. UGX 18,000 deducted monthly 
                         2. UGX 208,000 yearly
@@ -637,7 +701,7 @@ console.log("TO: ", to)
                 run: () => {
 
 
-                    menu.con('Pay Kes 1400  deducted monthly.' +
+                    menu.con('Pay UGX 18,000  deducted monthly.' +
                         '\nTerms&Conditions - www.airtel.com' +
                         '\nEnter PIN to Agree and Pay' +
                         '\n0.Back' +
@@ -729,7 +793,18 @@ console.log("TO: ", to)
                             policy_deduction_day: day * 1,
                             policy_deduction_amount: 18000,
                             policy_next_deduction_date: nextDeduction,
-                            user_id: user.id
+                            user_id: user.id,
+                            product_id: 2,
+                            premium: 18000,
+                            installment_order: 1,
+                            installment_date: new Date(),
+                            installment_alert_date:  new Date(),
+                            tax_rate_vat: '0.2',
+                            tax_rate_ext: '0.25',
+                            sum_insured: '5000000',
+                            excess_premium: '0',
+                            discount_premium: '0',
+                            partner_id: user.partner_id,
                         }
 
                         let newPolicy = await Policy.create(policy);
@@ -844,7 +919,18 @@ console.log("TO: ", to)
                             policy_deduction_day: day * 1,
                             policy_deduction_amount: 208000,
                             policy_next_deduction_date: nextDeduction,
-                            user_id: id
+                            user_id: id,
+                            product_id: 2,
+                            premium: 208000,
+                            installment_order: 1,
+                            installment_date: new Date(),
+                            installment_alert_date:  new Date(),
+                            tax_rate_vat: '0.2',
+                            tax_rate_ext: '0.25',
+                            sum_insured: '50000000',
+                            excess_premium: '0',
+                            discount_premium: '0',
+                            partner_id: User.partner_id,
                         }
 
                         let newPolicy = await Policy.create(policy);
@@ -861,7 +947,7 @@ console.log("TO: ", to)
 
                     menu.con('Confirm \n' +
 
-                        ` Deduct Kes 16,800  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
+                        ` Deduct UGX 16,800  on day ${day}, ${month} each year. Next deduction will be on ${nextDeduction} \n` +
                         '\n1.Confirm \n' +
                         '\n0.Back ' + ' 00.Main Menu'
                     );
@@ -879,8 +965,6 @@ console.log("TO: ", to)
 
                menu.state('confirmation', {
                 run: async () => {
-
-                    // get policy details kes 300 
                     const { id } = await getUser(args.phoneNumber);
 
                     const policy = await Policy.findOne({
@@ -890,7 +974,7 @@ console.log("TO: ", to)
                     })
                     console.log("XXXXXX POLICY XXXXXX", policy)
                     //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
-                    if (policy.policy_status == 'active') {
+                    if (id) {
 
                         const policy_deduction_amount = policy.policy_deduction_amount;
                         const day = policy.policy_deduction_day;
@@ -907,7 +991,7 @@ console.log("TO: ", to)
 
                             menu.end('Congratulations you are now covered. \n' +
 
-                                `To stay covered Kes ${policy_deduction_amount} will be deducted on day ${day} of every month`
+                                `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${day} of every month`
 
                             )
                         } else {

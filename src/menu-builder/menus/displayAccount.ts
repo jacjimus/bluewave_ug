@@ -94,7 +94,7 @@ export function displayAccount(menu:any, args:any, db:any):void {
 
             const messages = [
                 `Your medicals details have been confirmed. You are covered for hospital cash of kes 4,500 per night payable from the second night`,
-                `An amount of kes100,000 has been paid by AAR towards your hospital bill.: Your cover balanceis Kes 200,000`
+                `An amount of IGX 100,000 has been paid by AAR towards your hospital bill.: Your cover balanceis Kes 200,000`
             ];
 
             for (const message of messages) {
@@ -123,10 +123,15 @@ export function displayAccount(menu:any, args:any, db:any):void {
                     console.log("POLICY:", policy);
                     if (policy.id) {
                         const claim = await Claim.create({
-                            policy_id: policy.policy_id,
+                            policy_id: policy.id,
                             user_id: user.id,
                             claim_date: new Date(),
                             claim_status: "pending",
+                            partner_id: user.partner_id,
+                            claim_description: "Admission of Claim",
+                            claim_type: "medical claim",
+                            claim_amount: policy.sum_insured,
+
                         });
                         console.log("CLAIM:", claim);
                         menu.con(

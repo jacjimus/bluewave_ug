@@ -111,6 +111,12 @@ export function myAccount(menu: any, args: any, db: any) {
 
     menu.state('myInsurancePolicy', {
         run: async () => {
+            let benefit;
+            const bronzeLastExpenseBenefit = "UGX 1,000,000"
+            const silverLastExpenseBenefit = "UGX 1,500,000"
+            const goldLastExpenseBenefit = "UGX 2,000,000"
+
+
             const user = await User.findOne({
                 where: {
                     phone_number: args.phoneNumber,
@@ -127,13 +133,23 @@ export function myAccount(menu: any, args: any, db: any) {
                 menu.con('User not found');
                 return;
             }
+            if(policy.policy_type == 'bronze'){
+                benefit = bronzeLastExpenseBenefit
+            }else if(policy.policy_type == 'silver'){
+                benefit = silverLastExpenseBenefit
+            }else if(policy.policy_type == 'gold'){
+                benefit = goldLastExpenseBenefit
+            }
+
+
 
             if (policy.policy_status == 'active') {
                 menu.end(
                     'My Insurance Policy ' +
-                    `${policy.policy_type} ${policy.policy_status} to ${policy.policy_end_date}\n` +
+                    `${(policy.policy_type).toUpperCase()} ${(policy.policy_status).toUpperCase()} to ${policy.policy_end_date}\n` +
                     `Inpatient limit : UGX ${policy.sum_insured}\n` +
-                    `Remaining UGX ${policy.sum_insured}` 
+                    `Remaining UGX:  ${policy.sum_insured}
+                     Last Expense Per Person Benefit: ${benefit}\n` 
                 );
             } else {
                 menu.con(
