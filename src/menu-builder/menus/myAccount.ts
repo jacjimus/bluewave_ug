@@ -143,7 +143,7 @@ export function myAccount(menu: any, args: any, db: any) {
 
 
 
-            if (policy.policy_status == 'active') {
+            if (policy) {
                 menu.end(
                     'My Insurance Policy ' +
                     `${(policy.policy_type).toUpperCase()} ${(policy.policy_status).toUpperCase()} to ${policy.policy_end_date}\n` +
