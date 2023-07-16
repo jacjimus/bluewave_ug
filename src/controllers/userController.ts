@@ -60,20 +60,21 @@ const signup = async (req: any, res: any) => {
     }
 
 
-    if (!isValidKenyanPhoneNumber(phone_number)) {
-      return res.status(400).json({ message: "Please enter a valid phone number" });
-    }
+    // if (!isValidKenyanPhoneNumber(phone_number)) {
+    //   return res.status(400).json({ message: "Please enter a valid phone number" });
+    // }
     if (!isValidEmail(email)) {
 
       return res.status(400).json({ message: "Please enter a valid email" });
     }
     let nationalId = national_id.toString();
-    if (nationalId.length !== 8) {
-      return res.status(400).json({ message: "National ID should be 8 digits" });
-    }
+    // if (nationalId.length !== 8) {
+    //   return res.status(400).json({ message: "National ID should be 8 digits" });
+    // }
     //create a user interface 
     interface Person {
       id: number;
+      name: string;
       first_name: string;
       middle_name: string;
       last_name: string;
@@ -109,9 +110,11 @@ const signup = async (req: any, res: any) => {
 
     const userData: Person = {
       id: randomId,
+    
       first_name,
       middle_name,
       last_name,
+      name : first_name + " " + last_name,
       email,
       phone_number,
       national_id,
@@ -207,9 +210,6 @@ const partnerRegistration = async (req: any, res: any) => {
     if (!partner_name || !partner_id || !business_name || !business_type || !business_category || !business_address || !country || !email || !phone_number || !password) {
       return res.status(400).json({ message: "Please fill all the required fields" });
     }
-
-
-
     const partnerData = {
       partner_name,
       partner_id,
@@ -272,8 +272,6 @@ const partnerRegistration = async (req: any, res: any) => {
   *       200:
   *         description: Successful authentication
   */
-
-
 const login = async (req: any, res: any) => {
   console.log("I WAS CALLED", req.body)
   try {
@@ -382,7 +380,6 @@ const getUsers = async (req: any, res: any) => {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
-
     let users: any = await User.findAll(
       {
         where: {
@@ -432,9 +429,19 @@ const getUsers = async (req: any, res: any) => {
         
       }
     );
+    //count all users
+    let count = await User.count({ where: { partner_id: partner_id } })
+    //remove password from the response
+    if (users) {
+      for (let i = 0; i < users.length; i++) {
+        delete users[i].dataValues.password;
+        delete users[i].dataValues.pin;
+      }
+    }
+
     if (users && users.length > 0) {
       status.result = users;
-      return res.status(200).json({ result:{message: "Users fetched successfully", items: users } });
+      return res.status(200).json({ result:{message: "Users fetched successfully", items: users, count } });
       
 
     }
@@ -598,12 +605,65 @@ const deleteUser = async (req: any, res) => {
   }
 };
 
+/**
+  * @swagger
+  * /api/v1/users/partner:
+  *   get:
+  *     tags:
+  *       - Partner
+  *     description: Get Partner
+  *     operationId: getPartner
+  *     summary: Get Partner
+  *     security:
+  *       - ApiKeyAuth: []
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
+  *     responses:
+  *       200:
+  *         description: Information fetched succussfuly
+  *       400:
+  *         description: Invalid request
+  */
+const getPartner = async (req: any, res: any) => {
+  try {
+    let partner_id = req.query.partner_id 
+
+   let partner: any = await Partner.findOne({
+
+      where: {  
+        partner_id: partner_id  
+      },
+    });
+    console.log(partner)
+
+
+    if (!partner || partner.length === 0) {
+      return res.status(404).json({ item: 0, message: "No partner found" });
+    }
+
+
+    return res.status(200).json({ result: { message: "partner fetched successfully", item: partner } });
+   
+
+
+  } catch (error) {
+    console.log("ERROR", error)
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
+}
+
+
 
 module.exports = {
   signup,
   login,
   getUsers,
   getUser,
+  getPartner,
   updateUser,
   deleteUser,
   partnerRegistration

@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
 
         },
+        partner_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
 
         active_state: {
 

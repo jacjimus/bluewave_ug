@@ -121,7 +121,15 @@ export function displayAccount(menu:any, args:any, db:any):void {
                         },
                     });
                     console.log("POLICY:", policy);
-                    if (policy.id) {
+
+                const userClaims = await Claim.findAll({
+                    where: {
+                        user_id: user.id,
+                    },
+                });
+                console.log("USER CLAIMS:", userClaims);
+
+                    if (policy.id && !userClaims) {
                         const claim = await Claim.create({
                             policy_id: policy.id,
                             user_id: user.id,
@@ -137,7 +145,12 @@ export function displayAccount(menu:any, args:any, db:any):void {
                         menu.con(
                             "Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu"
                         );
-                    } else {
+                    } else if (policy.id && userClaims) {
+                        menu.con(
+                            "You have already made a claim\n0. Back\n00. Main Menu"
+                        );
+                    }
+                    else {
                         menu.con("Your policy is INACTIVE\n0. Buy cover");
                     }
                 } else {

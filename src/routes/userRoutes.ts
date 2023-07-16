@@ -20,6 +20,7 @@ const router = express.Router()
 
 
 router.get('/', userController.getUsers)
+router.get('/partner', userController.getPartner)
 router.get('/:user_id', userController.getUser)
 router.post('/login', userController.login)
 router.post('/signup', userController.signup)

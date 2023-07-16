@@ -41,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        partner_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+
         underwriter: {
             type: DataTypes.STRING,
             allowNull: false

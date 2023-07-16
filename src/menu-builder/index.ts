@@ -40,12 +40,10 @@ export default function (args: RequestBody, db: any) {
                     phone_number: args.phoneNumber
                 }
             }) 
+
             if(!user){
                throw new Error("User not found");
             }
-
-            //|| await getAirtelUser(args.phoneNumber);
-
 
            // console.log("USER===", user);
 
@@ -59,7 +57,8 @@ export default function (args: RequestBody, db: any) {
                 language: configs.default_lang,
                 phone: args.phoneNumber,
                 hash: "",
-                user_id: user?.id
+                user_id: user?.id,
+                partner_id: user?.partner_id
 
 
             }
@@ -71,22 +70,10 @@ export default function (args: RequestBody, db: any) {
                 }
             });
 
-
-            if (session) {
-                //console.log("session2", session);
-
-                const [firstSession] = session;
-
-                buildInput.active_state = firstSession?.active_state;
-                buildInput.language = firstSession?.language;
-                buildInput.full_input = firstSession?.full_input;
-                buildInput.masked_input = firstSession?.masked_input;
-                buildInput.hash = firstSession?.hash;
-                buildInput.phone = firstSession?.phone;
-                buildInput.user_id = firstSession?.user_id;
-            } else {
+            if (!session) {
+                
                 // CREATE NEW SESSION
-                await Session.create({
+             let newSession =   await Session.create({
                     sid: buildInput.sid,
                     active_state: buildInput.active_state,
                     language: buildInput.language,
@@ -94,9 +81,35 @@ export default function (args: RequestBody, db: any) {
                     masked_input: buildInput.masked_input,
                     hash: buildInput.hash,
                     phone_number: buildInput.phone,
-                    user_id: buildInput.user_id
+                    user_id: buildInput.user_id,
+                    partner_id: buildInput.partner_id
                 });
+
+                console.log("newSession1", newSession);
+            
+            } else {
+              console.log("session2", session);
+              console.log("BUILD INPUT", buildInput)
+              //UPDATE SESSION
+              let updatedSession = await Session.update({
+                active_state: buildInput.active_state,
+                language: buildInput.language,
+                full_input: buildInput.full_input,
+                masked_input: buildInput.masked_input,  
+                hash: buildInput.hash,
+                phone_number: buildInput.phone,
+                user_id: buildInput.user_id,
+                partner_id: buildInput.partner_id
+              }, {
+                where: {
+                  sid: buildInput.sid
+
+                }
+              });
+              console.log("updatedSession", updatedSession);
+
             }
+            
 
             
             // ===============SET MENU STATES============
