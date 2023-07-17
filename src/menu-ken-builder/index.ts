@@ -28,11 +28,11 @@ export default function handleUssd(args: RequestBody, db: any) {
       if (!existingUser) {
 
         let userObject = {
-          first_name: "Dickens",
-          middle_name: "Juma",
-          last_name: "Juma",
-          email: "dickensjuma13@gmail.com",
-          phone_number: "254704868023",
+          first_name: "Dickens2",
+          middle_name: "Juma2",
+          last_name: "Juma2",
+          email: "dickensjuma14@gmail.com",
+          phone_number: "254704868024",
           dob: "1990-12-12",
           national_id: "27885858",
           role: "user",
@@ -227,9 +227,9 @@ export default function handleUssd(args: RequestBody, db: any) {
     
     
             menu.con('Buy for self ' +
-                '\n1. Bronze  – UGX 10,000' +
-                '\n2. Silver – UGX 14,000' +
-                '\n3. Gold – UGX 18,000' +
+                '\n1. Bronze  – Kes 300' +
+                '\n2. Silver – Kes 650' +
+                '\n3. Gold – Kes 14,000' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -248,11 +248,15 @@ export default function handleUssd(args: RequestBody, db: any) {
   
   
           const user =  await UserModel.findOne({ phone_number: args.phoneNumber });
-          let product = await ProductModel.findOne({
+          console.log("USER", user)
+          let product = await PolicyModel.findOne({
               where: {
                   partner_id: 1
               }
           });
+
+          console.log("PRODUCT", product);
+
 
           console.log("USER", user);
           console.log("PRODUCT", product);

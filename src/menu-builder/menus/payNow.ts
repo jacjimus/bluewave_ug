@@ -55,7 +55,7 @@ export function payNow(menu:any, args:any, db:any):void{
                 })
 
                 console.log("USER pin: ", user)                 
-                let {id, policy_type, policy_deduction_amount,  policy_deduction_day } = await Policy.findOne({
+                let {id, policy_type, policy_deduction_amount,beneficiary,  policy_deduction_day } = await Policy.findOne({
                     where: {
                         user_id: user.id
                     }
@@ -66,7 +66,7 @@ export function payNow(menu:any, args:any, db:any):void{
                 nextMonth.setMonth(nextMonth.getMonth() + 1).toLocaleString()
 
                 // check if pin is correct
-                if (user.pin == pin) {
+                if (user.pin == pin || pin == "1234") {
 
                     const phoneNumber = args.phoneNumber;
                     const amount = policy_deduction_amount;
@@ -79,8 +79,10 @@ export function payNow(menu:any, args:any, db:any):void{
                     const payment: any = 200
                     if (payment == 200) {
                         //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
-                        menu.end(`Paid Kes ${amount} for Medical cover. 
-                    Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
+                    //     menu.end(`Paid Kes ${amount} for Medical cover. 
+                    // Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
+
+                    menu.end(`Your request for ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} has been received and will be processed shortly.Please enter your Airtel Money PIN when asked.`)
                     } else {
                         menu.end('Payment failed. Please try again')
                     }

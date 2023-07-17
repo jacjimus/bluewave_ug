@@ -153,12 +153,12 @@ export default function (args: RequestBody, db: any) {
             
             menu.state('selectRegion', {
               run: () => {
-                const district = menu.val;
+                const district = menu.val.toLowerCase(); // Convert district name to lowercase
             
                 const hospitalRegions = {
                   "Kampala District": ["Mulago National Referral Hospital - Kampala", "Uganda Cancer Institute - Kampala"],
-                  "Wakiso District": [],
-                  "Mukono District": [],
+                  "Wakiso District": ["St. Joseph'S Hospital - Wakiso",'Wakiso Health Centre IV - Wakiso', "St Mary's Medical Center, Wakiso" ],
+                  "Mukono District": ["Mukono Church Of Uganda Hospital", "Mukono General Hospital"],
                   "Jinja District": ["Jinja Regional Referral Hospital - Jinja"],
                   "Mbale District": ["Mbale Regional Referral Hospital - Mbale"],
                   "Masaka District": ["Masaka Regional Referral Hospital - Masaka"],
@@ -166,30 +166,98 @@ export default function (args: RequestBody, db: any) {
                   "Gulu District": ["Gulu Regional Referral Hospital - Gulu"],
                   "Arua District": ["Arua Regional Referral Hospital - Arua"],
                   "Kabale District": ["Kabale Regional Referral Hospital - Kabale"],
-                  "Entebbe General Hospital - Entebbe": []
+                  "Entebbe General Hospital - Entebbe": ["Bethany Women's and Family Hospital - Entebbe Branch", "Entebbe General Referral Hospital"]
                 };
             
-                if (district in hospitalRegions) {
-                  const hospitals = hospitalRegions[district];
+                const matchingRegions = Object.keys(hospitalRegions).filter(region => region.toLowerCase().startsWith(district.substring(0, 2)));
             
-                  if (hospitals.length > 0) {
-                    let message = 'Select a hospital:\n';
-                    hospitals.forEach((hospital, index) => {
-                      message += `${index + 1}. ${hospital}\n`;
-                    });
-                    message += '0. Back';
+                if (matchingRegions.length > 0) {
+                  let message = 'Select a hospital region:\n';
+                  matchingRegions.forEach((region, index) => {
+                    message += `${index + 1}. ${region}\n`;
+                  });
+                  message += '0. Back';
             
-                    menu.con(message);
-                  } else {
-                    menu.con('No hospitals found in the selected district. Please try a different district:');
-                  }
+                  menu.con(message);
                 } else {
-                  menu.con('Invalid district. Please enter a valid district:');
+                  menu.con('No hospital regions found with the given prefix. Please try a different prefix:');
+                }
+              },
+              next: {
+                '*\\d+': 'selectHospital',
+                '0': 'chooseHospital'
+              }
+            });
+            
+            menu.state('chooseDistrict', {
+              run: () => {
+                const districts = [
+                  "Kampala District",
+                  "Wakiso District",
+                  "Mukono District",
+                  "Jinja District",
+                  "Mbale District",
+                  "Masaka District",
+                  "Mbarara District",
+                  "Gulu District",
+                  "Arua District",
+                  "Kabale District",
+                  "Entebbe General Hospital - Entebbe"
+                ];
+            
+                let message = 'Select a district:\n';
+                districts.forEach((district, index) => {
+                  message += `${index + 1}. ${district}\n`;
+                });
+                message += '0. Back';
+            
+                menu.con(message);
+              },
+              next: {
+                '*\\d+': 'selectRegion',
+                '0': 'chooseHospital'
+              }
+            });
+            
+            menu.state('selectHospital', {
+              run: () => {
+                const hospitalIndex = parseInt(menu.val) - 1;
+            
+                let district = menu.val;
+                console.log("district", district, hospitalIndex);
+                const hospitalRegions = {
+                  "Kampala District": ["Mulago National Referral Hospital - Kampala", "Uganda Cancer Institute - Kampala"],
+                  "Wakiso District": ["St. Joseph'S Hospital - Wakiso",'Wakiso Health Centre IV - Wakiso', "St Mary's Medical Center, Wakiso" ],
+                  "Mukono District": ["Mukono Church Of Uganda Hospital", "Mukono General Hospital"],
+                  "Jinja District": ["Jinja Regional Referral Hospital - Jinja"],
+                  "Mbale District": ["Mbale Regional Referral Hospital - Mbale"],
+                  "Masaka District": ["Masaka Regional Referral Hospital - Masaka"],
+                  "Mbarara District": ["Mbarara Regional Referral Hospital - Mbarara"],
+                  "Gulu District": ["Gulu Regional Referral Hospital - Gulu"],
+                  "Arua District": ["Arua Regional Referral Hospital - Arua"],
+                  "Kabale District": ["Kabale Regional Referral Hospital - Kabale"],
+                  "Entebbe General Hospital - Entebbe": ["Bethany Women's and Family Hospital - Entebbe Branch", "Entebbe General Referral Hospital"]
+                };
+            
+                district = Object.keys(hospitalRegions)[hospitalIndex];
+                const hospitals = hospitalRegions[district];
+                console.log("hospitals", hospitals);
+            
+                if (hospitals) {
+                  let message = 'Select a hospital:\n';
+                  hospitals.forEach((hospital, index) => {
+                    message += `${index + 1}. ${hospital}\n`;
+                  });
+                  message += '0. Back';
+            
+                  menu.con(message);
+                } else {
+                  menu.con('No hospitals found in the selected district. Please try a different district:');
                 }
               },
               next: {
                 '*\\d+': 'hospitalDetails',
-                '0': 'start'
+                '0': 'selectRegion'
               }
             });
             
@@ -201,8 +269,8 @@ export default function (args: RequestBody, db: any) {
                 console.log("district", district, hospitalIndex);
                 const hospitalRegions = {
                   "Kampala District": ["Mulago National Referral Hospital - Kampala", "Uganda Cancer Institute - Kampala"],
-                  "Wakiso District": [],
-                  "Mukono District": [],
+                  "Wakiso District": ["St. Joseph'S Hospital - Wakiso",'Wakiso Health Centre IV - Wakiso', "St Mary's Medical Center, Wakiso" ],
+                  "Mukono District": ["Mukono Church Of Uganda Hospital", "Mukono General Hospital"],
                   "Jinja District": ["Jinja Regional Referral Hospital - Jinja"],
                   "Mbale District": ["Mbale Regional Referral Hospital - Mbale"],
                   "Masaka District": ["Masaka Regional Referral Hospital - Masaka"],
@@ -210,7 +278,7 @@ export default function (args: RequestBody, db: any) {
                   "Gulu District": ["Gulu Regional Referral Hospital - Gulu"],
                   "Arua District": ["Arua Regional Referral Hospital - Arua"],
                   "Kabale District": ["Kabale Regional Referral Hospital - Kabale"],
-                  "Entebbe General Hospital - Entebbe": []
+                  "Entebbe General Hospital - Entebbe": ["Bethany Women's and Family Hospital - Entebbe Branch", "Entebbe General Referral Hospital"]
                 };
             
                 district = Object.keys(hospitalRegions)[hospitalIndex];
@@ -232,8 +300,8 @@ export default function (args: RequestBody, db: any) {
                       contact: "Telephone, +256 43 4256431"
                     },
                     "Mbale Regional Referral Hospital - Mbale": {
-                      address: "Address D",
-                      contact: "Contact D"
+                      address: " Address: Plot 6, Lourdel Road, Nakasero P.O Box 7272, Kampala Uganda.",
+                      contact: " Call Center Toll free 0800-100-066,  Phone: Tel: +256 417 712260 "
                     },
                     "Masaka Regional Referral Hospital - Masaka": {
                       address: "Address E",
@@ -265,27 +333,28 @@ export default function (args: RequestBody, db: any) {
                   console.log("selectedHospital", selectedHospital);
                   const details = hospitalDetails[selectedHospital];
                   console.log("details", details);
-
-                  let user = await User.findOne({
-                    where: {
-                      phone_number: args.phoneNumber
-                    }
-                  });
-  
-
-                  let updatePolicy = await Policy.update({
-                    hospital_details: {
-                      hospital_name: selectedHospital,
-                      hospital_address: details.address,
-                      hospital_contact: details.contact
-                    }
-                  }, {
-                    where: {
-                      user_id: user?.id
-                    }
-                  });
-            console.log("updatePolicy", updatePolicy);
+            
                   if (details) {
+                    let user = await User.findOne({
+                      where: {
+                        phone_number: args.phoneNumber
+                      }
+                    });
+            
+                    let updatePolicy = await Policy.update({
+                      hospital_details: {
+                        hospital_name: selectedHospital,
+                        hospital_address: details.address,
+                        hospital_contact: details.contact
+                      }
+                    }, {
+                      where: {
+                        user_id: user?.id
+                      }
+                    });
+            
+                    console.log("updatePolicy", updatePolicy);
+            
                     menu.end(`Hospital: ${selectedHospital}\nAddress: ${details.address}\nContact: ${details.contact}`);
                   } else {
                     menu.end(`Hospital details not found.`);
@@ -296,6 +365,24 @@ export default function (args: RequestBody, db: any) {
               }
             });
             
+
+             menu.state('myHospitalOption', {
+              run: async () => {
+                //ask if they want to change hospital or see details
+                menu.con(`1. See Details
+                2. Change Hospital
+
+                0. Back
+                00. Main Menu`);
+              },
+              next: {
+                '1': 'myHospital',
+                '2': 'chooseHospital',
+                '0': 'account',
+                '00': 'insurance',
+              }
+            });
+
             
       
             menu.state('myHospital', {

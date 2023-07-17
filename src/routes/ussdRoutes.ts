@@ -1,6 +1,6 @@
 import express from 'express';
 import ussdMenuBuilder from '../menu-builder';
-import ussdUgaMenuBuilder from '../menu-uga-builder';
+import ussdKenMenuBuilder from '../menu-ken-builder';
 import sendSMS from '../services/sendSMS';
 import { db } from '../models/db'
 
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
     res.send(menu_res);
 })
 
-router.post('/uga', async (req, res) => {
+router.post('/ken', async (req, res) => {
     console.log(req.body)
     let menu_res: any;
 
@@ -42,7 +42,7 @@ router.post('/uga', async (req, res) => {
 
         // RUN THE MENU BUILDER
         // PASS REQ BODY AND REDIS CLIENT
-        menu_res = await ussdUgaMenuBuilder(req.body, db);
+        menu_res = await ussdKenMenuBuilder(req.body, db);
 
     } catch (e) {
         console.log("MENU ERROR", e);

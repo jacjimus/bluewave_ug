@@ -129,7 +129,7 @@ export function displayAccount(menu:any, args:any, db:any):void {
                 });
                 console.log("USER CLAIMS:", userClaims);
 
-                    if (policy.id && !userClaims) {
+                    if (userClaims) {
                         const claim = await Claim.create({
                             policy_id: policy.id,
                             user_id: user.id,
@@ -145,7 +145,7 @@ export function displayAccount(menu:any, args:any, db:any):void {
                         menu.con(
                             "Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu"
                         );
-                    } else if (policy.id && userClaims) {
+                    } else if (userClaims) {
                         menu.con(
                             "You have already made a claim\n0. Back\n00. Main Menu"
                         );
