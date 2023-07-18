@@ -16,7 +16,7 @@ const path = require('path')
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 import cors from 'cors';
-import mongoose from 'mongoose';
+//import mongoose from 'mongoose';
  
 
 const app: express.Application = express();
@@ -37,20 +37,20 @@ app.use(morgan('dev', {
     stream: fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
   }))
 
-  const mongoURI = 'mongodb+srv://dickens:ugPUWKvrnAuiTs8@cluster0.yeyah.mongodb.net/bluewavedb?retryWrites=true&w=majority';
+  // const mongoURI = 'mongodb+srv://dickens:ugPUWKvrnAuiTs8@cluster0.yeyah.mongodb.net/bluewavedb?retryWrites=true&w=majority';
 
-  // Connect to MongoDB
-  mongoose.connect(mongoURI);
+  // // Connect to MongoDB
+  // mongoose.connect(mongoURI);
   
-  // Get the default connection
-  const db = mongoose.connection;
+  // // Get the default connection
+  // const db = mongoose.connection;
   
-  // Event listeners for MongoDB connection
-  db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-  db.once('open', () => {
-    console.log('Connected to Bluewave MongoDB');
-    // Start your application or perform other operations here
-  });
+  // // Event listeners for MongoDB connection
+  // db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+  // db.once('open', () => {
+  //   console.log('Connected to Bluewave MongoDB');
+  //   // Start your application or perform other operations here
+  //});
 // Swagger configuration options
 const swaggerOptions = {
   definition: {

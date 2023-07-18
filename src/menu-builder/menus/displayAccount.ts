@@ -88,84 +88,117 @@ export function displayAccount(menu:any, args:any, db:any):void {
       //==================MAKE CLAIM===================
       menu.state('makeClaim', {
         run: async () => {
+          const bronzeLastExpenseBenefit = "UGX 1,000,000";
+          const silverLastExpenseBenefit = "UGX 1,500,000";
+          const goldLastExpenseBenefit = "UGX 2,000,000";
+          let user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber
+            }
+          })
 
-            //send sms
-            const { phoneNumber: to } = args;
+          let policies = await Policy.findAll({
+            where: {
+              user_id: user.id,
+            },
+          });
 
-            const messages = [
-                `Your medicals details have been confirmed. You are covered for hospital cash of kes 4,500 per night payable from the second night`,
-                `An amount of IGX 100,000 has been paid by AAR towards your hospital bill.: Your cover balanceis Kes 200,000`
-            ];
+          console.log("POLICIES: ", policies);
 
-            for (const message of messages) {
-                try {
-                    const response = await sendSMS(to, message);
-                    console.log(response);
-                } catch (error) {
-                    console.error(error);
-                }
+          if (policies.length === 0) {
+            menu.con(
+              'You have no policies\n' +
+              '1. Buy cover\n' +
+              '0. Back\n' +
+              '00. Main Menu'
+            );
+            return;
+          }
+
+          let policyInfo = '';
+
+          for (let i = 0; i < policies.length; i++) {
+            let policy = policies[i];
+            let benefit: any;
+
+            if (policy.policy_type == 'bronze') {
+              benefit = bronzeLastExpenseBenefit;
+            } else if (policy.policy_type == 'silver') {
+              benefit = silverLastExpenseBenefit;
+            } else if (policy.policy_type == 'gold') {
+              benefit = goldLastExpenseBenefit;
             }
 
-            //get user
-            try {
-                const user = await User.findOne({
-                    where: {
-                        phone_number: args.phoneNumber,
-                    },
-                });
-                console.log("USER claim:", user);
-                if (user.id) {
-                    const policy = await Policy.findOne({
-                        where: {
-                            user_id: user.id,
-                        },
-                    });
-                    console.log("POLICY:", policy);
+            policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
+              `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+              `   Remaining: UGX ${policy.sum_insured}\n` +
+              `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+          }
 
-                const userClaims = await Claim.findAll({
-                    where: {
-                        user_id: user.id,
-                    },
-                });
-                console.log("USER CLAIMS:", userClaims);
-
-                    if (userClaims) {
-                        const claim = await Claim.create({
-                            policy_id: policy.id,
-                            user_id: user.id,
-                            claim_date: new Date(),
-                            claim_status: "pending",
-                            partner_id: user.partner_id,
-                            claim_description: "Admission of Claim",
-                            claim_type: "medical claim",
-                            claim_amount: policy.sum_insured,
-
-                        });
-                        console.log("CLAIM:", claim);
-                        menu.con(
-                            "Admission Claim\nProceed to the reception to verify your details\n0. Back\n00. Main Menu"
-                        );
-                    } else if (userClaims) {
-                        menu.con(
-                            "You have already made a claim\n0. Back\n00. Main Menu"
-                        );
-                    }
-                    else {
-                        menu.con("Your policy is INACTIVE\n0. Buy cover");
-                    }
-                } else {
-                    menu.end("User not found");
-                }
-            } catch (err) {
-                console.log("err:", err);
-            }
-
+          // menu.end(`My Insurance Policies:\n\n${policyInfo}`);
+          menu.con(`Choose policy to make a claim for
+        ${policyInfo}
+       
+        00.Main Menu`
+          );
         },
         next: {
-            '0': 'account',
-            '00': 'insurance',
+          '*\\d+': 'choosePolicyTomakeClaim',
+          '0': 'account',
+          '00': 'insurance',
         }
-    })
+
+      })
+
+      menu.state('choosePolicyTomakeClaim', {
+        run: async () => {
+          let policy = Number(menu.val);
+
+          let user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber
+            }
+          })
+          let policies = await Policy.findAll({
+            where: {
+              user_id: user.id,
+            },
+          });
+
+          policies = policies[policy - 1];
+          console.log("POLICIES: ", policies);
+
+          let { id, premium, policy_type, beneficiary, sum_insured } = policies;
+
+          const claim = await Claim.create({
+            policy_id: id,
+            user_id: user.id,
+            claim_date: new Date(),
+            claim_status: "pending",
+            partner_id: user.partner_id,
+            claim_description: "Admission of Claim",
+            claim_type: "medical claim",
+            claim_amount: sum_insured,
+            
+          })
+
+
+          console.log("CLAIM", claim)
+          if (claim) {
+            //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
+            //     menu.end(`Paid Kes ${amount} for Medical cover. 
+            // Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
+
+            menu.end(`Admission Claim - CLAIM ID: ${claim.claim_id},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`)
+          } else {
+            menu.end('Claim failed. Please try again')
+          }
+        }
+
+      })
+
+
+
 
     
 }

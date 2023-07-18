@@ -11,6 +11,7 @@ import BeneficiaryModel from './BeneficiaryModel';
 
 
 
+
 export {
     UserModel,
     UssdSessionModel,
@@ -21,4 +22,5 @@ export {
     TransactionModel,
     PartnerModel,
     BeneficiaryModel
+   
 };

@@ -4,19 +4,18 @@ import ussdKenMenuBuilder from '../menu-ken-builder';
 import sendSMS from '../services/sendSMS';
 import { db } from '../models/db'
 
+
 const Transaction = db.transactions;
 const Payment = db.payments;
 const Policy = db.policies;
 const Users = db.users
 
 
-
-
 const router = express.Router()
 
 
 
-router.post('/', async (req, res) => {
+router.post('/UGA', async (req, res) => {
     console.log(req.body)
     let menu_res: any;
 
@@ -34,7 +33,7 @@ router.post('/', async (req, res) => {
     res.send(menu_res);
 })
 
-router.post('/ken', async (req, res) => {
+router.post('/KEN', async (req, res) => {
     console.log(req.body)
     let menu_res: any;
 
