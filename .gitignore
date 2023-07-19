@@ -22,7 +22,7 @@ build/Release
 
 # Build directory
 dist/
-build/
+#build/
 tmp/
 
 # ssl dir
@@ -74,3 +74,4 @@ snippets/
 *.pdf
 .cache_ggshield
 
+access.log
