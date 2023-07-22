@@ -204,9 +204,9 @@ export default function handleUssd(args: RequestBody, db: any) {
 
 
           menu.con('Buy for self ' +
-            '\n1. Bronze  – Kes 300' +
-            '\n2. Silver – Kes 650' +
-            '\n3. Gold – Kes 14,000' +
+            '\n1. Bronze  – KES 300' +
+            '\n2. Silver – KES 650' +
+            '\n3. Gold – KES 14,000' +
             '\n0.Back' +
             '\n00.Main Menu'
           )
@@ -462,7 +462,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           const to = args.phoneNumber + "".replace('+', '');
           console.log("TO: ", to)
 
-          const message = `PAID KES 3,294 to AAR UGANDA for Bronze Cover Cover Charge KES 0. Bal KES 3,294. TID: 715XXXXXXXX. 
+          const message = `PAID KES 3,294 to AAR KENYA for Bronze Cover Cover Charge KES 0. Bal KES 3,294. TID: 715XXXXXXXX. 
     Date: ${new Date().toLocaleDateString()}. `
           //const sms = await sendSMS(to, message);
 
@@ -552,9 +552,9 @@ export default function handleUssd(args: RequestBody, db: any) {
 
           menu.con('Buy for others ' +
 
-              '\n1. Bronze  – UGX 10,000' +
-              '\n2. Silver – UGX 14,000' +
-              '\n3. Gold – UGX 18,000' +
+              '\n1. Bronze  – KES 300' +
+              '\n2. Silver – KES 650' +
+              '\n3. Gold – KES 14,000' +
               '\n0.Back' +
               '\n00.Main Menu'
           )
