@@ -8,8 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.payNow = void 0;
+const payment_1 = __importDefault(require("../../services/payment"));
+const uuid_1 = require("uuid");
 function payNow(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
@@ -88,7 +93,15 @@ function payNow(menu, args, db) {
             policies = policies[policy - 1];
             console.log("POLICIES: ", policies);
             let { premium, policy_type, beneficiary } = policies;
-            const payment = 200;
+            let userId = user.id;
+            let phoneNumber = user.phone_number;
+            let partner_id = user.partner_id;
+            let policy_id = policies.id;
+            let amount = policies.policy_deduction_amount;
+            const uuid = (0, uuid_1.v4)();
+            let reference = policies.policy_type + policy_id + userId + uuid;
+            let payment = yield (0, payment_1.default)(userId, partner_id, policy_id, phoneNumber, amount, reference, uuid);
+            payment = 200;
             if (payment == 200) {
                 //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
                 //     menu.end(`Paid Kes ${amount} for Medical cover. 

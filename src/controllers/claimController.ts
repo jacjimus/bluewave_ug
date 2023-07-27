@@ -151,7 +151,8 @@ const getClaim = async (req: any, res: any) => {
             claim_id,
             {
                 include: [
-                    { model: User, as: 'user' }
+                    { model: User, as: 'user',},
+                      {model: Policy, as: "policy" }
                 ]
             }
 
@@ -228,7 +229,8 @@ const getUserClaims = async (req: any, res: any) => {
                 ['createdAt', 'DESC']
             ],
             include: [
-                { model: User, as: 'user' }
+                { model: User, as: 'user' },
+                {model: Policy, as: "policy" }
             ]
 
             
@@ -314,7 +316,8 @@ const getPolicyClaims = async (req: any, res: any) => {
                 ['createdAt', 'DESC']
             ],
             include: [
-                { model: User, as: 'user' }
+                { model: User, as: 'user' },
+                {model: Policy, as: "policy" }
             ]
 
 
@@ -364,7 +367,7 @@ const getPolicyClaims = async (req: any, res: any) => {
  *         in: query
  *         required: false
  *         schema:
- *           type: number
+ *           type: string
  *       - name: policy_id
  *         in: query
  *         required: false
@@ -380,7 +383,7 @@ const getPolicyClaims = async (req: any, res: any) => {
  *         application/json:
  *           schema:
  *             type: object
- *             example:   {"partner_id": 1, claim_date": "2021-05-05","claim_status": "pending","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": "https://www.google.com","claim_comments": "I need to claim my money"}
+ *             example:   { "claim_date": "2021-05-05","claim_status": "pending","claim_amount": 5000,"claim_description": "I need to claim hospita lcash", "claim_type": "hospital cash","claim_documents": ["https://www.google.com"],"claim_comments": "I need to claim my money"}
  *     responses:
  *       200:
  *         description: Information posted successfully
@@ -389,9 +392,10 @@ const getPolicyClaims = async (req: any, res: any) => {
  */
 const createClaim = async (req: any, res: any) => {
     try {
-        const policy_id = parseInt(req.query.policy_id)
-        const user_id = parseInt(req.query.user_id)
-        const partner_id = parseInt(req.query.partner_id)
+        const policy_id = parseInt(req.query.policy_id);
+        const user_id = parseInt(req.query.user_id);
+        const partner_id = parseInt(req.query.partner_id);
+
         const {
             claim_date,
             claim_status,
@@ -400,77 +404,74 @@ const createClaim = async (req: any, res: any) => {
             claim_type,
             claim_documents,
             claim_comments,
-
-
-
         } = req.body;
 
-        //check if policy exists
-
-        let policy = await Policy.findAll({
-
+        // Check if policy exists
+        const policy = await Policy.findOne({
             where: {
-                policy_id: policy_id,
+                id: policy_id,
                 partner_id: partner_id,
-                
             }
-        })
+        });
+
         if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
-        //check if user exists
-        const user = await User.findByPk(user_id)
+
+        // Check if user exists
+        const user = await User.findByPk(user_id);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        //check if user has policy
-        const userPolicy = await Policy.findByPk(policy_id).then((policy: any) => {
-            return policy.user_id === user_id;
-        })
-
-        if (!userPolicy) {
-            return res.status(404).json({ message: "User does not have policy" });
-        }
-        //check if policy has claim and its active
-
-        const claim = await Claim.findOne({
+        // Check if user has the policy
+        const userPolicy = await Policy.findOne({
             where: {
-                policy_id: policy_id,
-                claim_status: "pending",
-                partner_id: partner_id
-
+                id: policy_id,
+                user_id: user_id,
             }
-        })
-        if (claim) {
-            return res.status(404).json({ message: "Policy already has active claim" });
-        }
-
-
-        const newClaim = await Claim.create({
-            claim_date: claim_date,
-            claim_status: claim_status,
-            claim_amount: claim_amount,
-            claim_description: claim_description,
-            claim_type: claim_type,
-            claim_documents: claim_documents,
-            claim_comments: claim_comments,
-            user_id: user_id,
-            policy_id: policy_id,
-            partner_id: partner_id
         });
 
-        if (newClaim !== null) {
-            return res.status(200).json({ result:{
-                message: 'Claim created successfully'
-        }})
+        if (!userPolicy) {
+            return res.status(404).json({ message: "User does not have the policy" });
         }
-    } catch (error) {
-        console.log("ERROR", error)
-        return res.status(500).json({ message: "Error creating claim", error: error });
 
+        // Check if the policy already has an active claim
+        const existingClaim = await Claim.findOne({
+            where: {
+                policy_id: policy_id,
+            }
+        });
+
+        if (existingClaim) {
+            return res.status(409).json({ message: "Policy already has an active claim" });
+        }
+
+      
+        // Create the new claim
+        let newClaim = await Claim.create({
+            claim_date,
+            claim_status,
+            claim_amount,
+            claim_description,
+            claim_type,
+            claim_documents,
+            claim_comments,
+            user_id,
+            policy_id,
+            partner_id,
+        });
+       
+
+        console.log("NEW CLAIM", newClaim);
+
+        return res.status(201).json({ message: "Claim created successfully", claim: newClaim });
+    } catch (error) {
+        console.log("ERROR", error);
+        return res.status(500).json({ message: "Error creating claim", error: error.message });
     }
-}
+};
+
 
 
 

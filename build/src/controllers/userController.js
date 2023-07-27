@@ -42,12 +42,18 @@ function getUserFunc(user_id, partner_id) {
   *     description: Register User
   *     operationId: registerUser
   *     summary: Register User
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
   *     requestBody:
   *       content:
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "partner_id": 1}
+  *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
   *     responses:
   *       200:
   *         description: Information fetched succussfully
@@ -56,8 +62,9 @@ function getUserFunc(user_id, partner_id) {
   */
 const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, partner_id } = req.body;
-        if (!first_name || !last_name || !email || !password || !phone_number || !national_id || !partner_id) {
+        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id } = req.body;
+        let partner_id = req.query.partner_id || req.body.partner_id;
+        if (!first_name || !last_name || !email || !password || !phone_number || !partner_id) {
             return res.status(400).json({ message: "Please provide all fields" });
         }
         // if (!isValidKenyanPhoneNumber(phone_number)) {
@@ -96,8 +103,11 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             height,
             nationality,
             title,
-            partner_id
+            partner_id,
+            driver_licence,
+            voter_id,
         };
+        userData.name = first_name + " " + last_name;
         //checking if the user already exists
         let user = yield User.findAll({ where: { email: email } });
         //check if national id exists
@@ -146,7 +156,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": 1}
+  *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
   *     responses:
   *       200:
   *         description: Information fetched succussfully
@@ -426,7 +436,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170}
+  *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
   *     responses:
   *       200:
   *         description: Information fetched succussfully
@@ -435,7 +445,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   */
 const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height } = req.body;
+        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id } = req.body;
         let user = getUserFunc(req.params.user_id, req.query.partner_id);
         //check if user exists
         if (!user || user.length === 0) {
@@ -460,7 +470,9 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             pinzip,
             weight,
             height,
-            partner_id: req.query.partner_id
+            partner_id: req.query.partner_id,
+            driver_licence,
+            voter_id
         };
         //saving the user
         const updatedUser = yield User.update(data, {

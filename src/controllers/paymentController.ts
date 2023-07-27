@@ -341,8 +341,6 @@ let user_payments = []
             res.status(404).json({ message: "No payments found" });
         }
 
-
-
     } catch (error) {
         console.log("ERROR", error)
         return res.status(500).json({ message: "Internal server error" , error: error});

@@ -2,6 +2,10 @@ import { RequestBody } from './typings/global';
 import languages from './lang';
 import configs from './configs';
 import UssdMenu from 'ussd-builder';
+import airtelMoney from '../services/payment';
+import { v4 as uuidv4 } from 'uuid';
+
+
 
 
 require('dotenv').config();
@@ -484,7 +488,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
       menu.state('confirmation', {
         run: async () => {
-          const { id, phone_number } = await getUser(args.phoneNumber);
+          const { id, phone_number, partner_id } = await getUser(args.phoneNumber);
 
           const policy = await Policy.findOne({
             where: {
@@ -496,9 +500,13 @@ export default function handleUssd(args: RequestBody, db: any) {
           if (id) {
             const policy_deduction_amount = policy.policy_deduction_amount;
             const day = policy.policy_deduction_day;
+            let userId = id
+            let policy_id = policy.id
+            const uuid = uuidv4();
+            let reference = policy.policy_type+policy_id+userId+uuid
+            let payment: any = await airtelMoney(userId,partner_id,policy_id, phone_number, policy_deduction_amount, reference, uuid)
 
-            //  let payment: any = await airtelMoney(user_id,phone_number , amount, reference, uuid)
-            let payment: any = 200;
+             payment = 200;
 
             if (payment == 200) {
               menu.end('Congratulations you are now covered. \n' +
@@ -636,7 +644,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
           for (let i = 0; i < policies.length; i++) {
             let policy = policies[i];
-            let benefit;
+            let benefit:any
 
             if (policy.policy_type == 'bronze') {
               benefit = bronzeMaternityBenefit;

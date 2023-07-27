@@ -45,6 +45,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true
         },
+        policy_id:{
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        partner_id:{
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         createdAt: {
             type: DataTypes.DATE,
             allowNull: false

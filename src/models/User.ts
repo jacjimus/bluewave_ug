@@ -53,12 +53,12 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        weight:{
+        weight: {
             type: DataTypes.NUMBER,
             allowNull: true
         },
 
-        height:{
+        height: {
             type: DataTypes.NUMBER,
             allowNull: true
         },
@@ -103,7 +103,16 @@ module.exports = (sequelize: any, DataTypes: any) => {
         partner_id: {
             type: DataTypes.INTEGER,
             allowNull: true
-        }
+        },
+        driver_licence: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        voter_id: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        
 
 
     }, { timestamps: true },)
@@ -118,8 +127,8 @@ module.exports = (sequelize: any, DataTypes: any) => {
     // });
 
 
-       
-  
+
+
     return User
 }
 

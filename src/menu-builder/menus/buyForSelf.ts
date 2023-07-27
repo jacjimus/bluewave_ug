@@ -783,7 +783,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
 
     menu.state('confirmation', {
         run: async () => {
-            const { id, phone_number } = await getUser(args.phoneNumber);
+            const { id, phone_number, partner_id } = await getUser(args.phoneNumber);
 
             const policy = await Policy.findOne({
                 where: {
@@ -797,13 +797,13 @@ console.log("USER PIN", user_pin, "PIN", pin)
                 const policy_deduction_amount = policy.policy_deduction_amount;
                 const day = policy.policy_deduction_day;
                 const amount = policy_deduction_amount;
-                const reference = policy.policy_type + policy.id;
-                const user_id = id;
+                const userId = id;
                 const uuid = uuidv4();
+                const reference = policy.policy_type + policy.id + userId + uuid;
+                
+                let payment: any = await airtelMoney(userId,partner_id,id, phone_number, policy_deduction_amount, reference, uuid)
 
-
-              //  let payment: any = await airtelMoney(user_id,phone_number , amount, reference, uuid)
-                let payment: any = 200;
+                payment = 200;
 
                 if (payment == 200) {
                     menu.end('Congratulations you are now covered. \n' +

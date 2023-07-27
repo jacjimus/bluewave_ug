@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
+const payment_1 = __importDefault(require("../services/payment"));
+const uuid_1 = require("uuid");
 require('dotenv').config();
 const menu = new ussd_builder_1.default();
 function handleUssd(args, db) {
@@ -423,7 +425,7 @@ function handleUssd(args, db) {
             //===============CONFIRMATION=================
             menu.state('confirmation', {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const { id, phone_number } = yield getUser(args.phoneNumber);
+                    const { id, phone_number, partner_id } = yield getUser(args.phoneNumber);
                     const policy = yield Policy.findOne({
                         where: {
                             user_id: id
@@ -434,8 +436,12 @@ function handleUssd(args, db) {
                     if (id) {
                         const policy_deduction_amount = policy.policy_deduction_amount;
                         const day = policy.policy_deduction_day;
-                        //  let payment: any = await airtelMoney(user_id,phone_number , amount, reference, uuid)
-                        let payment = 200;
+                        let userId = id;
+                        let policy_id = policy.id;
+                        const uuid = (0, uuid_1.v4)();
+                        let reference = policy.policy_type + policy_id + userId + uuid;
+                        let payment = yield (0, payment_1.default)(userId, partner_id, policy_id, phone_number, policy_deduction_amount, reference, uuid);
+                        payment = 200;
                         if (payment == 200) {
                             menu.end('Congratulations you are now covered. \n' +
                                 `To stay covered KES ${policy_deduction_amount} will be deducted on day ${day} of every month`);

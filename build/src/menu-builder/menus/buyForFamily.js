@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForFamily = void 0;
+const payment_1 = __importDefault(require("../../services/payment"));
 const uuid_1 = require("uuid");
 function buyForFamily(menu, args, db) {
     const Policy = db.policies;
@@ -647,11 +651,12 @@ function buyForFamily(menu, args, db) {
             console.log("POLICY ID", id);
             //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
             if (policy_status == 'pending') {
-                const phoneNumber = args.phoneNumber;
                 const uuid = (0, uuid_1.v4)();
-                const reference = policy_type + id;
-                //let payment: any = await airtelMoney(userId, phoneNumber, policy_deduction_amount, reference, uuid)
-                let payment = 200;
+                const partner_id = user.partner_id;
+                const phoneNumber = user.phone_number;
+                const reference = policy_type + id + userId + uuid;
+                let payment = yield (0, payment_1.default)(userId, partner_id, id, phoneNumber, policy_deduction_amount, reference, uuid);
+                payment = 200;
                 if (payment == 200) {
                     menu.end('Congratulations you are now covered. \n' +
                         `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`);

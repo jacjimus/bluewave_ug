@@ -799,11 +799,15 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
             if (policy_status == 'pending') {
-                const phoneNumber = args.phoneNumber;
+               
                 const uuid = uuidv4();
-                const reference = policy_type + id
-                //let payment: any = await airtelMoney(userId, phoneNumber, policy_deduction_amount, reference, uuid)
-                let payment: any = 200
+                const partner_id = user.partner_id
+                const phoneNumber = user.phone_number
+                const reference = policy_type + id + userId + uuid;
+                
+                let payment: any = await airtelMoney(userId,partner_id,id, phoneNumber, policy_deduction_amount, reference, uuid)
+
+                 payment= 200
 
                 if (payment == 200) {
                     menu.end('Congratulations you are now covered. \n' +

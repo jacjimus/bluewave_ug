@@ -179,7 +179,7 @@ const getProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product"}
+  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product", "benefits":{ "last_expense": 50000, "hospital_cash": 10000,"maternity": 10000}}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -226,7 +226,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product"}
+  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product", "benefits":{ "last_expense": 50000, "hospital_cash": 10000,"maternity": 10000}}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -235,7 +235,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
   */
 const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { product_name, product_description, product_type, product_category, product_premium, product_image, product_status, product_duration, underwriter, } = req.body;
+        const { product_name, product_description, product_type, product_category, product_premium, product_image, product_status, product_duration, underwriter, benefits } = req.body;
         let product = yield Product.findAll({
             where: {
                 product_id: req.params.product_id
@@ -254,6 +254,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             product_status: product_status,
             product_duration: product_duration,
             underwriter: underwriter,
+            benefits: benefits
         };
         //saving the product
         yield Product.update(data, {

@@ -35,12 +35,18 @@ async function getUserFunc(user_id: any, partner_id: any) {
   *     description: Register User
   *     operationId: registerUser
   *     summary: Register User
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
   *     requestBody:
   *       content:
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "partner_id": 1}
+  *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
   *     responses:
   *       200:
   *         description: Information fetched succussfully
@@ -51,10 +57,11 @@ async function getUserFunc(user_id: any, partner_id: any) {
 const signup = async (req: any, res: any) => {
 
   try {
-    const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, partner_id } = req.body;
+    const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height,   driver_licence,voter_id } = req.body;
 
+    let  partner_id = req.query.partner_id || req.body.partner_id
 
-    if (!first_name || !last_name || !email || !password || !phone_number || !national_id || !partner_id) {
+    if (!first_name || !last_name || !email || !password || !phone_number || !partner_id) {
       return res.status(400).json({ message: "Please provide all fields" });
 
     }
@@ -96,6 +103,8 @@ const signup = async (req: any, res: any) => {
       weight: number;
       height: number;
       partner_id: number;
+      driver_licence: string;
+      voter_id: string;
 
     }
 
@@ -110,7 +119,6 @@ const signup = async (req: any, res: any) => {
 
     const userData: Person = {
       id: randomId,
-    
       first_name,
       middle_name,
       last_name,
@@ -132,10 +140,14 @@ const signup = async (req: any, res: any) => {
       height,
       nationality,
       title,
-      partner_id
-
-
+      partner_id,
+      driver_licence,
+      voter_id,
+    
     };
+  
+    userData.name = first_name + " " + last_name
+
     //checking if the user already exists
     let user: any = await User.findAll({ where: { email: email } })
 
@@ -195,7 +207,7 @@ const signup = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": 1}
+  *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
   *     responses:
   *       200:
   *         description: Information fetched succussfully
@@ -276,11 +288,9 @@ const login = async (req: any, res: any) => {
   console.log("I WAS CALLED", req.body)
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
       return res.status(400).json({ message: "Please provide an email and password" });
     }
-
 
     //find a user by their email
     const user = await User.findOne({
@@ -375,7 +385,6 @@ const getUsers = async (req: any, res: any) => {
 
   }
   try {
-
     if (!partner_id) {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
@@ -399,26 +408,18 @@ const getUsers = async (req: any, res: any) => {
           {
             email: {
               [Op.iLike]: `%${filter}%`
-
             }
-
           },
           {
             phone_number: {
               [Op.iLike]: `%${filter}%`
-
             }
-
           },
           {
             national_id: {
               [Op.iLike]: `%${filter}%`
-
             }
-
           },
-
-
         ]
         },
         offset: (page - 1) * limit,
@@ -442,8 +443,6 @@ const getUsers = async (req: any, res: any) => {
     if (users && users.length > 0) {
       status.result = users;
       return res.status(200).json({ result:{message: "Users fetched successfully", items: users, count } });
-      
-
     }
     return res.status(404).json({ message: "No users found" });
 
@@ -492,16 +491,10 @@ const getUser = async (req: any, res: any) => {
     let user: any = await getUserFunc(user_id, partner_id);
     console.log(user)
 
-
     if (!user || user.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
     }
-
-
     return res.status(200).json({ result: { message: "User fetched successfully", item: user } });
-   
-
-
   } catch (error) {
     console.log("ERROR", error)
     return res.status(500).json({ message: "Internal server error", error: error });
@@ -534,7 +527,7 @@ const getUser = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170}
+  *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
   *     responses:
   *       200:
   *         description: Information fetched succussfully
@@ -544,7 +537,8 @@ const getUser = async (req: any, res: any) => {
 
 const updateUser = async (req: any, res: any) => {
   try {
-    const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height } = req.body;
+    const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, 
+      addressline, nationality, title, pinzip, weight, height,  driver_licence, voter_id } = req.body;
 
     let user: any = getUserFunc(req.params.user_id, req.query.partner_id);
 
@@ -572,7 +566,9 @@ const updateUser = async (req: any, res: any) => {
       pinzip,
       weight,
       height,
-      partner_id: req.query.partner_id
+      partner_id: req.query.partner_id,
+      driver_licence,
+      voter_id
 
     };
     //saving the user
@@ -640,16 +636,10 @@ const getPartner = async (req: any, res: any) => {
     });
     console.log(partner)
 
-
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "No partner found" });
     }
-
-
     return res.status(200).json({ result: { message: "partner fetched successfully", item: partner } });
-   
-
-
   } catch (error) {
     console.log("ERROR", error)
     return res.status(500).json({ message: "Internal server error", error: error });

@@ -91,7 +91,20 @@ module.exports = (sequelize, DataTypes) => {
         hospital_details: {
             type: DataTypes.JSONB,
             allowNull: true
-        }
+        },
+        currency_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        country_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        policy_documents: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true,
+            defaultValue: [] // Set an empty array as the default value
+        },
     }, { timestamps: true });
     Policy.belongsTo(User, {
         as: "user",

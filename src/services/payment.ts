@@ -2,86 +2,86 @@
 import axios from 'axios';
 import authToken from './auth';
 import { db } from "../models/db";
-require('dotenv').config()
+require('dotenv').config();
 
-
+const User = db.users;
 const Transaction = db.transactions;
+const Payment = db.payments;
 
-
-async function airtelMoney(user_id: any, phoneNumber: any, amount: any, reference: any, uuid: any) {
-    let status:any ={
+async function airtelMoney(user_id: any, partner_id: any, policy_id: any, phoneNumber: any, amount: any, reference: any, uuid: any) {
+    let status: any = {
         code: 200,
+        result: "Payment succefully innitiated",
         message: ""
-    }
-    let token = await authToken();
-    const inputBody = {
-        "reference": reference,
-        "subscriber": {
-            "country": "UG",
-            "currency": "UGX",
-            "msisdn": phoneNumber,
-        },
-        "transaction": {
-            "amount": amount,
-            "country": "UG",
-            "currency": "UGX",
-            "id": uuid,
-        }
-    };
-    console.log("INPUT", inputBody)
-    const headers = {
-        'Content-Type': 'application/json',
-        'Accept': '*/*',
-        'Authorization': 'Bearer ' + token
     };
 
+    try {
+        let token = await authToken();
 
-    const PAYMENT_URL = process.env.AIRTEL_PAYMENT_URL;
-    await axios.post(PAYMENT_URL, inputBody, { headers })
-        .then(response => {
-            console.log(response.data);
-
-            //     {
-            //         "data": {
-            //           "transaction": {
-            //             "id": "ASDJBEJB4KRN5",
-            //             "status": "SUCCESS"
-            //           }
-            //         },
-            //         "status": {
-            //           "code": "200",
-            //           "message": "SUCCESS",
-            //           "result_code": "ESB000010",
-            //           "response_code": "DP00800001006",
-            //           "success": true
-            //         }
-            //   }
-            //
-
-            if (response.data.status.code == 200) {
-
-                //create a transaction
-                let transaction = Transaction.create({
-                    amount: amount,
-                    status: "pending",
-                    user_id: user_id,
-                    transaction_reference: response.data.data.transaction.id,
-
-                });
-
-                console.log("TRANSACTION", transaction)
-                status.result = response.data.status.code
-
-            } else {
-                console.log("TRANSACTION FAILED")
-                throw new Error("Transaction failed");
+        let user = await User.findOne({
+            where: {
+                id: user_id,
+                partner_id: partner_id
             }
-            return status;
-
-        }).catch(error => {
-            console.error(error)
         })
-}
 
+        const inputBody = {
+            "reference": reference,
+            "subscriber": {
+                "country": user.currency_code === "KEN" ? "KE" : "UG",
+                "currency": user.currency_code,
+                "msisdn": phoneNumber,
+            },
+            "transaction": {
+                "amount": amount,
+                "country": user.currency_code === "KEN" ? "KE" : "UG",
+                "currency": user.currency_code,
+                "id": uuid,
+            }
+        };
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': '*/*',
+            'Authorization': 'Bearer ' + token
+        };
+
+        const PAYMENT_URL = process.env.AIRTEL_PAYMENT_URL;
+        const response = await axios.post(PAYMENT_URL, inputBody, { headers });
+
+        if (response.data.status.code === 200) {
+            // Create a transaction
+            let transaction = await Transaction.create({
+                amount: amount,
+                status: "pending",
+                user_id: user_id,
+                transaction_reference: response.data.data.transaction.id,
+                policy_id: policy_id,
+                partner_id: partner_id
+            });
+
+            console.log("Transaction", transaction)
+
+            // let data = { payment_status: "paid" };
+
+            // // Update payment
+            // await Payment.update(data, {
+            //     where: {
+            //         policy_id: policy_id,
+            //     },
+            // });
+
+
+            return status;
+        } else {
+            throw new Error("Transaction failed");
+        }
+    } catch (error) {
+        console.log("ERROR:", error.message);
+        status.code = 500;
+        status.message = "Sorry, Transaction failed";
+        return status;
+    }
+}
 
 export default airtelMoney;

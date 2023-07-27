@@ -1,8 +1,10 @@
 
+import { PartnerModel } from "../menu-ken-builder/models";
 import { db } from "../models/db";
 const Policy = db.policies;
 const User = db.users;
 const Product = db.products;
+const Partner = db.partners;
 const { Op } = require("sequelize");
 
 
@@ -27,7 +29,10 @@ interface Policy {
     sum_insured: number,
     excess_premium: number,
     discount_premium: number,
-    partner_id: number
+    partner_id: number,
+    currency_code:string,
+    country_code:string,
+    policy_documents: string[]
 }
 
 
@@ -73,10 +78,8 @@ const getPolicies = async (req: any, res: any) => {
     let status = {
         code: 200,
         result: {},
-
     }
     try {
-
         const filter = req.query.filter || "";
         let policy: any = await Policy.findAll(
             {
@@ -88,34 +91,26 @@ const getPolicies = async (req: any, res: any) => {
                         [Op.iLike]: `%${filter}%`
                       }
                     },
-
                     {
                         policy_status: {
                             [Op.iLike]: `%${filter}%`
                             }
-
                     },
-
                 ],
-
                 },
                 order: [
                     ['id', 'DESC'],
                 ],
-
                 include: [
                     {
                         model: User,
                         as: "user",
-
                     },
                     {
                         model: Product,
                         as: "product",
                     }
                 ]
-
-                
             }
         )
 
@@ -123,21 +118,20 @@ const getPolicies = async (req: any, res: any) => {
             return res.status(404).json({ message: "No policies found" });
         }
 
-        //policy count
-        const policyCount = await Policy.count();
+       
 
         //policy pagination
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const total = policyCount;
+        const total = policy.length
 
         const resultPolicy = policy.slice(startIndex, endIndex);
 
         const pagination: any = {};
 
-        if (endIndex < policyCount) {
+        if (endIndex < total    ) {
             pagination.next = {
                 page: page + 1,
                 limit: limit,
@@ -309,7 +303,7 @@ const getUserPolicies = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 58094169, "product_id": 1,"partner_id":1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0}
+  *             example: {"user_id": 58094169, "product_id": 1,"partner_id": "1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "self", "policy_type": "bonze", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418.0, "sum_insured": 250000000.0,"excess_premium": 0.0,"discount_premium": 0.0, "policy_documents":[]}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -319,9 +313,18 @@ const getUserPolicies = async (req: any, res: any) => {
 
 const createPolicy = async (req: any, res: any) => {
     try {
+         let partner_id = (req.body.partner_id).toString()
+       let  partner = await Partner.findOne({ where: { partner_id } })
 
-
+            console.log('PARTNER', partner, partner_id )
         const policy: Policy = req.body;
+
+       policy.currency_code = partner.currency_code
+        policy.country_code= partner.country_code
+
+        console.log("Policy", policy)
+
+
 
         const newPolicy = await Policy.create(policy);
         if(!newPolicy){
@@ -432,11 +435,6 @@ const policyIssuance = async (req: any, res: any) => {
     // }
 
         
-
-
-
-
-
         const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
 
         if (policyIssuance) {
@@ -479,7 +477,7 @@ const policyIssuance = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 3,"product_id": 1,"partner_id": 1, "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "Radhe", "policy_type": "Individual", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0}
+  *             example: {"user_id": 3,"product_id": 1,"partner_id": "1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "self", "policy_type": "silver", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_amount": 1000, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","tax_rate_vat": 0.20,"tax_rate_ext": 0.25,"premium": 47418, "sum_insured": 250000000,"excess_premium": 0,"discount_premium": 0,  "currency_code":"KES","country_code": "KEN", "policy_documents":[]}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -508,9 +506,15 @@ const updatePolicy = async (req: any, res: any) => {
             sum_insured,
             excess_premium,
             discount_premium,
-            partner_id
+            partner_id,
+            currency_code,
+            country_code,
+            policy_documents
+          
 
         } = req.body;
+
+       
 
 
         let policy = await Policy.findAll({
@@ -542,8 +546,12 @@ const updatePolicy = async (req: any, res: any) => {
             excess_premium,
             discount_premium,
             product_id,
-            partner_id
+            partner_id,
+            currency_code,
+            country_code,
+            policy_documents
         };
+
         //saving the policy
         await Policy.update(data, {
             where: {

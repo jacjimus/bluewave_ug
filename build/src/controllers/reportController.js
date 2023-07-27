@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../models/db");
+const { Op } = require("sequelize");
 const Policy = db_1.db.policies;
 const User = db_1.db.users;
 const Session = db_1.db.sessions;
@@ -153,6 +154,11 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
     *         required: true
     *         schema:
     *           type: number
+    *       - name: today
+    *         in: query
+    *         required: true
+    *         schema:
+    *           type: boolean
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -162,6 +168,10 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
 const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const partner_id = req.query.partner_id;
+        const today = req.query.today;
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+        console.log(typeof today, today, twentyFourHoursAgo);
         const summary = {
             user: {
                 total_users: 0,
@@ -179,6 +189,7 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
                 total_policies_unpaid: 0,
                 total_policies_partially_paid: 0,
                 total_premium_amount: 0,
+                total_installment_policies: 0
             },
             claim: {
                 total_claims: 0,
@@ -208,22 +219,62 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
         };
         let users, policies, claims, payments, partners, products, sessions;
         if (partner_id != 1) {
-            policies = yield Policy.findAll({ where: { partner_id: partner_id } });
-            users = yield User.findAll({ where: { partner_id: partner_id } });
-            claims = yield Claim.findAll({ where: { partner_id: partner_id } });
-            payments = yield Payment.findAll({ where: { partner_id: partner_id } });
-            partners = yield Partner.findAll({ where: { partner_id: partner_id } });
-            products = yield Product.findAll({ where: { partner_id: partner_id } });
-            sessions = yield Session.findAll({ where: { partner_id: partner_id } });
+            if (today == "true") {
+                policies = yield Policy.findAll({
+                    where: {
+                        partner_id: partner_id,
+                        createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+                    }
+                });
+                users = yield User.findAll({
+                    where: {
+                        partner_id: partner_id,
+                        createdAt: { [Op.gte]: twentyFourHoursAgo }
+                    }
+                });
+                claims = yield Claim.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                payments = yield Payment.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                partners = yield Partner.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                products = yield Product.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                sessions = yield Session.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+            }
+            else {
+                policies = yield Policy.findAll({ where: { partner_id: partner_id } });
+                users = yield User.findAll({ where: { partner_id: partner_id } });
+                claims = yield Claim.findAll({ where: { partner_id: partner_id } });
+                payments = yield Payment.findAll({ where: { partner_id: partner_id } });
+                partners = yield Partner.findAll({ where: { partner_id: partner_id } });
+                products = yield Product.findAll({ where: { partner_id: partner_id } });
+                sessions = yield Session.findAll({ where: { partner_id: partner_id } });
+            }
         }
         else {
-            users = yield User.findAll();
-            policies = yield Policy.findAll();
-            claims = yield Claim.findAll();
-            payments = yield Payment.findAll();
-            partners = yield Partner.findAll();
-            products = yield Product.findAll();
-            sessions = yield Session.findAll();
+            if (today == "true") {
+                policies = yield Policy.findAll({
+                    where: {
+                        createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+                    }
+                });
+                users = yield User.findAll({
+                    where: {
+                        createdAt: { [Op.gte]: twentyFourHoursAgo }
+                    }
+                });
+                claims = yield Claim.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                payments = yield Payment.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                partners = yield Partner.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                products = yield Product.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+                sessions = yield Session.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
+            }
+            else {
+                users = yield User.findAll();
+                policies = yield Policy.findAll();
+                claims = yield Claim.findAll();
+                payments = yield Payment.findAll();
+                partners = yield Partner.findAll();
+                products = yield Product.findAll();
+                sessions = yield Session.findAll();
+            }
         }
         // Populate user summary
         summary.user.total_users = users.length;
@@ -236,6 +287,7 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
         summary.policy.total_policies_paid = countPoliciesByStatus(policies, "paid");
         summary.policy.total_policies_partially_paid = countPoliciesByStatus(policies, "partially_paid");
         summary.policy.total_premium_amount = calculateTotalPremiumAmount(policies);
+        summary.policy.total_installment_policies = countInstallmentPolicies(policies);
         // Populate claim summary
         summary.claim.total_claims = claims.length;
         summary.claim.total_claims_approved = countClaimsByStatus(claims, "approved");
@@ -285,6 +337,82 @@ const countProductsByStatus = (products, status) => {
 const countClaimsByStatus = (claims, status) => {
     return claims.filter((claim) => claim.claim_status === status).length;
 };
+const countInstallmentPolicies = (policies) => {
+    return policies.filter((policy) => policy.installment_order !== 1).length;
+};
+// /**
+//     * @swagger
+//     * /api/v1/reports/summary/daily:
+//     *   get:
+//     *     tags:
+//     *       - Reports
+//     *     description: Daily Report summary
+//     *     operationId: DailyReportSummary
+//     *     summary: Daily Report summary
+//     *     security:
+//     *       - ApiKeyAuth: []
+//     *     parameters:
+//     *       - name: partner_id
+//     *         in: query
+//     *         required: true
+//     *         schema:
+//     *           type: number
+//     *     responses:
+//     *       200:
+//     *         description: Information fetched successfuly
+//     *       400:
+//     *         description: Invalid request
+//     */
+// const getDailyReportSummary = async (req: any, res: any) => {
+//     try {
+//         const partner_id = req.query.partner_id;
+//         const summary = {
+//             user: {
+//                 total_users: 0,
+//                 total_users_active: 0,
+//                 total_users_inactive: 0,
+//                 total_users_pending: 0,
+//                 total_users_with_policy: 0,
+//                 total_users_with_claim: 0,
+//                 total_users_with_payment: 0,
+//             },
+//             policy: {
+//                 total_policies: 0,
+//                 total_policies_pending: 0,
+//                 total_policies_paid: 0,
+//                 total_policies_unpaid: 0,
+//                 total_policies_partially_paid: 0,
+//                 total_premium_amount: 0,
+//             },
+//             claim: {
+//                 total_claims: 0,
+//                 total_claims_approved: 0,
+//                 total_claims_pending: 0,
+//                 total_claims_rejected: 0,
+//             },
+//             payment: {
+//                 total_payments: 0,
+//                 total_payments_paid: 0,
+//                 total_payments_unpaid: 0,
+//                 total_payments_pending: 0,
+//             },
+//             partner: {
+//                 total_partners: 0,
+//                 total_partners_active: 0,
+//             },
+//             product: {
+//                 total_products: 0,
+//                 total_products_active: 0,
+//                 total_products_inactive: 0,
+//                 total_products_pending: 0,
+//             },
+//             session: {
+//                 total_sessions: 0,
+//             }
+//         };
+//     }catch(err){
+//     }
+// }
 module.exports = {
     getPolicySummary,
     getClaimSummary,

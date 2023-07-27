@@ -102,7 +102,15 @@ module.exports = (sequelize, DataTypes) => {
         partner_id: {
             type: DataTypes.INTEGER,
             allowNull: true
-        }
+        },
+        driver_licence: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        voter_id: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, { timestamps: true });
     // User.hasMany(Policy, {
     //     as: 'policies',

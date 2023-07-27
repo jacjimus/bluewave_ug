@@ -1,4 +1,5 @@
 import { db } from "../models/db";
+const { Op } = require("sequelize");
 const Policy = db.policies;
 const User = db.users;
 const Session = db.sessions;
@@ -159,6 +160,11 @@ const getClaimSummary = async (req: any, res: any) => {
     *         required: true
     *         schema:
     *           type: number
+    *       - name: today
+    *         in: query
+    *         required: true
+    *         schema:
+    *           type: boolean
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -168,6 +174,12 @@ const getClaimSummary = async (req: any, res: any) => {
 const getAllReportSummary = async (req: any, res: any) => {
     try {
         const partner_id = req.query.partner_id;
+        const today = req.query.today
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+        console.log(typeof today,today, twentyFourHoursAgo)
+
         const summary = {
             user: {
                 total_users: 0,
@@ -185,6 +197,7 @@ const getAllReportSummary = async (req: any, res: any) => {
                 total_policies_unpaid: 0,
                 total_policies_partially_paid: 0,
                 total_premium_amount: 0,
+                total_installment_policies:0
             },
             claim: {
                 total_claims: 0,
@@ -216,6 +229,26 @@ const getAllReportSummary = async (req: any, res: any) => {
         let users, policies, claims, payments, partners, products, sessions;
 
         if (partner_id != 1) {
+            
+           if(today == "true"){
+            
+            policies = await Policy.findAll({
+                where: {
+                    partner_id: partner_id,
+                    createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+                }
+            });
+            users = await User.findAll({
+                 where: {
+                     partner_id: partner_id,
+                     createdAt: { [Op.gte]: twentyFourHoursAgo }
+            } });
+            claims = await Claim.findAll({ where: { partner_id: partner_id,createdAt: { [Op.gte]: twentyFourHoursAgo }} });
+            payments = await Payment.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } }});
+            partners = await Partner.findAll({ where: { partner_id: partner_id , createdAt: { [Op.gte]: twentyFourHoursAgo} }});
+            products = await Product.findAll({ where: { partner_id: partner_id , createdAt: { [Op.gte]: twentyFourHoursAgo} }});
+            sessions = await Session.findAll({ where: { partner_id: partner_id , createdAt: { [Op.gte]: twentyFourHoursAgo} }});
+           }else{
             policies = await Policy.findAll({ where: { partner_id: partner_id } });
             users = await User.findAll({ where: { partner_id: partner_id } });
             claims = await Claim.findAll({ where: { partner_id: partner_id } });
@@ -223,14 +256,35 @@ const getAllReportSummary = async (req: any, res: any) => {
             partners = await Partner.findAll({ where: { partner_id: partner_id } });
             products = await Product.findAll({ where: { partner_id: partner_id } });
             sessions = await Session.findAll({ where: { partner_id: partner_id } });
+           }
         } else {
-            users = await User.findAll();
-            policies = await Policy.findAll();
-            claims = await Claim.findAll();
-            payments = await Payment.findAll();
-            partners = await Partner.findAll();
-            products = await Product.findAll();
-            sessions = await Session.findAll();
+            
+            if(today == "true" ){
+                
+                policies = await Policy.findAll({
+                    where: {
+                       
+                        createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+                    }
+                });
+                users = await User.findAll({
+                     where: {
+                         createdAt: { [Op.gte]: twentyFourHoursAgo }
+                } });
+                claims = await Claim.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo }} });
+                payments = await Payment.findAll({ where: {  createdAt: { [Op.gte]: twentyFourHoursAgo } }});
+                partners = await Partner.findAll({ where: {  createdAt: { [Op.gte]: twentyFourHoursAgo} }});
+                products = await Product.findAll({ where: {  createdAt: { [Op.gte]: twentyFourHoursAgo} }});
+                sessions = await Session.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo} }});
+               }else{
+                users = await User.findAll();
+                policies = await Policy.findAll();
+                claims = await Claim.findAll();
+                payments = await Payment.findAll();
+                partners = await Partner.findAll();
+                products = await Product.findAll();
+                sessions = await Session.findAll();
+               }
         }
 
         // Populate user summary
@@ -245,6 +299,7 @@ const getAllReportSummary = async (req: any, res: any) => {
         summary.policy.total_policies_paid = countPoliciesByStatus(policies, "paid");
         summary.policy.total_policies_partially_paid = countPoliciesByStatus(policies, "partially_paid");
         summary.policy.total_premium_amount = calculateTotalPremiumAmount(policies);
+        summary.policy.total_installment_policies = countInstallmentPolicies(policies)
 
         // Populate claim summary
         summary.claim.total_claims = claims.length;
@@ -306,6 +361,90 @@ const countProductsByStatus = (products: any[], status: string): number => {
 const countClaimsByStatus = (claims: any[], status: string): number => {
     return claims.filter((claim: any) => claim.claim_status === status).length;
 };
+
+const countInstallmentPolicies =(policies:any[]): number=>{
+    return policies.filter((policy:any)=> policy.installment_order !== 1).length
+}
+
+
+// /**
+//     * @swagger
+//     * /api/v1/reports/summary/daily:
+//     *   get:
+//     *     tags:
+//     *       - Reports
+//     *     description: Daily Report summary
+//     *     operationId: DailyReportSummary
+//     *     summary: Daily Report summary
+//     *     security:
+//     *       - ApiKeyAuth: []
+//     *     parameters:
+//     *       - name: partner_id
+//     *         in: query
+//     *         required: true
+//     *         schema:
+//     *           type: number
+//     *     responses:
+//     *       200:
+//     *         description: Information fetched successfuly
+//     *       400:
+//     *         description: Invalid request
+//     */
+// const getDailyReportSummary = async (req: any, res: any) => {
+//     try {
+//         const partner_id = req.query.partner_id;
+//         const summary = {
+//             user: {
+//                 total_users: 0,
+//                 total_users_active: 0,
+//                 total_users_inactive: 0,
+//                 total_users_pending: 0,
+//                 total_users_with_policy: 0,
+//                 total_users_with_claim: 0,
+//                 total_users_with_payment: 0,
+//             },
+//             policy: {
+//                 total_policies: 0,
+//                 total_policies_pending: 0,
+//                 total_policies_paid: 0,
+//                 total_policies_unpaid: 0,
+//                 total_policies_partially_paid: 0,
+//                 total_premium_amount: 0,
+//             },
+//             claim: {
+//                 total_claims: 0,
+//                 total_claims_approved: 0,
+//                 total_claims_pending: 0,
+//                 total_claims_rejected: 0,
+//             },
+//             payment: {
+//                 total_payments: 0,
+//                 total_payments_paid: 0,
+//                 total_payments_unpaid: 0,
+//                 total_payments_pending: 0,
+//             },
+//             partner: {
+//                 total_partners: 0,
+//                 total_partners_active: 0,
+//             },
+//             product: {
+//                 total_products: 0,
+//                 total_products_active: 0,
+//                 total_products_inactive: 0,
+//                 total_products_pending: 0,
+//             },
+//             session: {
+//                 total_sessions: 0,
+//             }
+//         };
+
+
+//     }catch(err){
+
+//     }
+// }
+
+
 
 
 module.exports = {

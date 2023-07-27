@@ -4,8 +4,6 @@ const Product = db.products;
 const Op = db.Sequelize.Op;
 
 
-
-
 interface Product {
     product_name: string,
     product_description: string,
@@ -15,7 +13,8 @@ interface Product {
     product_image: string,
     product_status: string,
     product_duration: number,
-    underwriter: string
+    underwriter: string,
+    benefits: object
 
 }
 
@@ -83,15 +82,11 @@ const getProducts = async (req: any, res: any) => {
                     },
                     product_premium: {
                         [Op.iLike]: `%${filter}%`
-
                     }
-                
                 },
                 order: [
                     ['createdAt', 'DESC']
                 ]
-                
-            
             });
         }
 
@@ -131,7 +126,6 @@ const getProducts = async (req: any, res: any) => {
             count: total,
             pagination: pagination,
             items: resultProduct,
-
         }
 
         return res.status(status.code).json({result: status.result});
@@ -210,7 +204,7 @@ const getProduct = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product"}
+  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product", "benefits":{ "last_expense": 50000, "hospital_cash": 10000,"maternity": 10000}}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -221,14 +215,11 @@ const getProduct = async (req: any, res: any) => {
 const createProduct = async (req: any, res: any) => {
     try {
 
-
         const product: Product = req.body;
-
         const newProduct = await Product.create(product);
         if(!newProduct){
             return res.status(500).json({ message: "Error creating product" });
         }
-
         return res.status(200).json({ result: {
             message: "Product created successfully",
             product: newProduct
@@ -265,7 +256,7 @@ const createProduct = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product"}
+  *             example: {"product_name": "Test Product", "product_description": "Test Product", "product_type": "Test Product", "product_category": "Test Product", "product_premium": 1000, "product_image": "Test Product", "product_status": "Test Product", "product_duration": 1000, "underwriter": "Test Product", "benefits":{ "last_expense": 50000, "hospital_cash": 10000,"maternity": 10000}}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -288,7 +279,7 @@ const updateProduct = async (req: any, res: any) => {
             product_duration,
             underwriter,
 
-
+           benefits
 
           
         } = req.body;
@@ -310,14 +301,11 @@ const updateProduct = async (req: any, res: any) => {
             product_type: product_type,
             product_category: product_category,
             product_premium: product_premium,
-
             product_image: product_image,
             product_status: product_status,
-
             product_duration: product_duration,
-
             underwriter: underwriter,
-
+            benefits: benefits
 
         };
         //saving the product

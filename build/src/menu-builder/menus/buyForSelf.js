@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForSelf = void 0;
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
+const payment_1 = __importDefault(require("../../services/payment"));
 const uuid_1 = require("uuid");
 function buyForSelf(menu, args, db) {
     const User = db.users;
@@ -665,7 +666,7 @@ function buyForSelf(menu, args, db) {
     //===============CONFIRMATION=================
     menu.state('confirmation', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const { id, phone_number } = yield getUser(args.phoneNumber);
+            const { id, phone_number, partner_id } = yield getUser(args.phoneNumber);
             const policy = yield Policy.findOne({
                 where: {
                     user_id: id
@@ -677,11 +678,11 @@ function buyForSelf(menu, args, db) {
                 const policy_deduction_amount = policy.policy_deduction_amount;
                 const day = policy.policy_deduction_day;
                 const amount = policy_deduction_amount;
-                const reference = policy.policy_type + policy.id;
-                const user_id = id;
+                const userId = id;
                 const uuid = (0, uuid_1.v4)();
-                //  let payment: any = await airtelMoney(user_id,phone_number , amount, reference, uuid)
-                let payment = 200;
+                const reference = policy.policy_type + policy.id + userId + uuid;
+                let payment = yield (0, payment_1.default)(userId, partner_id, id, phone_number, policy_deduction_amount, reference, uuid);
+                payment = 200;
                 if (payment == 200) {
                     menu.end('Congratulations you are now covered. \n' +
                         `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${day} of every month`);

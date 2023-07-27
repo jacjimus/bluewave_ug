@@ -98,7 +98,18 @@ menu.state('choosePolicy', {
 
         let { premium , policy_type, beneficiary} = policies;
 
-        const payment = 200;
+        let userId = user.id
+        let phoneNumber = user.phone_number
+        let partner_id = user.partner_id
+        let policy_id = policies.id
+        let amount = policies.policy_deduction_amount
+        const uuid = uuidv4();
+        let reference = policies.policy_type+policy_id+userId+uuid
+
+        let payment: any = await airtelMoney(userId,partner_id,policy_id, phoneNumber, amount, reference, uuid)
+
+
+        payment = 200;
 
         if (payment == 200) {
           //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]

@@ -53,6 +53,14 @@ module.exports = (sequelize: any, DataTypes: any) => {
             allowNull: true,
             default: false
         },
+        currency_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        country_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
      
 
     }, { timestamps: true },)

@@ -49,7 +49,33 @@ module.exports = (sequelize, DataTypes) => {
         underwriter: {
             type: DataTypes.STRING,
             allowNull: false
-        }
+        }, 
+        benefits: {
+            type: DataTypes.JSONB,
+            allowNull: true
+        },
+        country:{
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        currency_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        country_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        annual_premium: {
+            type: DataTypes.JSONB,
+            allowNull: true
+        },
+        monthly_premium: {
+            type: DataTypes.JSONB,
+            allowNull: true
+        },
+        
+
 
 
     })

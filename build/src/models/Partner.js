@@ -52,6 +52,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
             default: false
         },
+        currency_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        country_code: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, { timestamps: true });
     return Partner;
 };
