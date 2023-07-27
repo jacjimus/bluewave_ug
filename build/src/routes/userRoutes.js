@@ -7,12 +7,12 @@ const express_1 = __importDefault(require("express"));
 const userController = require('../controllers/userController');
 const { isBluewave, isAirtel, isVodacom, isAAR, isUser, isManager, isSuperAdmin, isUserOrAdmin, isUserOrAdminOrManager } = require('../middleware/userAuth');
 const router = express_1.default.Router();
-router.get('/', userController.getUsers);
-router.get('/partner', userController.getPartner);
+router.get('/', isSuperAdmin, userController.getUsers);
+router.get('/partner', isBluewave, userController.getPartner);
 router.get('/:user_id', userController.getUser);
 router.post('/login', userController.login);
 router.post('/signup', userController.signup);
-router.post('/partner/register', userController.partnerRegistration);
+router.post('/partner/register', isBluewave, userController.partnerRegistration);
 router.put('/:user_id', userController.updateUser);
 router.delete('/:user_id', userController.deleteUser);
 // Method	Endpoint	            Description
