@@ -19,12 +19,12 @@ const router = express.Router()
 
 
 
-router.get('/', userController.getUsers)
-router.get('/partner', userController.getPartner)
+router.get('/',isSuperAdmin, userController.getUsers)
+router.get('/partner',isBluewave, userController.getPartner)
 router.get('/:user_id', userController.getUser)
 router.post('/login', userController.login)
 router.post('/signup', userController.signup)
-router.post('/partner/register', userController.partnerRegistration)
+router.post('/partner/register',isBluewave, userController.partnerRegistration)
 router.put('/:user_id', userController.updateUser)
 router.delete('/:user_id',  userController.deleteUser)
 

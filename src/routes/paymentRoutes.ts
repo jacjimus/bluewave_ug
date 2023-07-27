@@ -15,11 +15,11 @@ const {
 
 const router = express.Router()
 
-router.get('/', paymentController.getPayments)
+router.get('/',isSuperAdmin, paymentController.getPayments)
 router.get('/:payment_id', paymentController.getPayment)
-router.get('/policy/:policy_id', paymentController.getPolicyPayments)
+router.get('/policy/:policy_id', isSuperAdmin,paymentController.getPolicyPayments)
 router.get('/user/:user_id', paymentController.getUserPayments)
-router.post('/create', paymentController.createPayment)
+router.post('/create', isSuperAdmin,paymentController.createPayment)
 
 module.exports = router
 

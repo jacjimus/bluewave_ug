@@ -279,13 +279,12 @@ const partnerRegistration = async (req: any, res: any) => {
   *       content:
   *         application/json:
   *           schema:
-  *             example: {  "email":"dickens@bluewaveinsurance.co.ke", "password": "test123" }
+  *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd@" }
   *     responses:
   *       200:
   *         description: Successful authentication
   */
 const login = async (req: any, res: any) => {
-  console.log("I WAS CALLED", req.body)
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -308,27 +307,19 @@ const login = async (req: any, res: any) => {
     //if user email is found, compare password with bcrypt
     if (user) {
       const isSame = await bcrypt.compare(password, user.password);
-      //if password is the same
       //generate token with the user's id and the secretKey in the env file
-
       if (isSame) {
         let token = jwt.sign({ id: user.id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
           expiresIn: 1 * 24 * 60 * 60 * 1000,
         });
 
-        //if password matches wit the one in the database
         //go ahead and generate a cookie for the user
         res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-
         console.log(token);
-
         //remove password from the user object
         user.password = undefined;
-        
-        //send user data
         return res.status(201).json({ result: { message: "User login successfully", token: token, user: user }});
       }
-
     }
   } catch (error) {
     console.log("ERROR", error)

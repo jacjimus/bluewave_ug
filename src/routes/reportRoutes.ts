@@ -18,8 +18,8 @@ const router = express.Router()
 
 
 
-router.get('/policy/summary', reportController.getPolicySummary)
-router.get('/claims/summary', reportController.getClaimSummary)
-router.get('/summary/all', reportController.getAllReportSummary)
+router.get('/policy/summary',isSuperAdmin, reportController.getPolicySummary)
+router.get('/claims/summary',isSuperAdmin, reportController.getClaimSummary)
+router.get('/summary/all', isSuperAdmin,reportController.getAllReportSummary)
 
 module.exports = router

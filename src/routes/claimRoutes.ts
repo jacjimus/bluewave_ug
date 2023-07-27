@@ -1,7 +1,7 @@
 import express from 'express'
 const claimController = require('../controllers/claimController');
 const {
-    isBluewave,
+  isBluewave,
   isAirtel,
   isVodacom,
   isAAR,
@@ -13,11 +13,11 @@ const {
 
 const router = express.Router()
 
-router.get('/', claimController.getClaims)
+router.get('/', isSuperAdmin, claimController.getClaims)
 router.post('/', claimController.createClaim)
 router.get('/:claim_id', claimController.getClaim)
 router.get('/user/:user_id', claimController.getUserClaims)
-router.get('/policies/:policy_id', claimController.getPolicyClaims)
+router.get('/policies/:policy_id', isSuperAdmin, claimController.getPolicyClaims)
 router.put('/:claim_id', claimController.updateClaim)
 router.delete('/:claim_id', claimController.deleteClaim)
 
