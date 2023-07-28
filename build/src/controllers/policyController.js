@@ -51,6 +51,18 @@ const PolicyIssuance_1 = __importDefault(require("../services/PolicyIssuance"));
     *         required: false
     *         schema:
     *           type: string
+    *       - name: start_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
+    *       - name: end_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -64,25 +76,27 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     };
     try {
         const filter = req.query.filter || "";
-        let policy = yield Policy.findAll({
-            where: {
-                partner_id: req.query.partner_id,
-                [Op.or]: [
+        const partner_id = req.query.partner_id;
+        const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+        const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+        // Prepare the date range filters based on the provided start_date and end_date
+        const dateFilters = {}; // Use 'any' type temporarily, you can replace with the 'WhereOptions' type from Sequelize if available
+        if (start_date) {
+            dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+        }
+        if (end_date) {
+            dateFilters.createdAt = Object.assign(Object.assign({}, dateFilters.createdAt), { [Op.lte]: new Date(end_date) });
+        }
+        const policies = yield Policy.findAll({
+            where: Object.assign({ partner_id: partner_id, [Op.or]: [
                     {
-                        policy_type: {
-                            [Op.iLike]: `%${filter}%`
-                        }
+                        policy_type: { [Op.iLike]: `%${filter}%` },
                     },
                     {
-                        policy_status: {
-                            [Op.iLike]: `%${filter}%`
-                        }
+                        policy_status: { [Op.iLike]: `%${filter}%` },
                     },
-                ],
-            },
-            order: [
-                ['id', 'DESC'],
-            ],
+                ] }, dateFilters),
+            order: [["id", "DESC"]],
             include: [
                 {
                     model: User,
@@ -91,10 +105,10 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 {
                     model: Product,
                     as: "product",
-                }
-            ]
+                },
+            ],
         });
-        if (!policy || policy.length === 0) {
+        if (!policies || policies.length === 0) {
             return res.status(404).json({ message: "No policies found" });
         }
         //policy pagination
@@ -102,8 +116,8 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const limit = parseInt(req.query.limit) || 10;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const total = policy.length;
-        const resultPolicy = policy.slice(startIndex, endIndex);
+        const total = policies.length;
+        const resultPolicies = policies.slice(startIndex, endIndex);
         const pagination = {};
         if (endIndex < total) {
             pagination.next = {
@@ -120,7 +134,7 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         status.result = {
             count: total,
             pagination: pagination,
-            items: resultPolicy,
+            items: resultPolicies,
         };
         return res.status(status.code).json({ result: status.result });
     }
@@ -130,33 +144,33 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 /**
-  * @swagger
-  * /api/v1/policies/{policy_id}:
-  *   get:
-  *     tags:
-  *       - Policies
-  *     description: List policies by agreement_id
-  *     operationId: listPoliciesByAgreementID
-  *     summary: List policies
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: policy_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/policies/{policy_id}:
+ *   get:
+ *     tags:
+ *       - Policies
+ *     description: List policies by agreement_id
+ *     operationId: listPoliciesByAgreementID
+ *     summary: List policies
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: policy_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
 const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let status = {
         code: 200,
@@ -168,14 +182,14 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const policy = yield Policy.findOne({
             where: {
                 id: policy_id,
-                partner_id: partner_id
-            }
+                partner_id: partner_id,
+            },
         });
-        if (!policy || policy.length === 0) {
+        if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
         status.result = {
-            item: policy
+            item: policy,
         };
         return res.status(status.code).json({ result: status.result });
     }
@@ -201,11 +215,23 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   *         required: true
   *         schema:
   *           type: number
-   *       - name: user_id
+  *       - name: user_id
   *         in: path
   *         required: true
   *         schema:
   *           type: number
+  *       - name: start_date
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: string
+  *           format: date
+  *       - name: end_date
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: string
+  *           format: date
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -220,11 +246,18 @@ const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         const user_id = parseInt(req.params.user_id);
         const partner_id = parseInt(req.query.partner_id);
+        const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+        const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+        // Prepare the date range filters based on the provided start_date and end_date
+        const dateFilters = {};
+        if (start_date) {
+            dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+        }
+        if (end_date) {
+            dateFilters.createdAt = Object.assign(Object.assign({}, dateFilters.createdAt), { [Op.lte]: new Date(end_date) });
+        }
         let users = yield Policy.findAll({
-            where: {
-                user_id: user_id,
-                partner_id: partner_id
-            }
+            where: Object.assign({ user_id: user_id, partner_id: partner_id }, dateFilters)
         });
         if (!users || users.length === 0) {
             status.code = 404;

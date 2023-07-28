@@ -358,72 +358,84 @@ const login = async (req: any, res: any) => {
  *         required: false
  *         schema:
  *           type: string
+ *       - name: start_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: end_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
  *     description: Retrieve a list of users from the database
  *     responses:
  *       200:
  *         description: Successful response
  */
 const getUsers = async (req: any, res: any) => {
-  let partner_id = req.query.partner_id 
-  console.log("PARTNER ID", partner_id)
+  let partner_id = req.query.partner_id;
+  console.log("PARTNER ID", partner_id);
   let filter = req.query.filter || "";
-
   let page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
   let status = {
     status: 200,
-    result: {}
+    result: {},
+  };
 
-  }
   try {
     if (!partner_id) {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
-    let users: any = await User.findAll(
-      {
-        where: {
+    let users: any;
 
-        partner_id: partner_id,
-        [Op.or]: [
-          {
-            first_name: {
-              [Op.iLike]: `%${filter}%`
-            }
-          },
-          {
-            last_name: {
-              [Op.iLike]: `%${filter}%`
-            }
-          },
-          {
-            email: {
-              [Op.iLike]: `%${filter}%`
-            }
-          },
-          {
-            phone_number: {
-              [Op.iLike]: `%${filter}%`
-            }
-          },
-          {
-            national_id: {
-              [Op.iLike]: `%${filter}%`
-            }
-          },
-        ]
+    if (!filter || filter == "") {
+      users = await User.findAll({
+        where: {
+          partner_id: partner_id,
         },
         offset: (page - 1) * limit,
         limit: limit,
-        order: [
-          ['createdAt', 'DESC']
-        ],
-        
-      }
-    );
-    //count all users
-    let count = await User.count({ where: { partner_id: partner_id } })
-    //remove password from the response
+        order: [["createdAt", "DESC"]],
+      });
+    } else {
+      users = await User.findAll({
+        where: {
+          partner_id: partner_id,
+          [Op.or]: [
+            { first_name: { [Op.iLike]: `%${filter}%` } },
+            { last_name: { [Op.iLike]: `%${filter}%` } },
+            { email: { [Op.iLike]: `%${filter}%` } },
+            { phone_number: { [Op.iLike]: `%${filter}%` } },
+            { national_id: { [Op.iLike]: `%${filter}%` } },
+          ],
+        },
+        offset: (page - 1) * limit,
+        limit: limit,
+        order: [["createdAt", "DESC"]],
+      });
+    }
+
+    // Filter by start_date and end_date if provided
+    const start_date = req.query.start_date;
+    const end_date = req.query.end_date;
+
+    if (start_date && end_date) {
+      const startDate = new Date(start_date);
+      const endDate = new Date(end_date);
+      users = users.filter((user: any) => {
+        const userDate = new Date(user.createdAt);
+        return userDate >= startDate && userDate <= endDate;
+      });
+    }
+
+    // Count all users
+    const count = await User.count({ where: { partner_id: partner_id } });
+
+    // Remove password and other sensitive information from the response
     if (users) {
       for (let i = 0; i < users.length; i++) {
         delete users[i].dataValues.password;
@@ -433,18 +445,16 @@ const getUsers = async (req: any, res: any) => {
 
     if (users && users.length > 0) {
       status.result = users;
-      return res.status(200).json({ result:{message: "Users fetched successfully", items: users, count } });
+      return res.status(200).json({
+        result: { message: "Users fetched successfully", items: users, count },
+      });
     }
     return res.status(404).json({ message: "No users found" });
-
   } catch (error) {
-    console.log("ERROR", error)
-    return res.status(500).json({ message: "Internal server error" , error: error});
-
+    console.log("ERROR", error);
+    return res.status(500).json({ message: "Internal server error", error: error });
   }
-
-
-}
+};
 
 /**
   * @swagger

@@ -39,6 +39,18 @@ const Op = db_1.db.Sequelize.Op;
     *         required: false
     *         schema:
     *           type: string
+    *       - name: start_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
+    *       - name: end_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -51,39 +63,44 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         result: {},
     };
     try {
-        let filter = req.query.filter || '';
-        let product = yield Product.findAll();
-        //product filter
-        if (filter) {
+        let filter = req.query.filter || "";
+        let product;
+        if (!filter || filter == "") {
+            product = yield Product.findAll({
+                order: [["createdAt", "DESC"]],
+            });
+        }
+        else {
             product = yield Product.findAll({
                 where: {
-                    product_name: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_description: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_type: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_category: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_premium: {
-                        [Op.iLike]: `%${filter}%`
-                    }
+                    [Op.or]: [
+                        { product_name: { [Op.iLike]: `%${filter}%` } },
+                        { product_description: { [Op.iLike]: `%${filter}%` } },
+                        { product_type: { [Op.iLike]: `%${filter}%` } },
+                        { product_category: { [Op.iLike]: `%${filter}%` } },
+                        { product_premium: { [Op.iLike]: `%${filter}%` } },
+                    ],
                 },
-                order: [
-                    ['createdAt', 'DESC']
-                ]
+                order: [["createdAt", "DESC"]],
+            });
+        }
+        // Filter by start_date and end_date if provided
+        const start_date = req.query.start_date;
+        const end_date = req.query.end_date;
+        if (start_date && end_date) {
+            const startDate = new Date(start_date);
+            const endDate = new Date(end_date);
+            product = product.filter((item) => {
+                const itemDate = new Date(item.createdAt);
+                return itemDate >= startDate && itemDate <= endDate;
             });
         }
         if (!product || product.length === 0) {
             return res.status(404).json({ message: "No products found" });
         }
-        //product count
-        const productCount = yield Product.count();
-        //product pagination
+        // Product count
+        const productCount = product.length;
+        // Product pagination
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const startIndex = (page - 1) * limit;

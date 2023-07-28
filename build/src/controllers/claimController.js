@@ -42,6 +42,18 @@ const { Op } = require("sequelize");
     *         required: false
     *         schema:
     *           type: number
+    *       - name: start_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
+    *       - name: end_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
     *     responses:
     *       200:
     *         description: Information fetched successfully
@@ -53,53 +65,48 @@ const getClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     const filter = req.query.filter;
+    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
     console.log("FILTER", filter);
     try {
         let claim;
-        if (!filter || filter == "") {
-            claim = yield Claim.findAll({
-                where: {
-                    partner_id: partner_id
-                },
-                order: [
-                    ['createdAt', 'DESC']
-                ],
-                include: [
-                    { model: User, as: 'user' },
-                    { model: Policy, as: 'policy' }
-                ]
-            });
+        const claimWhere = { partner_id: partner_id };
+        // Add date filters to the 'claimWhere' object based on the provided start_date and end_date
+        if (start_date && end_date) {
+            claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
         }
-        //filter by claim status or claim type or description
+        else if (start_date) {
+            claimWhere.createdAt = { [Op.gte]: new Date(start_date) };
+        }
+        else if (end_date) {
+            claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
+        }
+        // Check if a filter is provided to include additional search criteria
         if (filter) {
-            claim = yield Claim.findAll({
-                where: {
-                    [Op.or]: [
-                        { claim_status: { [Op.iLike]: `%${filter}%` } },
-                        { claim_type: { [Op.iLike]: `%${filter}%` } },
-                        { claim_description: { [Op.iLike]: `%${filter}%` } }
-                    ],
-                    partner_id: partner_id
-                },
-                order: [
-                    ['createdAt', 'DESC']
-                ],
-                include: [
-                    { model: User, as: 'user' },
-                    { model: Policy, as: 'policy' }
-                ]
-            });
+            claimWhere[Op.or] = [
+                { claim_status: { [Op.iLike]: `%${filter}%` } },
+                { claim_type: { [Op.iLike]: `%${filter}%` } },
+                { claim_description: { [Op.iLike]: `%${filter}%` } },
+            ];
         }
+        // Retrieve claims based on the 'claimWhere' filter object
+        claim = yield Claim.findAll({
+            where: claimWhere,
+            order: [["createdAt", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+        });
         if (!claim || claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
         if (page && limit) {
             let offset = page * limit - limit;
             let paginatedClaims = claim.slice(offset, offset + limit);
-            return res.status(200).json({ result: {
+            return res.status(200).json({
+                result: {
                     count: claim.length,
-                    items: paginatedClaims
-                } });
+                    items: paginatedClaims,
+                },
+            });
         }
         return res.status(200).json({ result: claim });
     }

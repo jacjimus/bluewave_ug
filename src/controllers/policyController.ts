@@ -68,156 +68,170 @@ interface Policy {
     *         required: false
     *         schema:
     *           type: string
+    *       - name: start_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
+    *       - name: end_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
     *     responses:
     *       200:
     *         description: Information fetched successfuly
     *       400:
     *         description: Invalid request
     */
+
 const getPolicies = async (req: any, res: any) => {
     let status = {
-        code: 200,
-        result: {},
-    }
+      code: 200,
+      result: {},
+    };
     try {
-        const filter = req.query.filter || "";
-        let policy: any = await Policy.findAll(
+      const filter = req.query.filter || "";
+      const partner_id = req.query.partner_id;
+      const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+      const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+  
+      // Prepare the date range filters based on the provided start_date and end_date
+      const dateFilters: any = {}; // Use 'any' type temporarily, you can replace with the 'WhereOptions' type from Sequelize if available
+      if (start_date) {
+        dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+      }
+      if (end_date) {
+        dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+      }
+  
+      const policies: any[] = await Policy.findAll({
+        where: {
+          partner_id: partner_id,
+          [Op.or]: [
             {
-              where: {
-                partner_id: req.query.partner_id,
-                [Op.or]: [
-                    {
-                      policy_type: {
-                        [Op.iLike]: `%${filter}%`
-                      }
-                    },
-                    {
-                        policy_status: {
-                            [Op.iLike]: `%${filter}%`
-                            }
-                    },
-                ],
-                },
-                order: [
-                    ['id', 'DESC'],
-                ],
-                include: [
-                    {
-                        model: User,
-                        as: "user",
-                    },
-                    {
-                        model: Product,
-                        as: "product",
-                    }
-                ]
-            }
-        )
-
-        if (!policy || policy.length === 0) {
-            return res.status(404).json({ message: "No policies found" });
-        }
-
-       
-
-        //policy pagination
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
-        const total = policy.length
-
-        const resultPolicy = policy.slice(startIndex, endIndex);
-
-        const pagination: any = {};
-
-        if (endIndex < total    ) {
-            pagination.next = {
-                page: page + 1,
-                limit: limit,
-            };
-        }
-
-        if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit: limit,
-            };
-        }
-
-        status.result = {
-            count: total,
-            pagination: pagination,
-            items: resultPolicy,
-
-        }
-
-        return res.status(status.code).json({result: status.result});
+              policy_type: { [Op.iLike]: `%${filter}%` },
+            },
+            {
+              policy_status: { [Op.iLike]: `%${filter}%` },
+            },
+          ],
+          ...dateFilters, // Apply the date filters to the query
+        },
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: User,
+            as: "user",
+          },
+          {
+            model: Product,
+            as: "product",
+          },
+        ],
+      });
+  
+      if (!policies || policies.length === 0) {
+        return res.status(404).json({ message: "No policies found" });
+      }
+  
+      //policy pagination
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const startIndex = (page - 1) * limit;
+      const endIndex = page * limit;
+      const total = policies.length;
+  
+      const resultPolicies = policies.slice(startIndex, endIndex);
+  
+      const pagination: any = {};
+  
+      if (endIndex < total) {
+        pagination.next = {
+          page: page + 1,
+          limit: limit,
+        };
+      }
+  
+      if (startIndex > 0) {
+        pagination.prev = {
+          page: page - 1,
+          limit: limit,
+        };
+      }
+  
+      status.result = {
+        count: total,
+        pagination: pagination,
+        items: resultPolicies,
+      };
+  
+      return res.status(status.code).json({ result: status.result });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({message: "Internal server error", error: error});
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error", error: error });
     }
-};
-
-
+  };
 /**
-  * @swagger
-  * /api/v1/policies/{policy_id}:
-  *   get:
-  *     tags:
-  *       - Policies
-  *     description: List policies by agreement_id
-  *     operationId: listPoliciesByAgreementID
-  *     summary: List policies
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: policy_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/policies/{policy_id}:
+ *   get:
+ *     tags:
+ *       - Policies
+ *     description: List policies by agreement_id
+ *     operationId: listPoliciesByAgreementID
+ *     summary: List policies
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: policy_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
 const getPolicy = async (req: any, res: any) => {
     let status = {
         code: 200,
         result: {},
-
-    }
+    };
     try {
-        const policy_id = parseInt(req.params.policy_id)
-        const partner_id = parseInt(req.query.partner_id)
+        const policy_id = parseInt(req.params.policy_id);
+        const partner_id = parseInt(req.query.partner_id);
+        
         const policy = await Policy.findOne({
             where: {
                 id: policy_id,
-                partner_id: partner_id
-            }
-        })
-        if (!policy || policy.length === 0) {
+                partner_id: partner_id,
+            },
+        });
+
+        if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
-  
+
         status.result = {
-            item: policy
+            item: policy,
         };
 
-        return res.status(status.code).json({result: status.result});
+        return res.status(status.code).json({ result: status.result });
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", error: error });
     }
-
-}
+};
 
 
 /**
@@ -237,11 +251,23 @@ const getPolicy = async (req: any, res: any) => {
   *         required: true
   *         schema:
   *           type: number
-   *       - name: user_id
+  *       - name: user_id
   *         in: path
   *         required: true
   *         schema:
   *           type: number
+  *       - name: start_date
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: string
+  *           format: date
+  *       - name: end_date
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: string
+  *           format: date
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -255,13 +281,25 @@ const getUserPolicies = async (req: any, res: any) => {
 
     }
     try {
-        const user_id = parseInt(req.params.user_id)
-        const partner_id = parseInt(req.query.partner_id)
+        const user_id = parseInt(req.params.user_id);
+        const partner_id = parseInt(req.query.partner_id);
+        const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+        const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+
+        // Prepare the date range filters based on the provided start_date and end_date
+        const dateFilters: any = {};
+        if (start_date) {
+            dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+        }
+        if (end_date) {
+            dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+        }
 
         let users = await Policy.findAll({
             where: {
                 user_id: user_id,
-                partner_id: partner_id
+                partner_id: partner_id,
+                ...dateFilters, // Apply the date filters to the query
                 
             }
         })

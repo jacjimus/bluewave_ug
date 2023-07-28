@@ -35,6 +35,21 @@ const Partner = db_1.db.partners;
     *         required: true
     *         schema:
     *           type: number
+    *       - name: today
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_week
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_month
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -45,11 +60,58 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
     console.log("getPolicySummary");
     try {
         const partner_id = req.query.partner_id;
-        const policy = yield Policy.findAll({
-            where: {
-                partner_id: partner_id
-            }
-        });
+        const today = req.query.today === "true"; // Convert to a boolean value
+        const this_week = req.query.this_week === "true"; // Convert to a boolean value
+        const this_month = req.query.this_month === "true"; // Convert to a boolean value
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+        let startDate, endDate;
+        if (today) {
+            // For today
+            startDate = new Date(twentyFourHoursAgo);
+            endDate = new Date();
+        }
+        else if (this_week) {
+            // For this week
+            startDate = new Date();
+            startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 7);
+            endDate.setHours(23, 59, 59, 999);
+        }
+        else if (this_month) {
+            // For this month
+            startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
+        }
+        else {
+            // Handle the case when none of the filtering options are provided
+            startDate = new Date(0); // A distant past date (or you can set it to your default start date)
+            endDate = new Date(); // Current date
+        }
+        let policy;
+        if (partner_id == 1) {
+            policy = yield Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+        }
+        else {
+            policy = yield Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+        }
         if (!policy || policy.length === 0) {
             return res.status(404).json({ message: "No policies found" });
         }
@@ -88,6 +150,21 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
     *         required: true
     *         schema:
     *           type: number
+    *       - name: today
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_week
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_month
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -98,16 +175,53 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         console.log("getClaimSummary");
         const partner_id = req.query.partner_id;
-        let claim;
+        const today = req.query.today === "true"; // Convert to a boolean value
+        const this_week = req.query.this_week === "true"; // Convert to a boolean value
+        const this_month = req.query.this_month === "true"; // Convert to a boolean value
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+        let claim, startDate, endDate;
+        if (today) {
+            // For today
+            startDate = new Date(twentyFourHoursAgo);
+            endDate = new Date();
+        }
+        else if (this_week) {
+            // For this week
+            startDate = new Date();
+            startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 7);
+            endDate.setHours(23, 59, 59, 999);
+        }
+        else if (this_month) {
+            // For this month
+            startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
+        }
+        else {
+            // Handle the case when none of the filtering options are provided
+            startDate = new Date(0); // A distant past date (or you can set it to your default start date)
+            endDate = new Date(); // Current date
+        }
         if (partner_id == 1) {
-            claim = yield Claim.findAll();
-            if (claim.length === 0) {
-                return res.status(404).json({ message: "No claims found" });
-            }
+            claim = yield Claim.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
         }
         else {
             claim = yield Claim.findAll({
                 where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
                     partner_id: partner_id
                 }
             });
@@ -156,7 +270,17 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
     *           type: number
     *       - name: today
     *         in: query
-    *         required: true
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_week
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_month
+    *         in: query
+    *         required: false
     *         schema:
     *           type: boolean
     *     responses:
@@ -168,10 +292,38 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
 const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const partner_id = req.query.partner_id;
-        const today = req.query.today;
+        const today = req.query.today === "true"; // Convert to a boolean value
+        const this_week = req.query.this_week === "true"; // Convert to a boolean value
+        const this_month = req.query.this_month === "true"; // Convert to a boolean value
         const twentyFourHoursAgo = new Date();
         twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-        console.log(typeof today, today, twentyFourHoursAgo);
+        let users, policies, claims, payments, partners, products, sessions, startDate, endDate;
+        if (today) {
+            // For today
+            startDate = new Date(twentyFourHoursAgo);
+            endDate = new Date();
+        }
+        else if (this_week) {
+            // For this week
+            startDate = new Date();
+            startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 7);
+            endDate.setHours(23, 59, 59, 999);
+        }
+        else if (this_month) {
+            // For this month
+            startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
+        }
+        else {
+            // Handle the case when none of the filtering options are provided
+            startDate = new Date(0); // A distant past date (or you can set it to your default start date)
+            endDate = new Date(); // Current date
+        }
         const summary = {
             user: {
                 total_users: 0,
@@ -217,64 +369,114 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
                 total_sessions: 0,
             }
         };
-        let users, policies, claims, payments, partners, products, sessions;
-        if (partner_id != 1) {
-            if (today == "true") {
-                policies = yield Policy.findAll({
-                    where: {
-                        partner_id: partner_id,
-                        createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+        if (partner_id == 1) {
+            users = yield User.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
                     }
-                });
-                users = yield User.findAll({
-                    where: {
-                        partner_id: partner_id,
-                        createdAt: { [Op.gte]: twentyFourHoursAgo }
+                }
+            });
+            policies = yield Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
                     }
-                });
-                claims = yield Claim.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                payments = yield Payment.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                partners = yield Partner.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                products = yield Product.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                sessions = yield Session.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-            }
-            else {
-                policies = yield Policy.findAll({ where: { partner_id: partner_id } });
-                users = yield User.findAll({ where: { partner_id: partner_id } });
-                claims = yield Claim.findAll({ where: { partner_id: partner_id } });
-                payments = yield Payment.findAll({ where: { partner_id: partner_id } });
-                partners = yield Partner.findAll({ where: { partner_id: partner_id } });
-                products = yield Product.findAll({ where: { partner_id: partner_id } });
-                sessions = yield Session.findAll({ where: { partner_id: partner_id } });
-            }
+                }
+            });
+            claims = yield Claim.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+            payments = yield Payment.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+            partners = yield Partner.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+            products = yield Product.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+            sessions = yield Session.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
         }
         else {
-            if (today == "true") {
-                policies = yield Policy.findAll({
-                    where: {
-                        createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
-                    }
-                });
-                users = yield User.findAll({
-                    where: {
-                        createdAt: { [Op.gte]: twentyFourHoursAgo }
-                    }
-                });
-                claims = yield Claim.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                payments = yield Payment.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                partners = yield Partner.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                products = yield Product.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-                sessions = yield Session.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo } } });
-            }
-            else {
-                users = yield User.findAll();
-                policies = yield Policy.findAll();
-                claims = yield Claim.findAll();
-                payments = yield Payment.findAll();
-                partners = yield Partner.findAll();
-                products = yield Product.findAll();
-                sessions = yield Session.findAll();
-            }
+            users = yield User.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+            policies = yield Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+            claims = yield Claim.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+            payments = yield Payment.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+            partners = yield Partner.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+            products = yield Product.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+            sessions = yield Session.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
         }
         // Populate user summary
         summary.user.total_users = users.length;

@@ -38,6 +38,18 @@ const  { Op } = require("sequelize");
     *         required: false
     *         schema:
     *           type: number
+    *       - name: start_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
+    *       - name: end_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -45,66 +57,59 @@ const  { Op } = require("sequelize");
     *         description: Invalid request
     */
 const getPayments = async (req: any, res: any) => {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    const partner_id = req.query.partner_id;
-    const filter = req.query.filter || '';
+  let page = parseInt(req.query.page) || 1;
+  let limit = parseInt(req.query.limit) || 10;
+  const partner_id = req.query.partner_id;
+  const filter = req.query.filter || "";
+  const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+  const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
+  try {
+    let payments: any;
+    const paymentWhere: any = { partner_id: partner_id };
 
-    try {
-        let payments = await Payment.findAll({
-            where: {
-                partner_id: partner_id,
-                [Op.or]: [
-                    {
-                        payment_description: {
-                            [Op.iLike]: `%${filter}%`
-                        }
-
-                    },
-                    {
-                        payment_type: {
-                            [Op.iLike]: `%${filter}%`
-                        }
-
-
-                    }
-                ]
-
-            },
-
-            offset: (page - 1) * limit,
-            limit: limit,
-            order: [
-                ['payment_id', 'DESC']
-            ],
-            include: [
-
-                            { model: User, as: 'user' },
-                            { model: Policy, as: 'policy' },
-                            { model: Claim, as: 'claim'}
-                        ],
-
-        });
-
-        console.log(payments)
-
-        if (!payments || payments.length === 0) {
-            return res.status(404).json({ message: "No payments found" });
-        }
-
-        return res.status(200).json({ result:{
-            count: payments.length,
-            items: payments,
-
-     } });
-
-    } catch (error) {
-        console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error", error: error });
+    // Add date filters to the 'paymentWhere' object based on the provided start_date and end_date
+    if (start_date && end_date) {
+      paymentWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+    } else if (start_date) {
+      paymentWhere.createdAt = { [Op.gte]: new Date(start_date) };
+    } else if (end_date) {
+      paymentWhere.createdAt = { [Op.lte]: new Date(end_date) };
     }
 
-}
+    // Check if a filter is provided to include additional search criteria
+    if (filter) {
+      paymentWhere[Op.or] = [
+        { payment_description: { [Op.iLike]: `%${filter}%` } },
+        { payment_type: { [Op.iLike]: `%${filter}%` } },
+      ];
+    }
+
+    // Retrieve payments based on the 'paymentWhere' filter object
+    payments = await Payment.findAll({
+      where: paymentWhere,
+      offset: (page - 1) * limit,
+      limit: limit,
+      order: [["payment_id", "DESC"]],
+      include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
+    });
+
+    if (!payments || payments.length === 0) {
+      return res.status(404).json({ message: "No payments found" });
+    }
+
+    return res.status(200).json({
+      result: {
+        count: payments.length,
+        items: payments,
+      },
+    });
+  } catch (error) {
+    console.log("ERROR", error);
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
+};
+
 
 
 /**

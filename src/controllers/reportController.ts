@@ -26,6 +26,21 @@ const Partner = db.partners;
     *         required: true
     *         schema:
     *           type: number
+    *       - name: today
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_week
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_month
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -36,14 +51,62 @@ const getPolicySummary = async (req: any, res: any) => {
     console.log("getPolicySummary")
     try {
         const partner_id = req.query.partner_id;
-        const policy = await Policy.findAll(
-            {
+        const today = req.query.today === "true"; // Convert to a boolean value
+        const this_week = req.query.this_week === "true"; // Convert to a boolean value
+        const this_month = req.query.this_month === "true"; // Convert to a boolean value
+
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+        
+        let  startDate, endDate
+
+        if (today) {
+            // For today
+            startDate = new Date(twentyFourHoursAgo);
+            endDate = new Date();
+        } else if (this_week) {
+            // For this week
+            startDate = new Date();
+            startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 7);
+            endDate.setHours(23, 59, 59, 999);
+        } else if (this_month) {
+            // For this month
+            startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
+        } else {
+            // Handle the case when none of the filtering options are provided
+            startDate = new Date(0); // A distant past date (or you can set it to your default start date)
+            endDate = new Date();   // Current date
+        }
+
+        let policy;
+        if (partner_id == 1) {
+            policy = await Policy.findAll({
                 where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+        } else {
+            policy = await Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
                     partner_id: partner_id
                 }
-            }
+            });
+        }
 
-        )
 
         if (!policy || policy.length === 0) {
             return res.status(404).json({ message: "No policies found" });
@@ -86,6 +149,21 @@ const getPolicySummary = async (req: any, res: any) => {
     *         required: true
     *         schema:
     *           type: number
+    *       - name: today
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_week
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_month
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -98,22 +176,60 @@ const getClaimSummary = async (req: any, res: any) => {
         console.log("getClaimSummary");
 
         const partner_id = req.query.partner_id;
-        let claim: any;
+        const today = req.query.today === "true"; // Convert to a boolean value
+        const this_week = req.query.this_week === "true"; // Convert to a boolean value
+        const this_month = req.query.this_month === "true"; // Convert to a boolean value
+
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+        
+        let claim, startDate, endDate
+
+        if (today) {
+            // For today
+            startDate = new Date(twentyFourHoursAgo);
+            endDate = new Date();
+        } else if (this_week) {
+            // For this week
+            startDate = new Date();
+            startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 7);
+            endDate.setHours(23, 59, 59, 999);
+        } else if (this_month) {
+            // For this month
+            startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
+        } else {
+            // Handle the case when none of the filtering options are provided
+            startDate = new Date(0); // A distant past date (or you can set it to your default start date)
+            endDate = new Date();   // Current date
+        }
 
         if (partner_id == 1) {
-            claim = await Claim.findAll();
-
-            if (claim.length === 0) {
-                return res.status(404).json({ message: "No claims found" });
-            }
+            claim = await Claim.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
         } else {
             claim = await Claim.findAll({
                 where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
                     partner_id: partner_id
                 }
             });
         }
-
         if (claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
@@ -162,7 +278,17 @@ const getClaimSummary = async (req: any, res: any) => {
     *           type: number
     *       - name: today
     *         in: query
-    *         required: true
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_week
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: boolean
+    *       - name: this_month
+    *         in: query
+    *         required: false
     *         schema:
     *           type: boolean
     *     responses:
@@ -174,11 +300,41 @@ const getClaimSummary = async (req: any, res: any) => {
 const getAllReportSummary = async (req: any, res: any) => {
     try {
         const partner_id = req.query.partner_id;
-        const today = req.query.today
+        const today = req.query.today === "true"; // Convert to a boolean value
+        const this_week = req.query.this_week === "true"; // Convert to a boolean value
+        const this_month = req.query.this_month === "true"; // Convert to a boolean value
+
         const twentyFourHoursAgo = new Date();
         twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
-        console.log(typeof today,today, twentyFourHoursAgo)
+        
+        let users, policies, claims, payments, partners, products, sessions, startDate, endDate
+
+        if (today) {
+            // For today
+            startDate = new Date(twentyFourHoursAgo);
+            endDate = new Date();
+        } else if (this_week) {
+            // For this week
+            startDate = new Date();
+            startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date();
+            endDate.setDate(startDate.getDate() + 7);
+            endDate.setHours(23, 59, 59, 999);
+        } else if (this_month) {
+            // For this month
+            startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
+        } else {
+            // Handle the case when none of the filtering options are provided
+            startDate = new Date(0); // A distant past date (or you can set it to your default start date)
+            endDate = new Date();   // Current date
+        }
 
         const summary = {
             user: {
@@ -226,66 +382,128 @@ const getAllReportSummary = async (req: any, res: any) => {
             }
         };
 
-        let users, policies, claims, payments, partners, products, sessions;
 
-        if (partner_id != 1) {
-            
-           if(today == "true"){
-            
-            policies = await Policy.findAll({
+        if (partner_id == 1) {
+            users = await User.findAll({
                 where: {
-                    partner_id: partner_id,
-                    createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
                 }
             });
-            users = await User.findAll({
-                 where: {
-                     partner_id: partner_id,
-                     createdAt: { [Op.gte]: twentyFourHoursAgo }
-            } });
-            claims = await Claim.findAll({ where: { partner_id: partner_id,createdAt: { [Op.gte]: twentyFourHoursAgo }} });
-            payments = await Payment.findAll({ where: { partner_id: partner_id, createdAt: { [Op.gte]: twentyFourHoursAgo } }});
-            partners = await Partner.findAll({ where: { partner_id: partner_id , createdAt: { [Op.gte]: twentyFourHoursAgo} }});
-            products = await Product.findAll({ where: { partner_id: partner_id , createdAt: { [Op.gte]: twentyFourHoursAgo} }});
-            sessions = await Session.findAll({ where: { partner_id: partner_id , createdAt: { [Op.gte]: twentyFourHoursAgo} }});
-           }else{
-            policies = await Policy.findAll({ where: { partner_id: partner_id } });
-            users = await User.findAll({ where: { partner_id: partner_id } });
-            claims = await Claim.findAll({ where: { partner_id: partner_id } });
-            payments = await Payment.findAll({ where: { partner_id: partner_id } });
-            partners = await Partner.findAll({ where: { partner_id: partner_id } });
-            products = await Product.findAll({ where: { partner_id: partner_id } });
-            sessions = await Session.findAll({ where: { partner_id: partner_id } });
-           }
-        } else {
-            
-            if(today == "true" ){
-                
-                policies = await Policy.findAll({
-                    where: {
-                       
-                        createdAt: { [Op.gte]: twentyFourHoursAgo }, // Filter by 'createdAt' timestamp
+
+            policies = await Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
                     }
-                });
-                users = await User.findAll({
-                     where: {
-                         createdAt: { [Op.gte]: twentyFourHoursAgo }
-                } });
-                claims = await Claim.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo }} });
-                payments = await Payment.findAll({ where: {  createdAt: { [Op.gte]: twentyFourHoursAgo } }});
-                partners = await Partner.findAll({ where: {  createdAt: { [Op.gte]: twentyFourHoursAgo} }});
-                products = await Product.findAll({ where: {  createdAt: { [Op.gte]: twentyFourHoursAgo} }});
-                sessions = await Session.findAll({ where: { createdAt: { [Op.gte]: twentyFourHoursAgo} }});
-               }else{
-                users = await User.findAll();
-                policies = await Policy.findAll();
-                claims = await Claim.findAll();
-                payments = await Payment.findAll();
-                partners = await Partner.findAll();
-                products = await Product.findAll();
-                sessions = await Session.findAll();
-               }
+                }
+            });
+
+            claims = await Claim.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+
+            payments = await Payment.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+
+            partners = await Partner.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+
+            products = await Product.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+
+            sessions = await Session.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            });
+        } else {
+            users = await User.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+
+            policies = await Policy.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+
+            claims = await Claim.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+
+            payments = await Payment.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+
+            partners = await Partner.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+
+            products = await Product.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
+
+            sessions = await Session.findAll({
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                    partner_id: partner_id
+                }
+            });
         }
+        
 
         // Populate user summary
         summary.user.total_users = users.length;

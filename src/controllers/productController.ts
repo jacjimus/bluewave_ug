@@ -46,6 +46,18 @@ interface Product {
     *         required: false
     *         schema:
     *           type: string
+    *       - name: start_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
+    *       - name: end_date
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
+    *           format: date
     *     responses:
     *       200:
     *         description: Information fetched successfuly
@@ -53,87 +65,91 @@ interface Product {
     *         description: Invalid request
     */
 const getProducts = async (req: any, res: any) => {
-    let status = {
-        code: 200,
-        result: {},
+  let status = {
+    code: 200,
+    result: {},
+  };
+  try {
+    let filter = req.query.filter || "";
+    let product: any;
 
+    if (!filter || filter == "") {
+      product = await Product.findAll({
+        order: [["createdAt", "DESC"]],
+      });
+    } else {
+      product = await Product.findAll({
+        where: {
+          [Op.or]: [
+            { product_name: { [Op.iLike]: `%${filter}%` } },
+            { product_description: { [Op.iLike]: `%${filter}%` } },
+            { product_type: { [Op.iLike]: `%${filter}%` } },
+            { product_category: { [Op.iLike]: `%${filter}%` } },
+            { product_premium: { [Op.iLike]: `%${filter}%` } },
+          ],
+        },
+        order: [["createdAt", "DESC"]],
+      });
     }
-    try {
-        let filter = req.query.filter || '';
-        let product: any = await Product.findAll()
 
-        //product filter
-        if (filter) {
-            product = await Product.findAll({
+    // Filter by start_date and end_date if provided
+    const start_date = req.query.start_date;
+    const end_date = req.query.end_date;
 
-                where: {
-
-                    product_name: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_description: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_type: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_category: {
-                        [Op.iLike]: `%${filter}%`
-                    },
-                    product_premium: {
-                        [Op.iLike]: `%${filter}%`
-                    }
-                },
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            });
-        }
-
-        if (!product || product.length === 0) {
-            return res.status(404).json({ message: "No products found" });
-        }
-
-        //product count
-        const productCount = await Product.count();
-
-        //product pagination
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
-        const total = productCount;
-
-        const resultProduct = product.slice(startIndex, endIndex);
-
-        const pagination: any = {};
-
-        if (endIndex < productCount) {
-            pagination.next = {
-                page: page + 1,
-                limit: limit,
-            };
-        }
-
-        if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit: limit,
-            };
-        }
-
-        status.result = {
-            count: total,
-            pagination: pagination,
-            items: resultProduct,
-        }
-
-        return res.status(status.code).json({result: status.result});
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
+    if (start_date && end_date) {
+      const startDate = new Date(start_date);
+      const endDate = new Date(end_date);
+      product = product.filter((item: any) => {
+        const itemDate = new Date(item.createdAt);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
     }
+
+    if (!product || product.length === 0) {
+      return res.status(404).json({ message: "No products found" });
+    }
+
+    // Product count
+    const productCount = product.length;
+
+    // Product pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = productCount;
+
+    const resultProduct = product.slice(startIndex, endIndex);
+
+    const pagination: any = {};
+
+    if (endIndex < productCount) {
+      pagination.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    status.result = {
+      count: total,
+      pagination: pagination,
+      items: resultProduct,
+    };
+
+    return res.status(status.code).json({ result: status.result });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
 };
+
 
 
 /**
