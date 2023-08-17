@@ -650,24 +650,19 @@ function buyForFamily(menu, args, db) {
             });
             console.log("POLICY ID", id);
             //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
-            if (policy_status == 'pending') {
-                const uuid = (0, uuid_1.v4)();
-                const partner_id = user.partner_id;
-                const phoneNumber = user.phone_number;
-                const reference = policy_type + id + userId + uuid;
-                let payment = yield (0, payment_1.default)(userId, partner_id, id, phoneNumber, policy_deduction_amount, reference, uuid);
-                payment = 200;
-                if (payment == 200) {
-                    menu.end('Congratulations you are now covered. \n' +
-                        `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`);
-                }
-                else {
-                    menu.end('Sorry your payment was not successful. \n' +
-                        '\n0.Back ' + ' 00.Main Menu');
-                }
+            const uuid = (0, uuid_1.v4)();
+            const partner_id = user.partner_id;
+            const phoneNumber = user.phone_number;
+            const reference = policy_type + id + userId + uuid;
+            let payment = yield (0, payment_1.default)(userId, partner_id, id, phoneNumber, policy_deduction_amount, reference, uuid);
+            payment = 200;
+            if (payment == 200) {
+                menu.end('Congratulations you are now covered. \n' +
+                    `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`);
             }
             else {
-                menu.end('You do not have an active policy.');
+                menu.end('Sorry your payment was not successful. \n' +
+                    '\n0.Back ' + ' 00.Main Menu');
             }
         })
     });
