@@ -798,7 +798,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             console.log("POLICY ID", id)
 
             //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
-            if (policy_status == 'pending') {
+          
                
                 const uuid = uuidv4();
                 const partner_id = user.partner_id
@@ -818,10 +818,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                         '\n0.Back ' + ' 00.Main Menu'
                     );
                 }
-            } else {
-                menu.end('You do not have an active policy.'
-                );
-            }
+           
         }
     });
 }

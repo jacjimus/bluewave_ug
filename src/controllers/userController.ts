@@ -647,6 +647,61 @@ const getPartner = async (req: any, res: any) => {
   }
 }
 
+//partner switch
+/**
+  * @swagger
+  * /api/v1/users/partnerSwitch:
+  *   post:
+  *     tags:
+  *       - Partner
+  *     description: Partner Switch
+  *     operationId:  partnerSwitch
+  *     summary: Partner Switch
+  *     security:
+  *       - ApiKeyAuth: []
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
+  *     responses:
+  *       200:
+  *         description: Information fetched succussfuly
+  *       400:
+  *         description: Invalid request
+  */
+const partnerSwitch = async (req: any, res: any) =>{
+  try {
+      let partner_id_to_update = req.query.partner_id
+      let user_id = req.user.id;
+      
+      let partner_id = req.user.partner_id;
+    
+
+      let partner = await Partner.findOne({
+          where: {
+              id: Number(partner_id)
+          },
+      });
+      console.log("PARTNER",partner);
+      if (!partner || partner.length === 0) {
+        return res.status(404).json({ item: 0, message: "No partner found" });
+      }
+//update the partner id
+    let updatedUser = await User.update({ partner_id: partner_id_to_update }, { where: { id: user_id } });
+      //saving the user
+     
+      //send users details
+      console.log("updated user" ,updatedUser);
+      return res.status(201).json({ message: "Partner updated successfully"});
+  }
+  catch (error) {
+      console.log("ERROR", error);
+      return res.status(500).json({ message: "Internal server error", error: error });
+  }
+
+}
 
 
 module.exports = {
@@ -657,6 +712,7 @@ module.exports = {
   getPartner,
   updateUser,
   deleteUser,
-  partnerRegistration
+  partnerRegistration,
+  partnerSwitch
 
 };

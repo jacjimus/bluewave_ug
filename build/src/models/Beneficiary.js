@@ -22,7 +22,21 @@ module.exports = (sequelize, DataTypes) => {
         age: {
             type: DataTypes.INTEGER,
             allowNull: true
-        }
+        },
+        dob: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        gender: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        phone_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        
+
     });
     Beneficiary.belongsTo(sequelize.models.user, {
         foreignKey: "user_id",

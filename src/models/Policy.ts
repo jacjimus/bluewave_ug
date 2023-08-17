@@ -108,6 +108,15 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
             defaultValue: [] // Set an empty array as the default value
           },
+          policy_paid_date: {
+            type: DataTypes.DATE,
+            allowNull: true
+
+          },
+            policy_paid_amount: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+            }
     },
 
         { timestamps: true },)  
