@@ -117,6 +117,17 @@ const getPolicies = async (req: any, res: any) => {
             {
               policy_status: { [Op.iLike]: `%${filter}%` },
             },
+            {
+              beneficiary: { [Op.iLike]: `%${filter}%` },
+            },
+            {
+              country_code: { [Op.iLike]: `%${filter}%` },
+            
+            },
+            {
+              currency_code: { [Op.iLike]: `%${filter}%` },
+            },
+
           ],
           ...dateFilters, // Apply the date filters to the query
         },
@@ -195,7 +206,7 @@ const getPolicies = async (req: any, res: any) => {
  *         in: path
  *         required: true
  *         schema:
- *           type: number
+ *           type: string
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -208,12 +219,12 @@ const getPolicy = async (req: any, res: any) => {
         result: {},
     };
     try {
-        const policy_id = parseInt(req.params.policy_id);
-        const partner_id = parseInt(req.query.partner_id);
+        const policy_id = req.params.policy_id
+        const partner_id = req.query.partner_id
         
         const policy = await Policy.findOne({
             where: {
-                id: policy_id,
+                policy_id: policy_id,
                 partner_id: partner_id,
             },
         });
@@ -255,7 +266,7 @@ const getPolicy = async (req: any, res: any) => {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *       - name: start_date
   *         in: query
   *         required: false
@@ -399,7 +410,7 @@ const createPolicy = async (req: any, res: any) => {
   *         in: query
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *       - name: partner_id
   *         in: query
   *         required: true
@@ -409,12 +420,12 @@ const createPolicy = async (req: any, res: any) => {
   *         in: query
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *       - name: policy_id
   *         in: query
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     requestBody:
   *       content:
   *         application/json:
@@ -434,10 +445,10 @@ const policyIssuance = async (req: any, res: any) => {
         const  {user_id, policy_id, partner_id, product_id} = req.query;
 
         //get user details
-        let user = await User.findOne({where: {id: user_id}});
+        let user = await User.findOne({where: {user_id: user_id}});
 
         //get policy details
-        let policy = await Policy.findOne({where: {id: policy_id}});
+        let policy = await Policy.findOne({where: {policy_id: policy_id}});
 
         //use it to create client and policy request
 
@@ -509,7 +520,7 @@ const policyIssuance = async (req: any, res: any) => {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     requestBody:
   *       content:
   *         application/json:
@@ -558,7 +569,7 @@ const updatePolicy = async (req: any, res: any) => {
         let policy = await Policy.findAll({
 
             where: {
-                id: req.params.policy_id
+                policy_id: req.params.policy_id
             }
         })
         if (!policy) {
@@ -620,7 +631,7 @@ const updatePolicy = async (req: any, res: any) => {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -631,7 +642,7 @@ const deletePolicy = async (req: any, res: any) => {
     try {
         await Policy.destroy({
             where: {
-                id: req.params.policy_id,
+                policy_id: req.params.policy_id,
             },
         });
         //send policy details

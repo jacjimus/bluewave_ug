@@ -148,7 +148,7 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -237,7 +237,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string  
   *     requestBody:
   *       content:
   *         application/json:
@@ -303,7 +303,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     responses:
   *       200:
   *         description: Information fetched succussfuly

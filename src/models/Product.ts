@@ -1,8 +1,13 @@
-//insurance product model
+
+import { v4 as uuid } from "uuid";
 module.exports = (sequelize, DataTypes) => {
 
     const Product = sequelize.define("product", {
-    
+         product_id: {
+            type: DataTypes.UUID,
+            defaultValue: uuid(),
+            primaryKey: true,
+         },
         product_name: {
             type: DataTypes.STRING,
             allowNull: false
@@ -74,10 +79,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.JSONB,
             allowNull: true
         },
-        
-
-
-
     })
  Product.hasMany(sequelize.models.policy, {
 as: "policies",

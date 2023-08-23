@@ -1,25 +1,29 @@
 import { Sequelize } from "sequelize";
 import { db } from "../models/db";
-const Claim = db.claims;
+import { uuid } from 'uuidv4';
+
 const User = db.users;
-const Policy = db.policies;
-const Partner = db.partners;
-const Product = db.products;
+
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
+        policy_id: {
+            type: DataTypes.UUID,
+            defaultValue: uuid(),
+            primaryKey: true,
+        },
         product_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+
             allowNull: false
         },
         partner_id: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
-
         policy_start_date: {
             type: DataTypes.DATE,
             allowNull: false
@@ -74,7 +78,7 @@ module.exports = (sequelize, DataTypes) => {
         tax_rate_ext: {
             type: DataTypes.NUMBER,
             allowNull: true
-        } ,
+        },
         premium: {
             type: DataTypes.NUMBER,
             allowNull: true
@@ -107,29 +111,28 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ARRAY(DataTypes.STRING), // Update to ARRAY of strings
             allowNull: true,
             defaultValue: [] // Set an empty array as the default value
-          },
-          policy_paid_date: {
+        },
+        policy_paid_date: {
             type: DataTypes.DATE,
             allowNull: true
-
-          },
-            policy_paid_amount: {
+        },
+        policy_paid_amount: {
             type: DataTypes.NUMBER,
             allowNull: true
-            }
+        }
     },
 
-        { timestamps: true },)  
+        { timestamps: true },)
 
     Policy.belongsTo(User, {
         as: "user",
         foreignKey: "user_id",
     });
-    
 
-    
+
+
     return Policy
 }
- 
+
 
 //A.hasOne(B) and B.belongsTo(A)

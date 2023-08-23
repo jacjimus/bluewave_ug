@@ -2,6 +2,7 @@ const multer = require('multer');
 const fs = require('fs');
 import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
+const LogModel = require('../models/Log');
 
 const s3 = new AWS.S3({
   // Configure your AWS credentials and region
@@ -38,16 +39,16 @@ const s3 = new AWS.S3({
  *         description: Invalid request
  */
 const uploadDocument = async (req: any, res: any) => {
-    try {
-    
+  try {
+
     if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-      }
-      // Access the uploaded file using req.file
-      if (!req.file.buffer || req.file.buffer.length === 0) {
-        return res.status(400).json({ message: 'Invalid file' });
-      }
-       // Generate a unique filename for the uploaded image
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    // Access the uploaded file using req.file
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      return res.status(400).json({ message: 'Invalid file' });
+    }
+    // Generate a unique filename for the uploaded image
     const filename = `${uuidv4()}_${req.file.originalname}`;
 
     // Prepare parameters for S3 upload
@@ -55,7 +56,7 @@ const uploadDocument = async (req: any, res: any) => {
       Bucket: 'bluwavebucket',
       Key: filename,
       Body: req.file.buffer,
-      
+
       //ACL: 'public-read', // Set the ACL to make the uploaded file publicly accessible
     };
 
@@ -64,18 +65,18 @@ const uploadDocument = async (req: any, res: any) => {
 
     // Return the URL of the uploaded file
     const fileUrl = uploadResult.Location;
-    
 
-    return res.json({ message: 'File uploaded successfully',fileUrl });
-  
+
+    return res.json({ message: 'File uploaded successfully', fileUrl });
+
     //   // Process the uploaded file here
     //   const filePath = req.file.path;
     //   // Perform any necessary operations on the file, such as reading, writing, or saving to a database
-  
+
     //   // Example: Read the contents of the file
     //   const fileContent = fs.readFileSync(filePath, 'utf8');
     //   console.log('File content:', fileContent);
-  
+
     //   // Example: Save the file to a database
     //   const fileData = {
     //     filename: req.file.originalname,
@@ -84,18 +85,18 @@ const uploadDocument = async (req: any, res: any) => {
     //   };
     // //   const savedFile = await FileModel.create(fileData);
     // //   console.log('File saved:', savedFile);
-  
-      // Example: Respond with success message and the saved file data
-     // return res.status(200).json({ message: 'File uploaded successfully', file: fileData });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: 'Internal server error', error: error });
-    }
-  };
-  
+
+    // Example: Respond with success message and the saved file data
+    // return res.status(200).json({ message: 'File uploaded successfully', file: fileData });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Internal server error', error: error });
+  }
+};
+
 
 // Use the multer middleware to handle file uploads
 
 module.exports = {
-    uploadDocument
+  uploadDocument
 }

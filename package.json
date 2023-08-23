@@ -43,7 +43,8 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.3",
     "ussd-builder": "^1.2.5",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "uuidv4": "^6.2.13"
   },
   "repository": "https://github.com/bluewaveinsuranceke/airtel_health_ussd.git"
 }

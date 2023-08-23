@@ -1,30 +1,27 @@
-
+import { v4 as uuid } from "uuid";
 module.exports = (sequelize, DataTypes) => {
-    const Payment = sequelize.define( "payment", {
+    const Payment = sequelize.define("payment", {
         payment_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
             autoIncrement: true,
-            allowNull: false
+            primaryKey: true,
         },
         claim_id: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
-        
         policy_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false,
         },
         partner_id: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
-        
         payment_date: {
             type: DataTypes.DATE,
             allowNull: false
@@ -37,7 +34,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.JSONB,
             allowNull: false
         },
-
         payment_type: {
             type: DataTypes.STRING,
             allowNull: false
@@ -50,33 +46,32 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-
     })
 
-    Payment.belongsTo(sequelize.models.claim, { 
+    Payment.belongsTo(sequelize.models.claim, {
         as: "claim",
         foreignKey: "claim_id",
-        });
-        sequelize.models.claim.hasMany(Payment, {
+    });
+    sequelize.models.claim.hasMany(Payment, {
         as: "payments",
         foreignKey: "claim_id",
-        });
+    });
 
-        Payment.belongsTo(sequelize.models.user, {
-            as: "user",
-            foreignKey: "user_id",
-            });
+    Payment.belongsTo(sequelize.models.user, {
+        as: "user",
+        foreignKey: "user_id",
+    });
 
-            sequelize.models.user.hasMany(Payment, {
-            as: "payments",
-            foreignKey: "user_id",
-            });
+    sequelize.models.user.hasMany(Payment, {
+        as: "payments",
+        foreignKey: "user_id",
+    });
 
-            Payment.belongsTo(sequelize.models.policy, {
-                as: "policy",
-                foreignKey: "policy_id",
-                });
-                
+    Payment.belongsTo(sequelize.models.policy, {
+        as: "policy",
+        foreignKey: "policy_id",
+    });
+
 
 
     return Payment

@@ -1,17 +1,24 @@
-import { db } from "../models/db";
-const Claim = db.claims;
-const User = db.users;
-const Policy = db.policies;
-const Partner = db.partners;
-const Product = db.products;
+
+import { uuid } from 'uuidv4';
+
 module.exports = (sequelize: any, DataTypes: any) => {
     const User = sequelize.define("user", {
-
-        id: {
-            //BIGINT PRIMARY KEY 
-            type: DataTypes.INTEGER,
+        user_id: {
+            type: DataTypes.UUID,
+            defaultValue: uuid(),
             primaryKey: true,
-            allowNull: false
+        },
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+        },
+        membership_id: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: true,
         },
         first_name: {
             type: DataTypes.STRING,

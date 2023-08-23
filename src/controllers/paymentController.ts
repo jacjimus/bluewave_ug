@@ -3,7 +3,7 @@ const Payment = db.payments;
 const Policy = db.policies;
 const User = db.users;
 const Claim = db.claims;
-const  { Op } = require("sequelize");
+const { Op } = require("sequelize");
 
 
 /**
@@ -57,57 +57,57 @@ const  { Op } = require("sequelize");
     *         description: Invalid request
     */
 const getPayments = async (req: any, res: any) => {
-  let page = parseInt(req.query.page) || 1;
-  let limit = parseInt(req.query.limit) || 10;
-  const partner_id = req.query.partner_id;
-  const filter = req.query.filter || "";
-  const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
-  const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    const partner_id = req.query.partner_id;
+    const filter = req.query.filter || "";
+    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
-  try {
-    let payments: any;
-    const paymentWhere: any = { partner_id: partner_id };
+    try {
+        let payments: any;
+        const paymentWhere: any = { partner_id: partner_id };
 
-    // Add date filters to the 'paymentWhere' object based on the provided start_date and end_date
-    if (start_date && end_date) {
-      paymentWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
-    } else if (start_date) {
-      paymentWhere.createdAt = { [Op.gte]: new Date(start_date) };
-    } else if (end_date) {
-      paymentWhere.createdAt = { [Op.lte]: new Date(end_date) };
+        // Add date filters to the 'paymentWhere' object based on the provided start_date and end_date
+        if (start_date && end_date) {
+            paymentWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+        } else if (start_date) {
+            paymentWhere.createdAt = { [Op.gte]: new Date(start_date) };
+        } else if (end_date) {
+            paymentWhere.createdAt = { [Op.lte]: new Date(end_date) };
+        }
+
+        // Check if a filter is provided to include additional search criteria
+        if (filter) {
+            paymentWhere[Op.or] = [
+                { payment_description: { [Op.iLike]: `%${filter}%` } },
+                { payment_type: { [Op.iLike]: `%${filter}%` } },
+            ];
+        }
+
+        // Retrieve payments based on the 'paymentWhere' filter object
+        payments = await Payment.findAll({
+            where: paymentWhere,
+            offset: (page - 1) * limit,
+            limit: limit,
+            order: [["payment_id", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
+        });
+
+        if (!payments || payments.length === 0) {
+            return res.status(404).json({ message: "No payments found" });
+        }
+
+        return res.status(200).json({
+            result: {
+                count: payments.length,
+                items: payments,
+            },
+        });
+    } catch (error) {
+        console.log("ERROR", error);
+        return res.status(500).json({ message: "Internal server error", error: error });
     }
-
-    // Check if a filter is provided to include additional search criteria
-    if (filter) {
-      paymentWhere[Op.or] = [
-        { payment_description: { [Op.iLike]: `%${filter}%` } },
-        { payment_type: { [Op.iLike]: `%${filter}%` } },
-      ];
-    }
-
-    // Retrieve payments based on the 'paymentWhere' filter object
-    payments = await Payment.findAll({
-      where: paymentWhere,
-      offset: (page - 1) * limit,
-      limit: limit,
-      order: [["payment_id", "DESC"]],
-      include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
-    });
-
-    if (!payments || payments.length === 0) {
-      return res.status(404).json({ message: "No payments found" });
-    }
-
-    return res.status(200).json({
-      result: {
-        count: payments.length,
-        items: payments,
-      },
-    });
-  } catch (error) {
-    console.log("ERROR", error);
-    return res.status(500).json({ message: "Internal server error", error: error });
-  }
 };
 
 
@@ -147,15 +147,17 @@ const getPayment = async (req: any, res: any) => {
 
     try {
 
-        await Payment.findAll({
+        await Payment.findOne({
             where: {
                 payment_id: payment_id,
                 partner_id: partner_id
             }
         }).then((payment: any) => {
-            res.status(200).json({ result:{
-                item: payment
-           }   });
+            res.status(200).json({
+                result: {
+                    item: payment
+                }
+            });
         }
         );
 
@@ -188,7 +190,7 @@ const getPayment = async (req: any, res: any) => {
     *         in: path
     *         required: false
     *         schema:
-    *           type: number
+    *           type: string
     *       - name: page
     *         in: query
     *         required: false
@@ -229,25 +231,24 @@ const getPolicyPayments = async (req: any, res: any) => {
                 let endIndex = page * limit;
                 let results = payments.slice(startIndex, endIndex);
 
-                res.status(200).json({ result:{
-                    count: payments.length,
-                    items: results } });
-         
-        }else {
-            res.status(404).json({ message: "No payments found" });
+                res.status(200).json({
+                    result: {
+                        count: payments.length,
+                        items: results
+                    }
+                });
+
+            } else {
+                res.status(404).json({ message: "No payments found" });
+            }
         }
-    }
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error" , error: error});
+        return res.status(500).json({ message: "Internal server error", error: error });
 
     }
 }
-
-
-
-  
 
 
 
@@ -272,7 +273,7 @@ const getPolicyPayments = async (req: any, res: any) => {
     *         in: path
     *         required: false
     *         schema:
-    *           type: number
+    *           type: string
     *       - name: page
     *         in: query
     *         required: false
@@ -294,21 +295,21 @@ const getUserPayments = async (req: any, res: any) => {
     let limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id
 
-let user_payments = []
-    let user_id = parseInt(req.params.user_id)
+    let user_payments = []
+    let user_id = req.params.user_id
     //policies that belong to the user
 
-    let user_policies = await Policy.findAll({  
+    let user_policies = await Policy.findAll({
         where: {
-            id: user_id,
+            user_id: user_id,
             partner_id: partner_id
         }
     })
-    console.log("USER POLICIES",user_policies)
+    console.log("USER POLICIES", user_policies)
 
     //for each policy, get the payments 
     for (let i = 0; i < user_policies.length; i++) {
-        let policy_id = user_policies[i].id
+        let policy_id = user_policies[i].policy_id
 
         let payments = await Payment.findAll({
             where: {
@@ -325,7 +326,7 @@ let user_payments = []
     }
 
     try {
-        
+
 
         if (user_payments.length > 0) {
             //paginate the response
@@ -334,10 +335,12 @@ let user_payments = []
                 let endIndex = page * limit;
                 let results = user_payments.slice(startIndex, endIndex);
 
-                res.status(200).json({ result:{
-                    count: user_payments.length,
-                    items: results
-              }  });
+                res.status(200).json({
+                    result: {
+                        count: user_payments.length,
+                        items: results
+                    }
+                });
             }
 
         }
@@ -348,7 +351,7 @@ let user_payments = []
 
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Internal server error" , error: error});
+        return res.status(500).json({ message: "Internal server error", error: error });
 
     }
 
@@ -389,10 +392,12 @@ const createPayment = async (req: any, res: any) => {
     try {
 
         await Payment.create(req.body).then((payment: any) => {
-            res.status(200).json({ result:{
-                item: payment
+            res.status(200).json({
+                result: {
+                    item: payment
 
-            } });
+                }
+            });
         }
         );
 

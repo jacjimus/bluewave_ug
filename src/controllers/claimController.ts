@@ -191,7 +191,7 @@ const getClaim = async (req: any, res: any) => {
  *         in: path
  *         required: true
  *         schema:
- *           type: number
+ *           type: string
  *       - name: page
  *         in: query
  *         required: false
@@ -279,7 +279,7 @@ const getUserClaims = async (req: any, res: any) => {
 *         in: path
 *         required: true
 *         schema:
-*           type: number
+*           type: string
 *       - name: page
 *         in: query
 *         required: false
@@ -404,7 +404,7 @@ const createClaim = async (req: any, res: any) => {
         // Check if policy exists
         const policy = await Policy.findOne({
             where: {
-                id: policy_id,
+                policy_id: policy_id,
                 partner_id: partner_id,
             }
         });
@@ -422,7 +422,7 @@ const createClaim = async (req: any, res: any) => {
         // Check if user has the policy
         const userPolicy = await Policy.findOne({
             where: {
-                id: policy_id,
+                policy_idid: policy_id,
                 user_id: user_id,
             }
         });

@@ -810,7 +810,6 @@ const getPolicyExcelReportDownload = async (req, res) => {
     const worksheet = workbook.addWorksheet('Policy Report');
   
     // Define columns for data in Excel. Key must match data key
-
     worksheet.columns = [
         {header: 'Product ID', key: 'product_id', width: 20},
         {header: 'Customer ID', key: 'user_id', width: 20},
@@ -840,8 +839,6 @@ const getPolicyExcelReportDownload = async (req, res) => {
         {header: 'Created At', key: 'createdAt', width: 20},
         {header: 'Updated At', key: 'updatedAt', width: 20},
       
-
-
     ];
   
     policies.forEach((policy) => {
@@ -876,12 +873,6 @@ const getPolicyExcelReportDownload = async (req, res) => {
         createdAt: moment(policy.createdAt).format('YYYY-MM-DD'),
         updatedAt: moment(policy.updatedAt).format('YYYY-MM-DD'),
         policy_type: policy.policy_type,
-
-
-
-
-
-       
       });
     });
   
@@ -889,7 +880,6 @@ const getPolicyExcelReportDownload = async (req, res) => {
   };
 
 module.exports = {
-
     getPolicySummary,
     getClaimSummary,
     getAllReportSummary,

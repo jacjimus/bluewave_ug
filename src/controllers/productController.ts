@@ -168,7 +168,7 @@ const getProducts = async (req: any, res: any) => {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -266,7 +266,7 @@ const createProduct = async (req: any, res: any) => {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     requestBody:
   *       content:
   *         application/json:
@@ -354,7 +354,7 @@ const updateProduct = async (req: any, res: any) => {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     responses:
   *       200:
   *         description: Information fetched succussfuly

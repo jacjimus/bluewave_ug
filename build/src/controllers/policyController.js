@@ -349,12 +349,12 @@ const createPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
   *         in: query
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *       - name: policy_id
   *         in: query
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     requestBody:
   *       content:
   *         application/json:
@@ -435,7 +435,7 @@ const policyIssuance = (req, res) => __awaiter(void 0, void 0, void 0, function*
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     requestBody:
   *       content:
   *         application/json:
@@ -513,7 +513,7 @@ const updatePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *     responses:
   *       200:
   *         description: Information fetched succussfuly

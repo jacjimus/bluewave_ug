@@ -10,10 +10,10 @@ const { Op } = require("sequelize");
 const User = db.users;
 const Partner = db.partners;
 
-async function getUserFunc(user_id: any, partner_id: any) {
+async function getUserFunc(user_id: string, partner_id: number) {
   let user = await User.findOne({
     where: {
-      id: user_id,
+      user_id: user_id,
       partner_id: partner_id
     },
   });
@@ -81,6 +81,7 @@ const signup = async (req: any, res: any) => {
     //create a user interface 
     interface Person {
       id: number;
+      membership_id: number;
       name: string;
       first_name: string;
       middle_name: string;
@@ -119,6 +120,7 @@ const signup = async (req: any, res: any) => {
 
     const userData: Person = {
       id: randomId,
+      membership_id: Math.floor(100000 + Math.random() * 900000),
       first_name,
       middle_name,
       last_name,
@@ -175,7 +177,7 @@ const signup = async (req: any, res: any) => {
 
     // set cookie with the token generated
     if (newUser) {
-      let token = jwt.sign({ id: newUser.id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
+      let token = jwt.sign({ id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
         expiresIn: 1 * 24 * 60 * 60 * 1000,
       });
 
@@ -309,7 +311,7 @@ const login = async (req: any, res: any) => {
       const isSame = await bcrypt.compare(password, user.password);
       //generate token with the user's id and the secretKey in the env file
       if (isSame) {
-        let token = jwt.sign({ id: user.id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
+        let token = jwt.sign({ id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
           expiresIn: 1 * 24 * 60 * 60 * 1000,
         });
 
@@ -486,7 +488,7 @@ const getUsers = async (req: any, res: any) => {
   */
 const getUser = async (req: any, res: any) => {
   try {
-    let user_id = parseInt(req.params.user_id)
+    let user_id = req.params.user_id
     let partner_id = req.query.partner_id 
 
     let user: any = await getUserFunc(user_id, partner_id);
@@ -548,7 +550,10 @@ const updateUser = async (req: any, res: any) => {
       return res.status(404).json({ message: "No user found" });
     }
 
+    const membership_id =Math.floor(100000 + Math.random() * 900000)
+
     const data = {
+      membership_id: membership_id,
       first_name,
       middle_name,
       last_name,
@@ -575,7 +580,7 @@ const updateUser = async (req: any, res: any) => {
     //saving the user
     const updatedUser = await User.update(data, {
       where: {
-        id: req.params.user_id,
+        user_id: req.params.user_id,
       },
     });
     //send users details
@@ -591,7 +596,7 @@ const deleteUser = async (req: any, res) => {
   try {
     await User.destroy({
       where: {
-        id: req.params.user_id,
+        user_id: req.params.user_id,
       },
     });
     //send users details
@@ -689,7 +694,7 @@ const partnerSwitch = async (req: any, res: any) =>{
         return res.status(404).json({ item: 0, message: "No partner found" });
       }
 //update the partner id
-    let updatedUser = await User.update({ partner_id: partner_id_to_update }, { where: { id: user_id } });
+    let updatedUser = await User.update({ partner_id: partner_id_to_update }, { where: { user_id: user_id } });
       //saving the user
      
       //send users details

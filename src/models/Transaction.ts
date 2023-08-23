@@ -1,27 +1,11 @@
-// {
-//     "data": {
-//       "transaction": {
-//         "id": "ASDJBEJB4KRN5",
-//         "status": "SUCCESS"
-//       }
-//     },
-//     "status": {
-//       "code": "200",
-//       "message": "SUCCESS",
-//       "result_code": "ESB000010",
-//       "response_code": "DP00800001006",
-//       "success": true
-//     }
-// }
-  
+import { v4 as uuid } from "uuid";
 
 module.exports = (sequelize, DataTypes) => {
     const Transaction = sequelize.define( "transaction", {
         transaction_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: uuid(),
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
         },
         amount: {
             type: DataTypes.INTEGER,
@@ -38,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         },
 
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         beneficiary_id: {
@@ -46,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         policy_id:{
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         partner_id:{

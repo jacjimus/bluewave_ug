@@ -6,7 +6,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
             allowNull: true
         },
         partner_id: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: true
         },
         business_name: {
@@ -61,7 +61,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-     
+
 
     }, { timestamps: true },)
     return Partner

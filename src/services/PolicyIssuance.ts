@@ -4,83 +4,56 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const POLICY_ISSUANCE_URL= process.env.POLICY_ISSUANCE_URL
+const POLICY_ISSUANCE_URL = process.env.POLICY_ISSUANCE_URL
 const POLICY_ISSUANCE_TOKEN_URL = process.env.POLICY_ISSUANCE_TOKEN_URL
 
 async function token() {
-
-    console.log("policyIssuance  token I WASS CALLED 3")
-
-
+    console.log("policyIssuance  token I WASS CALLED")
     try {
         let token: any;
-    const inputBody = {
-          "user_Type": "Employee",
-          "user_Nm": "USSD",
-          "password": "vicZb/1Cm2P4KX07vmUjmU73ARBZTEb9IsGJg4wuT0w=",
-          "iP_Address": "142.1.1.2",
-          "application_Source": "USSD",
-          "is_External": false,
-          "secret_Key": "e7c69910cc0057265615011cc2d1f1a4"
+        const inputBody = {
+            "user_Type": "Employee",
+            "user_Nm": "Airtel",
+            "password": "ASSn1Z1So982xQh4+MVq6w==",
+            "iP_Address": "142.1.1.2",
+            "application_Source": "Airtel",
+            "is_External": false,
+            "secret_Key": "2faadbc961478e383ae04eaad1a3ee46"
         }
-        
-    const headers = {
-        'Content-Type': 'application/json',
-        'Accept': '*/*'
-    };
 
-    await axios.post( POLICY_ISSUANCE_TOKEN_URL, inputBody, { headers })
-        .then((response:any )=> {
-            console.log(response.data);
-            token = response.data.access_token;
-            console.log("TOKEN", token)
-          
-        })
-        .catch(error => {
-            console.error(error)
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': '*/*'
+        };
 
-            return error;
-
-
-
- //           Response:
-// {
-//     "errorObj": [
-//         {
-//             "errorCode": 0,
-//             "errorMessage": "Success"
-//         }
-//     ],
-//     "responseObj": {
-//         "token": {
-//             "access_Token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjU1MyIsIklQX0FkZHJlc3MiOiIxNDIuMS4xLjIiLCJBY2Nlc3NfVHlwZSI6IkFMTCIsIkFwcGxpY2F0aW9uX1NvdXJjZSI6IlVTU0QiLCJuYmYiOjE2ODQ4MzY3MTQsImV4cCI6MTY4NDkyMzExNCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NDk1NDYiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0OTU0NiJ9.zZvp1g1LUuWXxfbvn-so0l9JX-eGGTsROp7o47DJ6Vg",
-//             "token_Issue": "2023-05-23T18:11:54+08:00",
-//             "token_Expire": "2023-05-24T18:11:54+08:00",
-//             "refresh_Token": "ICg8FqJcHGyXZEujeCR2LzmBC1SlXSeGZYCbQdZ60RY="
-//         }
-//     }
-// }
-        })
+        await axios.post(POLICY_ISSUANCE_TOKEN_URL, inputBody, { headers })
+            .then((response: any) => {
+                token = response.data.responseObj.token.access_Token;
+                console.log("TOKEN", token)
+            })
+            .catch(error => {
+                console.error(error)
+                return error;
+            })
 
         return token;
-        
+
     } catch (error) {
         console.log(error)
         throw new Error(error)
-        
+
     }
 }
 
 
-async function PolicyIssuance(ClientCreation: any, PolicyCreationRequest:any, MemObj:any, ReceiptObj:any) {
+async function PolicyIssuance(ClientCreation: any, PolicyCreationRequest: any, MemObj: any, ReceiptObj: any) {
     console.log("policyIssuance I WASS CALLED 2")
-let status=  {
-    success: true,
-    status_code: 200,
-    message: 'Policy Issuance successful',
-    data: null
-
-}
+    let status = {
+        success: true,
+        status_code: 200,
+        message: 'Policy Issuance successful',
+        data: null
+    }
 
     try {
 
@@ -91,20 +64,23 @@ let status=  {
             "ReceiptObj": ReceiptObj
         };
 
+        const access_token = await token();
+
+        console.log("TOKEN 2", token)
         const headers = {
             'Content-Type': 'application/json',
             'Accept': '*/*',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjU1MyIsIklQX0FkZHJlc3MiOiIxNDIuMS4xLjIiLCJBY2Nlc3NfVHlwZSI6IkFMTCIsIkFwcGxpY2F0aW9uX1NvdXJjZSI6IlVTU0QiLCJuYmYiOjE2ODQ4MzY3MTQsImV4cCI6MTY4NDkyMzExNCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NDk1NDYiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0OTU0NiJ9.zZvp1g1LUuWXxfbvn-so0l9JX-eGGTsROp7o47DJ6Vg`
+            'Authorization': `Bearer ${access_token}`
         };
 
-        
-        await axios.post( POLICY_ISSUANCE_URL, inputBody, { headers })
-            .then((response :any) => {
-                console.log(response.data);
-                console.log("POLICY ISSUANCE SUCCESSFUL")
-                status.data = response.data;
+
+        await axios.post(POLICY_ISSUANCE_URL, inputBody, { headers })
+            .then((response: any) => {
+                console.log();
+                console.log("========  POLICY ISSUANCE SUCCESSFUL =======", response.data)
+                status.data = response.data.ResponseObj.offlineResponseObj;
                 return status;
-              
+
             })
             .catch(error => {
                 console.error(error)
@@ -114,7 +90,7 @@ let status=  {
                     status_code: 500,
                     message: 'Internal server error',
                     data: error
-               }
+                }
 
                 // {
                 //     "ErrorObj": [
@@ -137,13 +113,13 @@ let status=  {
 
 
     } catch (error) {
- console.log("ERROR: ",error)
-       return {
+        console.log( "=======  POLICY ERROR: ====", error)
+        return {
 
             success: false,
             status_code: 500,
             message: 'Internal server error'
-       }
+        }
     }
 }
 
