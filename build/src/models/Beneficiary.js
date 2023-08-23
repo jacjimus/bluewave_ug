@@ -1,10 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
     const Beneficiary = sequelize.define("beneficiary", {
         beneficiary_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: sequelize.UUIDV4,
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
         },
         full_name: {
             type: DataTypes.STRING,
@@ -16,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         age: {

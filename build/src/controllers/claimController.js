@@ -187,7 +187,7 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *         in: path
  *         required: true
  *         schema:
- *           type: number
+ *           type: string
  *       - name: page
  *         in: query
  *         required: false
@@ -262,7 +262,7 @@ const getUserClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 *         in: path
 *         required: true
 *         schema:
-*           type: number
+*           type: string
 *       - name: page
 *         in: query
 *         required: false
@@ -364,7 +364,7 @@ const createClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // Check if policy exists
         const policy = yield Policy.findOne({
             where: {
-                id: policy_id,
+                policy_id: policy_id,
                 partner_id: partner_id,
             }
         });
@@ -379,7 +379,7 @@ const createClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // Check if user has the policy
         const userPolicy = yield Policy.findOne({
             where: {
-                id: policy_id,
+                policy_idid: policy_id,
                 user_id: user_id,
             }
         });

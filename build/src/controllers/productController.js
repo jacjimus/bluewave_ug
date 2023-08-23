@@ -237,7 +237,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
   *         in: path
   *         required: true
   *         schema:
-  *           type: string  
+  *           type: string
   *     requestBody:
   *       content:
   *         application/json:

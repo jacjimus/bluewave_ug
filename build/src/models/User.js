@@ -1,18 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const db_1 = require("../models/db");
-const Claim = db_1.db.claims;
-const User = db_1.db.users;
-const Policy = db_1.db.policies;
-const Partner = db_1.db.partners;
-const Product = db_1.db.products;
+const uuidv4_1 = require("uuidv4");
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define("user", {
-        id: {
-            //BIGINT PRIMARY KEY 
-            type: DataTypes.INTEGER,
+        user_id: {
+            type: DataTypes.UUID,
+            defaultValue: (0, uuidv4_1.uuid)(),
             primaryKey: true,
-            allowNull: false
+        },
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+        },
+        membership_id: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: true,
         },
         first_name: {
             type: DataTypes.STRING,

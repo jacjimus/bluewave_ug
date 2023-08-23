@@ -24,15 +24,24 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const uuid_1 = require("uuid");
 const paymentSchema = new mongoose_1.Schema({
-    payment_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Payment', required: true, unique: true },
-    claim_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Claim', required: true },
+    payment_id: {
+        type: mongoose_1.Schema.Types.UUID,
+        required: true,
+        index: true,
+        unique: true,
+        default: () => {
+            return (0, uuid_1.v4)();
+        },
+    },
+    claim_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Claim', required: false },
     user_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     policy_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Policy', required: true },
     partner_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Partner', required: true },
     payment_date: { type: Date, required: true },
     payment_amount: { type: Number, required: true },
-    payment_metadata: { type: mongoose_1.Schema.Types.Mixed, required: true },
+    payment_metadata: { type: mongoose_1.Schema.Types.Mixed, required: false },
     payment_type: { type: String, required: true },
     payment_status: { type: String, required: true },
     payment_description: { type: String, required: true },

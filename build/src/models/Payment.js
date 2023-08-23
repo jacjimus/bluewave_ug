@@ -1,26 +1,27 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = (sequelize, DataTypes) => {
     const Payment = sequelize.define("payment", {
         payment_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
             autoIncrement: true,
-            allowNull: false
+            primaryKey: true,
         },
         claim_id: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         policy_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false,
         },
         partner_id: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         payment_date: {
             type: DataTypes.DATE,

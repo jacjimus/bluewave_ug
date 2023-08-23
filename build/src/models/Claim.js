@@ -1,13 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = (sequelize, DataTypes) => {
     const Claim = sequelize.define("claim", {
         claim_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
             autoIncrement: true,
-            allowNull: false
+            primaryKey: true,
         },
         policy_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         claim_date: {
@@ -40,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: true
         },
         partner_id: {

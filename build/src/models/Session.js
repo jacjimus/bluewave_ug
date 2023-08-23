@@ -1,19 +1,20 @@
-//session
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const uuid_1 = require("uuid");
 module.exports = (sequelize, DataTypes) => {
     const Session = sequelize.define("session", {
         sid: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: (0, uuid_1.v4)(),
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
         },
         user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true
+            type: DataTypes.UUID,
+            allowNull: true,
         },
         partner_id: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: true,
         },
         active_state: {
             type: DataTypes.STRING,
@@ -32,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         phone_number: {
             type: DataTypes.STRING,
-        }
+        },
     }, { timestamps: true });
     Session.belongsTo(sequelize.models.user, {
         foreignKey: "user_id",

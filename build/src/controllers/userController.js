@@ -22,7 +22,7 @@ function getUserFunc(user_id, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
         let user = yield User.findOne({
             where: {
-                id: user_id,
+                user_id: user_id,
                 partner_id: partner_id
             },
         });
@@ -82,6 +82,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const userData = {
             id: randomId,
+            membership_id: Math.floor(100000 + Math.random() * 900000),
             first_name,
             middle_name,
             last_name,
@@ -128,7 +129,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const newUser = yield User.create(userData);
         // set cookie with the token generated
         if (newUser) {
-            let token = jwt.sign({ id: newUser.id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
+            let token = jwt.sign({ id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
                 expiresIn: 1 * 24 * 60 * 60 * 1000,
             });
             res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
@@ -241,7 +242,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             const isSame = yield bcrypt.compare(password, user.password);
             //generate token with the user's id and the secretKey in the env file
             if (isSame) {
-                let token = jwt.sign({ id: user.id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
+                let token = jwt.sign({ id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
                     expiresIn: 1 * 24 * 60 * 60 * 1000,
                 });
                 //go ahead and generate a cookie for the user
@@ -409,7 +410,7 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   */
 const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let user_id = parseInt(req.params.user_id);
+        let user_id = req.params.user_id;
         let partner_id = req.query.partner_id;
         let user = yield getUserFunc(user_id, partner_id);
         console.log(user);
@@ -462,7 +463,9 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (!user || user.length === 0) {
             return res.status(404).json({ message: "No user found" });
         }
+        const membership_id = Math.floor(100000 + Math.random() * 900000);
         const data = {
+            membership_id: membership_id,
             first_name,
             middle_name,
             last_name,
@@ -488,7 +491,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         //saving the user
         const updatedUser = yield User.update(data, {
             where: {
-                id: req.params.user_id,
+                user_id: req.params.user_id,
             },
         });
         //send users details
@@ -504,7 +507,7 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         yield User.destroy({
             where: {
-                id: req.params.user_id,
+                user_id: req.params.user_id,
             },
         });
         //send users details
@@ -596,7 +599,7 @@ const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return res.status(404).json({ item: 0, message: "No partner found" });
         }
         //update the partner id
-        let updatedUser = yield User.update({ partner_id: partner_id_to_update }, { where: { id: user_id } });
+        let updatedUser = yield User.update({ partner_id: partner_id_to_update }, { where: { user_id: user_id } });
         //saving the user
         //send users details
         console.log("updated user", updatedUser);

@@ -95,6 +95,15 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     {
                         policy_status: { [Op.iLike]: `%${filter}%` },
                     },
+                    {
+                        beneficiary: { [Op.iLike]: `%${filter}%` },
+                    },
+                    {
+                        country_code: { [Op.iLike]: `%${filter}%` },
+                    },
+                    {
+                        currency_code: { [Op.iLike]: `%${filter}%` },
+                    },
                 ] }, dateFilters),
             order: [["id", "DESC"]],
             include: [
@@ -164,7 +173,7 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
  *         in: path
  *         required: true
  *         schema:
- *           type: number
+ *           type: string
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -177,11 +186,11 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         result: {},
     };
     try {
-        const policy_id = parseInt(req.params.policy_id);
-        const partner_id = parseInt(req.query.partner_id);
+        const policy_id = req.params.policy_id;
+        const partner_id = req.query.partner_id;
         const policy = yield Policy.findOne({
             where: {
-                id: policy_id,
+                policy_id: policy_id,
                 partner_id: partner_id,
             },
         });
@@ -219,7 +228,7 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   *         in: path
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *       - name: start_date
   *         in: query
   *         required: false
@@ -339,7 +348,7 @@ const createPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
   *         in: query
   *         required: true
   *         schema:
-  *           type: number
+  *           type: string
   *       - name: partner_id
   *         in: query
   *         required: true
@@ -372,9 +381,9 @@ const policyIssuance = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const { PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
         const { user_id, policy_id, partner_id, product_id } = req.query;
         //get user details
-        let user = yield User.findOne({ where: { id: user_id } });
+        let user = yield User.findOne({ where: { user_id: user_id } });
         //get policy details
-        let policy = yield Policy.findOne({ where: { id: policy_id } });
+        let policy = yield Policy.findOne({ where: { policy_id: policy_id } });
         //use it to create client and policy request
         let ClientCreation = {
             Title: user.title,
@@ -453,7 +462,7 @@ const updatePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const { user_id, product_id, policy_start_date, policy_status, beneficiary, policy_type, policy_end_date, policy_deduction_amount, policy_next_deduction_date, installment_order, installment_date, installment_alert_date, tax_rate_vat, tax_rate_ext, premium, sum_insured, excess_premium, discount_premium, partner_id, currency_code, country_code, policy_documents } = req.body;
         let policy = yield Policy.findAll({
             where: {
-                id: req.params.policy_id
+                policy_id: req.params.policy_id
             }
         });
         if (!policy) {
@@ -524,7 +533,7 @@ const deletePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         yield Policy.destroy({
             where: {
-                id: req.params.policy_id,
+                policy_id: req.params.policy_id,
             },
         });
         //send policy details

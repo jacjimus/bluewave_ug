@@ -16,17 +16,17 @@ const POLICY_ISSUANCE_URL = process.env.POLICY_ISSUANCE_URL;
 const POLICY_ISSUANCE_TOKEN_URL = process.env.POLICY_ISSUANCE_TOKEN_URL;
 function token() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("policyIssuance  token I WASS CALLED 3");
+        console.log("policyIssuance  token I WASS CALLED");
         try {
             let token;
             const inputBody = {
                 "user_Type": "Employee",
-                "user_Nm": "USSD",
-                "password": "vicZb/1Cm2P4KX07vmUjmU73ARBZTEb9IsGJg4wuT0w=",
+                "user_Nm": "Airtel",
+                "password": "ASSn1Z1So982xQh4+MVq6w==",
                 "iP_Address": "142.1.1.2",
-                "application_Source": "USSD",
+                "application_Source": "Airtel",
                 "is_External": false,
-                "secret_Key": "e7c69910cc0057265615011cc2d1f1a4"
+                "secret_Key": "2faadbc961478e383ae04eaad1a3ee46"
             };
             const headers = {
                 'Content-Type': 'application/json',
@@ -34,30 +34,12 @@ function token() {
             };
             yield axios.post(POLICY_ISSUANCE_TOKEN_URL, inputBody, { headers })
                 .then((response) => {
-                console.log(response.data);
-                token = response.data.access_token;
+                token = response.data.responseObj.token.access_Token;
                 console.log("TOKEN", token);
             })
                 .catch(error => {
                 console.error(error);
                 return error;
-                //           Response:
-                // {
-                //     "errorObj": [
-                //         {
-                //             "errorCode": 0,
-                //             "errorMessage": "Success"
-                //         }
-                //     ],
-                //     "responseObj": {
-                //         "token": {
-                //             "access_Token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjU1MyIsIklQX0FkZHJlc3MiOiIxNDIuMS4xLjIiLCJBY2Nlc3NfVHlwZSI6IkFMTCIsIkFwcGxpY2F0aW9uX1NvdXJjZSI6IlVTU0QiLCJuYmYiOjE2ODQ4MzY3MTQsImV4cCI6MTY4NDkyMzExNCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NDk1NDYiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0OTU0NiJ9.zZvp1g1LUuWXxfbvn-so0l9JX-eGGTsROp7o47DJ6Vg",
-                //             "token_Issue": "2023-05-23T18:11:54+08:00",
-                //             "token_Expire": "2023-05-24T18:11:54+08:00",
-                //             "refresh_Token": "ICg8FqJcHGyXZEujeCR2LzmBC1SlXSeGZYCbQdZ60RY="
-                //         }
-                //     }
-                // }
             });
             return token;
         }
@@ -83,16 +65,18 @@ function PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptOb
                 "MemObj": MemObj,
                 "ReceiptObj": ReceiptObj
             };
+            const access_token = yield token();
+            console.log("TOKEN 2", token);
             const headers = {
                 'Content-Type': 'application/json',
                 'Accept': '*/*',
-                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjU1MyIsIklQX0FkZHJlc3MiOiIxNDIuMS4xLjIiLCJBY2Nlc3NfVHlwZSI6IkFMTCIsIkFwcGxpY2F0aW9uX1NvdXJjZSI6IlVTU0QiLCJuYmYiOjE2ODQ4MzY3MTQsImV4cCI6MTY4NDkyMzExNCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NDk1NDYiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0OTU0NiJ9.zZvp1g1LUuWXxfbvn-so0l9JX-eGGTsROp7o47DJ6Vg`
+                'Authorization': `Bearer ${access_token}`
             };
             yield axios.post(POLICY_ISSUANCE_URL, inputBody, { headers })
                 .then((response) => {
-                console.log(response.data);
-                console.log("POLICY ISSUANCE SUCCESSFUL");
-                status.data = response.data;
+                console.log();
+                console.log("========  POLICY ISSUANCE SUCCESSFUL =======", response.data);
+                status.data = response.data.ResponseObj.offlineResponseObj;
                 return status;
             })
                 .catch(error => {
@@ -123,7 +107,7 @@ function PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptOb
             });
         }
         catch (error) {
-            console.log("ERROR: ", error);
+            console.log("=======  POLICY ERROR: ====", error);
             return {
                 success: false,
                 status_code: 500,

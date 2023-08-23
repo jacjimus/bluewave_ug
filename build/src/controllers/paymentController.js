@@ -147,15 +147,17 @@ const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     let payment_id = parseInt(req.params.payment_id);
     const partner_id = req.query.partner_id;
     try {
-        yield Payment.findAll({
+        yield Payment.findOne({
             where: {
                 payment_id: payment_id,
                 partner_id: partner_id
             }
         }).then((payment) => {
-            res.status(200).json({ result: {
+            res.status(200).json({
+                result: {
                     item: payment
-                } });
+                }
+            });
         });
     }
     catch (error) {
@@ -184,7 +186,7 @@ const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     *         in: path
     *         required: false
     *         schema:
-    *           type: number
+    *           type: string
     *       - name: page
     *         in: query
     *         required: false
@@ -220,10 +222,12 @@ const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 let startIndex = (page - 1) * limit;
                 let endIndex = page * limit;
                 let results = payments.slice(startIndex, endIndex);
-                res.status(200).json({ result: {
+                res.status(200).json({
+                    result: {
                         count: payments.length,
                         items: results
-                    } });
+                    }
+                });
             }
             else {
                 res.status(404).json({ message: "No payments found" });
@@ -256,7 +260,7 @@ const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, functi
     *         in: path
     *         required: false
     *         schema:
-    *           type: number
+    *           type: string
     *       - name: page
     *         in: query
     *         required: false
@@ -278,18 +282,18 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
     let limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
     let user_payments = [];
-    let user_id = parseInt(req.params.user_id);
+    let user_id = req.params.user_id;
     //policies that belong to the user
     let user_policies = yield Policy.findAll({
         where: {
-            id: user_id,
+            user_id: user_id,
             partner_id: partner_id
         }
     });
     console.log("USER POLICIES", user_policies);
     //for each policy, get the payments 
     for (let i = 0; i < user_policies.length; i++) {
-        let policy_id = user_policies[i].id;
+        let policy_id = user_policies[i].policy_id;
         let payments = yield Payment.findAll({
             where: {
                 policy_id: policy_id,
@@ -305,10 +309,12 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
                 let startIndex = (page - 1) * limit;
                 let endIndex = page * limit;
                 let results = user_payments.slice(startIndex, endIndex);
-                res.status(200).json({ result: {
+                res.status(200).json({
+                    result: {
                         count: user_payments.length,
                         items: results
-                    } });
+                    }
+                });
             }
         }
         else {
@@ -352,9 +358,11 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
 const createPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield Payment.create(req.body).then((payment) => {
-            res.status(200).json({ result: {
+            res.status(200).json({
+                result: {
                     item: payment
-                } });
+                }
+            });
         });
     }
     catch (error) {

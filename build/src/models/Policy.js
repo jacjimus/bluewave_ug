@@ -1,24 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../models/db");
-const Claim = db_1.db.claims;
+const uuidv4_1 = require("uuidv4");
 const User = db_1.db.users;
-const Policy = db_1.db.policies;
-const Partner = db_1.db.partners;
-const Product = db_1.db.products;
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
+        policy_id: {
+            type: DataTypes.UUID,
+            defaultValue: (0, uuidv4_1.uuid)(),
+            primaryKey: true,
+        },
         product_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         partner_id: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         policy_start_date: {
             type: DataTypes.DATE,

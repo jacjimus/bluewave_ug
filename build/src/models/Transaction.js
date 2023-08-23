@@ -1,25 +1,12 @@
-// {
-//     "data": {
-//       "transaction": {
-//         "id": "ASDJBEJB4KRN5",
-//         "status": "SUCCESS"
-//       }
-//     },
-//     "status": {
-//       "code": "200",
-//       "message": "SUCCESS",
-//       "result_code": "ESB000010",
-//       "response_code": "DP00800001006",
-//       "success": true
-//     }
-// }
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const uuid_1 = require("uuid");
 module.exports = (sequelize, DataTypes) => {
     const Transaction = sequelize.define("transaction", {
         transaction_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: (0, uuid_1.v4)(),
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
         },
         amount: {
             type: DataTypes.INTEGER,
@@ -35,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         user_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         beneficiary_id: {
@@ -43,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         policy_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false
         },
         partner_id: {

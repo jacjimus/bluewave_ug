@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         partner_id: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: true
         },
         business_name: {

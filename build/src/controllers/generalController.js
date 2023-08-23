@@ -16,6 +16,7 @@ const multer = require('multer');
 const fs = require('fs');
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const uuid_1 = require("uuid");
+const LogModel = require('../models/Log');
 const s3 = new aws_sdk_1.default.S3({
     // Configure your AWS credentials and region
     accessKeyId: 'AKIA2I7W2PK6V4YN27X7',

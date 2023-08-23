@@ -1,6 +1,13 @@
-//insurance product model
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const uuid_1 = require("uuid");
 module.exports = (sequelize, DataTypes) => {
     const Product = sequelize.define("product", {
+        product_id: {
+            type: DataTypes.UUID,
+            defaultValue: (0, uuid_1.v4)(),
+            primaryKey: true,
+        },
         product_name: {
             type: DataTypes.STRING,
             allowNull: false

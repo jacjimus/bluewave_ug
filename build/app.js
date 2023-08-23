@@ -36,6 +36,7 @@ const ussdRoutes = require('./src/routes/ussdRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const generalRoutes = require('./src/routes/generalRoutes');
+const logRoutes = require('./src/routes/logRoutes');
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 const fs = require('fs');
@@ -111,6 +112,7 @@ app.use('/api/v1/claims', claimRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/documents', generalRoutes);
+app.use('/api/v1/logs', logRoutes);
 app.use(errorHandler);
 // USSD ROUTE
 app.use('/api/v1/ussd', ussdRoutes);
