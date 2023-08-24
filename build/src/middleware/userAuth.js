@@ -12,6 +12,7 @@ function isBluewave(req, res, next) {
             }
             if (user.partner_id == 1 && user.role === 'superadmin') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -34,6 +35,7 @@ function isAirtel(req, res, next) {
             }
             if (user.partner_id === 2 && user.role === 'superadmin') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -56,6 +58,7 @@ function isVodacom(req, res, next) {
             }
             if (user.partner_id == 3 && user.role === 'superadmin') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -78,6 +81,7 @@ function isAAR(req, res, next) {
             }
             if (user.partner_id == 4 && user.role === 'superadmin') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -100,6 +104,7 @@ function isUser(req, res, next) {
             }
             if (user.role === 'user') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -123,6 +128,7 @@ function isUserOrAdmin(req, res, next) {
             }
             if (user.role === 'user' || user.role === 'admin') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -145,6 +151,7 @@ function isManager(req, res, next) {
             }
             if (user.role === 'manager') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -167,6 +174,7 @@ function isSuperAdmin(req, res, next) {
             }
             if (user.role === 'superadmin') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {
@@ -190,6 +198,7 @@ function isUserOrAdminOrManager(req, res, next) {
             }
             if (user.role === 'user' || user.role === 'admin' || user.role === 'manager') {
                 req.user = user;
+                req.partner_id = user.partner_id;
                 next();
             }
             else {

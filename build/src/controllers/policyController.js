@@ -253,7 +253,7 @@ const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function
         result: {},
     };
     try {
-        const user_id = parseInt(req.params.user_id);
+        const user_id = req.params.user_id;
         const partner_id = parseInt(req.query.partner_id);
         const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
         const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"

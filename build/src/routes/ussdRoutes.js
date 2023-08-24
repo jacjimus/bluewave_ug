@@ -22,97 +22,71 @@ const Payment = db_1.db.payments;
 const Policy = db_1.db.policies;
 const Users = db_1.db.users;
 const router = express_1.default.Router();
-router.post('/UGA', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body);
-    let menu_res;
+const handleUSSDRequest = (req, res, menuBuilder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // RUN THE MENU BUILDER
-        // PASS REQ BODY AND REDIS CLIENT
-        menu_res = yield (0, menu_builder_1.default)(req.body, db_1.db);
+        console.log(req.body);
+        const menu_res = yield menuBuilder(req.body, db_1.db);
+        res.send(menu_res);
     }
-    catch (e) {
-        console.log("MENU ERROR", e);
-        return res.send(e);
+    catch (error) {
+        console.log('MENU ERROR', error);
+        res.status(500).send(error);
     }
-    res.send(menu_res);
+});
+router.post('/uga', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield handleUSSDRequest(req, res, menu_builder_1.default);
 }));
-router.post('/KEN', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body);
-    let menu_res;
-    try {
-        // RUN THE MENU BUILDER
-        // PASS REQ BODY AND REDIS CLIENT
-        menu_res = yield (0, menu_ken_builder_1.default)(req.body, db_1.db);
-    }
-    catch (e) {
-        console.log("MENU ERROR", e);
-        return res.send(e);
-    }
-    res.send(menu_res);
+router.post('/ken', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield handleUSSDRequest(req, res, menu_ken_builder_1.default);
 }));
-//call back endpoint
+// Callback endpoint
 router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body);
-    let { id, status_code, message } = req.body;
     try {
-        // transaction: {
-        //     "id": "BBZMiscxy",
-        //     "message": "Paid UGX 5,000 to TECH LIMITED, Trans ID MP210603.1234.L06941.",
-        //     "status_code": "TS",
-        //     "airtel_money_id": "MP210603.1234.L06941"
-        //   },
-        //find the transaction in the database
-        yield Transaction.findOne({
+        console.log(req.body);
+        const { id, status_code, message } = req.body;
+        const transaction = yield Transaction.findOne({
             where: {
                 transaction_reference: id
             }
-        }).then((transaction) => {
-            //update the transaction status
-            transaction.update({
-                status: "paid",
-            });
-            //get policy details from the transaction
-            const policy_id = transaction.policy_id;
-            //get user details from the transaction
-            const user_id = transaction.user_id;
-            // get user and policy details from db
-            let user = Users.findOne({
-                where: {
-                    user_id: user_id
-                }
-            });
-            //get policy details from db
-            let policy = Policy.findOne({
-                where: {
-                    policy_id: policy_id
-                }
-            });
-            //send sms
-            const to = '254' + user.phone_number.substring(1);
-            const message = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on DD/MM/YY
-                     `;
-            (0, sendSMS_1.default)(to, message);
-            //create a payment record
-            Payment.create({
-                payment_amount: transaction.amount,
-                payment_type: "airtel ussd payment",
-                user_id: transaction.user_id,
-                policy_id: transaction.policy_id,
-                payment_status: "paid",
-                //payment_status_code: status_code,
-                payment_description: message,
-                payment_date: new Date(),
-            })
-                .then((payment) => {
-                console.log(payment);
-            })
-                .catch((error) => {
-                console.log(error);
-            });
         });
+        if (!transaction) {
+            console.log('Transaction not found');
+            return res.status(404).json({ message: 'Transaction not found' });
+        }
+        // Update the transaction status
+        yield transaction.update({
+            status: 'paid'
+        });
+        const policy_id = transaction.policy_id;
+        const user_id = transaction.user_id;
+        const user = yield Users.findOne({
+            where: {
+                user_id: user_id
+            }
+        });
+        const policy = yield Policy.findOne({
+            where: {
+                policy_id: policy_id
+            }
+        });
+        const to = '254' + user.phone_number.substring(1);
+        const paymentMessage = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on DD/MM/YY.`;
+        (0, sendSMS_1.default)(to, paymentMessage);
+        yield Payment.create({
+            payment_amount: transaction.amount,
+            payment_type: 'airtel ussd payment',
+            user_id: transaction.user_id,
+            policy_id: transaction.policy_id,
+            payment_status: 'paid',
+            payment_description: message,
+            payment_date: new Date()
+        });
+        console.log('Payment record created successfully');
+        res.status(200).json({ message: 'Payment record created successfully' });
     }
     catch (error) {
-        console.log(error);
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 }));
 module.exports = router;
