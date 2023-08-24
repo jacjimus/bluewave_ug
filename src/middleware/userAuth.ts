@@ -15,6 +15,7 @@ function isBluewave(req:any, res:any, next:any) {
       }
       if (user.partner_id == 1 && user.role === 'superadmin') {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -36,6 +37,7 @@ function isAirtel(req:any, res:any, next:any) {
       }
       if (user.partner_id  === 2 && user.role === 'superadmin') {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -58,6 +60,7 @@ function isVodacom(req:any, res:any, next:any) {
       }
       if (user.partner_id == 3 && user.role === 'superadmin') {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -80,6 +83,7 @@ function isAAR(req:any, res:any, next:any) {
       }
       if (user.partner_id == 4 && user.role === 'superadmin') {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -102,6 +106,7 @@ function isUser(req:any, res:any, next:any) {
       }
       if (user.role === 'user' ) {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -125,6 +130,7 @@ function isUserOrAdmin(req:any, res:any, next:any) {
       }
       if (user.role === 'user' || user.role === 'admin' ) {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -153,6 +159,7 @@ function isManager(req:any, res:any, next:any) {
       }
       if (user.role === 'manager' ) {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -174,6 +181,7 @@ function isSuperAdmin(req:any, res:any, next:any) {
       }
       if (user.role === 'superadmin' ) {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -200,6 +208,7 @@ function isUserOrAdminOrManager(req:any, res:any, next:any) {
 
       if (user.role === 'user' || user.role === 'admin' || user.role === 'manager' ) {
         req.user = user;
+        req.partner_id = user.partner_id;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });

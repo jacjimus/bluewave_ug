@@ -15,7 +15,10 @@ const {
 } = require('../middleware/userAuth');
 
 const router = express.Router()
+const multer = require('multer')
 
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage })
 
 
 
@@ -25,6 +28,7 @@ router.get('/:user_id', userController.getUser)
 router.post('/partnerSwitch',   isSuperAdmin, userController.partnerSwitch)
 router.post('/login', userController.login)
 router.post('/signup', userController.signup)
+router.post('/group/signup',upload.single('excel_file'), userController.bulkUserRegistration)
 router.post('/partner/register',isBluewave, userController.partnerRegistration)
 router.put('/:user_id', userController.updateUser)
 router.delete('/:user_id',  userController.deleteUser)

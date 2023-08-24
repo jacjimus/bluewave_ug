@@ -74,7 +74,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let day: any = Number(menu.val);
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
-            const { id, partner_id } = await getUser(args.phoneNumber);
+            const { user_id, partner_id } = await getUser(args.phoneNumber);
 
             let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
             let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
@@ -100,7 +100,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
-                user_id: id,
+                user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
                 product_id: 2,
@@ -147,7 +147,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     menu.state('buyForFamily.selfSpouse.spouse', {
         run: async () => {
             let spouse = menu.val;
-            const { id, partner_id } = await getUser(args.phoneNumber);
+            const { user_id, partner_id } = await getUser(args.phoneNumber);
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
             let countryCode = User.partner_id == 2 ? 'UGA' : 'KEN';
@@ -170,7 +170,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
-                user_id: id,
+                user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
                 product_id: 2,
@@ -182,7 +182,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let beneficiary = {
                 full_name: spouse,
                 relationship: 'spouse',
-                user_id: id
+                user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -224,13 +224,13 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //         console.log("National id 2", id_number)
     //         //save spouse id to db users collection
 
-    //         const { id } = await getUser(args.phoneNumber);
+    //         const { user_id } = await getUser(args.phoneNumber);
 
 
     //         //update beneficiary national id
     //         let beneficiary = await Beneficiary.findOne({
     //             where: {
-    //                 user_id: id
+    //                 user_id: user_id
     //             }
     //         })
     //         console.log("new beneficiary 2", beneficiary)
@@ -270,12 +270,12 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //         let premium = 20000;
 
     //         //update policy details in db
-    //         const { id , partner_id} = await getUser(args.phoneNumber);
+    //         const { user_id , partner_id} = await getUser(args.phoneNumber);
 
 
     //         let policy = await Policy.findOne({
     //             where: {
-    //                 user_id: id
+    //                 user_id: user_id
     //             }
     //         })
     //         console.log("policy 5", policy)
@@ -326,7 +326,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let spouse = menu.val;
             console.log("SPOUSE NAME 1", spouse)
             //save spouse name to db users collection
-            const { id, partner_id } = await getUser(args.phoneNumber);
+            const { user_id, partner_id } = await getUser(args.phoneNumber);
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
             let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
@@ -349,7 +349,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
-                user_id: id,
+                user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
                 product_id: 2,
@@ -361,7 +361,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let beneficiary = {
                 full_name: spouse,
                 relationship: 'spouse',
-                user_id: id
+                user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -390,12 +390,12 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //         console.log("National id 2", id_number)
     //         //save spouse id to db users collection
 
-    //         const { id } = await getUser(args.phoneNumber);
+    //         const { user_id } = await getUser(args.phoneNumber);
 
     //         //update beneficiary national id
     //         let beneficiary = await Beneficiary.findOne({
     //             where: {
-    //                 user_id: id
+    //                 user_id: user_id
     //             }
     //         })
     //         console.log("new beneficiary 2", beneficiary)
@@ -432,14 +432,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //         let child1 = menu.val;
     //         console.log("CHILD NAME 3", child1)
     //         //save child name to db users collection
-    //         const { id } = await getUser(args.phoneNumber);
+    //         const { user_id } = await getUser(args.phoneNumber);
 
     //         //create beneficiary
 
     //         let beneficiary = {
     //             full_name: child1,
     //             relationship: 'child',
-    //             user_id: id
+    //             user_id: user_id
 
     //         }
 
@@ -473,12 +473,12 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let child1 = menu.val;
             console.log("CHILD NAME 3", child1)
             //save child name to db users collection
-            const { id } = await getUser(args.phoneNumber);
+            const { user_id } = await getUser(args.phoneNumber);
 
             let beneficiary = {
                 full_name: child1,
                 relationship: 'child',
-                user_id: id
+                user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -490,7 +490,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             let policy = await Policy.findOne({
                 where: {
-                    user_id: id
+                    user_id: user_id
                 }
             })
             console.log("policy 5", policy)
@@ -536,7 +536,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
         run: async () => {
             let spouse = menu.val;
             console.log("SPOUSE NAME 1", spouse)
-            const { id, partner_id } = await getUser(args.phoneNumber);
+            const { user_id, partner_id } = await getUser(args.phoneNumber);
             let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
             let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
             const policy = {
@@ -558,7 +558,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
-                user_id: id,
+                user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
                 product_id: 2,
@@ -570,7 +570,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let beneficiary = {
                 full_name: spouse,
                 relationship: 'spouse',
-                user_id: id
+                user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -609,13 +609,13 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //         let id_number = menu.val;
     //         console.log(" spouse National id 2", id_number)
     //         //save spouse id to db users collection
-    //         const { id , partner_id} = await getUser(args.phoneNumber);
+    //         const { user_id , partner_id} = await getUser(args.phoneNumber);
 
 
     //         //update beneficiary national id
     //         let beneficiary = await Beneficiary.findOne({
     //             where: {
-    //                 user_id: id
+    //                 user_id: user_id
     //             }
     //         })
     //         console.log("new beneficiary 2", beneficiary)
@@ -647,13 +647,13 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let child1 = menu.val;
             console.log("child1 3 NAME", child1)
             //save child1 name to db users collection
-            const { id } = await getUser(args.phoneNumber);
+            const { user_id } = await getUser(args.phoneNumber);
 
             //create beneficiary
             let beneficiary = {
                 full_name: child1,
                 relationship: 'child1',
-                user_id: id
+                user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -679,13 +679,13 @@ export function buyForFamily(menu: any, args: any, db: any): void {
         run: async () => {
             let child2 = menu.val;
             //save child2 name to db users collection
-            const { id } = await getUser(args.phoneNumber);
+            const { user_id } = await getUser(args.phoneNumber);
             let premium = 40000
             //create beneficiary
             let beneficiary = {
                 full_name: child2,
                 relationship: 'child2',
-                user_id: id
+                user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -752,10 +752,10 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //         let user_pin = Number(menu.val);
 
     //         // get user details
-    //         const { id, pin } = await getUser(args.phoneNumber);
+    //         const { user_id, pin } = await getUser(args.phoneNumber);
     //         const policy = await Policy.findOne({
     //             where: {
-    //                 user_id: id
+    //                 user_id: user_id
     //             }
     //         })
     //         let policy_deduction_amount = policy.policy_deduction_amount;
@@ -784,41 +784,39 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     //     }
     // });
     //===============CONFIRMATION=================
-
     menu.state('confirmation', {
         run: async () => {
-            const user = await getUser(args.phoneNumber);
-            const userId = user.id
-
-            const { id, policy_status, policy_deduction_amount, policy_deduction_day, policy_type, premium } = await Policy.findOne({
-                where: {
-                    user_id: userId
-                }
-            })
-            console.log("POLICY ID", id)
-
-            //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
-          
-               
+            try {
+                const user = await getUser(args.phoneNumber);
+                const userId = user.user_id;
+    
+                const { policy_id,  policy_deduction_amount, policy_deduction_day, policy_type } = await Policy.findOne({
+                    where: {
+                        user_id: userId
+                    }
+                });
+    
+                console.log("POLICY ID", policy_id);
+    
                 const uuid = uuidv4();
-                const partner_id = user.partner_id
-                const phoneNumber = user.phone_number
-                const reference = policy_type + id + userId + uuid;
-                
-                let payment: any = await airtelMoney(userId,partner_id,id, phoneNumber, policy_deduction_amount, reference, uuid)
-
-                 payment= 200
-
-                if (payment == 200) {
-                    menu.end('Congratulations you are now covered. \n' +
-                        `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`
-                    )
+                const partnerId = user.partner_id;
+                const phoneNumber = user.phone_number;
+                const reference = `${policy_type}${policy_id}${userId}${uuid}`;
+    
+                const paymentStatus = await airtelMoney(userId, partnerId, policy_id, phoneNumber, policy_deduction_amount, reference, uuid);
+    
+                if (paymentStatus === 200) {
+                    menu.end(`Congratulations! You are now covered.
+                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month.`);
                 } else {
-                    menu.end('Sorry your payment was not successful. \n' +
-                        '\n0.Back ' + ' 00.Main Menu'
-                    );
+                    menu.end(`Sorry, your payment was not successful.
+                        \n0. Back \n00. Main Menu`);
                 }
-           
+            } catch (error) {
+                console.error('Confirmation Error:', error);
+                menu.end('An error occurred. Please try again later.');
+            }
         }
     });
+    
 }

@@ -169,7 +169,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     menu.state('buyForSelf.bronze.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { pin , id, partner_id} = await getUser(args.phoneNumber);
+            const { pin , user_id, partner_id} = await getUser(args.phoneNumber);
 console.log("USER PIN", user_pin, "PIN", pin)
             if ( user_pin !== pin) {
                 menu.con('PIN incorrect. Try again');
@@ -189,7 +189,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_day: day * 1,
                     policy_deduction_amount: 10000,
                     policy_next_deduction_date: nextDeduction,
-                    user_id: id,
+                    user_id: user_id,
                     product_id: 2,
                     premium: 10000,
                     installment_order: 1,
@@ -240,7 +240,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.bronze.yearly.confirm', {
         run: async () => {
              let user_pin = Number(menu.val);
-            const { pin, id, partner_id } = await getUser(args.phoneNumber);
+            const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
             if ( user_pin !== 1234 || user_pin !== pin) {
                 menu.con('PIN incorrect. Try again');
             }
@@ -270,7 +270,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     sum_insured: '1500000',
                     excess_premium: '0',
                     discount_premium: '0',
-                    user_id: id,
+                    user_id: user_id,
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
@@ -417,7 +417,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.silver.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { pin, id, partner_id } = await getUser(args.phoneNumber);
+            const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
             
 
             if ( user_pin !== pin) {
@@ -451,7 +451,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     sum_insured: '3000000',
                     excess_premium: '0',
                     discount_premium: '0',
-                    user_id: id,
+                    user_id: user_id,
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
@@ -482,7 +482,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.silver.yearly.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { pin , id, partner_id} = await getUser(args.phoneNumber);
+            const { pin , user_id, partner_id} = await getUser(args.phoneNumber);
 
             if (user_pin !== pin) {
                 menu.con('PIN incorrect. Try again');
@@ -515,7 +515,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     sum_insured: '3000000',
                     excess_premium: '0',
                     discount_premium: '0',
-                    user_id: id,
+                    user_id: user_id,
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
@@ -621,7 +621,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.gold.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { id,pin, partner_id } = await getUser(args.phoneNumber);
+            const { user_id,pin, partner_id } = await getUser(args.phoneNumber);
             console.log("USER PIN", user_pin, "PIN", pin)
             if ( user_pin !== pin) {
                 menu.con('PIN incorrect. Try again');
@@ -653,7 +653,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     sum_insured: '5000000',
                     excess_premium: '0',
                     discount_premium: '0',
-                    user_id: id,
+                    user_id: user_id,
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
@@ -724,7 +724,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.gold.yearly.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { id , pin, partner_id} = await getUser(args.phoneNumber);
+            const { user_id , pin, partner_id} = await getUser(args.phoneNumber);
          
             if (  user_pin !== 1234 || user_pin !== pin) {
                 menu.con('PIN incorrect. Try again');
@@ -756,7 +756,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     sum_insured: '50000000',
                     excess_premium: '0',
                     discount_premium: '0',
-                    user_id: id,
+                    user_id: user_id,
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
@@ -783,44 +783,40 @@ console.log("USER PIN", user_pin, "PIN", pin)
 
     menu.state('confirmation', {
         run: async () => {
-            const { id, phone_number, partner_id } = await getUser(args.phoneNumber);
-
-            const policy = await Policy.findOne({
-                where: {
-                    user_id: id
-                }
-            })
-            console.log("XXXXXX POLICY XXXXXX", policy)
-            //BOUGHT Family Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient  cover for 300,000  
-            if (id) {
-
-                const policy_deduction_amount = policy.policy_deduction_amount;
-                const day = policy.policy_deduction_day;
-                const amount = policy_deduction_amount;
-                const userId = id;
-                const uuid = uuidv4();
-                const reference = policy.policy_type + policy.id + userId + uuid;
-                
-                let payment: any = await airtelMoney(userId,partner_id,id, phone_number, policy_deduction_amount, reference, uuid)
-
-                payment = 200;
-
-                if (payment == 200) {
-                    menu.end('Congratulations you are now covered. \n' +
-                        `To stay covered UGX ${policy_deduction_amount} will be deducted on day ${day} of every month`
-                    )
+            try {
+                const { user_id, phone_number, partner_id } = await getUser(args.phoneNumber);
+    
+                const policy = await Policy.findOne({
+                    where: {
+                        user_id
+                    }
+                });
+    
+                if (policy) {
+                    const policy_deduction_amount = policy.policy_deduction_amount;
+                    const day = policy.policy_deduction_day;
+                    const amount = policy_deduction_amount;
+    
+                    const uuid = uuidv4();
+                    const reference = `${policy.policy_type}${policy.id}${user_id}${uuid}`;
+    
+                    let paymentStatus = await airtelMoney(user_id, partner_id, policy.policy_id, phone_number, policy_deduction_amount, reference, uuid);
+    
+                    if (paymentStatus === 200) {
+                        menu.end(`Congratulations! You are now covered. 
+                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every month.`);
+                    } else {
+                        menu.end(`Sorry, your payment was not successful. 
+                        \n0. Back \n00. Main Menu`);
+                    }
                 } else {
-                    menu.end('Sorry your payment was not successful. \n' +
-                        '\n0.Back ' + ' 00.Main Menu'
-                    );
+                    menu.end('You do not have an active policy.');
                 }
-            } else {
-                menu.end('You do not have an active policy.'
-                );
+            } catch (error) {
+                console.error('Confirmation Error:', error);
+                menu.end('An error occurred. Please try again later.');
             }
         }
-
     });
-
-
+    
 }

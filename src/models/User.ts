@@ -119,9 +119,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        
-
-
+       
     }, { timestamps: true },)
 
     // User.hasMany(Policy, {

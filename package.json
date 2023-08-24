@@ -21,7 +21,7 @@
     "africastalking": "^0.6.2",
     "aws-sdk": "^2.1415.0",
     "axios": "^1.4.0",
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -44,7 +44,8 @@
     "swagger-ui-express": "^4.6.3",
     "ussd-builder": "^1.2.5",
     "uuid": "^9.0.0",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "xlsx": "^0.18.5"
   },
   "repository": "https://github.com/bluewaveinsuranceke/airtel_health_ussd.git"
 }

@@ -9,6 +9,7 @@ const reportRoutes = require ('./src/routes/reportRoutes');
 const productRoutes = require ('./src/routes/productRoutes');
 const  generalRoutes = require ('./src/routes/generalRoutes');
 const logRoutes = require ('./src/routes/logRoutes');
+const loggingMiddleware = require('./src/middleware/loggingMiddleware');
 import * as dotenv from 'dotenv'
 dotenv.config()
 const fs = require('fs')
@@ -17,7 +18,6 @@ const path = require('path')
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 import cors from 'cors';
-//import mongoose from 'mongoose';
  
 
 const app: express.Application = express();
@@ -26,6 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
 app.use(cors());
+app.use(loggingMiddleware);
   
 
 // log only 4xx and 5xx responses to console
@@ -110,6 +111,8 @@ app.use(errorHandler)
 
 // USSD ROUTE
 app.use('/api/v1/ussd', ussdRoutes);
+
+
 
 
 const port =  process.env.PORT || 4000;

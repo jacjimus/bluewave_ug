@@ -4,11 +4,14 @@ const jwt = require("jsonwebtoken");
 const dotenv = require('dotenv').config()
 import { isValidKenyanPhoneNumber, getRandomInt, isValidEmail } from "../services/utils";
 const { Op } = require("sequelize");
-
+const XLSX = require('xlsx');
+import { v4 as uuidv4 } from 'uuid';
 
 // Assigning users to the variable User
 const User = db.users;
 const Partner = db.partners;
+const Policy = db.policies;
+const Log = db.logs;
 
 async function getUserFunc(user_id: string, partner_id: number) {
   let user = await User.findOne({
@@ -444,7 +447,19 @@ const getUsers = async (req: any, res: any) => {
         delete users[i].dataValues.pin;
       }
     }
+    //GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
+    for (let i = 0; i < users.length; i++) {
+      let user = users[i];
+      let policies = await Policy.findAll({
+        where: {
+          user_id: user.user_id,
+        },
+      });
+      user.dataValues.number_of_policies = policies.length;
+    }
 
+
+  
     if (users && users.length > 0) {
       status.result = users;
       return res.status(200).json({
@@ -550,13 +565,13 @@ const updateUser = async (req: any, res: any) => {
       return res.status(404).json({ message: "No user found" });
     }
 
-    const membership_id =Math.floor(100000 + Math.random() * 900000)
+   
 
     const data = {
-      membership_id: membership_id,
       first_name,
       middle_name,
       last_name,
+      name: first_name + " " + last_name,
       email,
       phone_number,
       national_id,
@@ -679,7 +694,7 @@ const getPartner = async (req: any, res: any) => {
 const partnerSwitch = async (req: any, res: any) =>{
   try {
       let partner_id_to_update = req.query.partner_id
-      let user_id = req.user.id;
+      let user_id = req.user.user_id;
       
       let partner_id = req.user.partner_id;
     
@@ -708,6 +723,142 @@ const partnerSwitch = async (req: any, res: any) =>{
 
 }
 
+/**
+ * @swagger
+ * /api/v1/users/group/signup:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: Bulk User Registration
+ *     operationId: bulkUserRegistration
+ *     summary: Bulk User Registration
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:   # Change content type to multipart/form-data
+ *           schema:
+ *             type: object
+ *             properties:
+ *               excel_file:   # Specify the parameter name for the Excel file
+ *                 type: file  # Set the type as 'file' to indicate a file upload
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+const bulkUserRegistration = async (req: any, res: any) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+
+    }
+    
+    const partner_id = req.query.partner_id;
+    const excel_file = req.file;
+
+    // Read the uploaded Excel file
+    const workbook = XLSX.read(excel_file.buffer, {type:"buffer"});
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    // Convert worksheet data to an array of objects
+    const userDataArray = XLSX.utils.sheet_to_json(worksheet);
+
+    // Process the userDataArray to create users
+    const createdUsers = [];
+
+    for (const userData of userDataArray) {
+      console.log("USER DATA",userData);
+      // Convert keys to lowercase
+  const lowerCaseUserData:any = Object.keys(userData).reduce((acc, key) => {
+    acc[key.toLowerCase()] = userData[key];
+    return acc;
+  }, {});
+
+  console.log("USER DATA",lowerCaseUserData);
+
+  const {
+    first_name,
+    middle_name,
+    last_name,
+    email,
+    phone_number,
+    national_id,
+    dob,
+    gender,
+    marital_status,
+    addressline,
+    nationality,
+    title,
+    pinzip,
+    weight,
+    height,
+    driver_licence,
+    voter_id
+  } = lowerCaseUserData;
+
+      // Create a user object using the   data
+      const user_data = {
+        user_id: uuidv4(),
+        membership_id : Math.floor(100000 + Math.random() * 900000),
+        first_name,
+        middle_name,
+        last_name,
+        name : first_name + " " + middle_name + " " + last_name,
+        email,
+        phone_number,
+        national_id,
+        password: await bcrypt.hash(phone_number.toString(), 10),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        dob,
+        gender,
+        marital_status,
+        addressline,
+        nationality,
+        title,
+        pinzip,
+        weight,
+        height,
+        partner_id: partner_id,
+        driver_licence,
+        voter_id,
+        pin: Math.floor(1000 + Math.random() * 9000),
+        role: "user",
+      };
+
+      // Use your preferred method to create users (e.g., Sequelize's create())
+      const createdUser = await createUserFunction(user_data); // Replace with your create user function
+      createdUsers.push(createdUser);
+    }
+
+    return res.status(200).json({ message: 'Users created successfully', items:createdUsers });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const createUserFunction = async (userData: any) => {
+  try {
+    const createdUser = await User.create(userData);
+
+    //omit password, pin from the response
+    delete createdUser.dataValues.password;
+    delete createdUser.dataValues.pin;
+    return createdUser;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
 
 module.exports = {
   signup,
@@ -718,6 +869,70 @@ module.exports = {
   updateUser,
   deleteUser,
   partnerRegistration,
-  partnerSwitch
+  partnerSwitch,
+  bulkUserRegistration
 
 };
+
+// [
+//   {
+//    "FIRST_NAME": "John4",
+//    "MIDDLE_NAME": "White4",
+//    "LAST_NAME": "Doe",
+//    "EMAIL": "test4@gmail.com",
+//    "PHONE_NUMBER": "0745454656",
+//    "NATIONAL_ID": "24885858",
+//    "DOB": "1992-12-02",
+//    "GENDER": "M",
+//    "MARITAL_STATUS": "single",
+//    "ADDRESSLINE": "Nairobi",
+//    "NATIONALITY": "Kenyan",
+//    "TITLE": "Mr",
+//    "PINZIP": "00100",
+//    "WEIGHT": "70",
+//    "HEIGHT": "170",
+//    "DRIVER_LICENCE": "DRC123456789",
+//    "voter_id": "45332344",
+//    "PARTNER_ID": "2"
+//   },
+//   {
+//    "FIRST_NAME": "John5",
+//    "MIDDLE_NAME": "White5",
+//    "LAST_NAME": "Doe",
+//    "EMAIL": "test5@gmail.com",
+//    "PHONE_NUMBER": "0754546568",
+//    "NATIONAL_ID": "25885858",
+//    "DOB": "1990-12-12",
+//    "GENDER": "M",
+//    "MARITAL_STATUS": "single",
+//    "ADDRESSLINE": "Nairobi",
+//    "NATIONALITY": "Kenyan",
+//    "TITLE": "Mr",
+//    "PINZIP": "00100",
+//    "WEIGHT": "60",
+//    "HEIGHT": "150",
+//    "DRIVER_LICENCE": "DRC123456789",
+//    "VOTER_ID": "25322344",
+//    "PARTNER_ID": "2"
+//   },
+//   {
+//    "FIRST_NAME": "John6",
+//    "MIDDLE_NAME": "White6",
+//    "LAST_NAME": "Doe",
+//    "EMAIL": "test6@gmail.com",
+//    "PHONE_NUMBER": 756546568,
+//    "NATIONAL_ID": 26885858,
+//    "DOB": "1990-12-12",
+//    "GENDER": "M",
+//    "MARITAL_STATUS": "single",
+//    "ADDRESSLINE": "Nairobi",
+//    "NATIONALITY": "Kenyan",
+//    "TITLE": "Mr",
+//    "PINZIP": "00100",
+//    "WEIGHT": 90,
+//    "HEIGHT": 154,
+//    "DRIVER_LICENCE": "DRC123456789",
+//    "VOTER_ID": "25322344",
+//   "PARTNER_ID": "2"
+//  }
+// ]

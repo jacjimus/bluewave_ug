@@ -14,9 +14,10 @@ export function myAccount(menu: any, args: any, db: any) {
                 '\n1. Pay Now' +
                 '\n2. Manage auto-renew' +
                 '\n3. My insurance policy' +
-               // '\n4. Cancel policy' +
-                '\n4. Add Beneficiary' +
-                '\n5. My Hospital' +
+                '\n4. Update My Profile' +
+                // '\n4. Cancel policy' +
+                '\n5. Add Beneficiary' +
+                '\n6. My Hospital' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -25,13 +26,96 @@ export function myAccount(menu: any, args: any, db: any) {
             '1': 'payNow',
             '2': 'manageAutoRenew',
             '3': 'myInsurancePolicy',
-           // '4': 'cancelPolicy',
-            '4': 'listBeneficiaries',
-            '5': 'myHospitalOption',
+            '4': 'updateProfile',
+            // '4': 'cancelPolicy',
+            '5': 'listBeneficiaries',
+            '6': 'myHospitalOption',
             '0': 'account',
             '00': 'insurance',
         }
     })
+
+
+    //update profile ( user dob and gender)
+    menu.state('updateProfile', {
+        run: async () => {
+            menu.con(`Whats your gender
+            1.  Male
+            2. Female
+            0. Back
+            00. Main Menu
+             `)
+        },
+        next: {
+            '1': 'updateGender',
+            '2': 'updateGender',
+            '0': 'myAccount',
+            '00': 'insurance',
+        }
+    })
+
+    menu.state('updateGender', {
+        run: async () => {
+            const gender = menu.val == 1 ? "M" : "F";
+            const user = await User.update({
+                gender: gender
+            }, {
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+
+            console.log("USER: ", user);
+
+            menu.con(`Enter your date of birth in the format DDMMYYYY
+            0. Back
+            00. Main Menu
+             `)
+        },
+        next: {
+            '*[0-9]': 'updateDob',
+            '0': 'myAccount',
+            '00': 'insurance',
+        }
+    })
+
+    menu.state('updateDob', {
+        run: async () => {
+            let dob = menu.val;
+            console.log("dob", dob)
+
+            //remove all non numeric characters
+            dob = dob.replace(/\D/g, "");
+            console.log("dob", dob)
+            // convert ddmmyyyy to valid date
+            let day = parseInt(dob.substring(0, 2));
+            let month = parseInt(dob.substring(2, 4));
+            let year = parseInt(dob.substring(4, 8));
+            let date = new Date(year, month - 1, day);
+            console.log(" dob date", date)
+
+            const user = await User.update({
+                dob: date
+            }, {
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+
+            console.log("USER DOB UPDATE: ", user);
+
+            menu.con(`Your profile has been updated successfully
+            0. Back
+            00. Main Menu
+             `)
+        },
+        next: {
+            '0': 'myAccount',
+            '00': 'insurance',
+        }
+    })
+
+
 
 
     //update beneficiary
@@ -74,7 +158,7 @@ export function myAccount(menu: any, args: any, db: any) {
             if (user) {
                 const beneficiaries = await Beneficiary.findAll({
                     where: {
-                        user_id: user.id,
+                        user_id: user?.user_id,
                     },
                 });
 
@@ -101,96 +185,96 @@ export function myAccount(menu: any, args: any, db: any) {
     })
 
 
-menu.state('updateBeneficiaryGender', {
-    run: async () => {
-        
-        menu.con('Enter gender of beneficiary: ' +
-            '\n1. Male' +
-            '\n2. Female');
-    },
-    next: {
-        '*[0-9]': 'updateBeneficiaryDob',
-    }
-});
+    menu.state('updateBeneficiaryGender', {
+        run: async () => {
 
-menu.state('updateBeneficiaryDob', {
-    run: async () => {
-    
+            menu.con('Enter gender of beneficiary: ' +
+                '\n1. Male' +
+                '\n2. Female');
+        },
+        next: {
+            '*[0-9]': 'updateBeneficiaryDob',
+        }
+    });
 
-        menu.con('Enter your date of birth in the format DDMMYYYY');
-    },
-    next: {
-        '*[0-9]': 'updateBeneficiaryConfirm',
-    }
-})
+    menu.state('updateBeneficiaryDob', {
+        run: async () => {
 
-menu.state('updateBeneficiaryConfirm', {
-    run: async () => {
 
-  let dob = menu.val;
-    console.log("dob", dob)
+            menu.con('Enter your date of birth in the format DDMMYYYY');
+        },
+        next: {
+            '*[0-9]': 'updateBeneficiaryConfirm',
+        }
+    })
 
-    // convert ddmmyyyy to valid date
-    let day = dob.substring(0, 2);
-    let month = dob.substring(2, 4);
-    let year = dob.substring(4, 8);
-    let date = new Date(year, month - 1, day);
-    console.log("date", date)
-  
-  // Fetch the beneficiary ID from the previous step's input value
-  const selected = args.text;
-  const input = selected.trim();
-  const digits = input.split('*').map((digit) => parseInt(digit, 10));
-  console.log("digits", digits)
-  const beneficiaryId = digits[digits.length - 3];
-  console.log("beneficiaryId", beneficiaryId)
-  
-  let gender = digits[digits.length - 2] == 1 ? "M": "F";
+    menu.state('updateBeneficiaryConfirm', {
+        run: async () => {
 
-  console.log("gender", gender)
-        // Assuming you have the beneficiary ID from the previous steps
-        const user = await User.findOne({
-            where: {
-                phone_number: args.phoneNumber,
-            },
-        });
+            let dob = menu.val;
+            console.log("dob", dob)
 
-        if (user) {
-            let beneficiaries = await Beneficiary.findAll({
+            // convert ddmmyyyy to valid date
+            let day = dob.substring(0, 2);
+            let month = dob.substring(2, 4);
+            let year = dob.substring(4, 8);
+            let date = new Date(year, month - 1, day);
+            console.log("date", date)
+
+            // Fetch the beneficiary ID from the previous step's input value
+            const selected = args.text;
+            const input = selected.trim();
+            const digits = input.split('*').map((digit) => parseInt(digit, 10));
+            console.log("digits", digits)
+            const beneficiaryId = digits[digits.length - 3];
+            console.log("beneficiaryId", beneficiaryId)
+
+            let gender = digits[digits.length - 2] == 1 ? "M" : "F";
+
+            console.log("gender", gender)
+            // Assuming you have the beneficiary ID from the previous steps
+            const user = await User.findOne({
                 where: {
-                    user_id: user.id,
+                    phone_number: args.phoneNumber,
                 },
-                attributes: { exclude: [] }, // return all columns
             });
 
-            const selectedBeneficiary = beneficiaries[beneficiaryId - 1];
-            console.log("selectedBeneficiary", selectedBeneficiary)
-            
-            if (selectedBeneficiary) {
-                // Update the beneficiary's information
-                let thisYear = new Date().getFullYear();
-                selectedBeneficiary.dob = date;
-                selectedBeneficiary.age = thisYear - date.getFullYear();
-                selectedBeneficiary.gender = gender;
-                
-                try {
-                    let result = await selectedBeneficiary.save();
-                    
-                    console.log("Result after save:", result);
+            if (user) {
+                let beneficiaries = await Beneficiary.findAll({
+                    where: {
+                        user_id: user?.user_id,
+                    },
+                    attributes: { exclude: [] }, // return all columns
+                });
 
-                    menu.end('Beneficiary updated successfully');
-                } catch (error) {
-                    console.error("Error saving beneficiary:", error);
-                    menu.end('Failed to update beneficiary. Please try again.');
+                const selectedBeneficiary = beneficiaries[beneficiaryId - 1];
+                console.log("selectedBeneficiary", selectedBeneficiary)
+
+                if (selectedBeneficiary) {
+                    // Update the beneficiary's information
+                    let thisYear = new Date().getFullYear();
+                    selectedBeneficiary.dob = date;
+                    selectedBeneficiary.age = thisYear - date.getFullYear();
+                    selectedBeneficiary.gender = gender;
+
+                    try {
+                        let result = await selectedBeneficiary.save();
+
+                        console.log("Result after save:", result);
+
+                        menu.end('Beneficiary updated successfully');
+                    } catch (error) {
+                        console.error("Error saving beneficiary:", error);
+                        menu.end('Failed to update beneficiary. Please try again.');
+                    }
+                } else {
+                    menu.end('Invalid beneficiary selection');
                 }
             } else {
-                menu.end('Invalid beneficiary selection');
+                menu.end('User not found');
             }
-        } else {
-            menu.end('User not found');
-        }
-    },
-});
+        },
+    });
 
 
 
@@ -207,7 +291,7 @@ menu.state('updateBeneficiaryConfirm', {
             if (user) {
                 const policy = await Policy.findOne({
                     where: {
-                        user_id: user.id,
+                        user_id: user?.user_id,
                     },
                 });
 
@@ -244,7 +328,7 @@ menu.state('updateBeneficiaryConfirm', {
             });
             const policy = await Policy.findOne({
                 where: {
-                    user_id: user.id,
+                    user_id: user?.user_id,
                 },
             });
             let today = new Date();
@@ -285,7 +369,7 @@ menu.state('updateBeneficiaryConfirm', {
             if (user) {
                 policy = await Policy.findOne({
                     where: {
-                        user_id: user.id,
+                        user_id: user?.user_id,
                     },
                 });
             }
@@ -315,70 +399,70 @@ menu.state('updateBeneficiaryConfirm', {
     //my insurance policy
     menu.state('myInsurancePolicy', {
         run: async () => {
-          const bronzeLastExpenseBenefit = "UGX 1,000,000";
-          const silverLastExpenseBenefit = "UGX 1,500,000";
-          const goldLastExpenseBenefit = "UGX 2,000,000";
-      
-          const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
-      
-          console.log("USER: ", user);
-      
-          if (!user) {
-            menu.con('User not found');
-            return;
-          }
-      
-          let policies = await Policy.findAll({
-            where: {
-              user_id: user.id,
-            },
-          });
-      
-          console.log("POLICIES: ", policies);
-      
-          if (policies.length === 0) {
-            menu.con(
-              'You have no policies\n' +
-              '1. Buy cover\n' +
-              '0. Back\n' +
-              '00. Main Menu'
-            );
-            return;
-          }
-      
-          let policyInfo = '';
-      
-          for (let i = 0; i < policies.length; i++) {
-            let policy = policies[i];
-            let benefit;
-      
-            if (policy.policy_type == 'bronze') {
-              benefit = bronzeLastExpenseBenefit;
-            } else if (policy.policy_type == 'silver') {
-              benefit = silverLastExpenseBenefit;
-            } else if (policy.policy_type == 'gold') {
-              benefit = goldLastExpenseBenefit;
+            const bronzeLastExpenseBenefit = "UGX 1,000,000";
+            const silverLastExpenseBenefit = "UGX 1,500,000";
+            const goldLastExpenseBenefit = "UGX 2,000,000";
+
+            const user = await User.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+
+            console.log("USER: ", user);
+
+            if (!user) {
+                menu.con('User not found');
+                return;
             }
-      
-            policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-              `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-              `   Remaining: UGX ${policy.sum_insured}\n` +
-              `   Last Expense Per Person Benefit: ${benefit}\n\n`;
-          }
-      
-          menu.end(`My Insurance Policies:\n\n${policyInfo}`);
+
+            let policies = await Policy.findAll({
+                where: {
+                    user_id: user?.user_id,
+                },
+            });
+
+            console.log("POLICIES: ", policies);
+
+            if (policies.length === 0) {
+                menu.con(
+                    'You have no policies\n' +
+                    '1. Buy cover\n' +
+                    '0. Back\n' +
+                    '00. Main Menu'
+                );
+                return;
+            }
+
+            let policyInfo = '';
+
+            for (let i = 0; i < policies.length; i++) {
+                let policy = policies[i];
+                let benefit;
+
+                if (policy.policy_type == 'bronze') {
+                    benefit = bronzeLastExpenseBenefit;
+                } else if (policy.policy_type == 'silver') {
+                    benefit = silverLastExpenseBenefit;
+                } else if (policy.policy_type == 'gold') {
+                    benefit = goldLastExpenseBenefit;
+                }
+
+                policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
+                    `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+                    `   Remaining: UGX ${policy.sum_insured}\n` +
+                    `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+            }
+
+            menu.end(`My Insurance Policies:\n\n${policyInfo}`);
         },
         next: {
-          '1': 'account',
-          '0': 'account',
-          '00': 'insurance',
+            '1': 'account',
+            '0': 'account',
+            '00': 'insurance',
         }
-      });
-      
+    });
+
 
     menu.state('manageAutoRenew', {
         run: async () => {
