@@ -43,7 +43,7 @@ router.post('/ken', (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(req.body);
-        const { id, status_code, message } = req.body;
+        const { id, status_code, message, airtel_money_id } = req.body;
         const transaction = yield Transaction.findOne({
             where: {
                 transaction_reference: id
@@ -69,24 +69,46 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
                 policy_id: policy_id
             }
         });
+        if (!policy) {
+            console.log('Policy not found');
+            return res.status(404).json({ message: 'Policy not found' });
+        }
         const to = '254' + user.phone_number.substring(1);
         const paymentMessage = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on DD/MM/YY.`;
-        (0, sendSMS_1.default)(to, paymentMessage);
-        yield Payment.create({
-            payment_amount: transaction.amount,
-            payment_type: 'airtel ussd payment',
-            user_id: transaction.user_id,
-            policy_id: transaction.policy_id,
-            payment_status: 'paid',
-            payment_description: message,
-            payment_date: new Date()
-        });
-        console.log('Payment record created successfully');
-        res.status(200).json({ message: 'Payment record created successfully' });
+        if (status_code == 'TS') {
+            // Send SMS to user
+            yield (0, sendSMS_1.default)(to, paymentMessage);
+            yield Payment.create({
+                payment_amount: transaction.amount,
+                payment_type: 'airtel money payment',
+                user_id: transaction.user_id,
+                policy_id: transaction.policy_id,
+                payment_status: 'paid',
+                payment_description: message,
+                payment_date: new Date(),
+                payment_metadata: req.body
+            });
+            console.log('Payment record created successfully');
+            res.status(200).json({ message: 'Payment record created successfully' });
+        }
+        else {
+            yield Payment.create({
+                payment_amount: transaction.amount,
+                payment_type: 'airtel money payment',
+                user_id: transaction.user_id,
+                policy_id: transaction.policy_id,
+                payment_status: 'failed',
+                payment_description: message,
+                payment_date: new Date(),
+                payment_metadata: req.body
+            });
+            console.log('Payment record created successfully');
+            res.status(200).json({ message: 'Payment record created successfully' });
+        }
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 }));
 module.exports = router;

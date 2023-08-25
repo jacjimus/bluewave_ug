@@ -16,6 +16,7 @@ const axios_1 = __importDefault(require("axios"));
 const auth_1 = __importDefault(require("./auth"));
 const db_1 = require("../models/db");
 require('dotenv').config();
+const uuid_1 = require("uuid");
 const User = db_1.db.users;
 const Transaction = db_1.db.transactions;
 const Payment = db_1.db.payments;
@@ -30,7 +31,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             let token = yield (0, auth_1.default)();
             let user = yield User.findOne({
                 where: {
-                    id: user_id,
+                    user_id: user_id,
                     partner_id: partner_id
                 }
             });
@@ -58,6 +59,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             if (response.data.status.code === 200) {
                 // Create a transaction
                 let transaction = yield Transaction.create({
+                    transaction_id: (0, uuid_1.v4)(),
                     amount: amount,
                     status: "pending",
                     user_id: user_id,
@@ -66,13 +68,6 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                     partner_id: partner_id
                 });
                 console.log("Transaction", transaction);
-                // let data = { payment_status: "paid" };
-                // // Update payment
-                // await Payment.update(data, {
-                //     where: {
-                //         policy_id: policy_id,
-                //     },
-                // });
                 return status;
             }
             else {
