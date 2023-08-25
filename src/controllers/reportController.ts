@@ -912,9 +912,9 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
           policy_id,
           SUM(policy_deduction_amount) AS total_amount
         FROM
-          policies
+          policies 
         WHERE
-          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day')
+          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') AND partner_id = :partner_id
         GROUP BY
           EXTRACT(MONTH FROM policy_paid_date),
           EXTRACT(DAY FROM policy_paid_date),
@@ -929,7 +929,7 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
       const results = await db.sequelize.query(
         query,
         {
-          replacements: { },
+          replacements: { partner_id : req.query.partner_id},
           type: QueryTypes.SELECT
         }
       );
