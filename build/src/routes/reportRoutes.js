@@ -13,4 +13,5 @@ router.get('/summary/all', isSuperAdmin, reportController.getAllReportSummary);
 router.get('/daily/sales', isSuperAdmin, reportController.getDailyPolicySalesReport);
 router.post('/policy/excel', isSuperAdmin, reportController.getPolicyExcelReportDownload);
 router.get('/aggregated/daily/sales', isSuperAdmin, reportController.getAggregatedDailyPolicySalesReport);
+router.get('/policy/excel/download', reportController.handleDownload);
 module.exports = router;

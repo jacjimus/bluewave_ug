@@ -6,10 +6,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userController = require('../controllers/userController');
 const { isBluewave, isAirtel, isVodacom, isAAR, isUser, isManager, isSuperAdmin, isUserOrAdmin, isUserOrAdminOrManager } = require('../middleware/userAuth');
+const path_1 = __importDefault(require("path"));
 const router = express_1.default.Router();
 const multer = require('multer');
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const excelFilter = (req, file, cb) => {
+    if (file.mimetype.includes("excel") ||
+        file.mimetype.includes("spreadsheetml") || file.mimetype.includes("xls") || file.mimetype.includes("xlsx")) {
+        cb(null, true);
+    }
+    else {
+        cb("Please upload only excel file.", false);
+    }
+};
+var storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path_1.default.join(__dirname, 'uploads'));
+    },
+    filename: (req, file, cb) => {
+        console.log(file.originalname);
+        cb(null, `${Date.now()}-bluewave-${file.originalname}`);
+    },
+});
+const upload = multer({ storage: storage, fileFilter: excelFilter });
 router.get('/', isSuperAdmin, userController.getUsers);
 router.get('/partner', isBluewave, userController.getPartner);
 router.get('/:user_id', userController.getUser);
