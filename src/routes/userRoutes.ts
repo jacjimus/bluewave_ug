@@ -13,12 +13,34 @@ const {
   isUserOrAdminOrManager
 
 } = require('../middleware/userAuth');
+import path from 'path'
 
 const router = express.Router()
 const multer = require('multer')
 
-const storage = multer.memoryStorage()
-const upload = multer({ storage: storage })
+const excelFilter = (req, file, cb) => {
+  if (
+    file.mimetype.includes("excel") ||
+    file.mimetype.includes("spreadsheetml") || file.mimetype.includes("xls") || file.mimetype.includes("xlsx")
+  ) {
+    cb(null, true);
+  } else {
+    cb("Please upload only excel file.", false);
+  }
+};
+
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    console.log(file.originalname);
+    cb(null, `${Date.now()}-bluewave-${file.originalname}`);
+  },
+});
+
+
+const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
 

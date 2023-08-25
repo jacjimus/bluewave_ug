@@ -2,6 +2,8 @@ import { db} from "../models/db";
 const { Op, QueryTypes } = require("sequelize");
 const moment = require('moment');
 const excelJS = require("exceljs");
+const fs = require('fs');
+const path = require('path');
 
 const Policy = db.policies;
 const User = db.users;
@@ -779,28 +781,67 @@ const getPolicyExcelReportDownload = async (req, res) => {
         where: whereClause,
         offset: (page - 1) * limit,
         limit: limit,
+        include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ['first_name', 'last_name', 'phone_number'],
+            },
+            {
+              model: Product,
+              as: "product",
+                attributes: ['product_name'],
+            },
+          ],
       };
   
-      const policies = await Policy.findAll(options);
-  
+      let policies = await Policy.findAll(options);
+      
+    
       if (!policies || policies.length === 0) {
         return res.status(404).json({ message: 'No policies found' });
       }
   
       const workbook = await generatePolicyExcelReport(policies);
-  
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', 'attachment; filename=policy_report.xlsx');
-  
-      // Stream the workbook directly to the response
-      await workbook.xlsx.write(res);
-  
-      // End the response
-      res.end();
+       // Save the workbook to a temporary file
+    const tempFilePath = path.join(__dirname, 'uploads', 'policy_report.xlsx');
+    await workbook.xlsx.writeFile(tempFilePath);
+
+    // Get the base URL from environment variable or use a default
+    const BASE_URL = process.env.BASE_URL || 'http://localhost:4000';
+
+    // Generate a unique download token
+    const downloadToken = Date.now();
+
+    // Create a URL for the download endpoint including the token
+    // the file is located at src/uploads/policy_report.xlsx
+    const downloadURL = `${BASE_URL}/api/v1/reports/policy/excel/download?token=${downloadToken}`;
+
+    // Store the download token somewhere (e.g., in-memory cache or database)
+    // This is needed to verify the download request
+
+    // Return the download URL to the user
+    res.status(200).json({ downloadURL });
     } catch (error) {
       console.error('Error generating Excel report:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
+  };
+
+  // Download endpoint handler
+const handleDownload = (req, res) => {
+    const { token } = req.query;
+  
+    // Verify the token and get the file path
+    // This is where you check if the token is valid and retrieve the file path
+  
+    const filePath = path.join(__dirname, 'uploads', 'policy_report.xlsx');
+  
+    // Stream the file for download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=policy_report.xlsx');
+  
+    fs.createReadStream(filePath).pipe(res);
   };
   
   
@@ -811,8 +852,9 @@ const getPolicyExcelReportDownload = async (req, res) => {
     // Define columns for data in Excel. Key must match data key
     worksheet.columns = [
         {header: 'Product ID', key: 'product_id', width: 20},
-        {header: 'Customer ID', key: 'user_id', width: 20},
-        {header: 'Partner ID', key: 'partner_id', width: 20},
+        {header: 'Full Name', key: 'full_name', width: 20},
+        {header: 'Phone Number', key: 'phone_number', width: 20},
+        {header: 'Product Name', key: 'product_name', width: 20},
         { header: 'Policy Type', key: 'policy_type', width: 20 },
         { header: 'Policy Status', key: 'policy_status', width: 20 },
         { header: 'Policy Start Date', key: 'policy_start_date', width: 20 },
@@ -835,6 +877,8 @@ const getPolicyExcelReportDownload = async (req, res) => {
         {header: 'Policy Paid Amount', key: 'policy_paid_amount', width: 20},
         {header: 'Currency Code', key: 'currency_code', width: 20},
         {header: 'Country Code', key: 'country_code', width: 20},
+        {header: 'Customer ID', key: 'user_id', width: 20},
+        {header: 'Partner ID', key: 'partner_id', width: 20},
         {header: 'Created At', key: 'createdAt', width: 20},
         {header: 'Updated At', key: 'updatedAt', width: 20},
       
@@ -872,6 +916,9 @@ const getPolicyExcelReportDownload = async (req, res) => {
         createdAt: moment(policy.createdAt).format('YYYY-MM-DD'),
         updatedAt: moment(policy.updatedAt).format('YYYY-MM-DD'),
         policy_type: policy.policy_type,
+        full_name: `${policy.user.first_name} ${policy.user.last_name}`,
+        phone_number: policy.user.phone_number,
+        product_name: policy.product.product_name
       });
     });
   
@@ -951,7 +998,8 @@ module.exports = {
     getAllReportSummary,
     getDailyPolicySalesReport,
     getPolicyExcelReportDownload,
-    getAggregatedDailyPolicySalesReport
+    getAggregatedDailyPolicySalesReport,
+    handleDownload
 
 
 }
