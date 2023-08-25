@@ -511,7 +511,18 @@ const getUser = async (req: any, res: any) => {
 
     if (!user || user.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
+
     }
+
+     //GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
+
+      let policies = await Policy.findAll({
+        where: {
+          user_id: user.user_id,
+        },
+
+      });
+      user.dataValues.number_of_policies = policies.length;
     return res.status(200).json({ result: { message: "User fetched successfully", item: user } });
   } catch (error) {
     console.log("ERROR", error)

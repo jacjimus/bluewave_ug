@@ -120,6 +120,13 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (!policies || policies.length === 0) {
             return res.status(404).json({ message: "No policies found" });
         }
+        // add paid premium and pending premium
+        for (let i = 0; i < policies.length; i++) {
+            policies[i].dataValues.total_premium = policies[i].premium;
+            policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
+            policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
+            console.log("POLICIES", policies[i]);
+        }
         //policy pagination
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -197,6 +204,10 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
+        //add paid premium and pending premium
+        policy.dataValues.total_premium = policy.premium;
+        policy.dataValues.paid_premium = policy.policy_deduction_amount;
+        policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
         status.result = {
             item: policy,
         };
@@ -265,18 +276,27 @@ const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (end_date) {
             dateFilters.createdAt = Object.assign(Object.assign({}, dateFilters.createdAt), { [Op.lte]: new Date(end_date) });
         }
-        let users = yield Policy.findAll({
+        let policy = yield Policy.findAll({
             where: Object.assign({ user_id: user_id, partner_id: partner_id }, dateFilters)
         });
-        if (!users || users.length === 0) {
+        // policy.total_premium = policy.premium
+        // policy.paid_premium = policy.policy_deduction_amount
+        // policy.pending_premium = policy.premium - policy.policy_deduction_amount
+        //for every policy, add paid premium and pending premium
+        for (let i = 0; i < policy.length; i++) {
+            policy[i].total_premium = policy[i].premium;
+            policy[i].paid_premium = policy[i].policy_deduction_amount;
+            policy[i].pending_premium = policy[i].premium - policy[i].policy_deduction_amount;
+        }
+        if (!policy || policy.length === 0) {
             status.code = 404;
             status.result = { message: "No policy found" };
             return res.status(status.code).json(status.result);
         }
-        let count = users.length;
+        let count = policy.length;
         status.result = {
             count,
-            items: users
+            items: policy
         };
         return res.status(status.code).json({ result: { item: status.result } });
     }

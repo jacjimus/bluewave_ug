@@ -148,6 +148,15 @@ const getPolicies = async (req: any, res: any) => {
         return res.status(404).json({ message: "No policies found" });
       }
   
+      // add paid premium and pending premium
+      for (let i = 0; i < policies.length; i++) {
+        policies[i].dataValues.total_premium = policies[i].premium;
+        policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
+        policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
+
+        console.log("POLICIES", policies[i])
+      }
+
       //policy pagination
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
@@ -232,6 +241,12 @@ const getPolicy = async (req: any, res: any) => {
         if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
+//add paid premium and pending premium
+
+      policy.dataValues.total_premium = policy.premium
+      policy.dataValues.paid_premium = policy.policy_deduction_amount
+      policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount
+
 
         status.result = {
             item: policy,
@@ -306,7 +321,7 @@ const getUserPolicies = async (req: any, res: any) => {
             dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
         }
 
-        let users = await Policy.findAll({
+        let policy = await Policy.findAll({
             where: {
                 user_id: user_id,
                 partner_id: partner_id,
@@ -315,17 +330,29 @@ const getUserPolicies = async (req: any, res: any) => {
             }
         })
 
-        if (!users || users.length === 0) {
+        // policy.total_premium = policy.premium
+        // policy.paid_premium = policy.policy_deduction_amount
+        // policy.pending_premium = policy.premium - policy.policy_deduction_amount
+
+        //for every policy, add paid premium and pending premium
+
+        for (let i = 0; i < policy.length; i++) {
+            policy[i].total_premium = policy[i].premium
+            policy[i].paid_premium = policy[i].policy_deduction_amount
+            policy[i].pending_premium = policy[i].premium - policy[i].policy_deduction_amount
+        }
+
+        if (!policy || policy.length === 0) {
             status.code = 404;
             status.result = { message: "No policy found" };
             return res.status(status.code).json(status.result);
         }
-        let count = users.length;
+        let count = policy.length;
 
 
         status.result = {
             count,
-            items: users
+            items: policy
         };
         return res.status(status.code).json({result: {item:status.result}});
     } catch (error) {
