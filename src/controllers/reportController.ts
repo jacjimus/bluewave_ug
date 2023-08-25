@@ -1,5 +1,5 @@
-import { db } from "../models/db";
-const { Op } = require("sequelize");
+import { db} from "../models/db";
+const { Op, QueryTypes } = require("sequelize");
 const moment = require('moment');
 const excelJS = require("exceljs");
 
@@ -10,7 +10,6 @@ const Claim = db.claims;
 const Product = db.products;
 const Payment = db.payments;
 const Partner = db.partners;
-
 
 
 
@@ -879,12 +878,80 @@ const getPolicyExcelReportDownload = async (req, res) => {
     return workbook;
   };
 
+
+
+/**
+ * @swagger
+ * /api/v1/reports/aggregated/daily/sales:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Aggregated daily policy sales
+ *     operationId: Aggregated dailyPolicySales
+ *     summary: Aggregated daily policy sales
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+const getAggregatedDailyPolicySalesReport = async (req, res) => {
+    try {
+      const query = `
+        SELECT
+          EXTRACT(MONTH FROM policy_paid_date) AS month,
+          EXTRACT(DAY FROM policy_paid_date) AS day,
+          policy_id,
+          SUM(policy_deduction_amount) AS total_amount
+        FROM
+          policies
+        WHERE
+          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day')
+        GROUP BY
+          EXTRACT(MONTH FROM policy_paid_date),
+          EXTRACT(DAY FROM policy_paid_date),
+          policy_id
+        ORDER BY
+          month,
+          day,
+          policy_id;
+      `;
+  
+      // Execute the query using your database connection
+      const results = await db.sequelize.query(
+        query,
+        {
+          replacements: { },
+          type: QueryTypes.SELECT
+        }
+      );
+    
+  console.log('RESULTS', results)
+      // Send the results as a response
+      res.status(200).json(results);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+  
+
+
 module.exports = {
     getPolicySummary,
     getClaimSummary,
     getAllReportSummary,
     getDailyPolicySalesReport,
-    getPolicyExcelReportDownload
+    getPolicyExcelReportDownload,
+    getAggregatedDailyPolicySalesReport
 
 
 }

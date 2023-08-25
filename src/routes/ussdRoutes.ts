@@ -14,7 +14,7 @@ const Users = db.users
 const router = express.Router()
 
 
-const handleUSSDRequest = async (req: any, res:any, menuBuilder: any) => {
+const handleUSSDRequest = async (req: any, res: any, menuBuilder: any) => {
     try {
         console.log(req.body);
         const menu_res = await menuBuilder(req.body, db);
@@ -29,7 +29,7 @@ router.post('/uga', async (req: any, res: any) => {
     await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
 });
 
-router.post('/ken', async (req: any, res:any) => {
+router.post('/ken', async (req: any, res: any) => {
     await handleUSSDRequest(req, res, ussdKenMenuBuilder);
 });
 
@@ -39,7 +39,7 @@ router.post('/ken', async (req: any, res:any) => {
 router.post('/callback', async (req, res) => {
     try {
         console.log(req.body);
-        const { id, status_code, message } = req.body;
+        const { id, status_code, message, airtel_money_id } = req.body;
 
         const transaction = await Transaction.findOne({
             where: {
@@ -72,26 +72,48 @@ router.post('/callback', async (req, res) => {
             }
         });
 
+        if (!policy) {
+            console.log('Policy not found');
+            return res.status(404).json({ message: 'Policy not found' });
+        }
+
         const to = '254' + user.phone_number.substring(1);
         const paymentMessage = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on DD/MM/YY.`;
+        if (status_code == 'TS') {
+            // Send SMS to user
+           await sendSMS(to, paymentMessage);
 
-        sendSMS(to, paymentMessage);
+            await Payment.create({
+                payment_amount: transaction.amount,
+                payment_type: 'airtel money payment',
+                user_id: transaction.user_id,
+                policy_id: transaction.policy_id,
+                payment_status: 'paid',
+                payment_description: message,
+                payment_date: new Date(),
+                payment_metadata: req.body
+            });
 
-        await Payment.create({
-            payment_amount: transaction.amount,
-            payment_type: 'airtel ussd payment',
-            user_id: transaction.user_id,
-            policy_id: transaction.policy_id,
-            payment_status: 'paid',
-            payment_description: message,
-            payment_date: new Date()
-        });
+            console.log('Payment record created successfully');
+            res.status(200).json({ message: 'Payment record created successfully' });
+        } else {
+            await Payment.create({
+                payment_amount: transaction.amount,
+                payment_type: 'airtel money payment',
+                user_id: transaction.user_id,
+                policy_id: transaction.policy_id,
+                payment_status: 'failed',
+                payment_description: message,
+                payment_date: new Date(),
+                payment_metadata: req.body
+            });
 
-        console.log('Payment record created successfully');
-        res.status(200).json({ message: 'Payment record created successfully' });
+            console.log('Payment record created successfully');
+            res.status(200).json({ message: 'Payment record created successfully' });
+        }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 

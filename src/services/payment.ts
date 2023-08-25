@@ -3,6 +3,7 @@ import axios from 'axios';
 import authToken from './auth';
 import { db } from "../models/db";
 require('dotenv').config();
+import { v4 as uuidv4 } from 'uuid';
 
 const User = db.users;
 const Transaction = db.transactions;
@@ -20,7 +21,7 @@ async function airtelMoney(user_id: any, partner_id: any, policy_id: any, phoneN
 
         let user = await User.findOne({
             where: {
-                id: user_id,
+                user_id: user_id,
                 partner_id: partner_id
             }
         })
@@ -52,6 +53,7 @@ async function airtelMoney(user_id: any, partner_id: any, policy_id: any, phoneN
         if (response.data.status.code === 200) {
             // Create a transaction
             let transaction = await Transaction.create({
+                transaction_id: uuidv4(),
                 amount: amount,
                 status: "pending",
                 user_id: user_id,
@@ -61,16 +63,6 @@ async function airtelMoney(user_id: any, partner_id: any, policy_id: any, phoneN
             });
 
             console.log("Transaction", transaction)
-
-            // let data = { payment_status: "paid" };
-
-            // // Update payment
-            // await Payment.update(data, {
-            //     where: {
-            //         policy_id: policy_id,
-            //     },
-            // });
-
 
             return status;
         } else {
