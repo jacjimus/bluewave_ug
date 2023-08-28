@@ -11,10 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../models/db");
 const { Op, QueryTypes } = require("sequelize");
-const moment = require('moment');
+const moment = require("moment");
 const excelJS = require("exceljs");
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 const Policy = db_1.db.policies;
 const User = db_1.db.users;
 const Session = db_1.db.sessions;
@@ -23,43 +23,43 @@ const Product = db_1.db.products;
 const Payment = db_1.db.payments;
 const Partner = db_1.db.partners;
 /**
-    * @swagger
-    * /api/v1/reports/policy/summary:
-    *   get:
-    *     tags:
-    *       - Reports
-    *     description: Policy summary
-    *     operationId: PolicySummary
-    *     summary: Policy summary
-    *     security:
-    *       - ApiKeyAuth: []
-    *     parameters:
-    *       - name: partner_id
-    *         in: query
-    *         required: true
-    *         schema:
-    *           type: number
-    *       - name: today
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *       - name: this_week
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *       - name: this_month
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *     responses:
-    *       200:
-    *         description: Information fetched successfuly
-    *       400:
-    *         description: Invalid request
-    */
+ * @swagger
+ * /api/v1/reports/policy/summary:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Policy summary
+ *     operationId: PolicySummary
+ *     summary: Policy summary
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: today
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - name: this_week
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - name: this_month
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("getPolicySummary");
     try {
@@ -101,19 +101,19 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
             policy = yield Policy.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
         }
         else {
             policy = yield Policy.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
         }
         if (!policy || policy.length === 0) {
@@ -129,8 +129,8 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
         };
         return res.status(200).json({
             result: {
-                items: summary
-            }
+                items: summary,
+            },
         });
     }
     catch (error) {
@@ -138,43 +138,43 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 /**
-    * @swagger
-    * /api/v1/reports/claims/summary:
-    *   get:
-    *     tags:
-    *       - Reports
-    *     description: Claim summary
-    *     operationId: ClaimSummary
-    *     summary: Claim summary
-    *     security:
-    *       - ApiKeyAuth: []
-    *     parameters:
-    *       - name: partner_id
-    *         in: query
-    *         required: true
-    *         schema:
-    *           type: number
-    *       - name: today
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *       - name: this_week
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *       - name: this_month
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *     responses:
-    *       200:
-    *         description: Information fetched successfuly
-    *       400:
-    *         description: Invalid request
-    */
+ * @swagger
+ * /api/v1/reports/claims/summary:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Claim summary
+ *     operationId: ClaimSummary
+ *     summary: Claim summary
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: today
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - name: this_week
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - name: this_month
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log("getClaimSummary");
@@ -215,19 +215,19 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
             claim = yield Claim.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
         }
         else {
             claim = yield Claim.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
         }
         if (claim.length === 0) {
@@ -242,57 +242,59 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
             total_claims_paid: countClaimsByStatus(claim, "paid"),
             total_claims_unpaid: countClaimsByStatus(claim, "unpaid"),
             total_claims_disputed: countClaimsByStatus(claim, "disputed"),
-            total_claims_dispute_resolved: countClaimsByStatus(claim, "dispute_resolved")
+            total_claims_dispute_resolved: countClaimsByStatus(claim, "dispute_resolved"),
         };
         return res.status(200).json({
             result: {
-                items: summary
-            }
+                items: summary,
+            },
         });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res
+            .status(500)
+            .json({ message: "Internal server error", error: error });
     }
 });
 /**
-    * @swagger
-    * /api/v1/reports/summary/all:
-    *   get:
-    *     tags:
-    *       - Reports
-    *     description: Report summary
-    *     operationId: ReportSummary
-    *     summary: Report summary
-    *     security:
-    *       - ApiKeyAuth: []
-    *     parameters:
-    *       - name: partner_id
-    *         in: query
-    *         required: true
-    *         schema:
-    *           type: number
-    *       - name: today
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *       - name: this_week
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *       - name: this_month
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: boolean
-    *     responses:
-    *       200:
-    *         description: Information fetched successfuly
-    *       400:
-    *         description: Invalid request
-    */
+ * @swagger
+ * /api/v1/reports/summary/all:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Report summary
+ *     operationId: ReportSummary
+ *     summary: Report summary
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: today
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - name: this_week
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *       - name: this_month
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const partner_id = req.query.partner_id;
@@ -345,7 +347,7 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
                 total_policies_unpaid: 0,
                 total_policies_partially_paid: 0,
                 total_premium_amount: 0,
-                total_installment_policies: 0
+                total_installment_policies: 0,
             },
             claim: {
                 total_claims: 0,
@@ -371,115 +373,115 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
             },
             session: {
                 total_sessions: 0,
-            }
+            },
         };
         if (partner_id == 1) {
             users = yield User.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
             policies = yield Policy.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
             claims = yield Claim.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
             payments = yield Payment.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
             partners = yield Partner.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
             products = yield Product.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
             sessions = yield Session.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
-                    }
-                }
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
             });
         }
         else {
             users = yield User.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
             policies = yield Policy.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
             claims = yield Claim.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
             payments = yield Payment.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
             partners = yield Partner.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
             products = yield Product.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
             sessions = yield Session.findAll({
                 where: {
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [startDate, endDate],
                     },
-                    partner_id: partner_id
-                }
+                    partner_id: partner_id,
+                },
             });
         }
         // Populate user summary
@@ -493,7 +495,8 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
         summary.policy.total_policies_paid = countPoliciesByStatus(policies, "paid");
         summary.policy.total_policies_partially_paid = countPoliciesByStatus(policies, "partially_paid");
         summary.policy.total_premium_amount = calculateTotalPremiumAmount(policies);
-        summary.policy.total_installment_policies = countInstallmentPolicies(policies);
+        summary.policy.total_installment_policies =
+            countInstallmentPolicies(policies);
         // Populate claim summary
         summary.claim.total_claims = claims.length;
         summary.claim.total_claims_approved = countClaimsByStatus(claims, "approved");
@@ -526,28 +529,33 @@ const countUsersByActivity = (users, isActive) => {
     return users.filter((user) => user.is_active === isActive).length;
 };
 const countPoliciesByStatus = (policies, status) => {
-    return policies.filter((policy) => policy.policy_status === status).length;
+    return policies.filter((policy) => policy.policy_status === status)
+        .length;
 };
 const countPoliciesByInstallementOrder = (policies, installment_order) => {
     return policies.filter((policy) => policy.installment_order === installment_order).length;
 };
 const calculateTotalPremiumAmount = (policies) => {
-    return policies.reduce((total, policy) => total + (policy.policy_deduction_amount * 1), 0);
+    return policies.reduce((total, policy) => total + policy.policy_deduction_amount * 1, 0);
 };
 const countPaymentsByStatus = (payments, status) => {
-    return payments.filter((payment) => payment.payment_status === status).length;
+    return payments.filter((payment) => payment.payment_status === status)
+        .length;
 };
 const countPartnersByActivity = (partners, isActive) => {
-    return partners.filter((partner) => partner.is_active === isActive).length;
+    return partners.filter((partner) => partner.is_active === isActive)
+        .length;
 };
 const countProductsByStatus = (products, status) => {
-    return products.filter((product) => product.product_status === status).length;
+    return products.filter((product) => product.product_status === status)
+        .length;
 };
 const countClaimsByStatus = (claims, status) => {
     return claims.filter((claim) => claim.claim_status === status).length;
 };
 const countInstallmentPolicies = (policies) => {
-    return policies.filter((policy) => policy.installment_order !== 1).length;
+    return policies.filter((policy) => policy.installment_order !== 1)
+        .length;
 };
 /**
  * @swagger
@@ -582,12 +590,12 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
         const dailyResult = yield Policy.findAll({
             where: {
                 createdAt: {
-                    [Op.between]: [startOfDay, today]
+                    [Op.between]: [startOfDay, today],
                 },
-                partner_id: partner_id
-            }
+                partner_id: partner_id,
+            },
         });
-        console.log('DAILY REPORT', dailyResult);
+        console.log("DAILY REPORT", dailyResult);
         // Fetch weekly sales data
         const startOfWeek = new Date(today);
         startOfWeek.setHours(0, 0, 0, 0);
@@ -595,12 +603,12 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
         const weeklyResult = yield Policy.findAll({
             where: {
                 createdAt: {
-                    [Op.between]: [startOfWeek, today]
+                    [Op.between]: [startOfWeek, today],
                 },
-                partner_id: partner_id
-            }
+                partner_id: partner_id,
+            },
         });
-        console.log('WEEKLY REPORT', weeklyResult);
+        console.log("WEEKLY REPORT", weeklyResult);
         // Fetch monthly sales data
         const startOfMonth = new Date(today);
         startOfMonth.setHours(0, 0, 0, 0);
@@ -608,12 +616,12 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
         const monthlyResult = yield Policy.findAll({
             where: {
                 createdAt: {
-                    [Op.between]: [startOfMonth, today]
+                    [Op.between]: [startOfMonth, today],
                 },
-                partner_id: partner_id
-            }
+                partner_id: partner_id,
+            },
         });
-        console.log('MONTHLY REPORT', monthlyResult);
+        console.log("MONTHLY REPORT", monthlyResult);
         // Fetch yearly sales data
         const startOfYear = new Date(today);
         startOfYear.setHours(0, 0, 0, 0);
@@ -621,12 +629,12 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
         const yearlyResult = yield Policy.findAll({
             where: {
                 createdAt: {
-                    [Op.between]: [startOfYear, today]
+                    [Op.between]: [startOfYear, today],
                 },
-                partner_id: partner_id
-            }
+                partner_id: partner_id,
+            },
         });
-        console.log('YEARLY REPORT', yearlyResult);
+        console.log("YEARLY REPORT", yearlyResult);
         const report = {
             daily: countPoliciesByStatus(dailyResult, "paid"),
             weekly: countPoliciesByStatus(weeklyResult, "paid"),
@@ -636,8 +644,8 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
         res.status(200).json(report);
     }
     catch (error) {
-        console.error('Error fetching sales report:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error("Error fetching sales report:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 /**
@@ -691,7 +699,7 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
  *         description: Invalid request
  */
 const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { partner_id, page = 1, limit = 50, filter, start_date, end_date } = req.query;
+    const { partner_id, page = 1, limit = 50, filter, start_date, end_date, } = req.query;
     try {
         const whereClause = {
             partner_id: partner_id,
@@ -714,25 +722,25 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
                 {
                     model: User,
                     as: "user",
-                    attributes: ['first_name', 'last_name', 'phone_number'],
+                    attributes: ["first_name", "last_name", "phone_number"],
                 },
                 {
                     model: Product,
                     as: "product",
-                    attributes: ['product_name'],
+                    attributes: ["product_name"],
                 },
             ],
         };
         let policies = yield Policy.findAll(options);
         if (!policies || policies.length === 0) {
-            return res.status(404).json({ message: 'No policies found' });
+            return res.status(404).json({ message: "No policies found" });
         }
         const workbook = yield generatePolicyExcelReport(policies);
         // Save the workbook to a temporary file
-        const tempFilePath = path.join(__dirname, 'uploads', 'policy_report.xlsx');
+        const tempFilePath = path.join(__dirname, "uploads", "policy_report.xlsx");
         yield workbook.xlsx.writeFile(tempFilePath);
         // Get the base URL from environment variable or use a default
-        const BASE_URL = process.env.BASE_URL || 'http://localhost:4000';
+        const BASE_URL = process.env.BASE_URL || "http://localhost:4000";
         // Generate a unique download token
         const downloadToken = Date.now();
         // Create a URL for the download endpoint including the token
@@ -744,8 +752,8 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
         res.status(200).json({ downloadURL });
     }
     catch (error) {
-        console.error('Error generating Excel report:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error("Error generating Excel report:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 // Download endpoint handler
@@ -753,62 +761,74 @@ const handleDownload = (req, res) => {
     const { token } = req.query;
     // Verify the token and get the file path
     // This is where you check if the token is valid and retrieve the file path
-    const filePath = path.join(__dirname, 'uploads', 'policy_report.xlsx');
+    const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
     // Stream the file for download
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=policy_report.xlsx');
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", "attachment; filename=policy_report.xlsx");
     fs.createReadStream(filePath).pipe(res);
 };
 const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0, function* () {
     const workbook = new excelJS.Workbook(); // Create a new workbook
-    const worksheet = workbook.addWorksheet('Policy Report');
+    const worksheet = workbook.addWorksheet("Policy Report");
     // Define columns for data in Excel. Key must match data key
     worksheet.columns = [
-        { header: 'Product ID', key: 'product_id', width: 20 },
-        { header: 'Full Name', key: 'full_name', width: 20 },
-        { header: 'Phone Number', key: 'phone_number', width: 20 },
-        { header: 'Product Name', key: 'product_name', width: 20 },
-        { header: 'Policy Type', key: 'policy_type', width: 20 },
-        { header: 'Policy Status', key: 'policy_status', width: 20 },
-        { header: 'Policy Start Date', key: 'policy_start_date', width: 20 },
-        { header: 'Policy End Date', key: 'policy_end_date', width: 20 },
-        { header: 'Policy Deduction Amount', key: 'policy_deduction_amount', width: 20 },
-        { header: 'Policy Next Deduction Date', key: 'policy_next_deduction_date', width: 20 },
-        { header: 'Policy Deduction Day', key: 'policy_deduction_day', width: 20 },
-        { header: 'Installment Order', key: 'installment_order', width: 20 },
-        { header: 'Installment Date', key: 'installment_date', width: 20 },
-        { header: 'Installment Alert Date', key: 'installment_alert_date', width: 20 },
-        { header: 'Tax Rate VAT', key: 'tax_rate_vat', width: 20 },
-        { header: 'Tax Rate EXT', key: 'tax_rate_ext', width: 20 },
-        { header: 'Premium', key: 'premium', width: 20 },
-        { header: 'Sum Insured', key: 'sum_insured', width: 20 },
-        { header: 'Excess Premium', key: 'excess_premium', width: 20 },
-        { header: 'Discount Premium', key: 'discount_premium', width: 20 },
-        { header: 'Hospital Details', key: 'hospital_details', width: 20 },
-        { header: 'Policy Documents', key: 'policy_documents', width: 20 },
-        { header: 'Policy Paid Date', key: 'policy_paid_date', width: 20 },
-        { header: 'Policy Paid Amount', key: 'policy_paid_amount', width: 20 },
-        { header: 'Currency Code', key: 'currency_code', width: 20 },
-        { header: 'Country Code', key: 'country_code', width: 20 },
-        { header: 'Customer ID', key: 'user_id', width: 20 },
-        { header: 'Partner ID', key: 'partner_id', width: 20 },
-        { header: 'Created At', key: 'createdAt', width: 20 },
-        { header: 'Updated At', key: 'updatedAt', width: 20 },
+        { header: "Product ID", key: "product_id", width: 20 },
+        { header: "Full Name", key: "full_name", width: 20 },
+        { header: "Phone Number", key: "phone_number", width: 20 },
+        { header: "Product Name", key: "product_name", width: 20 },
+        { header: "Policy Type", key: "policy_type", width: 20 },
+        { header: "Policy Status", key: "policy_status", width: 20 },
+        { header: "Policy Start Date", key: "policy_start_date", width: 20 },
+        { header: "Policy End Date", key: "policy_end_date", width: 20 },
+        {
+            header: "Policy Deduction Amount",
+            key: "policy_deduction_amount",
+            width: 20,
+        },
+        {
+            header: "Policy Next Deduction Date",
+            key: "policy_next_deduction_date",
+            width: 20,
+        },
+        { header: "Policy Deduction Day", key: "policy_deduction_day", width: 20 },
+        { header: "Installment Order", key: "installment_order", width: 20 },
+        { header: "Installment Date", key: "installment_date", width: 20 },
+        {
+            header: "Installment Alert Date",
+            key: "installment_alert_date",
+            width: 20,
+        },
+        { header: "Tax Rate VAT", key: "tax_rate_vat", width: 20 },
+        { header: "Tax Rate EXT", key: "tax_rate_ext", width: 20 },
+        { header: "Premium", key: "premium", width: 20 },
+        { header: "Sum Insured", key: "sum_insured", width: 20 },
+        { header: "Excess Premium", key: "excess_premium", width: 20 },
+        { header: "Discount Premium", key: "discount_premium", width: 20 },
+        { header: "Hospital Details", key: "hospital_details", width: 20 },
+        { header: "Policy Documents", key: "policy_documents", width: 20 },
+        { header: "Policy Paid Date", key: "policy_paid_date", width: 20 },
+        { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
+        { header: "Currency Code", key: "currency_code", width: 20 },
+        { header: "Country Code", key: "country_code", width: 20 },
+        { header: "Customer ID", key: "user_id", width: 20 },
+        { header: "Partner ID", key: "partner_id", width: 20 },
+        { header: "Created At", key: "createdAt", width: 20 },
+        { header: "Updated At", key: "updatedAt", width: 20 },
     ];
     policies.forEach((policy) => {
         worksheet.addRow({
             policy_id: policy.policy_id,
-            policy_date: moment(policy.policy_date).format('YYYY-MM-DD'),
+            policy_date: moment(policy.policy_date).format("YYYY-MM-DD"),
             policy_number: policy.policy_number,
             policy_status: policy.policy_status,
-            policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD'),
-            policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD'),
+            policy_start_date: moment(policy.policy_start_date).format("YYYY-MM-DD"),
+            policy_end_date: moment(policy.policy_end_date).format("YYYY-MM-DD"),
             policy_deduction_amount: policy.policy_deduction_amount,
-            policy_next_deduction_date: moment(policy.policy_next_deduction_date).format('YYYY-MM-DD'),
+            policy_next_deduction_date: moment(policy.policy_next_deduction_date).format("YYYY-MM-DD"),
             policy_deduction_day: policy.policy_deduction_day,
             installment_order: policy.installment_order,
-            installment_date: moment(policy.installment_date).format('YYYY-MM-DD'),
-            installment_alert_date: moment(policy.installment_alert_date).format('YYYY-MM-DD'),
+            installment_date: moment(policy.installment_date).format("YYYY-MM-DD"),
+            installment_alert_date: moment(policy.installment_alert_date).format("YYYY-MM-DD"),
             tax_rate_vat: policy.tax_rate_vat,
             tax_rate_ext: policy.tax_rate_ext,
             premium: policy.premium,
@@ -817,19 +837,19 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             discount_premium: policy.discount_premium,
             hospital_details: policy.hospital_details,
             policy_documents: policy.policy_documents,
-            policy_paid_date: moment(policy.policy_paid_date).format('YYYY-MM-DD'),
+            policy_paid_date: moment(policy.policy_paid_date).format("YYYY-MM-DD"),
             policy_paid_amount: policy.policy_paid_amount,
             currency_code: policy.currency_code,
             country_code: policy.country_code,
             product_id: policy.product_id,
             user_id: policy.user_id,
             partner_id: policy.partner_id,
-            createdAt: moment(policy.createdAt).format('YYYY-MM-DD'),
-            updatedAt: moment(policy.updatedAt).format('YYYY-MM-DD'),
+            createdAt: moment(policy.createdAt).format("YYYY-MM-DD"),
+            updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
             policy_type: policy.policy_type,
             full_name: `${policy.user.first_name} ${policy.user.last_name}`,
             phone_number: policy.user.phone_number,
-            product_name: policy.product.product_name
+            product_name: policy.product.product_name,
         });
     });
     return workbook;
@@ -881,15 +901,15 @@ const getAggregatedDailyPolicySalesReport = (req, res) => __awaiter(void 0, void
         // Execute the query using your database connection
         const results = yield db_1.db.sequelize.query(query, {
             replacements: { partner_id: req.query.partner_id },
-            type: QueryTypes.SELECT
+            type: QueryTypes.SELECT,
         });
-        console.log('RESULTS', results);
+        console.log("RESULTS", results);
         // Send the results as a response
         res.status(200).json(results);
     }
     catch (error) {
         console.log(error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: "Internal server error" });
     }
 });
 module.exports = {
@@ -899,5 +919,5 @@ module.exports = {
     getDailyPolicySalesReport,
     getPolicyExcelReportDownload,
     getAggregatedDailyPolicySalesReport,
-    handleDownload
+    handleDownload,
 };

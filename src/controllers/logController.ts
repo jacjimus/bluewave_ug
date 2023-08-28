@@ -54,8 +54,6 @@ const SessionModel = db.sessions;
         const offset = (page - 1) * limit;
       const {logs, totalLogsCount } = await fetchLogsFromDatabase( partner_id, user_id, offset, limit);
 
-
-      
       res.status(200).json({
         message: 'Information fetched successfully',
         logs: logs,
@@ -180,7 +178,6 @@ const SessionModel = db.sessions;
       whereCondition.user_id = user_id;
     }
   
-    
     // Example query using Sequelize
     let sessions = await SessionModel.findAll({
       where: whereCondition,
@@ -196,9 +193,6 @@ const SessionModel = db.sessions;
     return { sessions, totalSessionsCount };
   };
   
-
- 
-
 module.exports = {
     getLogs ,
     getSessions

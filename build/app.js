@@ -27,39 +27,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cookieParser = require('cookie-parser');
-const userRoutes = require('./src/routes/userRoutes');
-const policyRoutes = require('./src/routes/policyRoutes');
-const paymentRoutes = require('./src/routes/paymentRoutes');
-const claimRoutes = require('./src/routes/claimRoutes');
-const ussdRoutes = require('./src/routes/ussdRoutes');
-const reportRoutes = require('./src/routes/reportRoutes');
-const productRoutes = require('./src/routes/productRoutes');
-const generalRoutes = require('./src/routes/generalRoutes');
-const logRoutes = require('./src/routes/logRoutes');
-const loggingMiddleware = require('./src/middleware/loggingMiddleware');
+const cookieParser = require("cookie-parser");
+const userRoutes = require("./src/routes/userRoutes");
+const policyRoutes = require("./src/routes/policyRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
+const claimRoutes = require("./src/routes/claimRoutes");
+const ussdRoutes = require("./src/routes/ussdRoutes");
+const reportRoutes = require("./src/routes/reportRoutes");
+const productRoutes = require("./src/routes/productRoutes");
+const generalRoutes = require("./src/routes/generalRoutes");
+const logRoutes = require("./src/routes/logRoutes");
+const loggingMiddleware = require("./src/middleware/loggingMiddleware");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
-const fs = require('fs');
-const morgan = require('morgan');
-const path = require('path');
-const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+const fs = require("fs");
+const morgan = require("morgan");
+const path = require("path");
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
-app.disable('etag').disable('x-powered-by');
+app.disable("etag").disable("x-powered-by");
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use((0, cors_1.default)());
 app.use(loggingMiddleware);
 // log only 4xx and 5xx responses to console
-app.use(morgan('dev', {
-    skip: function (req, res) { return res.statusCode < 400; }
+app.use(morgan("dev", {
+    skip: function (req, res) {
+        return res.statusCode < 400;
+    },
 }));
 // log all requests to access.log
-app.use(morgan('common', {
-    stream: fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+app.use(morgan("common", {
+    stream: fs.createWriteStream(path.join(__dirname, "access.log"), {
+        flags: "a",
+    }),
 }));
 // const mongoURI = 'mongodb+srv://dickens:ugPUWKvrnAuiTs8@cluster0.yeyah.mongodb.net/bluewavedb?retryWrites=true&w=majority';
 // // Connect to MongoDB
@@ -75,27 +79,27 @@ app.use(morgan('common', {
 // Swagger configuration options
 const swaggerOptions = {
     definition: {
-        openapi: '3.0.0',
+        openapi: "3.0.0",
         info: {
-            title: 'BLUEWAVE API Documentation',
-            version: '1.0.0',
-            description: 'BLUEWAVE API Documentation',
+            title: "BLUEWAVE API Documentation",
+            version: "1.0.0",
+            description: "BLUEWAVE API Documentation",
         },
         components: {
             securitySchemes: {
                 ApiKeyAuth: {
                     scheme: "bearer",
-                    type: "http"
-                }
-            }
+                    type: "http",
+                },
+            },
         },
     },
     // List of files containing API routes to be documented
-    apis: ['./src/controllers/*.ts'],
+    apis: ["./src/controllers/*.ts"],
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 // Serve Swagger API documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const errorHandler = (error, req, res, next) => {
     // Error handling middleware functionality
     console.log(`error ${error.message}`); // log the error
@@ -104,18 +108,18 @@ const errorHandler = (error, req, res, next) => {
     res.status(status).send(error.message);
 };
 //route health check
-app.get('/status', (req, res) => res.send({ status: "I'm up and running" }));
+app.get("/status", (req, res) => res.send({ status: "I'm up and running" }));
 //routes for the user API
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/policies', policyRoutes);
-app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/claims', claimRoutes);
-app.use('/api/v1/reports', reportRoutes);
-app.use('/api/v1/products', productRoutes);
-app.use('/api/v1/documents', generalRoutes);
-app.use('/api/v1/logs', logRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/policies", policyRoutes);
+app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/claims", claimRoutes);
+app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/documents", generalRoutes);
+app.use("/api/v1/logs", logRoutes);
 app.use(errorHandler);
 // USSD ROUTE
-app.use('/api/v1/ussd', ussdRoutes);
+app.use("/api/v1/ussd", ussdRoutes);
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

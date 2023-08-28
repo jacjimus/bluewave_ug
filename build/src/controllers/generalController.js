@@ -72,22 +72,6 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // Return the URL of the uploaded file
         const fileUrl = uploadResult.Location;
         return res.json({ message: 'File uploaded successfully', fileUrl });
-        //   // Process the uploaded file here
-        //   const filePath = req.file.path;
-        //   // Perform any necessary operations on the file, such as reading, writing, or saving to a database
-        //   // Example: Read the contents of the file
-        //   const fileContent = fs.readFileSync(filePath, 'utf8');
-        //   console.log('File content:', fileContent);
-        //   // Example: Save the file to a database
-        //   const fileData = {
-        //     filename: req.file.originalname,
-        //     path: req.file.path,
-        //     // Add any other relevant information about the file
-        //   };
-        // //   const savedFile = await FileModel.create(fileData);
-        // //   console.log('File saved:', savedFile);
-        // Example: Respond with success message and the saved file data
-        // return res.status(200).json({ message: 'File uploaded successfully', file: fileData });
     }
     catch (error) {
         console.log(error);

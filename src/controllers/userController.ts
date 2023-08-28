@@ -1,11 +1,15 @@
 const bcrypt = require("bcrypt");
 import { db } from "../models/db";
 const jwt = require("jsonwebtoken");
-const dotenv = require('dotenv').config()
-import { isValidKenyanPhoneNumber, getRandomInt, isValidEmail } from "../services/utils";
+const dotenv = require("dotenv").config();
+import {
+  isValidKenyanPhoneNumber,
+  getRandomInt,
+  isValidEmail,
+} from "../services/utils";
 const { Op } = require("sequelize");
-const XLSX = require('xlsx');
-import { v4 as uuidv4 } from 'uuid';
+const XLSX = require("xlsx");
+import { v4 as uuidv4 } from "uuid";
 
 // Assigning users to the variable User
 const User = db.users;
@@ -17,71 +21,90 @@ async function getUserFunc(user_id: string, partner_id: number) {
   let user = await User.findOne({
     where: {
       user_id: user_id,
-      partner_id: partner_id
+      partner_id: partner_id,
     },
   });
   //remove password from the response
   if (user) {
     delete user.dataValues.password;
     delete user.dataValues.pin;
-
   }
   return user;
-
 }
 
 /** @swagger
-  * /api/v1/users/signup:
-  *   post:
-  *     tags:
-  *       - Users
-  *     description: Register User
-  *     operationId: registerUser
-  *     summary: Register User
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfully
-  *       400:
-  *         description: Invalid request
-  */
-
+ * /api/v1/users/signup:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: Register User
+ *     operationId: registerUser
+ *     summary: Register User
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
 const signup = async (req: any, res: any) => {
-
   try {
-    const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height,   driver_licence,voter_id } = req.body;
+    const {
+      first_name,
+      middle_name,
+      last_name,
+      email,
+      password,
+      phone_number,
+      national_id,
+      dob,
+      gender,
+      marital_status,
+      addressline,
+      nationality,
+      title,
+      pinzip,
+      weight,
+      height,
+      driver_licence,
+      voter_id,
+    } = req.body;
 
-    let  partner_id = req.query.partner_id || req.body.partner_id
+    let partner_id = req.query.partner_id || req.body.partner_id;
 
-    if (!first_name || !last_name || !email || !password || !phone_number || !partner_id) {
+    if (
+      !first_name ||
+      !last_name ||
+      !email ||
+      !password ||
+      !phone_number ||
+      !partner_id
+    ) {
       return res.status(400).json({ message: "Please provide all fields" });
-
     }
-
 
     // if (!isValidKenyanPhoneNumber(phone_number)) {
     //   return res.status(400).json({ message: "Please enter a valid phone number" });
     // }
     if (!isValidEmail(email)) {
-
       return res.status(400).json({ message: "Please enter a valid email" });
     }
     let nationalId = national_id.toString();
     // if (nationalId.length !== 8) {
     //   return res.status(400).json({ message: "National ID should be 8 digits" });
     // }
-    //create a user interface 
+    //create a user interface
     interface Person {
       id: number;
       membership_id: number;
@@ -98,7 +121,7 @@ const signup = async (req: any, res: any) => {
       pin: number;
       role: string;
       dob: Date;
-      gender: string
+      gender: string;
       marital_status: string;
       addressline: string;
       nationality: string;
@@ -109,17 +132,15 @@ const signup = async (req: any, res: any) => {
       partner_id: number;
       driver_licence: string;
       voter_id: string;
-
     }
 
     // Generate a random integer for the primary key
     let randomId = getRandomInt(10000000, 99999999);
 
-    let userIDcheck: any = await User.findAll({ where: { id: randomId } })
+    let userIDcheck: any = await User.findAll({ where: { id: randomId } });
     if (userIDcheck.length > 0) {
       randomId = getRandomInt(10000000, 99999999);
     }
-
 
     const userData: Person = {
       id: randomId,
@@ -127,7 +148,7 @@ const signup = async (req: any, res: any) => {
       first_name,
       middle_name,
       last_name,
-      name : first_name + " " + last_name,
+      name: first_name + " " + last_name,
       email,
       phone_number,
       national_id,
@@ -148,26 +169,27 @@ const signup = async (req: any, res: any) => {
       partner_id,
       driver_licence,
       voter_id,
-    
     };
-  
-    userData.name = first_name + " " + last_name
+
+    userData.name = first_name + " " + last_name;
 
     //checking if the user already exists
-    let user: any = await User.findAll({ where: { email: email } })
-
+    let user: any = await User.findAll({ where: { email: email } });
 
     //check if national id exists
-    let nationalIdExists: any = await User.findAll({ where: { national_id: national_id } })
+    let nationalIdExists: any = await User.findAll({
+      where: { national_id: national_id },
+    });
     //check if phone number exists
-    let phoneNumberExists: any = await User.findAll({ where: { phone_number: phone_number } })
+    let phoneNumberExists: any = await User.findAll({
+      where: { phone_number: phone_number },
+    });
     if (nationalIdExists && nationalIdExists.length > 0) {
       return res.status(409).json({ message: "National ID already exists" });
     }
     if (phoneNumberExists && phoneNumberExists.length > 0) {
       return res.status(409).json({ message: "Phone number already exists" });
     }
-
 
     if (user && user.length > 0) {
       return res.status(409).json({ message: "User already exists" });
@@ -180,52 +202,87 @@ const signup = async (req: any, res: any) => {
 
     // set cookie with the token generated
     if (newUser) {
-      let token = jwt.sign({ id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
-        expiresIn: 1 * 24 * 60 * 60 * 1000,
-      });
+      let token = jwt.sign(
+        { id: newUser.user_id, role: newUser.role },
+        process.env.JWT_SECRET || "apple123",
+        {
+          expiresIn: 1 * 24 * 60 * 60 * 1000,
+        }
+      );
 
       res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
       console.log(token);
       //send users details
 
-      return res.status(201).json({ result:{message: "User login successfully", token: token, user: newUser } });
+      return res
+        .status(201)
+        .json({
+          result: {
+            message: "User login successfully",
+            token: token,
+            user: newUser,
+          },
+        });
     }
   } catch (error) {
-    console.log("ERROR", error)
+    console.log("ERROR", error);
     return res.status(409).send("Details are not correct");
-
   }
 };
 
 //partnerRegistration
 
 /** @swagger
-  * /api/v1/users/partner/register:
-  *   post:
-  *     tags:
-  *       - Partner
-  *     description: Register a partner
-  *     operationId: registerPartner
-  *     summary: Register a partner
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfully
-  *       400:
-  *         description: Invalid request
-  */
+ * /api/v1/users/partner/register:
+ *   post:
+ *     tags:
+ *       - Partner
+ *     description: Register a partner
+ *     operationId: registerPartner
+ *     summary: Register a partner
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
 
 const partnerRegistration = async (req: any, res: any) => {
-  const { partner_name, partner_id, business_name, business_type, business_category, business_address, country, email, phone_number, password } = req.body;
+  const {
+    partner_name,
+    partner_id,
+    business_name,
+    business_type,
+    business_category,
+    business_address,
+    country,
+    email,
+    phone_number,
+    password,
+  } = req.body;
   try {
     //signup a partner
-    if (!partner_name || !partner_id || !business_name || !business_type || !business_category || !business_address || !country || !email || !phone_number || !password) {
-      return res.status(400).json({ message: "Please fill all the required fields" });
+    if (
+      !partner_name ||
+      !partner_id ||
+      !business_name ||
+      !business_type ||
+      !business_category ||
+      !business_address ||
+      !country ||
+      !email ||
+      !phone_number ||
+      !password
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Please fill all the required fields" });
     }
     const partnerData = {
       partner_name,
@@ -241,7 +298,7 @@ const partnerRegistration = async (req: any, res: any) => {
     };
 
     //checking if the partner already exists using email and partner id
-    let partner: any = await Partner.findOne({ where: { email: email } })
+    let partner: any = await Partner.findOne({ where: { email: email } });
     if (partner && partner.length > 0) {
       return res.status(409).json({ message: "Partner already exists" });
     }
@@ -251,60 +308,56 @@ const partnerRegistration = async (req: any, res: any) => {
 
     // set cookie with the token generated
     if (newPartner) {
-
-      return res.status(201).json({ message: "Partner registered successfully", partner: newPartner });
+      return res
+        .status(201)
+        .json({
+          message: "Partner registered successfully",
+          partner: newPartner,
+        });
     }
-
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
-
-
   }
-
-}
-
-
-
-
+};
 
 /**
  * @swagger
-  * /api/v1/users/login:
-  *   post:
-  *     tags:
-  *      - Users
-  *     summary: Authenticate user
-  *     description: Returns a JWT token upon successful login
-  *     security:
-  *       - bearerAuth: []
-  *     requestBody:
-  *       required: true
-  *       content:
-  *         application/json:
-  *           schema:
-  *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd@" }
-  *     responses:
-  *       200:
-  *         description: Successful authentication
-  */
+ * /api/v1/users/login:
+ *   post:
+ *     tags:
+ *      - Users
+ *     summary: Authenticate user
+ *     description: Returns a JWT token upon successful login
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd@" }
+ *     responses:
+ *       200:
+ *         description: Successful authentication
+ */
 const login = async (req: any, res: any) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Please provide an email and password" });
+      return res
+        .status(400)
+        .json({ message: "Please provide an email and password" });
     }
 
     //find a user by their email
     const user = await User.findOne({
       where: {
-        email: email
-      }
-
+        email: email,
+      },
     });
     //console.log("USER",user)
-    console.log(!user, user.length == 0)
+    console.log(!user, user.length == 0);
     if (!user || user.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -314,22 +367,35 @@ const login = async (req: any, res: any) => {
       const isSame = await bcrypt.compare(password, user.password);
       //generate token with the user's id and the secretKey in the env file
       if (isSame) {
-        let token = jwt.sign({ id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
-          expiresIn: 1 * 24 * 60 * 60 * 1000,
-        });
+        let token = jwt.sign(
+          { id: user.user_id, role: user.role, partner_id: user.partner_id },
+          process.env.JWT_SECRET || "apple123",
+          {
+            expiresIn: 1 * 24 * 60 * 60 * 1000,
+          }
+        );
 
         //go ahead and generate a cookie for the user
         res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
         console.log(token);
         //remove password from the user object
         user.password = undefined;
-        return res.status(201).json({ result: { message: "User login successfully", token: token, user: user }});
+        return res
+          .status(201)
+          .json({
+            result: {
+              message: "User login successfully",
+              token: token,
+              user: user,
+            },
+          });
       }
     }
   } catch (error) {
-    console.log("ERROR", error)
-    return res.status(400).json({ message: "Invalid credentials", error: error });
-
+    console.log("ERROR", error);
+    return res
+      .status(400)
+      .json({ message: "Invalid credentials", error: error });
   }
 };
 
@@ -458,8 +524,6 @@ const getUsers = async (req: any, res: any) => {
       user.dataValues.number_of_policies = policies.length;
     }
 
-
-  
     if (users && users.length > 0) {
       status.result = users;
       return res.status(200).json({
@@ -469,105 +533,124 @@ const getUsers = async (req: any, res: any) => {
     return res.status(404).json({ message: "No users found" });
   } catch (error) {
     console.log("ERROR", error);
-    return res.status(500).json({ message: "Internal server error", error: error });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error });
   }
 };
 
 /**
-  * @swagger
-  * /api/v1/users/{user_id}:
-  *   get:
-  *     tags:
-  *       - Users
-  *     description: Get User
-  *     operationId: getUser
-  *     summary: Get User
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: user_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: string
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/users/{user_id}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     description: Get User
+ *     operationId: getUser
+ *     summary: Get User
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getUser = async (req: any, res: any) => {
   try {
-    let user_id = req.params.user_id
-    let partner_id = req.query.partner_id 
+    let user_id = req.params.user_id;
+    let partner_id = req.query.partner_id;
 
     let user: any = await getUserFunc(user_id, partner_id);
-    console.log(user)
+    console.log(user);
 
     if (!user || user.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
-
     }
 
-     //GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
-
-      let policies = await Policy.findAll({
-        where: {
-          user_id: user.user_id,
-        },
-
-      });
-      user.dataValues.number_of_policies = policies.length;
-    return res.status(200).json({ result: { message: "User fetched successfully", item: user } });
+    //GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
+    let policies = await Policy.findAll({
+      where: {
+        user_id: user.user_id,
+      },
+    });
+    user.dataValues.number_of_policies = policies.length;
+    return res
+      .status(200)
+      .json({ result: { message: "User fetched successfully", item: user } });
   } catch (error) {
-    console.log("ERROR", error)
-    return res.status(500).json({ message: "Internal server error", error: error });
+    console.log("ERROR", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error });
   }
-}
-
-
+};
 
 /** @swagger
-  * /api/v1/users/{user_id}:
-  *   put:
-  *     tags:
-  *       - Users
-  *     description: Update User
-  *     operationId: updateUser
-  *     summary: update User
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: user_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: string
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfully
-  *       400:
-  *         description: Invalid request
-  */
+ * /api/v1/users/{user_id}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     description: Update User
+ *     operationId: updateUser
+ *     summary: update User
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
 
 const updateUser = async (req: any, res: any) => {
   try {
-    const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, 
-      addressline, nationality, title, pinzip, weight, height,  driver_licence, voter_id } = req.body;
+    const {
+      first_name,
+      middle_name,
+      last_name,
+      email,
+      password,
+      phone_number,
+      national_id,
+      dob,
+      gender,
+      marital_status,
+      addressline,
+      nationality,
+      title,
+      pinzip,
+      weight,
+      height,
+      driver_licence,
+      voter_id,
+    } = req.body;
 
     let user: any = getUserFunc(req.params.user_id, req.query.partner_id);
 
@@ -575,8 +658,6 @@ const updateUser = async (req: any, res: any) => {
     if (!user || user.length === 0) {
       return res.status(404).json({ message: "No user found" });
     }
-
-   
 
     const data = {
       first_name,
@@ -600,8 +681,7 @@ const updateUser = async (req: any, res: any) => {
       height,
       partner_id: req.query.partner_id,
       driver_licence,
-      voter_id
-
+      voter_id,
     };
     //saving the user
     const updatedUser = await User.update(data, {
@@ -610,10 +690,16 @@ const updateUser = async (req: any, res: any) => {
       },
     });
     //send users details
-    return res.status(201).json({result:{message: "User updated successfully", item: updatedUser}  });
+    return res
+      .status(201)
+      .json({
+        result: { message: "User updated successfully", item: updatedUser },
+      });
   } catch (error) {
     console.log(error);
-    return res.status(409).json({ message: "Details are not correct" , error: error});
+    return res
+      .status(409)
+      .json({ message: "Details are not correct", error: error });
   }
 };
 
@@ -626,113 +712,122 @@ const deleteUser = async (req: any, res) => {
       },
     });
     //send users details
-    return res.status(201).json({ result:{ message: "User deleted successfully"} })
+    return res
+      .status(201)
+      .json({ result: { message: "User deleted successfully" } });
   } catch (error) {
-    console.log("ERROR", error)
+    console.log("ERROR", error);
     return res.status(409).send("Details are not correct");
   }
 };
 
 /**
-  * @swagger
-  * /api/v1/users/partner:
-  *   get:
-  *     tags:
-  *       - Partner
-  *     description: Get Partner
-  *     operationId: getPartner
-  *     summary: Get Partner
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/users/partner:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     description: Get Partner
+ *     operationId: getPartner
+ *     summary: Get Partner
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getPartner = async (req: any, res: any) => {
   try {
-    let partner_id = req.query.partner_id 
+    let partner_id = req.query.partner_id;
 
-   let partner: any = await Partner.findOne({
-
-      where: {  
-        partner_id: partner_id  
+    let partner: any = await Partner.findOne({
+      where: {
+        partner_id: partner_id,
       },
     });
-    console.log(partner)
+    console.log(partner);
 
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "No partner found" });
     }
-    return res.status(200).json({ result: { message: "partner fetched successfully", item: partner } });
+    return res
+      .status(200)
+      .json({
+        result: { message: "partner fetched successfully", item: partner },
+      });
   } catch (error) {
-    console.log("ERROR", error)
-    return res.status(500).json({ message: "Internal server error", error: error });
+    console.log("ERROR", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error });
   }
-}
+};
 
 //partner switch
 /**
-  * @swagger
-  * /api/v1/users/partnerSwitch:
-  *   post:
-  *     tags:
-  *       - Partner
-  *     description: Partner Switch
-  *     operationId:  partnerSwitch
-  *     summary: Partner Switch
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
-const partnerSwitch = async (req: any, res: any) =>{
+ * @swagger
+ * /api/v1/users/partnerSwitch:
+ *   post:
+ *     tags:
+ *       - Partner
+ *     description: Partner Switch
+ *     operationId:  partnerSwitch
+ *     summary: Partner Switch
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+const partnerSwitch = async (req: any, res: any) => {
   try {
-      let partner_id_to_update = req.query.partner_id
-      let user_id = req.user.user_id;
-      
-      let partner_id = req.user.partner_id;
-    
+    let partner_id_to_update = req.query.partner_id;
+    let user_id = req.user.user_id;
 
-      let partner = await Partner.findOne({
-          where: {
-              id: Number(partner_id)
-          },
-      });
-      console.log("PARTNER",partner);
-      if (!partner || partner.length === 0) {
-        return res.status(404).json({ item: 0, message: "No partner found" });
-      }
-//update the partner id
-    let updatedUser = await User.update({ partner_id: partner_id_to_update }, { where: { user_id: user_id } });
-      //saving the user
-     
-      //send users details
-      console.log("updated user" ,updatedUser);
-      return res.status(201).json({ message: "Partner updated successfully"});
-  }
-  catch (error) {
-      console.log("ERROR", error);
-      return res.status(500).json({ message: "Internal server error", error: error });
-  }
+    let partner_id = req.user.partner_id;
 
-}
+    let partner = await Partner.findOne({
+      where: {
+        id: Number(partner_id),
+      },
+    });
+    console.log("PARTNER", partner);
+    if (!partner || partner.length === 0) {
+      return res.status(404).json({ item: 0, message: "No partner found" });
+    }
+    //update the partner id
+    let updatedUser = await User.update(
+      { partner_id: partner_id_to_update },
+      { where: { user_id: user_id } }
+    );
+    //saving the user
+
+    //send users details
+    console.log("updated user", updatedUser);
+    return res.status(201).json({ message: "Partner updated successfully" });
+  } catch (error) {
+    console.log("ERROR", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error });
+  }
+};
 
 /**
  * @swagger
@@ -766,15 +861,14 @@ const partnerSwitch = async (req: any, res: any) =>{
 const bulkUserRegistration = async (req: any, res: any) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-
+      return res.status(400).json({ message: "No file uploaded" });
     }
-    
+
     const partner_id = req.query.partner_id;
     const excel_file = req.file;
 
     // Read the uploaded Excel file
-    const workbook = XLSX.read(excel_file.buffer, {type:"buffer"});
+    const workbook = XLSX.read(excel_file.buffer, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
     // Convert worksheet data to an array of objects
@@ -784,43 +878,46 @@ const bulkUserRegistration = async (req: any, res: any) => {
     const createdUsers = [];
 
     for (const userData of userDataArray) {
-      console.log("USER DATA",userData);
+      console.log("USER DATA", userData);
       // Convert keys to lowercase
-  const lowerCaseUserData:any = Object.keys(userData).reduce((acc, key) => {
-    acc[key.toLowerCase()] = userData[key];
-    return acc;
-  }, {});
+      const lowerCaseUserData: any = Object.keys(userData).reduce(
+        (acc, key) => {
+          acc[key.toLowerCase()] = userData[key];
+          return acc;
+        },
+        {}
+      );
 
-  console.log("USER DATA",lowerCaseUserData);
+      console.log("USER DATA", lowerCaseUserData);
 
-  const {
-    first_name,
-    middle_name,
-    last_name,
-    email,
-    phone_number,
-    national_id,
-    dob,
-    gender,
-    marital_status,
-    addressline,
-    nationality,
-    title,
-    pinzip,
-    weight,
-    height,
-    driver_licence,
-    voter_id
-  } = lowerCaseUserData;
+      const {
+        first_name,
+        middle_name,
+        last_name,
+        email,
+        phone_number,
+        national_id,
+        dob,
+        gender,
+        marital_status,
+        addressline,
+        nationality,
+        title,
+        pinzip,
+        weight,
+        height,
+        driver_licence,
+        voter_id,
+      } = lowerCaseUserData;
 
       // Create a user object using the   data
       const user_data = {
         user_id: uuidv4(),
-        membership_id : Math.floor(100000 + Math.random() * 900000),
+        membership_id: Math.floor(100000 + Math.random() * 900000),
         first_name,
         middle_name,
         last_name,
-        name : first_name + " " + middle_name + " " + last_name,
+        name: first_name + " " + middle_name + " " + last_name,
         email,
         phone_number,
         national_id,
@@ -848,10 +945,12 @@ const bulkUserRegistration = async (req: any, res: any) => {
       createdUsers.push(createdUser);
     }
 
-    return res.status(200).json({ message: 'Users created successfully', items:createdUsers });
+    return res
+      .status(200)
+      .json({ message: "Users created successfully", items: createdUsers });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -868,9 +967,6 @@ const createUserFunction = async (userData: any) => {
   }
 };
 
-
-
-
 module.exports = {
   signup,
   login,
@@ -881,69 +977,5 @@ module.exports = {
   deleteUser,
   partnerRegistration,
   partnerSwitch,
-  bulkUserRegistration
-
+  bulkUserRegistration,
 };
-
-// [
-//   {
-//    "FIRST_NAME": "John4",
-//    "MIDDLE_NAME": "White4",
-//    "LAST_NAME": "Doe",
-//    "EMAIL": "test4@gmail.com",
-//    "PHONE_NUMBER": "0745454656",
-//    "NATIONAL_ID": "24885858",
-//    "DOB": "1992-12-02",
-//    "GENDER": "M",
-//    "MARITAL_STATUS": "single",
-//    "ADDRESSLINE": "Nairobi",
-//    "NATIONALITY": "Kenyan",
-//    "TITLE": "Mr",
-//    "PINZIP": "00100",
-//    "WEIGHT": "70",
-//    "HEIGHT": "170",
-//    "DRIVER_LICENCE": "DRC123456789",
-//    "voter_id": "45332344",
-//    "PARTNER_ID": "2"
-//   },
-//   {
-//    "FIRST_NAME": "John5",
-//    "MIDDLE_NAME": "White5",
-//    "LAST_NAME": "Doe",
-//    "EMAIL": "test5@gmail.com",
-//    "PHONE_NUMBER": "0754546568",
-//    "NATIONAL_ID": "25885858",
-//    "DOB": "1990-12-12",
-//    "GENDER": "M",
-//    "MARITAL_STATUS": "single",
-//    "ADDRESSLINE": "Nairobi",
-//    "NATIONALITY": "Kenyan",
-//    "TITLE": "Mr",
-//    "PINZIP": "00100",
-//    "WEIGHT": "60",
-//    "HEIGHT": "150",
-//    "DRIVER_LICENCE": "DRC123456789",
-//    "VOTER_ID": "25322344",
-//    "PARTNER_ID": "2"
-//   },
-//   {
-//    "FIRST_NAME": "John6",
-//    "MIDDLE_NAME": "White6",
-//    "LAST_NAME": "Doe",
-//    "EMAIL": "test6@gmail.com",
-//    "PHONE_NUMBER": 756546568,
-//    "NATIONAL_ID": 26885858,
-//    "DOB": "1990-12-12",
-//    "GENDER": "M",
-//    "MARITAL_STATUS": "single",
-//    "ADDRESSLINE": "Nairobi",
-//    "NATIONALITY": "Kenyan",
-//    "TITLE": "Mr",
-//    "PINZIP": "00100",
-//    "WEIGHT": 90,
-//    "HEIGHT": 154,
-//    "DRIVER_LICENCE": "DRC123456789",
-//    "VOTER_ID": "25322344",
-//   "PARTNER_ID": "2"
-//  }
-// ]

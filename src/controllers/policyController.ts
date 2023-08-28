@@ -194,6 +194,8 @@ const getPolicies = async (req: any, res: any) => {
       return res.status(500).json({ message: "Internal server error", error: error });
     }
   };
+
+
 /**
  * @swagger
  * /api/v1/policies/{policy_id}:
@@ -223,13 +225,9 @@ const getPolicies = async (req: any, res: any) => {
  *         description: Invalid request
  */
 const getPolicy = async (req: any, res: any) => {
-    let status = {
-        code: 200,
-        result: {},
-    };
     try {
-        const policy_id = req.params.policy_id
-        const partner_id = req.query.partner_id
+        const policy_id = req.params.policy_id;
+        const partner_id = req.query.partner_id;
         
         const policy = await Policy.findOne({
             where: {
@@ -241,21 +239,25 @@ const getPolicy = async (req: any, res: any) => {
         if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
-//add paid premium and pending premium
 
-      policy.dataValues.total_premium = policy.premium
-      policy.dataValues.paid_premium = policy.policy_deduction_amount
-      policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount
+        // Calculate paid and pending premiums
+        const total_premium = policy.premium;
+        const paid_premium = policy.policy_deduction_amount;
+        const pending_premium = total_premium - paid_premium;
 
-
-        status.result = {
-            item: policy,
+        const result = {
+            item: {
+                ...policy.dataValues,
+                total_premium,
+                paid_premium,
+                pending_premium,
+            },
         };
 
-        return res.status(status.code).json({ result: status.result });
+        return res.status(200).json({ result });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 
@@ -562,7 +564,6 @@ const policyIssuance = async (req: any, res: any) => {
   */
 const updatePolicy = async (req: any, res: any) => {
     try {
-
         const {
             user_id,
             product_id,
@@ -586,15 +587,9 @@ const updatePolicy = async (req: any, res: any) => {
             currency_code,
             country_code,
             policy_documents
-          
-
         } = req.body;
 
-       
-
-
         let policy = await Policy.findAll({
-
             where: {
                 policy_id: req.params.policy_id
             }
@@ -680,9 +675,6 @@ const deletePolicy = async (req: any, res: any) => {
 
     }
 }
-
-
-
 
 
 module.exports = {

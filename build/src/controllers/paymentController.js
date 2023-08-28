@@ -144,25 +144,29 @@ const getPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     *         description: Invalid request
     */
 const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let payment_id = parseInt(req.params.payment_id);
+    const payment_id = parseInt(req.params.payment_id);
     const partner_id = req.query.partner_id;
     try {
-        yield Payment.findOne({
+        const payment = yield Payment.findOne({
             where: {
                 payment_id: payment_id,
                 partner_id: partner_id
             }
-        }).then((payment) => {
+        });
+        if (payment) {
             res.status(200).json({
                 result: {
                     item: payment
                 }
             });
-        });
+        }
+        else {
+            res.status(404).json({ message: "Payment not found" });
+        }
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        console.error("ERROR", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 /**
@@ -204,39 +208,36 @@ const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     *         description: Invalid request
     */
 const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
     try {
-        let policy_id = parseInt(req.params.policy_id);
-        let payments = yield Payment.findAll({
+        const policy_id = parseInt(req.params.policy_id);
+        const payments = yield Payment.findAll({
             where: {
                 policy_id: policy_id,
                 partner_id: partner_id
             }
         });
         if (payments.length > 0) {
-            //pagination logic
-            //paginate the response
-            if (page && limit) {
-                let startIndex = (page - 1) * limit;
-                let endIndex = page * limit;
-                let results = payments.slice(startIndex, endIndex);
-                res.status(200).json({
-                    result: {
-                        count: payments.length,
-                        items: results
-                    }
-                });
-            }
-            else {
-                res.status(404).json({ message: "No payments found" });
-            }
+            // Pagination logic
+            const startIndex = (page - 1) * limit;
+            const endIndex = page * limit;
+            const results = payments.slice(startIndex, endIndex);
+            res.status(200).json({
+                result: {
+                    count: payments.length,
+                    items: results
+                }
+            });
+        }
+        else {
+            res.status(404).json({ message: "No payments found" });
         }
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        console.error("ERROR", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 /**
@@ -278,52 +279,34 @@ const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, functi
     *         description: Invalid request
     */
 const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    const partner_id = req.query.partner_id;
-    let user_payments = [];
-    let user_id = req.params.user_id;
-    //policies that belong to the user
-    let user_policies = yield Policy.findAll({
-        where: {
-            user_id: user_id,
-            partner_id: partner_id
-        }
-    });
-    console.log("USER POLICIES", user_policies);
-    //for each policy, get the payments 
-    for (let i = 0; i < user_policies.length; i++) {
-        let policy_id = user_policies[i].policy_id;
-        let payments = yield Payment.findAll({
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const partner_id = req.query.partner_id;
+        const user_id = req.params.user_id;
+        const user_payments = yield Payment.findAll({
             where: {
-                policy_id: policy_id,
+                user_id: user_id,
                 partner_id: partner_id
             }
         });
-        user_payments.push(payments);
-    }
-    try {
-        if (user_payments.length > 0) {
-            //paginate the response
-            if (page && limit) {
-                let startIndex = (page - 1) * limit;
-                let endIndex = page * limit;
-                let results = user_payments.slice(startIndex, endIndex);
-                res.status(200).json({
-                    result: {
-                        count: user_payments.length,
-                        items: results
-                    }
-                });
+        if (user_payments.length === 0) {
+            return res.status(404).json({ message: "No payments found" });
+        }
+        // Paginate the response
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const paginatedPayments = user_payments.slice(startIndex, endIndex);
+        res.status(200).json({
+            result: {
+                count: user_payments.length,
+                items: paginatedPayments
             }
-        }
-        else {
-            res.status(404).json({ message: "No payments found" });
-        }
+        });
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        console.error("ERROR", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 /**
@@ -357,17 +340,16 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
   */
 const createPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield Payment.create(req.body).then((payment) => {
-            res.status(200).json({
-                result: {
-                    item: payment
-                }
-            });
+        const payment = yield Payment.create(req.body);
+        res.status(201).json({
+            result: {
+                item: payment
+            }
         });
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        console.error("ERROR", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 module.exports = {

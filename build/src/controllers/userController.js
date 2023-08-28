@@ -12,10 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt = require("bcrypt");
 const db_1 = require("../models/db");
 const jwt = require("jsonwebtoken");
-const dotenv = require('dotenv').config();
+const dotenv = require("dotenv").config();
 const utils_1 = require("../services/utils");
 const { Op } = require("sequelize");
-const XLSX = require('xlsx');
+const XLSX = require("xlsx");
 const uuid_1 = require("uuid");
 // Assigning users to the variable User
 const User = db_1.db.users;
@@ -27,7 +27,7 @@ function getUserFunc(user_id, partner_id) {
         let user = yield User.findOne({
             where: {
                 user_id: user_id,
-                partner_id: partner_id
+                partner_id: partner_id,
             },
         });
         //remove password from the response
@@ -39,36 +39,41 @@ function getUserFunc(user_id, partner_id) {
     });
 }
 /** @swagger
-  * /api/v1/users/signup:
-  *   post:
-  *     tags:
-  *       - Users
-  *     description: Register User
-  *     operationId: registerUser
-  *     summary: Register User
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfully
-  *       400:
-  *         description: Invalid request
-  */
+ * /api/v1/users/signup:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: Register User
+ *     operationId: registerUser
+ *     summary: Register User
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
 const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id } = req.body;
+        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id, } = req.body;
         let partner_id = req.query.partner_id || req.body.partner_id;
-        if (!first_name || !last_name || !email || !password || !phone_number || !partner_id) {
+        if (!first_name ||
+            !last_name ||
+            !email ||
+            !password ||
+            !phone_number ||
+            !partner_id) {
             return res.status(400).json({ message: "Please provide all fields" });
         }
         // if (!isValidKenyanPhoneNumber(phone_number)) {
@@ -116,9 +121,13 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //checking if the user already exists
         let user = yield User.findAll({ where: { email: email } });
         //check if national id exists
-        let nationalIdExists = yield User.findAll({ where: { national_id: national_id } });
+        let nationalIdExists = yield User.findAll({
+            where: { national_id: national_id },
+        });
         //check if phone number exists
-        let phoneNumberExists = yield User.findAll({ where: { phone_number: phone_number } });
+        let phoneNumberExists = yield User.findAll({
+            where: { phone_number: phone_number },
+        });
         if (nationalIdExists && nationalIdExists.length > 0) {
             return res.status(409).json({ message: "National ID already exists" });
         }
@@ -139,7 +148,15 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
             console.log(token);
             //send users details
-            return res.status(201).json({ result: { message: "User login successfully", token: token, user: newUser } });
+            return res
+                .status(201)
+                .json({
+                result: {
+                    message: "User login successfully",
+                    token: token,
+                    user: newUser,
+                },
+            });
         }
     }
     catch (error) {
@@ -149,31 +166,42 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 //partnerRegistration
 /** @swagger
-  * /api/v1/users/partner/register:
-  *   post:
-  *     tags:
-  *       - Partner
-  *     description: Register a partner
-  *     operationId: registerPartner
-  *     summary: Register a partner
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfully
-  *       400:
-  *         description: Invalid request
-  */
+ * /api/v1/users/partner/register:
+ *   post:
+ *     tags:
+ *       - Partner
+ *     description: Register a partner
+ *     operationId: registerPartner
+ *     summary: Register a partner
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
 const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { partner_name, partner_id, business_name, business_type, business_category, business_address, country, email, phone_number, password } = req.body;
+    const { partner_name, partner_id, business_name, business_type, business_category, business_address, country, email, phone_number, password, } = req.body;
     try {
         //signup a partner
-        if (!partner_name || !partner_id || !business_name || !business_type || !business_category || !business_address || !country || !email || !phone_number || !password) {
-            return res.status(400).json({ message: "Please fill all the required fields" });
+        if (!partner_name ||
+            !partner_id ||
+            !business_name ||
+            !business_type ||
+            !business_category ||
+            !business_address ||
+            !country ||
+            !email ||
+            !phone_number ||
+            !password) {
+            return res
+                .status(400)
+                .json({ message: "Please fill all the required fields" });
         }
         const partnerData = {
             partner_name,
@@ -196,7 +224,12 @@ const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, func
         const newPartner = yield Partner.create(partnerData);
         // set cookie with the token generated
         if (newPartner) {
-            return res.status(201).json({ message: "Partner registered successfully", partner: newPartner });
+            return res
+                .status(201)
+                .json({
+                message: "Partner registered successfully",
+                partner: newPartner,
+            });
         }
     }
     catch (error) {
@@ -206,35 +239,37 @@ const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 /**
  * @swagger
-  * /api/v1/users/login:
-  *   post:
-  *     tags:
-  *      - Users
-  *     summary: Authenticate user
-  *     description: Returns a JWT token upon successful login
-  *     security:
-  *       - bearerAuth: []
-  *     requestBody:
-  *       required: true
-  *       content:
-  *         application/json:
-  *           schema:
-  *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd@" }
-  *     responses:
-  *       200:
-  *         description: Successful authentication
-  */
+ * /api/v1/users/login:
+ *   post:
+ *     tags:
+ *      - Users
+ *     summary: Authenticate user
+ *     description: Returns a JWT token upon successful login
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd@" }
+ *     responses:
+ *       200:
+ *         description: Successful authentication
+ */
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ message: "Please provide an email and password" });
+            return res
+                .status(400)
+                .json({ message: "Please provide an email and password" });
         }
         //find a user by their email
         const user = yield User.findOne({
             where: {
-                email: email
-            }
+                email: email,
+            },
         });
         //console.log("USER",user)
         console.log(!user, user.length == 0);
@@ -254,13 +289,23 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 console.log(token);
                 //remove password from the user object
                 user.password = undefined;
-                return res.status(201).json({ result: { message: "User login successfully", token: token, user: user } });
+                return res
+                    .status(201)
+                    .json({
+                    result: {
+                        message: "User login successfully",
+                        token: token,
+                        user: user,
+                    },
+                });
             }
         }
     }
     catch (error) {
         console.log("ERROR", error);
-        return res.status(400).json({ message: "Invalid credentials", error: error });
+        return res
+            .status(400)
+            .json({ message: "Invalid credentials", error: error });
     }
 });
 /**
@@ -391,37 +436,39 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res
+            .status(500)
+            .json({ message: "Internal server error", error: error });
     }
 });
 /**
-  * @swagger
-  * /api/v1/users/{user_id}:
-  *   get:
-  *     tags:
-  *       - Users
-  *     description: Get User
-  *     operationId: getUser
-  *     summary: Get User
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: user_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: string
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/users/{user_id}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     description: Get User
+ *     operationId: getUser
+ *     summary: Get User
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let user_id = req.params.user_id;
@@ -438,47 +485,51 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         user.dataValues.number_of_policies = policies.length;
-        return res.status(200).json({ result: { message: "User fetched successfully", item: user } });
+        return res
+            .status(200)
+            .json({ result: { message: "User fetched successfully", item: user } });
     }
     catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res
+            .status(500)
+            .json({ message: "Internal server error", error: error });
     }
 });
 /** @swagger
-  * /api/v1/users/{user_id}:
-  *   put:
-  *     tags:
-  *       - Users
-  *     description: Update User
-  *     operationId: updateUser
-  *     summary: update User
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: user_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: string
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfully
-  *       400:
-  *         description: Invalid request
-  */
+ * /api/v1/users/{user_id}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     description: Update User
+ *     operationId: updateUser
+ *     summary: update User
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
 const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id } = req.body;
+        const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id, } = req.body;
         let user = getUserFunc(req.params.user_id, req.query.partner_id);
         //check if user exists
         if (!user || user.length === 0) {
@@ -506,7 +557,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             height,
             partner_id: req.query.partner_id,
             driver_licence,
-            voter_id
+            voter_id,
         };
         //saving the user
         const updatedUser = yield User.update(data, {
@@ -515,11 +566,17 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             },
         });
         //send users details
-        return res.status(201).json({ result: { message: "User updated successfully", item: updatedUser } });
+        return res
+            .status(201)
+            .json({
+            result: { message: "User updated successfully", item: updatedUser },
+        });
     }
     catch (error) {
         console.log(error);
-        return res.status(409).json({ message: "Details are not correct", error: error });
+        return res
+            .status(409)
+            .json({ message: "Details are not correct", error: error });
     }
 });
 // //deleting a user
@@ -531,7 +588,9 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             },
         });
         //send users details
-        return res.status(201).json({ result: { message: "User deleted successfully" } });
+        return res
+            .status(201)
+            .json({ result: { message: "User deleted successfully" } });
     }
     catch (error) {
         console.log("ERROR", error);
@@ -539,71 +598,77 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 /**
-  * @swagger
-  * /api/v1/users/partner:
-  *   get:
-  *     tags:
-  *       - Partner
-  *     description: Get Partner
-  *     operationId: getPartner
-  *     summary: Get Partner
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/users/partner:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     description: Get Partner
+ *     operationId: getPartner
+ *     summary: Get Partner
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
 const getPartner = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let partner_id = req.query.partner_id;
         let partner = yield Partner.findOne({
             where: {
-                partner_id: partner_id
+                partner_id: partner_id,
             },
         });
         console.log(partner);
         if (!partner || partner.length === 0) {
             return res.status(404).json({ item: 0, message: "No partner found" });
         }
-        return res.status(200).json({ result: { message: "partner fetched successfully", item: partner } });
+        return res
+            .status(200)
+            .json({
+            result: { message: "partner fetched successfully", item: partner },
+        });
     }
     catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res
+            .status(500)
+            .json({ message: "Internal server error", error: error });
     }
 });
 //partner switch
 /**
-  * @swagger
-  * /api/v1/users/partnerSwitch:
-  *   post:
-  *     tags:
-  *       - Partner
-  *     description: Partner Switch
-  *     operationId:  partnerSwitch
-  *     summary: Partner Switch
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
+ * @swagger
+ * /api/v1/users/partnerSwitch:
+ *   post:
+ *     tags:
+ *       - Partner
+ *     description: Partner Switch
+ *     operationId:  partnerSwitch
+ *     summary: Partner Switch
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
 const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let partner_id_to_update = req.query.partner_id;
@@ -611,7 +676,7 @@ const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         let partner_id = req.user.partner_id;
         let partner = yield Partner.findOne({
             where: {
-                id: Number(partner_id)
+                id: Number(partner_id),
             },
         });
         console.log("PARTNER", partner);
@@ -627,7 +692,9 @@ const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res
+            .status(500)
+            .json({ message: "Internal server error", error: error });
     }
 });
 /**
@@ -662,7 +729,7 @@ const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 const bulkUserRegistration = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
+            return res.status(400).json({ message: "No file uploaded" });
         }
         const partner_id = req.query.partner_id;
         const excel_file = req.file;
@@ -681,7 +748,7 @@ const bulkUserRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 return acc;
             }, {});
             console.log("USER DATA", lowerCaseUserData);
-            const { first_name, middle_name, last_name, email, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id } = lowerCaseUserData;
+            const { first_name, middle_name, last_name, email, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id, } = lowerCaseUserData;
             // Create a user object using the   data
             const user_data = {
                 user_id: (0, uuid_1.v4)(),
@@ -715,11 +782,13 @@ const bulkUserRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
             const createdUser = yield createUserFunction(user_data); // Replace with your create user function
             createdUsers.push(createdUser);
         }
-        return res.status(200).json({ message: 'Users created successfully', items: createdUsers });
+        return res
+            .status(200)
+            .json({ message: "Users created successfully", items: createdUsers });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 const createUserFunction = (userData) => __awaiter(void 0, void 0, void 0, function* () {
@@ -744,67 +813,5 @@ module.exports = {
     deleteUser,
     partnerRegistration,
     partnerSwitch,
-    bulkUserRegistration
+    bulkUserRegistration,
 };
-// [
-//   {
-//    "FIRST_NAME": "John4",
-//    "MIDDLE_NAME": "White4",
-//    "LAST_NAME": "Doe",
-//    "EMAIL": "test4@gmail.com",
-//    "PHONE_NUMBER": "0745454656",
-//    "NATIONAL_ID": "24885858",
-//    "DOB": "1992-12-02",
-//    "GENDER": "M",
-//    "MARITAL_STATUS": "single",
-//    "ADDRESSLINE": "Nairobi",
-//    "NATIONALITY": "Kenyan",
-//    "TITLE": "Mr",
-//    "PINZIP": "00100",
-//    "WEIGHT": "70",
-//    "HEIGHT": "170",
-//    "DRIVER_LICENCE": "DRC123456789",
-//    "voter_id": "45332344",
-//    "PARTNER_ID": "2"
-//   },
-//   {
-//    "FIRST_NAME": "John5",
-//    "MIDDLE_NAME": "White5",
-//    "LAST_NAME": "Doe",
-//    "EMAIL": "test5@gmail.com",
-//    "PHONE_NUMBER": "0754546568",
-//    "NATIONAL_ID": "25885858",
-//    "DOB": "1990-12-12",
-//    "GENDER": "M",
-//    "MARITAL_STATUS": "single",
-//    "ADDRESSLINE": "Nairobi",
-//    "NATIONALITY": "Kenyan",
-//    "TITLE": "Mr",
-//    "PINZIP": "00100",
-//    "WEIGHT": "60",
-//    "HEIGHT": "150",
-//    "DRIVER_LICENCE": "DRC123456789",
-//    "VOTER_ID": "25322344",
-//    "PARTNER_ID": "2"
-//   },
-//   {
-//    "FIRST_NAME": "John6",
-//    "MIDDLE_NAME": "White6",
-//    "LAST_NAME": "Doe",
-//    "EMAIL": "test6@gmail.com",
-//    "PHONE_NUMBER": 756546568,
-//    "NATIONAL_ID": 26885858,
-//    "DOB": "1990-12-12",
-//    "GENDER": "M",
-//    "MARITAL_STATUS": "single",
-//    "ADDRESSLINE": "Nairobi",
-//    "NATIONALITY": "Kenyan",
-//    "TITLE": "Mr",
-//    "PINZIP": "00100",
-//    "WEIGHT": 90,
-//    "HEIGHT": 154,
-//    "DRIVER_LICENCE": "DRC123456789",
-//    "VOTER_ID": "25322344",
-//   "PARTNER_ID": "2"
-//  }
-// ]

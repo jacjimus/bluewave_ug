@@ -141,32 +141,29 @@ const getClaims = async (req: any, res: any) => {
   */
 const getClaim = async (req: any, res: any) => {
     try {
-        const claim_id = parseInt(req.params.claim_id)
-        const claim = await Claim.findByPk(
-            claim_id,
-            {
-                include: [
-                    { model: User, as: 'user',},
-                      {model: Policy, as: "policy" }
-                ]
-            }
+        const claim_id = parseInt(req.params.claim_id);
 
-        )
+        const claim = await Claim.findByPk(claim_id, {
+            include: [
+                { model: User, as: 'user' },
+                { model: Policy, as: 'policy' }
+            ]
+        });
+
         if (!claim) {
-            return res.status(404).json({ message: "Claim not found" });
+            return res.status(404).json({ message: 'Claim not found' });
         }
+
         return res.status(200).json({
             result: {
-            item: claim
+                item: claim
             }
         });
     } catch (error) {
-        console.log("ERROR", error)
-        return res.status(500).json({ message: "Error getting claim" , error: error});
-
-
+        console.error('Error getting claim:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-}
+};
 
 
 
@@ -209,53 +206,45 @@ const getClaim = async (req: any, res: any) => {
  *         description: Invalid request
  */
 const getUserClaims = async (req: any, res: any) => {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
 
     try {
-        const user_id = parseInt(req.params.user_id)
-        const claim = await Claim.findAll({
+        const user_id = parseInt(req.params.user_id);
+        const claims = await Claim.findAll({
             where: {
                 user_id: user_id,
                 partner_id: partner_id,
             },
-            order: [
-                ['createdAt', 'DESC']
-            ],
+            order: [['createdAt', 'DESC']],
             include: [
                 { model: User, as: 'user' },
-                {model: Policy, as: "policy" }
+                { model: Policy, as: 'policy' }
             ]
+        });
 
-            
-        })
-
-        if (!claim || claim.length === 0) {
-            return res.status(404).json({ message: "No claims found" });
+        if (!claims || claims.length === 0) {
+            return res.status(404).json({ message: 'No claims found' });
         }
+
         if (page && limit) {
-            let offset = page * limit - limit;
-            let paginatedClaims = claim.slice(offset, offset + limit);
-            return res.status(200).json(
-                { result:{
-                    count: claim.length,
+            const offset = (page - 1) * limit;
+            const paginatedClaims = claims.slice(offset, offset + limit);
+            return res.status(200).json({
+                result: {
+                    count: claims.length,
                     items: paginatedClaims
-                }}
-            );
+                }
+            });
         }
-        return res.status(200).json(claim);
 
-
+        return res.status(200).json(claims);
     } catch (error) {
-        console.log("ERROR", error)
-        return res.status(500).json({ message: "Error fetching claims", error: error });
-
-
+        console.error('Error fetching claims:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
-
-}
+};
 
 
 /**
@@ -297,53 +286,45 @@ const getUserClaims = async (req: any, res: any) => {
 *         description: Invalid request
 */
 const getPolicyClaims = async (req: any, res: any) => {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
+
     try {
-        const policy_id = parseInt(req.params.policy_id)
-        const claim = await Claim.findAll({
+        const policy_id = parseInt(req.params.policy_id);
+        const claims = await Claim.findAll({
             where: {
                 policy_id: policy_id,
                 partner_id: partner_id
             },
-            order: [
-                ['createdAt', 'DESC']
-            ],
+            order: [['createdAt', 'DESC']],
             include: [
                 { model: User, as: 'user' },
-                {model: Policy, as: "policy" }
+                { model: Policy, as: 'policy' }
             ]
+        });
 
-
-        })
-
-        if (!claim || claim.length === 0) {
-            return res.status(404).json({ message: "No claims found" });
+        if (!claims || claims.length === 0) {
+            return res.status(404).json({ message: 'No claims found' });
         }
+
         if (page && limit) {
-            let offset = page * limit - limit;
-            let paginatedClaims = claim.slice(offset, offset + limit);
-            return res.status(200).json(
-                { result:{
-                    count: claim.length,
+            const offset = (page - 1) * limit;
+            const paginatedClaims = claims.slice(offset, offset + limit);
+            return res.status(200).json({
+                result: {
+                    count: claims.length,
                     items: paginatedClaims
-                }}
-            );
+                }
+            });
         }
-        return res.status(200).json(claim);
 
-
+        return res.status(200).json(claims);
     } catch (error) {
-        console.log("ERROR", error)
-        return res.status(500).json({ message: "Error fetching claims", error: error });
-
-
+        console.error('Error fetching claims:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
-
-
-}
+};
 
 
 /**

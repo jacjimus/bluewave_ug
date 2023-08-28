@@ -188,10 +188,6 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
  *         description: Invalid request
  */
 const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let status = {
-        code: 200,
-        result: {},
-    };
     try {
         const policy_id = req.params.policy_id;
         const partner_id = req.query.partner_id;
@@ -204,18 +200,20 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!policy) {
             return res.status(404).json({ message: "No policy found" });
         }
-        //add paid premium and pending premium
-        policy.dataValues.total_premium = policy.premium;
-        policy.dataValues.paid_premium = policy.policy_deduction_amount;
-        policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
-        status.result = {
-            item: policy,
+        // Calculate paid and pending premiums
+        const total_premium = policy.premium;
+        const paid_premium = policy.policy_deduction_amount;
+        const pending_premium = total_premium - paid_premium;
+        const result = {
+            item: Object.assign(Object.assign({}, policy.dataValues), { total_premium,
+                paid_premium,
+                pending_premium }),
         };
-        return res.status(status.code).json({ result: status.result });
+        return res.status(200).json({ result });
     }
     catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 /**

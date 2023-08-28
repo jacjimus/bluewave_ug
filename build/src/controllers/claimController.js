@@ -148,12 +148,12 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const claim_id = parseInt(req.params.claim_id);
         const claim = yield Claim.findByPk(claim_id, {
             include: [
-                { model: User, as: 'user', },
-                { model: Policy, as: "policy" }
+                { model: User, as: 'user' },
+                { model: Policy, as: 'policy' }
             ]
         });
         if (!claim) {
-            return res.status(404).json({ message: "Claim not found" });
+            return res.status(404).json({ message: 'Claim not found' });
         }
         return res.status(200).json({
             result: {
@@ -162,8 +162,8 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Error getting claim", error: error });
+        console.error('Error getting claim:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 /**
@@ -205,40 +205,40 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *         description: Invalid request
  */
 const getUserClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
     try {
         const user_id = parseInt(req.params.user_id);
-        const claim = yield Claim.findAll({
+        const claims = yield Claim.findAll({
             where: {
                 user_id: user_id,
                 partner_id: partner_id,
             },
-            order: [
-                ['createdAt', 'DESC']
-            ],
+            order: [['createdAt', 'DESC']],
             include: [
                 { model: User, as: 'user' },
-                { model: Policy, as: "policy" }
+                { model: Policy, as: 'policy' }
             ]
         });
-        if (!claim || claim.length === 0) {
-            return res.status(404).json({ message: "No claims found" });
+        if (!claims || claims.length === 0) {
+            return res.status(404).json({ message: 'No claims found' });
         }
         if (page && limit) {
-            let offset = page * limit - limit;
-            let paginatedClaims = claim.slice(offset, offset + limit);
-            return res.status(200).json({ result: {
-                    count: claim.length,
+            const offset = (page - 1) * limit;
+            const paginatedClaims = claims.slice(offset, offset + limit);
+            return res.status(200).json({
+                result: {
+                    count: claims.length,
                     items: paginatedClaims
-                } });
+                }
+            });
         }
-        return res.status(200).json(claim);
+        return res.status(200).json(claims);
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Error fetching claims", error: error });
+        console.error('Error fetching claims:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 /**
@@ -280,40 +280,40 @@ const getUserClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 *         description: Invalid request
 */
 const getPolicyClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
     try {
         const policy_id = parseInt(req.params.policy_id);
-        const claim = yield Claim.findAll({
+        const claims = yield Claim.findAll({
             where: {
                 policy_id: policy_id,
                 partner_id: partner_id
             },
-            order: [
-                ['createdAt', 'DESC']
-            ],
+            order: [['createdAt', 'DESC']],
             include: [
                 { model: User, as: 'user' },
-                { model: Policy, as: "policy" }
+                { model: Policy, as: 'policy' }
             ]
         });
-        if (!claim || claim.length === 0) {
-            return res.status(404).json({ message: "No claims found" });
+        if (!claims || claims.length === 0) {
+            return res.status(404).json({ message: 'No claims found' });
         }
         if (page && limit) {
-            let offset = page * limit - limit;
-            let paginatedClaims = claim.slice(offset, offset + limit);
-            return res.status(200).json({ result: {
-                    count: claim.length,
+            const offset = (page - 1) * limit;
+            const paginatedClaims = claims.slice(offset, offset + limit);
+            return res.status(200).json({
+                result: {
+                    count: claims.length,
                     items: paginatedClaims
-                } });
+                }
+            });
         }
-        return res.status(200).json(claim);
+        return res.status(200).json(claims);
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({ message: "Error fetching claims", error: error });
+        console.error('Error fetching claims:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 /**
