@@ -140,14 +140,23 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("USER DATA", userData);
         //saving the user
         const newUser = yield User.create(userData);
+        req.session.user = newUser;
         // set cookie with the token generated
         if (newUser) {
-            let token = jwt.sign({ id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
+            let token = jwt.sign({ user_id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
                 expiresIn: 1 * 24 * 60 * 60 * 1000,
             });
             res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
             console.log(token);
             //send users details
+            yield Log.create({
+                log_id: (0, uuid_1.v4)(),
+                timestamp: new Date(),
+                message: 'User registered successfully',
+                level: 'info',
+                user: newUser.user_id,
+                partner_id: newUser.partner_id,
+            });
             return res
                 .status(201)
                 .json({
@@ -224,6 +233,14 @@ const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, func
         const newPartner = yield Partner.create(partnerData);
         // set cookie with the token generated
         if (newPartner) {
+            yield Log.create({
+                log_id: (0, uuid_1.v4)(),
+                timestamp: new Date(),
+                message: 'Partner registered successfully',
+                level: 'info',
+                user: newPartner.user_id,
+                partner_id: newPartner.partner_id,
+            });
             return res
                 .status(201)
                 .json({
@@ -281,7 +298,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             const isSame = yield bcrypt.compare(password, user.password);
             //generate token with the user's id and the secretKey in the env file
             if (isSame) {
-                let token = jwt.sign({ id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
+                let token = jwt.sign({ user_id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
                     expiresIn: 1 * 24 * 60 * 60 * 1000,
                 });
                 //go ahead and generate a cookie for the user
@@ -289,6 +306,14 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 console.log(token);
                 //remove password from the user object
                 user.password = undefined;
+                yield Log.create({
+                    log_id: (0, uuid_1.v4)(),
+                    timestamp: new Date(),
+                    message: 'User fetched successfully',
+                    level: 'info',
+                    user: user.user_id,
+                    partner_id: user.partner_id,
+                });
                 return res
                     .status(201)
                     .json({
@@ -432,6 +457,14 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 result: { message: "Users fetched successfully", items: users, count },
             });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'get users',
+            level: 'info',
+            user: req.params.user_id,
+            partner_id: req.query.partner_id,
+        });
         return res.status(404).json({ message: "No users found" });
     }
     catch (error) {
@@ -485,6 +518,14 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         user.dataValues.number_of_policies = policies.length;
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'User fetched successfully',
+            level: 'info',
+            user: user.user_id,
+            partner_id: partner_id,
+        });
         return res
             .status(200)
             .json({ result: { message: "User fetched successfully", item: user } });
@@ -586,6 +627,14 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             where: {
                 user_id: req.params.user_id,
             },
+        });
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'User deleted successfully',
+            level: 'info',
+            user: req.params.user_id,
+            partner_id: req.query.partner_id,
         });
         //send users details
         return res

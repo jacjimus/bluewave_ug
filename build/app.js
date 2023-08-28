@@ -45,14 +45,15 @@ const morgan = require("morgan");
 const path = require("path");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const cors_1 = __importDefault(require("cors"));
+const cors = require("cors");
+const session = require('express-session');
 const app = (0, express_1.default)();
 app.disable("etag").disable("x-powered-by");
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use((0, cors_1.default)());
-app.use(loggingMiddleware);
+app.use(cors());
+app.use(session({ secret: "Shh, its a secret!" }));
 // log only 4xx and 5xx responses to console
 app.use(morgan("dev", {
     skip: function (req, res) {

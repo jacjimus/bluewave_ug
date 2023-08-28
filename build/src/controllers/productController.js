@@ -10,7 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../models/db");
+const uuid_1 = require("uuid");
 const Product = db_1.db.products;
+const Log = db_1.db.logs;
 const Op = db_1.db.Sequelize.Op;
 /**
     * @swagger
@@ -125,6 +127,14 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             pagination: pagination,
             items: resultProduct,
         };
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'Products fetched successfully',
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(status.code).json({ result: status.result });
     }
     catch (error) {
@@ -173,6 +183,14 @@ const getProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         status.result = {
             item: product
         };
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'Product fetched successfully by id ' + product_id + '',
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(status.code).json({ result: status.result });
     }
     catch (error) {
@@ -210,6 +228,14 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!newProduct) {
             return res.status(500).json({ message: "Error creating product" });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'Product created successfully ' + newProduct.product_name + '',
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json({ result: {
                 message: "Product created successfully",
                 product: newProduct
@@ -279,6 +305,14 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 id: req.params.product_id,
             },
         });
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'Product updated successfully' + req.params.product_id + '',
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         //send product details
         return res.status(201).json({ result: { message: "Product updated successfully" } });
     }
@@ -318,6 +352,14 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             },
         });
         //send product details
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'Product deleted successfully ' + req.params.product_id + '',
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(201).json({ result: { message: "Product deleted successfully" } });
     }
     catch (error) {

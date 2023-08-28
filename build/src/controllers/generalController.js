@@ -16,7 +16,8 @@ const multer = require('multer');
 const fs = require('fs');
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const uuid_1 = require("uuid");
-const LogModel = require('../models/Log');
+const { db } = require('../models/db');
+const Log = db.logs;
 const s3 = new aws_sdk_1.default.S3({
     // Configure your AWS credentials and region
     accessKeyId: 'AKIA2I7W2PK6V4YN27X7',
@@ -71,6 +72,14 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const uploadResult = yield s3.upload(params).promise();
         // Return the URL of the uploaded file
         const fileUrl = uploadResult.Location;
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: 'File uploaded successfully',
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.json({ message: 'File uploaded successfully', fileUrl });
     }
     catch (error) {

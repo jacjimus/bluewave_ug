@@ -199,20 +199,29 @@ const signup = async (req: any, res: any) => {
 
     //saving the user
     const newUser: any = await User.create(userData);
-
+    req.session.user = newUser;
     // set cookie with the token generated
     if (newUser) {
       let token = jwt.sign(
-        { id: newUser.user_id, role: newUser.role },
+        { user_id: newUser.user_id, role: newUser.role },
         process.env.JWT_SECRET || "apple123",
         {
           expiresIn: 1 * 24 * 60 * 60 * 1000,
         }
       );
-
+     
       res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
       console.log(token);
       //send users details
+
+      await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'User registered successfully',
+        level: 'info',
+        user: newUser.user_id,
+        partner_id: newUser.partner_id,
+    });
 
       return res
         .status(201)
@@ -308,6 +317,14 @@ const partnerRegistration = async (req: any, res: any) => {
 
     // set cookie with the token generated
     if (newPartner) {
+      await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'Partner registered successfully',
+        level: 'info',
+        user: newPartner.user_id,
+        partner_id: newPartner.partner_id,
+    });
       return res
         .status(201)
         .json({
@@ -368,7 +385,7 @@ const login = async (req: any, res: any) => {
       //generate token with the user's id and the secretKey in the env file
       if (isSame) {
         let token = jwt.sign(
-          { id: user.user_id, role: user.role, partner_id: user.partner_id },
+          { user_id: user.user_id, role: user.role, partner_id: user.partner_id },
           process.env.JWT_SECRET || "apple123",
           {
             expiresIn: 1 * 24 * 60 * 60 * 1000,
@@ -380,6 +397,15 @@ const login = async (req: any, res: any) => {
         console.log(token);
         //remove password from the user object
         user.password = undefined;
+
+        await Log.create({
+          log_id: uuidv4(),
+          timestamp: new Date(),
+          message: 'User fetched successfully',
+          level: 'info',
+          user: user.user_id,
+          partner_id: user.partner_id,
+      });
         return res
           .status(201)
           .json({
@@ -530,6 +556,15 @@ const getUsers = async (req: any, res: any) => {
         result: { message: "Users fetched successfully", items: users, count },
       });
     }
+
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'get users',
+      level: 'info',
+      user: req.params.user_id,
+      partner_id: req.query.partner_id,
+  });
     return res.status(404).json({ message: "No users found" });
   } catch (error) {
     console.log("ERROR", error);
@@ -586,6 +621,16 @@ const getUser = async (req: any, res: any) => {
       },
     });
     user.dataValues.number_of_policies = policies.length;
+
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'User fetched successfully',
+      level: 'info',
+      user: user.user_id,
+      partner_id: partner_id,
+  });
+
     return res
       .status(200)
       .json({ result: { message: "User fetched successfully", item: user } });
@@ -711,6 +756,15 @@ const deleteUser = async (req: any, res) => {
         user_id: req.params.user_id,
       },
     });
+
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'User deleted successfully',
+      level: 'info',
+      user: req.params.user_id,
+      partner_id: req.query.partner_id,
+  });
     //send users details
     return res
       .status(201)
@@ -944,6 +998,7 @@ const bulkUserRegistration = async (req: any, res: any) => {
       const createdUser = await createUserFunction(user_data); // Replace with your create user function
       createdUsers.push(createdUser);
     }
+
 
     return res
       .status(200)

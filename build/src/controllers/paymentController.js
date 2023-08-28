@@ -14,6 +14,8 @@ const Payment = db_1.db.payments;
 const Policy = db_1.db.policies;
 const User = db_1.db.users;
 const Claim = db_1.db.claims;
+const Log = db_1.db.logs;
+const uuid_1 = require("uuid");
 const { Op } = require("sequelize");
 /**
     * @swagger
@@ -103,6 +105,14 @@ const getPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (!payments || payments.length === 0) {
             return res.status(404).json({ message: "No payments found" });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `${req.user.role} ${req.user.user_id} performed operation listPayments`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json({
             result: {
                 count: payments.length,
@@ -152,6 +162,14 @@ const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 payment_id: payment_id,
                 partner_id: partner_id
             }
+        });
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `${req.user.role} ${req.user.user_id} performed operation getPayment`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
         });
         if (payment) {
             res.status(200).json({
@@ -224,6 +242,14 @@ const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, functi
             const startIndex = (page - 1) * limit;
             const endIndex = page * limit;
             const results = payments.slice(startIndex, endIndex);
+            yield Log.create({
+                log_id: (0, uuid_1.v4)(),
+                timestamp: new Date(),
+                message: `${req.user.role} ${req.user.user_id} performed operation listPolicyPayments`,
+                level: 'info',
+                user: req.user.user_id,
+                partner_id: req.user.partner_id,
+            });
             res.status(200).json({
                 result: {
                     count: payments.length,
@@ -297,7 +323,15 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
         const paginatedPayments = user_payments.slice(startIndex, endIndex);
-        res.status(200).json({
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `${req.user.role} ${req.user.user_id} performed operation listUserPayments`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
+        return res.status(200).json({
             result: {
                 count: user_payments.length,
                 items: paginatedPayments
@@ -341,7 +375,15 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
 const createPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const payment = yield Payment.create(req.body);
-        res.status(201).json({
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `${req.user.role} ${req.user.user_id} performed operation createPayment`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
+        return res.status(201).json({
             result: {
                 item: payment
             }

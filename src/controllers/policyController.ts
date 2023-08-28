@@ -1,10 +1,11 @@
 
-import { PartnerModel } from "../menu-ken-builder/models";
 import { db } from "../models/db";
 const Policy = db.policies;
 const User = db.users;
 const Product = db.products;
 const Partner = db.partners;
+const Log = db.logs;
+const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
 
 
@@ -154,7 +155,6 @@ const getPolicies = async (req: any, res: any) => {
         policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
         policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
 
-        console.log("POLICIES", policies[i])
       }
 
       //policy pagination
@@ -187,7 +187,16 @@ const getPolicies = async (req: any, res: any) => {
         pagination: pagination,
         items: resultPolicies,
       };
-  
+console.log( "REQ USER",req.user)
+      
+      await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: `User ${req.user.user_id} fetched policies`,
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
       return res.status(status.code).json({ result: status.result });
     } catch (error) {
       console.log(error);
@@ -253,7 +262,14 @@ const getPolicy = async (req: any, res: any) => {
                 pending_premium,
             },
         };
-
+        await Log.create({
+          log_id: uuidv4(),
+          timestamp: new Date(),
+          message: `User ${req.user.user_id} fetched policy ${policy_id}`,
+          level: 'info',
+          user: req.user.user_id,
+          partner_id: req.user.partner_id,
+      });
         return res.status(200).json({ result });
     } catch (error) {
         console.error(error);
@@ -350,7 +366,14 @@ const getUserPolicies = async (req: any, res: any) => {
             return res.status(status.code).json(status.result);
         }
         let count = policy.length;
-
+        await Log.create({
+          log_id: uuidv4(),
+          timestamp: new Date(),
+          message: `User ${req.user.user_id} fetched policies for user ${user_id}`,
+          level: 'info',
+          user: req.user.user_id,
+          partner_id: req.user.partner_id,
+      });
 
         status.result = {
             count,
@@ -408,7 +431,14 @@ const createPolicy = async (req: any, res: any) => {
         if(!newPolicy){
             return res.status(500).json({ message: "Error creating policy" });
         }
-
+        await Log.create({
+          log_id: uuidv4(),
+          timestamp: new Date(),
+          message: `User ${req.user.user_id} created policy ${newPolicy.policy_id}`,
+          level: 'info',
+          user: req.user.user_id,
+          partner_id: req.user.partner_id,
+      });
         return res.status(200).json({ result: {
             message: "Policy created successfully",
             policy: newPolicy
@@ -516,7 +546,14 @@ const policyIssuance = async (req: any, res: any) => {
         const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
 
         if (policyIssuance) {
-
+          await Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} issued policy ${policy_id}`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
             return res.status(200).json({ result : {
                 success: true,
                 message: 'Policy Issuance',
@@ -629,6 +666,14 @@ const updatePolicy = async (req: any, res: any) => {
                 policy_id: req.params.policy_id,
             },
         });
+        await Log.create({
+          log_id: uuidv4(),
+          timestamp: new Date(),
+          message: `User ${req.user.user_id} updated policy ${req.params.policy_id}`,
+          level: 'info',
+          user: req.user.user_id,
+          partner_id: req.user.partner_id,
+      });
         //send policy details
         return res.status(201).json({ result:{message: "Policy updated successfully"} });
     } catch (error) {
@@ -667,6 +712,14 @@ const deletePolicy = async (req: any, res: any) => {
                 policy_id: req.params.policy_id,
             },
         });
+        await Log.create({
+          log_id: uuidv4(),
+          timestamp: new Date(),
+          message: `User ${req.user.user_id} deleted policy ${req.params.policy_id}`,
+          level: 'info',
+          user: req.user.user_id,
+          partner_id: req.user.partner_id,
+      });
         //send policy details
         return res.status(201).json({ result:{message: "Policy deleted successfully"}  });
     } catch (error) {

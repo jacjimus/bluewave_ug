@@ -17,6 +17,8 @@ const Policy = db_1.db.policies;
 const User = db_1.db.users;
 const Product = db_1.db.products;
 const Partner = db_1.db.partners;
+const Log = db_1.db.logs;
+const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
 const PolicyIssuance_1 = __importDefault(require("../services/PolicyIssuance"));
 /**
@@ -125,7 +127,6 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             policies[i].dataValues.total_premium = policies[i].premium;
             policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
             policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
-            console.log("POLICIES", policies[i]);
         }
         //policy pagination
         const page = parseInt(req.query.page) || 1;
@@ -152,6 +153,15 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             pagination: pagination,
             items: resultPolicies,
         };
+        console.log("REQ USER", req.user);
+        yield Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} fetched policies`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(status.code).json({ result: status.result });
     }
     catch (error) {
@@ -209,6 +219,14 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 paid_premium,
                 pending_premium }),
         };
+        yield Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} fetched policy ${policy_id}`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json({ result });
     }
     catch (error) {
@@ -292,6 +310,14 @@ const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function
             return res.status(status.code).json(status.result);
         }
         let count = policy.length;
+        yield Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} fetched policies for user ${user_id}`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         status.result = {
             count,
             items: policy
@@ -339,6 +365,14 @@ const createPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (!newPolicy) {
             return res.status(500).json({ message: "Error creating policy" });
         }
+        yield Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} created policy ${newPolicy.policy_id}`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json({ result: {
                 message: "Policy created successfully",
                 policy: newPolicy
@@ -434,6 +468,14 @@ const policyIssuance = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // }
         const policyIssuance = yield (0, PolicyIssuance_1.default)(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
         if (policyIssuance) {
+            yield Log.create({
+                log_id: uuidv4(),
+                timestamp: new Date(),
+                message: `User ${req.user.user_id} issued policy ${policy_id}`,
+                level: 'info',
+                user: req.user.user_id,
+                partner_id: req.user.partner_id,
+            });
             return res.status(200).json({ result: {
                     success: true,
                     message: 'Policy Issuance',
@@ -516,6 +558,14 @@ const updatePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 policy_id: req.params.policy_id,
             },
         });
+        yield Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} updated policy ${req.params.policy_id}`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         //send policy details
         return res.status(201).json({ result: { message: "Policy updated successfully" } });
     }
@@ -553,6 +603,14 @@ const deletePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             where: {
                 policy_id: req.params.policy_id,
             },
+        });
+        yield Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `User ${req.user.user_id} deleted policy ${req.params.policy_id}`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
         });
         //send policy details
         return res.status(201).json({ result: { message: "Policy deleted successfully" } });

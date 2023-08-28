@@ -4,6 +4,7 @@ const moment = require("moment");
 const excelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
+const { v4: uuidv4 } = require("uuid");
 
 const Policy = db.policies;
 const User = db.users;
@@ -12,6 +13,7 @@ const Claim = db.claims;
 const Product = db.products;
 const Payment = db.payments;
 const Partner = db.partners;
+const Log = db.logs;
 
 /**
  * @swagger
@@ -142,7 +144,14 @@ const getPolicySummary = async (req: any, res: any) => {
         0
       ),
     };
-
+    await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'Policy summary fetched successfully',
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
     return res.status(200).json({
       result: {
         items: summary,
@@ -278,6 +287,15 @@ const getClaimSummary = async (req: any, res: any) => {
         "dispute_resolved"
       ),
     };
+
+    await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'Claim summary fetched successfully',
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
 
     return res.status(200).json({
       result: {
@@ -632,6 +650,15 @@ const getAllReportSummary = async (req: any, res: any) => {
     // Populate session summary
     summary.session.total_sessions = sessions.length;
 
+    await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'User fetched successfully',
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
+
     // Return the summary
     res.status(200).json({ summary });
   } catch (error) {
@@ -790,6 +817,15 @@ const getDailyPolicySalesReport = async (req, res) => {
       yearly: countPoliciesByStatus(yearlyResult, "paid"),
     };
 
+    await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'Daily policy sales fetched successfully',
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
+
     res.status(200).json(report);
   } catch (error) {
     console.error("Error fetching sales report:", error);
@@ -915,6 +951,15 @@ const getPolicyExcelReportDownload = async (req, res) => {
 
     // Store the download token somewhere (e.g., in-memory cache or database)
     // This is needed to verify the download request
+
+    await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'Excel policy report generated successfully',
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
 
     // Return the download URL to the user
     res.status(200).json({ downloadURL });
@@ -1093,6 +1138,15 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
     });
 
     console.log("RESULTS", results);
+
+    await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: 'Aggregated daily policy sales fetched successfully',
+        level: 'info',
+        user: req.user.user_id,
+        partner_id: req.user.partner_id,
+    });
     // Send the results as a response
     res.status(200).json(results);
   } catch (error) {

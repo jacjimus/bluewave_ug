@@ -15,6 +15,8 @@ const User = db_1.db.users;
 const Policy = db_1.db.policies;
 const Partner = db_1.db.partners;
 const { Op } = require("sequelize");
+const Log = db_1.db.logs;
+const uuid_1 = require("uuid");
 /**
     * @swagger
     * /api/v1/claims:
@@ -108,6 +110,14 @@ const getClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `Claims fetched successfully`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json({ result: claim });
     }
     catch (error) {
@@ -155,6 +165,14 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!claim) {
             return res.status(404).json({ message: 'Claim not found' });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `Claim fetched successfully`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json({
             result: {
                 item: claim
@@ -234,6 +252,14 @@ const getUserClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 }
             });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `User Claims fetched successfully`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json(claims);
     }
     catch (error) {
@@ -309,6 +335,14 @@ const getPolicyClaims = (req, res) => __awaiter(void 0, void 0, void 0, function
                 }
             });
         }
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `Policy Claims fetched successfully`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(200).json(claims);
     }
     catch (error) {
@@ -409,6 +443,14 @@ const createClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             partner_id,
         });
         console.log("NEW CLAIM", newClaim);
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `Claim created successfully`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
+        });
         return res.status(201).json({ message: "Claim created successfully", claim: newClaim });
     }
     catch (error) {
@@ -513,6 +555,14 @@ const deleteClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 claim_id: claim_id,
                 partner_id: partner_id
             }
+        });
+        yield Log.create({
+            log_id: (0, uuid_1.v4)(),
+            timestamp: new Date(),
+            message: `Claim deleted successfully`,
+            level: 'info',
+            user: req.user.user_id,
+            partner_id: req.user.partner_id,
         });
         if (deleteClaim) {
             return res.status(200).json({

@@ -77,7 +77,7 @@ const SessionModel = db.sessions;
     };
   
     if (user_id) {
-      whereCondition.user_id = user_id;
+      whereCondition.user = user_id;
     }
   
     // Example query using Sequelize

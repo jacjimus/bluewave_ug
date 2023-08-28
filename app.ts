@@ -17,7 +17,9 @@ const morgan = require("morgan");
 const path = require("path");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-import cors from "cors";
+const cors = require("cors");
+const session = require('express-session');
+
 
 const app: express.Application = express();
 app.disable("etag").disable("x-powered-by");
@@ -25,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-app.use(loggingMiddleware);
+app.use(session({secret: "Shh, its a secret!"}));
 
 // log only 4xx and 5xx responses to console
 app.use(
@@ -112,6 +114,7 @@ app.use(errorHandler);
 
 // USSD ROUTE
 app.use("/api/v1/ussd", ussdRoutes);
+
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

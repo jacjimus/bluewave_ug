@@ -2,7 +2,10 @@ const multer = require('multer');
 const fs = require('fs');
 import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
-const LogModel = require('../models/Log');
+const {db} = require('../models/db');
+const Log = db.logs;
+
+
 
 const s3 = new AWS.S3({
   // Configure your AWS credentials and region
@@ -64,6 +67,14 @@ const uploadDocument = async (req: any, res: any) => {
 
     // Return the URL of the uploaded file
     const fileUrl = uploadResult.Location;
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'File uploaded successfully',
+      level: 'info',
+      user: req.user.user_id,
+      partner_id: req.user.partner_id,
+  });
 
     return res.json({ message: 'File uploaded successfully', fileUrl });
 

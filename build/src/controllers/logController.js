@@ -82,7 +82,7 @@ const fetchLogsFromDatabase = (partner_id, user_id, offset, limit) => __awaiter(
         partner_id: partner_id
     };
     if (user_id) {
-        whereCondition.user_id = user_id;
+        whereCondition.user = user_id;
     }
     // Example query using Sequelize
     let logs = yield LogModel.findAll({
