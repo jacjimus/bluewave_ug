@@ -102,10 +102,10 @@ const getPayments = async (req: any, res: any) => {
         await Log.create({
             log_id: uuidv4(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation listPayments`,
+            message: ` ${req?.user_id} performed operation listPayments`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -163,10 +163,10 @@ const getPayment = async (req: any, res: any) => {
         await Log.create({
             log_id: uuidv4(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation getPayment`,
+            message: ` ${req?.user_id} performed operation getPayment`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
 
         if (payment) {
@@ -246,10 +246,11 @@ const getPolicyPayments = async (req: any, res: any) => {
             await Log.create({
                 log_id: uuidv4(),
                 timestamp: new Date(),
-                message: `${req.user.role} ${req.user.user_id} performed operation listPolicyPayments`,
+                message: `
+ ${req?.user_id} performed operation listPolicyPayments`,
                 level: 'info',
-                user: req.user.user_id,
-                partner_id: req.user.partner_id,
+                user: req?.user_id,
+                partner_id: req?.partner_id,
             });
 
             res.status(200).json({
@@ -333,13 +334,13 @@ const getUserPayments = async (req: any, res: any) => {
         await Log.create({
             log_id: uuidv4(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation listUserPayments`,
+            message: ` ${req?.user_id} performed operation listUserPayments`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
 
-       return res.status(200).json({
+        return res.status(200).json({
             result: {
                 count: user_payments.length,
                 items: paginatedPayments
@@ -388,12 +389,12 @@ const createPayment = async (req: any, res: any) => {
         await Log.create({
             log_id: uuidv4(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation createPayment`,
+            message: ` ${req?.user_id} performed operation createPayment`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
-       return res.status(201).json({
+        return res.status(201).json({
             result: {
                 item: payment
             }

@@ -18,12 +18,12 @@ const router = express.Router()
 
 
 router.get('/',isSuperAdmin, policyController.getPolicies)
-router.get('/:policy_id', policyController.getPolicy)
-router.post('/create', policyController.createPolicy)
+router.get('/:policy_id',isSuperAdmin, policyController.getPolicy)
+router.post('/create', isSuperAdmin,policyController.createPolicy)
 router.post('/policyIssuance',isBluewave, policyController.policyIssuance)
-router.get('/user/:user_id', policyController.getUserPolicies)
-router.put('/:policy_id', policyController.updatePolicy)
-router.delete('/:policy_id', policyController.deletePolicy)
+router.get('/user/:user_id', isSuperAdmin,policyController.getUserPolicies)
+router.put('/:policy_id', isSuperAdmin,policyController.updatePolicy)
+router.delete('/:policy_id',isSuperAdmin, policyController.deletePolicy)
 
 
 

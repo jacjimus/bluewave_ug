@@ -392,6 +392,8 @@ const login = async (req: any, res: any) => {
           }
         );
 
+      
+
         //go ahead and generate a cookie for the user
         res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
         console.log(token);
@@ -852,9 +854,9 @@ const getPartner = async (req: any, res: any) => {
 const partnerSwitch = async (req: any, res: any) => {
   try {
     let partner_id_to_update = req.query.partner_id;
-    let user_id = req.user.user_id;
+    let user_id = req.user_id;
 
-    let partner_id = req.user.partner_id;
+    let partner_id = req.partner_id;
 
     let partner = await Partner.findOne({
       where: {

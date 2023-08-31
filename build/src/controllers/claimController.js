@@ -115,8 +115,8 @@ const getClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             timestamp: new Date(),
             message: `Claims fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json({ result: claim });
     }
@@ -170,8 +170,8 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             timestamp: new Date(),
             message: `Claim fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -257,8 +257,8 @@ const getUserClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             timestamp: new Date(),
             message: `User Claims fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json(claims);
     }
@@ -340,8 +340,8 @@ const getPolicyClaims = (req, res) => __awaiter(void 0, void 0, void 0, function
             timestamp: new Date(),
             message: `Policy Claims fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json(claims);
     }
@@ -448,8 +448,8 @@ const createClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             timestamp: new Date(),
             message: `Claim created successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(201).json({ message: "Claim created successfully", claim: newClaim });
     }
@@ -535,9 +535,11 @@ const updateClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             }
         });
         if (updateClaim) {
-            return res.status(200).json({ result: {
+            return res.status(200).json({
+                result: {
                     message: 'Claim updated successfully'
-                } });
+                }
+            });
         }
     }
     catch (error) {
@@ -561,8 +563,8 @@ const deleteClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             timestamp: new Date(),
             message: `Claim deleted successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         if (deleteClaim) {
             return res.status(200).json({

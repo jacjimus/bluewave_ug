@@ -134,8 +134,8 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
             timestamp: new Date(),
             message: 'Policy summary fetched successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -259,8 +259,8 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
             timestamp: new Date(),
             message: 'Claim summary fetched successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -540,8 +540,8 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
             timestamp: new Date(),
             message: 'User fetched successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         // Return the summary
         res.status(200).json({ summary });
@@ -672,8 +672,8 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
             timestamp: new Date(),
             message: 'Daily policy sales fetched successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         res.status(200).json(report);
     }
@@ -787,8 +787,8 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
             timestamp: new Date(),
             message: 'Excel policy report generated successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         // Return the download URL to the user
         res.status(200).json({ downloadURL });
@@ -951,8 +951,8 @@ const getAggregatedDailyPolicySalesReport = (req, res) => __awaiter(void 0, void
             timestamp: new Date(),
             message: 'Aggregated daily policy sales fetched successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         // Send the results as a response
         res.status(200).json(results);

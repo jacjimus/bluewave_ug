@@ -62,65 +62,65 @@ const getClaims = async (req: any, res: any) => {
     const filter = req.query.filter;
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
-  
+
     console.log("FILTER", filter);
     try {
-      let claim: any;
-      const claimWhere: any = { partner_id: partner_id };
-  
-      // Add date filters to the 'claimWhere' object based on the provided start_date and end_date
-      if (start_date && end_date) {
-        claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
-      } else if (start_date) {
-        claimWhere.createdAt = { [Op.gte]: new Date(start_date) };
-      } else if (end_date) {
-        claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
-      }
-  
-      // Check if a filter is provided to include additional search criteria
-      if (filter) {
-        claimWhere[Op.or] = [
-          { claim_status: { [Op.iLike]: `%${filter}%` } },
-          { claim_type: { [Op.iLike]: `%${filter}%` } },
-          { claim_description: { [Op.iLike]: `%${filter}%` } },
-        ];
-      }
-  
-      // Retrieve claims based on the 'claimWhere' filter object
-      claim = await Claim.findAll({
-        where: claimWhere,
-        order: [["createdAt", "DESC"]],
-        include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
-      });
-  
-      if (!claim || claim.length === 0) {
-        return res.status(404).json({ message: "No claims found" });
-      }
-  
-      if (page && limit) {
-        let offset = page * limit - limit;
-        let paginatedClaims = claim.slice(offset, offset + limit);
-        return res.status(200).json({
-          result: {
-            count: claim.length,
-            items: paginatedClaims,
-          },
+        let claim: any;
+        const claimWhere: any = { partner_id: partner_id };
+
+        // Add date filters to the 'claimWhere' object based on the provided start_date and end_date
+        if (start_date && end_date) {
+            claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+        } else if (start_date) {
+            claimWhere.createdAt = { [Op.gte]: new Date(start_date) };
+        } else if (end_date) {
+            claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
+        }
+
+        // Check if a filter is provided to include additional search criteria
+        if (filter) {
+            claimWhere[Op.or] = [
+                { claim_status: { [Op.iLike]: `%${filter}%` } },
+                { claim_type: { [Op.iLike]: `%${filter}%` } },
+                { claim_description: { [Op.iLike]: `%${filter}%` } },
+            ];
+        }
+
+        // Retrieve claims based on the 'claimWhere' filter object
+        claim = await Claim.findAll({
+            where: claimWhere,
+            order: [["createdAt", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
         });
-      }
-      await Log.create({
-        log_id: uuidv4(),
-        timestamp: new Date(),
-        message: `Claims fetched successfully`,
-        level: 'info',
-        user: req.user.user_id,
-        partner_id: req.user.partner_id,
-    });
-      return res.status(200).json({ result: claim });
+
+        if (!claim || claim.length === 0) {
+            return res.status(404).json({ message: "No claims found" });
+        }
+
+        if (page && limit) {
+            let offset = page * limit - limit;
+            let paginatedClaims = claim.slice(offset, offset + limit);
+            return res.status(200).json({
+                result: {
+                    count: claim.length,
+                    items: paginatedClaims,
+                },
+            });
+        }
+        await Log.create({
+            log_id: uuidv4(),
+            timestamp: new Date(),
+            message: `Claims fetched successfully`,
+            level: 'info',
+            user: req?.user_id,
+            partner_id: req?.partner_id,
+        });
+        return res.status(200).json({ result: claim });
     } catch (error) {
-      console.log("ERROR", error);
-      return res.status(500).json({ message: "Error fetching claims", error: error });
+        console.log("ERROR", error);
+        return res.status(500).json({ message: "Error fetching claims", error: error });
     }
-  };
+};
 /**
   * @swagger
   * /api/v1/claims/{claim_id}:
@@ -168,8 +168,8 @@ const getClaim = async (req: any, res: any) => {
             timestamp: new Date(),
             message: `Claim fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -260,8 +260,8 @@ const getUserClaims = async (req: any, res: any) => {
             timestamp: new Date(),
             message: `User Claims fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
 
         return res.status(200).json(claims);
@@ -348,8 +348,8 @@ const getPolicyClaims = async (req: any, res: any) => {
             timestamp: new Date(),
             message: `Policy Claims fetched successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
         return res.status(200).json(claims);
     } catch (error) {
@@ -455,7 +455,7 @@ const createClaim = async (req: any, res: any) => {
             return res.status(409).json({ message: "Policy already has an active claim" });
         }
 
-      
+
         // Create the new claim
         let newClaim = await Claim.create({
             claim_date,
@@ -469,7 +469,7 @@ const createClaim = async (req: any, res: any) => {
             policy_id,
             partner_id,
         });
-       
+
 
         console.log("NEW CLAIM", newClaim);
         await Log.create({
@@ -477,8 +477,8 @@ const createClaim = async (req: any, res: any) => {
             timestamp: new Date(),
             message: `Claim created successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
 
         return res.status(201).json({ message: "Claim created successfully", claim: newClaim });
@@ -570,13 +570,15 @@ const updateClaim = async (req: any, res: any) => {
         });
 
         if (updateClaim) {
-            return res.status(200).json({ result:{
-                message: 'Claim updated successfully'
-         } })
+            return res.status(200).json({
+                result: {
+                    message: 'Claim updated successfully'
+                }
+            })
         }
     } catch (error) {
         console.log(error)
-        return res.status(404).json({ message: "Error updating claim" , error: error});
+        return res.status(404).json({ message: "Error updating claim", error: error });
 
     }
 }
@@ -597,8 +599,8 @@ const deleteClaim = async (req: any, res: any) => {
             timestamp: new Date(),
             message: `Claim deleted successfully`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req?.user_id,
+            partner_id: req?.partner_id,
         });
         if (deleteClaim) {
             return res.status(200).json({

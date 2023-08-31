@@ -12,28 +12,28 @@ const { Op } = require("sequelize");
 import PolicyIssuance from "../services/PolicyIssuance";
 
 interface Policy {
-    user_id: number,
-    product_id: number,
-    policy_start_date: Date,
-    policy_status: string,
-    beneficiary: string,
-    policy_type: string,
-    policy_end_date: Date,
-    policy_deduction_amount: number,
-    policy_next_deduction_date: Date,
-    installment_order: number,
-    installment_date: Date,
-    installment_alert_date: Date,
-    tax_rate_vat: number,
-    tax_rate_ext: number,
-    premium: number,
-    sum_insured: number,
-    excess_premium: number,
-    discount_premium: number,
-    partner_id: number,
-    currency_code:string,
-    country_code:string,
-    policy_documents: string[]
+  user_id: number,
+  product_id: number,
+  policy_start_date: Date,
+  policy_status: string,
+  beneficiary: string,
+  policy_type: string,
+  policy_end_date: Date,
+  policy_deduction_amount: number,
+  policy_next_deduction_date: Date,
+  installment_order: number,
+  installment_date: Date,
+  installment_alert_date: Date,
+  tax_rate_vat: number,
+  tax_rate_ext: number,
+  premium: number,
+  sum_insured: number,
+  excess_premium: number,
+  discount_premium: number,
+  partner_id: number,
+  currency_code: string,
+  country_code: string,
+  policy_documents: string[]
 }
 
 
@@ -89,120 +89,119 @@ interface Policy {
     */
 
 const getPolicies = async (req: any, res: any) => {
-    let status = {
-      code: 200,
-      result: {},
-    };
-    try {
-      const filter = req.query.filter || "";
-      const partner_id = req.query.partner_id;
-      const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
-      const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
-  
-      // Prepare the date range filters based on the provided start_date and end_date
-      const dateFilters: any = {}; // Use 'any' type temporarily, you can replace with the 'WhereOptions' type from Sequelize if available
-      if (start_date) {
-        dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
-      }
-      if (end_date) {
-        dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
-      }
-  
-      const policies: any[] = await Policy.findAll({
-        where: {
-          partner_id: partner_id,
-          [Op.or]: [
-            {
-              policy_type: { [Op.iLike]: `%${filter}%` },
-            },
-            {
-              policy_status: { [Op.iLike]: `%${filter}%` },
-            },
-            {
-              beneficiary: { [Op.iLike]: `%${filter}%` },
-            },
-            {
-              country_code: { [Op.iLike]: `%${filter}%` },
-            
-            },
-            {
-              currency_code: { [Op.iLike]: `%${filter}%` },
-            },
-
-          ],
-          ...dateFilters, // Apply the date filters to the query
-        },
-        order: [["id", "DESC"]],
-        include: [
-          {
-            model: User,
-            as: "user",
-          },
-          {
-            model: Product,
-            as: "product",
-          },
-        ],
-      });
-  
-      if (!policies || policies.length === 0) {
-        return res.status(404).json({ message: "No policies found" });
-      }
-  
-      // add paid premium and pending premium
-      for (let i = 0; i < policies.length; i++) {
-        policies[i].dataValues.total_premium = policies[i].premium;
-        policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
-        policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
-
-      }
-
-      //policy pagination
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const startIndex = (page - 1) * limit;
-      const endIndex = page * limit;
-      const total = policies.length;
-  
-      const resultPolicies = policies.slice(startIndex, endIndex);
-  
-      const pagination: any = {};
-  
-      if (endIndex < total) {
-        pagination.next = {
-          page: page + 1,
-          limit: limit,
-        };
-      }
-  
-      if (startIndex > 0) {
-        pagination.prev = {
-          page: page - 1,
-          limit: limit,
-        };
-      }
-  
-      status.result = {
-        count: total,
-        pagination: pagination,
-        items: resultPolicies,
-      };
-console.log( "REQ USER",req.user)
-      
-      await Log.create({
-        log_id: uuidv4(),
-        timestamp: new Date(),
-        message: `User ${req.user.user_id} fetched policies`,
-        level: 'info',
-        user: req.user.user_id,
-        partner_id: req.user.partner_id,
-    });
-      return res.status(status.code).json({ result: status.result });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: "Internal server error", error: error });
-    }
+  let status = {
+    code: 200,
+    result: {},
   };
+  try {
+    const filter = req.query.filter || "";
+    const partner_id = req.query.partner_id;
+    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+
+    // Prepare the date range filters based on the provided start_date and end_date
+    const dateFilters: any = {}; // Use 'any' type temporarily, you can replace with the 'WhereOptions' type from Sequelize if available
+    if (start_date) {
+      dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+    }
+    if (end_date) {
+      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+    }
+
+    const policies: any[] = await Policy.findAll({
+      where: {
+        partner_id: partner_id,
+        [Op.or]: [
+          {
+            policy_type: { [Op.iLike]: `%${filter}%` },
+          },
+          {
+            policy_status: { [Op.iLike]: `%${filter}%` },
+          },
+          {
+            beneficiary: { [Op.iLike]: `%${filter}%` },
+          },
+          {
+            country_code: { [Op.iLike]: `%${filter}%` },
+
+          },
+          {
+            currency_code: { [Op.iLike]: `%${filter}%` },
+          },
+
+        ],
+        ...dateFilters, // Apply the date filters to the query
+      },
+      order: [["id", "DESC"]],
+      include: [
+        {
+          model: User,
+          as: "user",
+        },
+        {
+          model: Product,
+          as: "product",
+        },
+      ],
+    });
+
+    if (!policies || policies.length === 0) {
+      return res.status(404).json({ message: "No policies found" });
+    }
+
+    // add paid premium and pending premium
+    for (let i = 0; i < policies.length; i++) {
+      policies[i].dataValues.total_premium = policies[i].premium;
+      policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
+      policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
+
+    }
+
+    //policy pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = policies.length;
+
+    const resultPolicies = policies.slice(startIndex, endIndex);
+
+    const pagination: any = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    status.result = {
+      count: total,
+      pagination: pagination,
+      items: resultPolicies,
+    };
+
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: `User ${req?.user_id} fetched policies`,
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    return res.status(status.code).json({ result: status.result });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
+};
 
 
 /**
@@ -234,47 +233,48 @@ console.log( "REQ USER",req.user)
  *         description: Invalid request
  */
 const getPolicy = async (req: any, res: any) => {
-    try {
-        const policy_id = req.params.policy_id;
-        const partner_id = req.query.partner_id;
-        
-        const policy = await Policy.findOne({
-            where: {
-                policy_id: policy_id,
-                partner_id: partner_id,
-            },
-        });
+  try {
+    const policy_id = req.params.policy_id;
+    const partner_id = req.query.partner_id;
 
-        if (!policy) {
-            return res.status(404).json({ message: "No policy found" });
-        }
+    const policy = await Policy.findOne({
+      where: {
+        policy_id: policy_id,
+        partner_id: partner_id,
+      },
+    });
 
-        // Calculate paid and pending premiums
-        const total_premium = policy.premium;
-        const paid_premium = policy.policy_deduction_amount;
-        const pending_premium = total_premium - paid_premium;
-
-        const result = {
-            item: {
-                ...policy.dataValues,
-                total_premium,
-                paid_premium,
-                pending_premium,
-            },
-        };
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: `User ${req.user.user_id} fetched policy ${policy_id}`,
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        return res.status(200).json({ result });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
+    if (!policy) {
+      return res.status(404).json({ message: "No policy found" });
     }
+
+    // Calculate paid and pending premiums
+    const total_premium = policy.premium;
+    const paid_premium = policy.policy_deduction_amount;
+    const pending_premium = total_premium - paid_premium;
+
+    const result = {
+      item: {
+        ...policy.dataValues,
+        total_premium,
+        paid_premium,
+        pending_premium,
+      },
+    };
+
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: `User ${req?.user_id} fetched policy ${policy_id}`,
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    return res.status(200).json({ result });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
 };
 
 
@@ -319,71 +319,71 @@ const getPolicy = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const getUserPolicies = async (req: any, res: any) => {
-    let status = {
-        code: 200,
-        result: {},
+  let status = {
+    code: 200,
+    result: {},
 
+  }
+  try {
+    const user_id = req.params.user_id;
+    const partner_id = parseInt(req.query.partner_id);
+    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+
+    // Prepare the date range filters based on the provided start_date and end_date
+    const dateFilters: any = {};
+    if (start_date) {
+      dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
     }
-    try {
-        const user_id = req.params.user_id;
-        const partner_id = parseInt(req.query.partner_id);
-        const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
-        const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
-
-        // Prepare the date range filters based on the provided start_date and end_date
-        const dateFilters: any = {};
-        if (start_date) {
-            dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
-        }
-        if (end_date) {
-            dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
-        }
-
-        let policy = await Policy.findAll({
-            where: {
-                user_id: user_id,
-                partner_id: partner_id,
-                ...dateFilters, // Apply the date filters to the query
-                
-            }
-        })
-
-        // policy.total_premium = policy.premium
-        // policy.paid_premium = policy.policy_deduction_amount
-        // policy.pending_premium = policy.premium - policy.policy_deduction_amount
-
-        //for every policy, add paid premium and pending premium
-
-        for (let i = 0; i < policy.length; i++) {
-            policy[i].total_premium = policy[i].premium
-            policy[i].paid_premium = policy[i].policy_deduction_amount
-            policy[i].pending_premium = policy[i].premium - policy[i].policy_deduction_amount
-        }
-
-        if (!policy || policy.length === 0) {
-            status.code = 404;
-            status.result = { message: "No policy found" };
-            return res.status(status.code).json(status.result);
-        }
-        let count = policy.length;
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: `User ${req.user.user_id} fetched policies for user ${user_id}`,
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-
-        status.result = {
-            count,
-            items: policy
-        };
-        return res.status(status.code).json({result: {item:status.result}});
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
+    if (end_date) {
+      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
     }
+
+    let policy = await Policy.findAll({
+      where: {
+        user_id: user_id,
+        partner_id: partner_id,
+        ...dateFilters, // Apply the date filters to the query
+
+      }
+    })
+
+    // policy.total_premium = policy.premium
+    // policy.paid_premium = policy.policy_deduction_amount
+    // policy.pending_premium = policy.premium - policy.policy_deduction_amount
+
+    //for every policy, add paid premium and pending premium
+
+    for (let i = 0; i < policy.length; i++) {
+      policy[i].total_premium = policy[i].premium
+      policy[i].paid_premium = policy[i].policy_deduction_amount
+      policy[i].pending_premium = policy[i].premium - policy[i].policy_deduction_amount
+    }
+
+    if (!policy || policy.length === 0) {
+      status.code = 404;
+      status.result = { message: "No policy found" };
+      return res.status(status.code).json(status.result);
+    }
+    let count = policy.length;
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: `User ${req?.user_id} fetched policies for user ${user_id}`,
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+
+    status.result = {
+      count,
+      items: policy
+    };
+    return res.status(status.code).json({ result: { item: status.result } });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
 
 
 }
@@ -413,41 +413,42 @@ const getUserPolicies = async (req: any, res: any) => {
   */
 
 const createPolicy = async (req: any, res: any) => {
-    try {
-         let partner_id = (req.body.partner_id).toString()
-       let  partner = await Partner.findOne({ where: { partner_id } })
+  try {
+    let partner_id = (req.body.partner_id).toString()
+    let partner = await Partner.findOne({ where: { partner_id } })
 
-            console.log('PARTNER', partner, partner_id )
-        const policy: Policy = req.body;
+    console.log('PARTNER', partner, partner_id)
+    const policy: Policy = req.body;
 
-       policy.currency_code = partner.currency_code
-        policy.country_code= partner.country_code
+    policy.currency_code = partner.currency_code
+    policy.country_code = partner.country_code
 
-        console.log("Policy", policy)
+    console.log("Policy", policy)
 
 
 
-        const newPolicy = await Policy.create(policy);
-        if(!newPolicy){
-            return res.status(500).json({ message: "Error creating policy" });
-        }
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: `User ${req.user.user_id} created policy ${newPolicy.policy_id}`,
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        return res.status(200).json({ result: {
-            message: "Policy created successfully",
-            policy: newPolicy
-        }
-        });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
+    const newPolicy = await Policy.create(policy);
+    if (!newPolicy) {
+      return res.status(500).json({ message: "Error creating policy" });
     }
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: `User ${req?.user_id} created policy ${newPolicy.policy_id}`,
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    return res.status(200).json({
+      result: {
+        message: "Policy created successfully",
+        policy: newPolicy
+      }
+    });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
 
 }
 
@@ -498,34 +499,34 @@ const createPolicy = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const policyIssuance = async (req: any, res: any) => {
-    try {
-        const { PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
+  try {
+    const { PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
 
-        const  {user_id, policy_id, partner_id, product_id} = req.query;
+    const { user_id, policy_id, partner_id, product_id } = req.query;
 
-        //get user details
-        let user = await User.findOne({where: {user_id: user_id}});
+    //get user details
+    let user = await User.findOne({ where: { user_id: user_id } });
 
-        //get policy details
-        let policy = await Policy.findOne({where: {policy_id: policy_id}});
+    //get policy details
+    let policy = await Policy.findOne({ where: { policy_id: policy_id } });
 
-        //use it to create client and policy request
+    //use it to create client and policy request
 
     let ClientCreation = {
-        Title: user.title,
-        First_Nm: user.first_name,
-        Middle_Nm: user.middle_name,
-        Last_Nm: user.last_name,
-        Dob: user.dob,
-        Gender: user.gender,
-        Pin_Zip: user.pin_zip,
-        idNo: user.national_id,
-        Marital_Status: user.marital_status,
-        Nationality: user.nationality,
-        Email1: user.email,
-        Contact_Mobile_No: user.phone_number,
-        Remarks: user.remarks || null,
-        Address_Line1: user.address_line
+      Title: user.title,
+      First_Nm: user.first_name,
+      Middle_Nm: user.middle_name,
+      Last_Nm: user.last_name,
+      Dob: user.dob,
+      Gender: user.gender,
+      Pin_Zip: user.pin_zip,
+      idNo: user.national_id,
+      Marital_Status: user.marital_status,
+      Nationality: user.nationality,
+      Email1: user.email,
+      Contact_Mobile_No: user.phone_number,
+      Remarks: user.remarks || null,
+      Address_Line1: user.address_line
     }
 
     // let PolicyCreationRequest = {
@@ -542,29 +543,31 @@ const policyIssuance = async (req: any, res: any) => {
     //     Subsidiary_Cd: policy.subsidiary_cd
     // }
 
-        
-        const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
 
-        if (policyIssuance) {
-          await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `User ${req.user.user_id} issued policy ${policy_id}`,
-            level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
-        });
-            return res.status(200).json({ result : {
-                success: true,
-                message: 'Policy Issuance',
-                item: policyIssuance
-          }  });
+    const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
+
+    if (policyIssuance) {
+      await Log.create({
+        log_id: uuidv4(),
+        timestamp: new Date(),
+        message: `User ${req?.user_id} issued policy ${policy_id}`,
+        level: 'info',
+        user: req?.user_id,
+        partner_id: req?.partner_id,
+      });
+      return res.status(200).json({
+        result: {
+          success: true,
+          message: 'Policy Issuance',
+          item: policyIssuance
         }
-
-    } catch (error) {
-        console.log("ERROR ON POLICY ISSURANC", error)
-        return res.status(500).json({message: "Internal server error"}, error);
+      });
     }
+
+  } catch (error) {
+    console.log("ERROR ON POLICY ISSURANC", error)
+    return res.status(500).json({ message: "Internal server error" }, error);
+  }
 };
 
 
@@ -600,86 +603,86 @@ const policyIssuance = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const updatePolicy = async (req: any, res: any) => {
-    try {
-        const {
-            user_id,
-            product_id,
-            policy_start_date,
-            policy_status,
-            beneficiary,
-            policy_type,
-            policy_end_date,
-            policy_deduction_amount,
-            policy_next_deduction_date,
-            installment_order,
-            installment_date,
-            installment_alert_date,
-            tax_rate_vat,
-            tax_rate_ext,
-            premium,
-            sum_insured,
-            excess_premium,
-            discount_premium,
-            partner_id,
-            currency_code,
-            country_code,
-            policy_documents
-        } = req.body;
+  try {
+    const {
+      user_id,
+      product_id,
+      policy_start_date,
+      policy_status,
+      beneficiary,
+      policy_type,
+      policy_end_date,
+      policy_deduction_amount,
+      policy_next_deduction_date,
+      installment_order,
+      installment_date,
+      installment_alert_date,
+      tax_rate_vat,
+      tax_rate_ext,
+      premium,
+      sum_insured,
+      excess_premium,
+      discount_premium,
+      partner_id,
+      currency_code,
+      country_code,
+      policy_documents
+    } = req.body;
 
-        let policy = await Policy.findAll({
-            where: {
-                policy_id: req.params.policy_id
-            }
-        })
-        if (!policy) {
-            return res.status(404).json({ message: "No policy found" });
-        }
-
-        const data: Policy = {
-            user_id,
-            policy_start_date,
-            policy_status,
-            beneficiary,
-            policy_type,
-            policy_end_date,
-            policy_deduction_amount,
-            policy_next_deduction_date,
-            installment_order,
-            installment_date,
-            installment_alert_date,
-            tax_rate_vat,
-            tax_rate_ext,
-            premium,
-            sum_insured,
-            excess_premium,
-            discount_premium,
-            product_id,
-            partner_id,
-            currency_code,
-            country_code,
-            policy_documents
-        };
-
-        //saving the policy
-        await Policy.update(data, {
-            where: {
-                policy_id: req.params.policy_id,
-            },
-        });
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: `User ${req.user.user_id} updated policy ${req.params.policy_id}`,
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        //send policy details
-        return res.status(201).json({ result:{message: "Policy updated successfully"} });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error});
+    let policy = await Policy.findAll({
+      where: {
+        policy_id: req.params.policy_id
+      }
+    })
+    if (!policy) {
+      return res.status(404).json({ message: "No policy found" });
     }
+
+    const data: Policy = {
+      user_id,
+      policy_start_date,
+      policy_status,
+      beneficiary,
+      policy_type,
+      policy_end_date,
+      policy_deduction_amount,
+      policy_next_deduction_date,
+      installment_order,
+      installment_date,
+      installment_alert_date,
+      tax_rate_vat,
+      tax_rate_ext,
+      premium,
+      sum_insured,
+      excess_premium,
+      discount_premium,
+      product_id,
+      partner_id,
+      currency_code,
+      country_code,
+      policy_documents
+    };
+
+    //saving the policy
+    await Policy.update(data, {
+      where: {
+        policy_id: req.params.policy_id,
+      },
+    });
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: `User ${req?.user_id} updated policy ${req.params.policy_id}`,
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    //send policy details
+    return res.status(201).json({ result: { message: "Policy updated successfully" } });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error });
+  }
 }
 
 /**
@@ -706,38 +709,38 @@ const updatePolicy = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const deletePolicy = async (req: any, res: any) => {
-    try {
-        await Policy.destroy({
-            where: {
-                policy_id: req.params.policy_id,
-            },
-        });
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: `User ${req.user.user_id} deleted policy ${req.params.policy_id}`,
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        //send policy details
-        return res.status(201).json({ result:{message: "Policy deleted successfully"}  });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({message: "Internal server error", error});
+  try {
+    await Policy.destroy({
+      where: {
+        policy_id: req.params.policy_id,
+      },
+    });
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: `User ${req?.user_id} deleted policy ${req.params.policy_id}`,
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    //send policy details
+    return res.status(201).json({ result: { message: "Policy deleted successfully" } });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error", error });
 
-    }
+  }
 }
 
 
 module.exports = {
-    getPolicies,
-    getPolicy,
-    getUserPolicies,
-    createPolicy,
-    updatePolicy,
-    deletePolicy,
-    policyIssuance
+  getPolicies,
+  getPolicy,
+  getUserPolicies,
+  createPolicy,
+  updatePolicy,
+  deletePolicy,
+  policyIssuance
 
 }
 

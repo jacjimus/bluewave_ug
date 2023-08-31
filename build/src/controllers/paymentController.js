@@ -108,10 +108,10 @@ const getPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         yield Log.create({
             log_id: (0, uuid_1.v4)(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation listPayments`,
+            message: ` ${req === null || req === void 0 ? void 0 : req.user_id} performed operation listPayments`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -166,10 +166,10 @@ const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         yield Log.create({
             log_id: (0, uuid_1.v4)(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation getPayment`,
+            message: ` ${req === null || req === void 0 ? void 0 : req.user_id} performed operation getPayment`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         if (payment) {
             res.status(200).json({
@@ -245,10 +245,11 @@ const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, functi
             yield Log.create({
                 log_id: (0, uuid_1.v4)(),
                 timestamp: new Date(),
-                message: `${req.user.role} ${req.user.user_id} performed operation listPolicyPayments`,
+                message: `
+ ${req === null || req === void 0 ? void 0 : req.user_id} performed operation listPolicyPayments`,
                 level: 'info',
-                user: req.user.user_id,
-                partner_id: req.user.partner_id,
+                user: req === null || req === void 0 ? void 0 : req.user_id,
+                partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
             });
             res.status(200).json({
                 result: {
@@ -326,10 +327,10 @@ const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function
         yield Log.create({
             log_id: (0, uuid_1.v4)(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation listUserPayments`,
+            message: ` ${req === null || req === void 0 ? void 0 : req.user_id} performed operation listUserPayments`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(200).json({
             result: {
@@ -378,10 +379,10 @@ const createPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         yield Log.create({
             log_id: (0, uuid_1.v4)(),
             timestamp: new Date(),
-            message: `${req.user.role} ${req.user.user_id} performed operation createPayment`,
+            message: ` ${req === null || req === void 0 ? void 0 : req.user_id} performed operation createPayment`,
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.status(201).json({
             result: {

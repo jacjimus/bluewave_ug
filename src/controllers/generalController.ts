@@ -2,7 +2,7 @@ const multer = require('multer');
 const fs = require('fs');
 import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
-const {db} = require('../models/db');
+const { db } = require('../models/db');
 const Log = db.logs;
 
 
@@ -72,9 +72,9 @@ const uploadDocument = async (req: any, res: any) => {
       timestamp: new Date(),
       message: 'File uploaded successfully',
       level: 'info',
-      user: req.user.user_id,
-      partner_id: req.user.partner_id,
-  });
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
 
     return res.json({ message: 'File uploaded successfully', fileUrl });
 

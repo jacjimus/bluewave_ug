@@ -77,8 +77,8 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
             timestamp: new Date(),
             message: 'File uploaded successfully',
             level: 'info',
-            user: req.user.user_id,
-            partner_id: req.user.partner_id,
+            user: req === null || req === void 0 ? void 0 : req.user_id,
+            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         return res.json({ message: 'File uploaded successfully', fileUrl });
     }

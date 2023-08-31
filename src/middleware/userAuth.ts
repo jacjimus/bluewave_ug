@@ -14,7 +14,7 @@ function isBluewave(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.partner_id == 1 && user.role === 'superadmin') {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -36,7 +36,7 @@ function isAirtel(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.partner_id  === 2 && user.role === 'superadmin') {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -59,7 +59,7 @@ function isVodacom(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.partner_id == 3 && user.role === 'superadmin') {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -82,7 +82,7 @@ function isAAR(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.partner_id == 4 && user.role === 'superadmin') {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -105,7 +105,7 @@ function isUser(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.role === 'user' ) {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -129,7 +129,7 @@ function isUserOrAdmin(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.role === 'user' || user.role === 'admin' ) {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -158,7 +158,7 @@ function isManager(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.role === 'manager' ) {
-        req.user = user;
+         req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -180,7 +180,7 @@ function isSuperAdmin(req:any, res:any, next:any) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.role === 'superadmin' ) {
-        req.user = user;
+        req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {
@@ -207,7 +207,7 @@ function isUserOrAdminOrManager(req:any, res:any, next:any) {
       }
 
       if (user.role === 'user' || user.role === 'admin' || user.role === 'manager' ) {
-        req.user = user;
+        req.user_id = user.user_id;
         req.partner_id = user.partner_id;
         next();
       } else {

@@ -7,16 +7,16 @@ const Op = db.Sequelize.Op;
 
 
 interface Product {
-    product_name: string,
-    product_description: string,
-    product_type: string,
-    product_category: string,
-    product_premium: number,
-    product_image: string,
-    product_status: string,
-    product_duration: number,
-    underwriter: string,
-    benefits: object
+  product_name: string,
+  product_description: string,
+  product_type: string,
+  product_category: string,
+  product_premium: number,
+  product_image: string,
+  product_status: string,
+  product_duration: number,
+  underwriter: string,
+  benefits: object
 
 }
 
@@ -148,11 +148,11 @@ const getProducts = async (req: any, res: any) => {
     await Log.create({
       log_id: uuidv4(),
       timestamp: new Date(),
-      message: 'Products fetched successfully' ,
+      message: 'Products fetched successfully',
       level: 'info',
-      user: req.user.user_id,
-      partner_id: req.user.partner_id,
-  });
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
 
     return res.status(status.code).json({ result: status.result });
   } catch (error) {
@@ -187,40 +187,40 @@ const getProducts = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const getProduct = async (req: any, res: any) => {
-    let status = {
-        code: 200,
-        result: {},
+  let status = {
+    code: 200,
+    result: {},
 
+  }
+  try {
+    const product_id = parseInt(req.params.product_id)
+    const product = await Product.findOne({
+      where: {
+        id: product_id
+      }
+    })
+    if (!product || product.length === 0) {
+      return res.status(404).json({ message: "No product found" });
     }
-    try {
-        const product_id = parseInt(req.params.product_id)
-        const product = await Product.findOne({
-            where: {
-                  id: product_id
-            }
-        })
-        if (!product || product.length === 0) {
-            return res.status(404).json({ message: "No product found" });
-        }
-  
-        status.result = {
-            item: product
-        };
 
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: 'Product fetched successfully by id ' + product_id + '',
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
+    status.result = {
+      item: product
+    };
 
-        return res.status(status.code).json({result: status.result});
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
-    }
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'Product fetched successfully by id ' + product_id + '',
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+
+    return res.status(status.code).json({ result: status.result });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
 
 }
 
@@ -249,31 +249,32 @@ const getProduct = async (req: any, res: any) => {
   */
 
 const createProduct = async (req: any, res: any) => {
-    try {
+  try {
 
-        const product: Product = req.body;
-        const newProduct = await Product.create(product);
-        if(!newProduct){
-            return res.status(500).json({ message: "Error creating product" });
-        }
-
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: 'Product created successfully ' + newProduct.product_name + '',
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        return res.status(200).json({ result: {
-            message: "Product created successfully",
-            product: newProduct
-        }
-        });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
+    const product: Product = req.body;
+    const newProduct = await Product.create(product);
+    if (!newProduct) {
+      return res.status(500).json({ message: "Error creating product" });
     }
+
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'Product created successfully ' + newProduct.product_name + '',
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    return res.status(200).json({
+      result: {
+        message: "Product created successfully",
+        product: newProduct
+      }
+    });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
 
 }
 
@@ -309,70 +310,70 @@ const createProduct = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const updateProduct = async (req: any, res: any) => {
-    try {
+  try {
 
-        const {
-            product_name,
-            product_description,
-            product_type,
-            product_category,
-            product_premium,
+    const {
+      product_name,
+      product_description,
+      product_type,
+      product_category,
+      product_premium,
 
-            product_image,
-            product_status,
+      product_image,
+      product_status,
 
-            product_duration,
-            underwriter,
+      product_duration,
+      underwriter,
 
-           benefits
-
-          
-        } = req.body;
+      benefits
 
 
-        let product = await Product.findAll({
+    } = req.body;
 
-            where: {
-                product_id: req.params.product_id
-            }
-        })
-        if (!product) {
-            return res.status(404).json({ message: "No product found" });
-        }
 
-        const data: Product = {
-            product_name: product_name,
-            product_description: product_description,
-            product_type: product_type,
-            product_category: product_category,
-            product_premium: product_premium,
-            product_image: product_image,
-            product_status: product_status,
-            product_duration: product_duration,
-            underwriter: underwriter,
-            benefits: benefits
+    let product = await Product.findAll({
 
-        };
-        //saving the product
-        await Product.update(data, {
-            where: {
-                id: req.params.product_id,
-            },
-        });
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: 'Product updated successfully' + req.params.product_id + '',
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        //send product details
-        return res.status(201).json({ result:{message: "Product updated successfully"} });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({message: "Internal server error", error: error});
+      where: {
+        product_id: req.params.product_id
+      }
+    })
+    if (!product) {
+      return res.status(404).json({ message: "No product found" });
     }
+
+    const data: Product = {
+      product_name: product_name,
+      product_description: product_description,
+      product_type: product_type,
+      product_category: product_category,
+      product_premium: product_premium,
+      product_image: product_image,
+      product_status: product_status,
+      product_duration: product_duration,
+      underwriter: underwriter,
+      benefits: benefits
+
+    };
+    //saving the product
+    await Product.update(data, {
+      where: {
+        id: req.params.product_id,
+      },
+    });
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'Product updated successfully' + req.params.product_id + '',
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    //send product details
+    return res.status(201).json({ result: { message: "Product updated successfully" } });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error: error });
+  }
 }
 
 /**
@@ -399,27 +400,27 @@ const updateProduct = async (req: any, res: any) => {
   *         description: Invalid request
   */
 const deleteProduct = async (req: any, res: any) => {
-    try {
-        await Product.destroy({
-            where: {
-                id: req.params.product_id,
-            },
-        });
-        //send product details
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: 'Product deleted successfully ' + req.params.product_id + '',
-          level: 'info',
-          user: req.user.user_id,
-          partner_id: req.user.partner_id,
-      });
-        return res.status(201).json({ result:{message: "Product deleted successfully"}  });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({message: "Internal server error", error: error});
+  try {
+    await Product.destroy({
+      where: {
+        id: req.params.product_id,
+      },
+    });
+    //send product details
+    await Log.create({
+      log_id: uuidv4(),
+      timestamp: new Date(),
+      message: 'Product deleted successfully ' + req.params.product_id + '',
+      level: 'info',
+      user: req?.user_id,
+      partner_id: req?.partner_id,
+    });
+    return res.status(201).json({ result: { message: "Product deleted successfully" } });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error", error: error });
 
-    }
+  }
 }
 
 
@@ -427,12 +428,12 @@ const deleteProduct = async (req: any, res: any) => {
 
 
 module.exports = {
-    getProducts,
-    getProduct,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-   
+  getProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+
 
 }
 

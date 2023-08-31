@@ -721,8 +721,8 @@ const getPartner = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let partner_id_to_update = req.query.partner_id;
-        let user_id = req.user.user_id;
-        let partner_id = req.user.partner_id;
+        let user_id = req.user_id;
+        let partner_id = req.partner_id;
         let partner = yield Partner.findOne({
             where: {
                 id: Number(partner_id),
