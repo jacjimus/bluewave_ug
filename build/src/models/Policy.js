@@ -102,10 +102,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        // TEXT []
         policy_documents: {
-            type: DataTypes.ARRAY(DataTypes.STRING),
-            allowNull: true,
-            defaultValue: [] // Set an empty array as the default value
+            type: DataTypes.ARRAY(DataTypes.TEXT),
+            allowNull: true
         },
         policy_paid_date: {
             type: DataTypes.DATE,

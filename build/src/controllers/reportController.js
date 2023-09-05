@@ -129,14 +129,14 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
             total_policies_partially_paid: policy.filter((policy) => policy.policy_status == "partially_paid").length,
             total_preimum_amount: policy.reduce((a, b) => a + b.policy_deduction_amount * 1, 0),
         };
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: 'Policy summary fetched successfully',
-            level: 'info',
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'Policy summary fetched successfully',
+        //   level: 'info',
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         return res.status(200).json({
             result: {
                 items: summary,
@@ -254,14 +254,14 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
             total_claims_disputed: countClaimsByStatus(claim, "disputed"),
             total_claims_dispute_resolved: countClaimsByStatus(claim, "dispute_resolved"),
         };
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: 'Claim summary fetched successfully',
-            level: 'info',
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'Claim summary fetched successfully',
+        //   level: 'info',
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         return res.status(200).json({
             result: {
                 items: summary,
@@ -535,14 +535,14 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
         summary.product.total_products_pending = countProductsByStatus(products, "pending");
         // Populate session summary
         summary.session.total_sessions = sessions.length;
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: 'User fetched successfully',
-            level: 'info',
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'User fetched successfully',
+        //   level: 'info',
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         // Return the summary
         res.status(200).json({ summary });
     }
@@ -667,14 +667,14 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
             monthly: countPoliciesByStatus(monthlyResult, "paid"),
             yearly: countPoliciesByStatus(yearlyResult, "paid"),
         };
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: 'Daily policy sales fetched successfully',
-            level: 'info',
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'Daily policy sales fetched successfully',
+        //   level: 'info',
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         res.status(200).json(report);
     }
     catch (error) {
@@ -782,14 +782,14 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
         const downloadURL = `${BASE_URL}/api/v1/reports/policy/excel/download?token=${downloadToken}`;
         // Store the download token somewhere (e.g., in-memory cache or database)
         // This is needed to verify the download request
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: 'Excel policy report generated successfully',
-            level: 'info',
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'Excel policy report generated successfully',
+        //   level: 'info',
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         // Return the download URL to the user
         res.status(200).json({ downloadURL });
     }
@@ -946,14 +946,14 @@ const getAggregatedDailyPolicySalesReport = (req, res) => __awaiter(void 0, void
             type: QueryTypes.SELECT,
         });
         console.log("RESULTS", results);
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: 'Aggregated daily policy sales fetched successfully',
-            level: 'info',
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'Aggregated daily policy sales fetched successfully',
+        //   level: 'info',
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         // Send the results as a response
         res.status(200).json(results);
     }
