@@ -67,14 +67,15 @@ const uploadDocument = async (req: any, res: any) => {
 
     // Return the URL of the uploaded file
     const fileUrl = uploadResult.Location;
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'File uploaded successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'File uploaded successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     return res.json({ message: 'File uploaded successfully', fileUrl });
 

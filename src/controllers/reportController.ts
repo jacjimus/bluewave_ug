@@ -144,14 +144,14 @@ const getPolicySummary = async (req: any, res: any) => {
         0
       ),
     };
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Policy summary fetched successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Policy summary fetched successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     return res.status(200).json({
       result: {
         items: summary,
@@ -288,14 +288,14 @@ const getClaimSummary = async (req: any, res: any) => {
       ),
     };
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Claim summary fetched successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Claim summary fetched successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     return res.status(200).json({
       result: {
@@ -650,14 +650,14 @@ const getAllReportSummary = async (req: any, res: any) => {
     // Populate session summary
     summary.session.total_sessions = sessions.length;
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'User fetched successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'User fetched successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     // Return the summary
     res.status(200).json({ summary });
@@ -817,14 +817,14 @@ const getDailyPolicySalesReport = async (req, res) => {
       yearly: countPoliciesByStatus(yearlyResult, "paid"),
     };
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Daily policy sales fetched successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Daily policy sales fetched successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     res.status(200).json(report);
   } catch (error) {
@@ -952,14 +952,14 @@ const getPolicyExcelReportDownload = async (req, res) => {
     // Store the download token somewhere (e.g., in-memory cache or database)
     // This is needed to verify the download request
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Excel policy report generated successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Excel policy report generated successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     // Return the download URL to the user
     res.status(200).json({ downloadURL });
@@ -1139,14 +1139,14 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
 
     console.log("RESULTS", results);
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Aggregated daily policy sales fetched successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Aggregated daily policy sales fetched successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     // Send the results as a response
     res.status(200).json(results);
   } catch (error) {
