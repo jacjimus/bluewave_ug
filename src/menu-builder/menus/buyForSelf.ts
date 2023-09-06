@@ -127,8 +127,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             //today day of month
             let day = date.getDate();
-            let countryCode = User.partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = User.partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
                 let policy = {
                     policy_type: 'bronze',
                     beneficiary: 'self',
@@ -196,8 +196,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let date = new Date();
             let day = date.getDate();
             let nextDeduction = new Date(date.getFullYear() + 1, date.getMonth(), day)
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
 
                 //save policy details
                 let policy = {
@@ -374,11 +374,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             let day = date.getDate();
-
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
-
-
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
                 //save policy details
                 let policy = {
                     policy_type: 'silver',
@@ -438,10 +435,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             //today day of month
             let day = date.getDate();
-
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
-
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
                 //save policy details
                 let policy = {
                     policy_type: 'silver',
@@ -576,9 +571,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             //today day of month
             let day = date.getDate();
-
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
 
                 let policy = {
                     policy_type: 'gold',
@@ -649,9 +643,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             //today day of month
             let day = date.getDate();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
                 //save policy details
                 let policy = {
                     policy_type: 'gold',

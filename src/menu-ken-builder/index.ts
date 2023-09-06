@@ -332,8 +332,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
           //today day of month
           let day = date.getDate();
-          let countryCode = partner_id == 2 ? "UGA" : "KEN";
-          let currencyCode = partner_id == 2 ? "UGX" : "KES";
+          let countryCode =  "KEN";
+          let currencyCode =  "KES";
           let policy = {
             policy_type: "bronze",
             beneficiary: "self",
@@ -408,8 +408,8 @@ export default function handleUssd(args: RequestBody, db: any) {
               date.getMonth(),
               day
             );
-            const countryCode = partner_id === 2 ? "UGA" : "KEN";
-            const currencyCode = partner_id === 2 ? "UGX" : "KES";
+            let countryCode =  "KEN";
+            let currencyCode =  "KES";
 
             const policy = {
               policy_type: "bronze",
@@ -1514,8 +1514,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           );
           const { user_id, partner_id } = await getUser(args.phoneNumber);
 
-          let countryCode = partner_id == 2 ? "UGA" : "KEN";
-          let currencyCode = partner_id == 2 ? "UGX" : "KES";
+          let countryCode =  "KEN";
+          let currencyCode =  "KES";
 
           //save policy details
           let policy = {
@@ -1591,8 +1591,8 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             1
           );
-          let countryCode = User.partner_id == 2 ? "UGA" : "KEN";
-          let currencyCode = User.partner_id == 2 ? "UGX" : "KES";
+          let countryCode =  "KEN";
+          let currencyCode =  "KES";
 
           const policy = {
             policy_type: "bronze",
@@ -1745,8 +1745,8 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             1
           );
-          let countryCode = partner_id == 2 ? "UGA" : "KEN";
-          let currencyCode = partner_id == 2 ? "UGX" : "KES";
+          let countryCode =  "KEN";
+          let currencyCode =  "KES";
 
           const policy = {
             policy_type: "bronze",
@@ -1939,8 +1939,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           let spouse = menu.val;
           console.log("SPOUSE NAME 1", spouse);
           const { user_id, partner_id } = await getUser(args.phoneNumber);
-          let countryCode = partner_id == 2 ? "UGA" : "KEN";
-          let currencyCode = partner_id == 2 ? "UGX" : "KES";
+          let countryCode =  "KEN";
+          let currencyCode =  "KES";
           const policy = {
             policy_type: "bronze",
             beneficiary: "selfSpouse2Child",

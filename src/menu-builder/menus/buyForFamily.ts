@@ -76,8 +76,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
             const { user_id, partner_id } = await getUser(args.phoneNumber);
 
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
 
             //save policy details
             let policy = {
@@ -150,8 +150,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             const { user_id, partner_id } = await getUser(args.phoneNumber);
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-            let countryCode = User.partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = User.partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
 
             const policy = {
                 policy_type: 'bronze',
@@ -329,8 +329,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             const { user_id, partner_id } = await getUser(args.phoneNumber);
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
 
             const policy = {
                 policy_type: 'bronze',
@@ -537,8 +537,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let spouse = menu.val;
             console.log("SPOUSE NAME 1", spouse)
             const { user_id, partner_id } = await getUser(args.phoneNumber);
-            let countryCode = partner_id == 2 ? 'UGA' : 'KEN';
-            let currencyCode = partner_id == 2 ? 'UGX' : 'KES';
+            let countryCode = 'UGA'
+            let currencyCode = 'UGX';
             const policy = {
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse2Child',
