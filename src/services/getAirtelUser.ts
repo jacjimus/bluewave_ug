@@ -58,7 +58,7 @@ async function getAirtelUser(phoneNumber, country, currency, partner_id) {
                 partner_id: partner_id,
             });
             // WELCOME SMS
-            const message = `Dear ${user.first_name}, welcome to Bluewave Insurance. Your membership ID is ${user.membership_id}. Dial *185*4*4# to access your account.`;
+            const message = `Dear ${user.first_name}, welcome to Bluewave Insurance. Your membership ID is ${user.membership_id} and PIN is ${user.pin}. Dial *185*4*4# to access your account.`;
             await sendSMS(user.phone_number, message);
 
             console.log("USER FOR AIRTEL API", user);
