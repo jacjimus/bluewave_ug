@@ -23,9 +23,10 @@ function termsAndConditions(menu, buildInput) {
             // }
             const to = `+${buildInput.phoneNumber}`;
             console.log(buildInput.phoneNumber, to);
-            const message = 'Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS';
+            const message = 'Visit [LINK TBC] to Terms & Conditions.';
             console.log(to);
             const sms = yield (0, sendSMS_1.default)(to, message);
+            console.log("SMS", sms);
             menu.end('Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS');
         }),
     });

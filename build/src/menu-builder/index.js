@@ -16,6 +16,7 @@ const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
+const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
 const startMenu_1 = require("./menus/startMenu");
 const displayInsuranceMenu_1 = require("./menus/displayInsuranceMenu");
 const displayMedicalCoverMenu_1 = require("./menus/displayMedicalCoverMenu");
@@ -38,6 +39,15 @@ function default_1(args, db) {
             if (args.phoneNumber.charAt(0) == "+") {
                 args.phoneNumber = args.phoneNumber.substring(1);
             }
+            console.log(args.phoneNumber);
+            let userPhoneNumber = args.phoneNumber;
+            //if args.phoneNumber is 12 digit remove the first three country code
+            if (args.phoneNumber.length == 12) {
+                userPhoneNumber = args.phoneNumber.substring(3);
+                args.phoneNumber = userPhoneNumber;
+            }
+            const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "UG", "UGX", 2);
+            console.log("USER KYC", userKyc);
             function getUser(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return yield User.findOne({
@@ -48,7 +58,7 @@ function default_1(args, db) {
                 });
             }
             // Retrieve user using provided phone number
-            const user = yield getUser(args.phoneNumber);
+            const user = yield getUser(userPhoneNumber);
             if (!user) {
                 throw new Error("User not found");
             }

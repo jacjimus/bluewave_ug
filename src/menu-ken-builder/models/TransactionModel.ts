@@ -16,12 +16,6 @@ const transactionSchema = new Schema({
     ref: 'User',
     required: true,
     },
-
-  beneficiary_id: {
-    type: Schema.Types.ObjectId,
-    ref: 'Beneficiary',
-    required: true,
-    }
 },
 { timestamps: true }
 );

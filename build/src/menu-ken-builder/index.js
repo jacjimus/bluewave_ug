@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
+const payment_1 = __importDefault(require("../services/payment"));
 const uuid_1 = require("uuid");
 const crypto_1 = __importDefault(require("crypto"));
 require("dotenv").config();
@@ -223,7 +224,7 @@ function handleUssd(args, db) {
                 run: () => {
                     menu.con("Pay KES 300 deducted monthly." +
                         "\nTerms&Conditions - www.airtel.com" +
-                        "\nEnter PIN to Agree and Pay" +
+                        '\nEnter PIN or Membership ID to Agree and Pay' +
                         "\n0.Back" +
                         "\n00.Main Menu");
                 },
@@ -237,7 +238,7 @@ function handleUssd(args, db) {
                 run: () => {
                     menu.con("Pay KES 3,292 deducted yearly." +
                         "\nTerms&Conditions - www.airtel.com" +
-                        "\nEnter PIN to Agree and Pay" +
+                        '\nEnter PIN or Membership ID to Agree and Pay' +
                         "\n0.Back" +
                         "\n00.Main Menu");
                 },
@@ -353,11 +354,10 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.bronze.yearly.confirm", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
-                        const user_pin = Number(menu.val);
-                        const { pin, user_id, partner_id } = yield getUser(args.phoneNumber);
-                        if (user_pin !== 1234 && user_pin !== pin) {
-                            menu.con("PIN incorrect. Try again");
-                            return;
+                        let user_pin = Number(menu.val);
+                        const { pin, user_id, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                        if (user_pin !== pin && user_pin !== membership_id) {
+                            menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
                         }
                         const date = new Date();
                         const day = date.getDate();
@@ -426,9 +426,8 @@ function handleUssd(args, db) {
                             const uuid = (0, uuid_1.v4)();
                             const reference = policy.policy_type + policy_id + user_id + uuid;
                             // Call the airtelMoney function and handle payment status
-                            let paymentStatus = 200;
-                            //await performPayment(userId, partner_id, policy_id, phone_number, policy_deduction_amount, reference, uuid);
-                            if (paymentStatus === 200) {
+                            const paymentStatus = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
+                            if (paymentStatus.code === 200) {
                                 menu.end(`Congratulations, you are now covered.\n` +
                                     `To stay covered KES ${policy_deduction_amount} will be deducted on day ${day} of every month`);
                             }
@@ -716,7 +715,7 @@ function handleUssd(args, db) {
                     let today = new Date();
                     console.log("POLICY: ", policy);
                     menu.con(`By cancelling, you will no longer be covered for ${policy.policy_type.toUpperCase()} Insurance as of ${today}.
-            Enter PIN to  Confirm cancellation
+            E'\nEnter PIN or Membership ID to Confirm cancellation
             0.Back
             00.Main Menu`);
                 }),
@@ -1734,7 +1733,7 @@ function handleUssd(args, db) {
                         const newBeneficiary = yield Beneficiary.create(beneficiary);
                         menu.con(`Pay KES 1,456 deducted monthly.
                     Terms&Conditions - www.airtel.com
-                    Enter PIN to Agree and Pay
+                    '\nEnter PIN or Membership ID to Agree and Pay' +
                     0.Back
                     00.Main Menu`);
                     }
@@ -1754,7 +1753,7 @@ function handleUssd(args, db) {
                 run: () => {
                     menu.con(`Pay KES 1,456 deducted monthly.
                             Terms&Conditions - www.airtel.com
-                            Enter PIN to Agree and Pay
+                            '\nEnter PIN or Membership ID to Agree and Pay' +
                             n0.Back
                             00.Main Menu`);
                 },

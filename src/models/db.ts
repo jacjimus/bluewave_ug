@@ -24,26 +24,19 @@ db.beneficiaries = require('./Beneficiary')(sequelize, DataTypes)
 db.partners = require('./Partner')(sequelize, DataTypes)
 db.products = require('./Product')(sequelize, DataTypes)
 db.logs = require('./Log')(sequelize, DataTypes)
+db.transactions = require('./Transaction')(sequelize, DataTypes)
 
-//update all user records to have a membership_id column Math.floor(100000 + Math.random() * 900000)
-// let id = 2
-
-// db.sessions.update({ parter_id: id }, {
-//     where: {
-//         language: 'en'
-//     }
-// }).then((res) => {
-
-//     console.log(res)
-// }).catch((err) => {
-//     console.log(err)
-// })
-
-
-// update user name column with first_name and last_name
+//delete column bemeficiary_id from transactions table
+//db.transactions.removeAttribute('beneficiary_id')
 
 
 
+//syncing the model
+sequelize.sync().then(() => {
+    console.log(`Database & tables created!`)
+}).catch((err) => {
+    console.log(err)
+})
 
 
 //exporting the module

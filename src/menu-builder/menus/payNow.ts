@@ -103,15 +103,13 @@ export function payNow(menu: any, args: any, db: any): void {
       let partner_id = user.partner_id
       let policy_id = policies.id
       let amount = policies.policy_deduction_amount
-      const uuid = uuidv4();
-      let reference = policies.policy_type + policy_id + userId + uuid
+      let reference = user.membership_id
 
-      let payment: any = await airtelMoney(userId, partner_id, policy_id, phoneNumber, amount, reference, uuid)
+      let payment: any = await airtelMoney(userId, partner_id, policy_id, phoneNumber, amount, reference)
 
+      console.log("PAYMENT")
 
-      payment = 200;
-
-      if (payment == 200) {
+      if (payment.code == 200) {
         //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
         //     menu.end(`Paid Kes ${amount} for Medical cover. 
         // Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)

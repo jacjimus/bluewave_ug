@@ -73,8 +73,8 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
             console.log('Policy not found');
             return res.status(404).json({ message: 'Policy not found' });
         }
-        const to = '254' + user.phone_number.substring(1);
-        const paymentMessage = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on DD/MM/YY.`;
+        const to = user.phone_number;
+        const paymentMessage = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on ${policy.policy_next_deduction_date}.`;
         if (status_code == 'TS') {
             // Send SMS to user
             yield (0, sendSMS_1.default)(to, paymentMessage);

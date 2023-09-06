@@ -3,15 +3,19 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const africastalking = AfricasTalking({
-    apiKey: process.env.AFRICA_TALKING_API_KEY || '1718d7b52118cfef92bcc7bfb906ee258ed7c6bc420dd78c45b6328b99775c62',
-    username: process.env.AFRICA_TALKING_USERNAME || 'sandbox'
+    apiKey: process.env.AFRICA_TALKING_API_KEY,
+    username: process.env.AFRICA_TALKING_USERNAME
 });
 
 async function sendSMS(phoneNumber: string, message: string) {
+    //add +256 to the phone number 
+    phoneNumber = "+256" + phoneNumber
+
+    console.log("PHONE NUMBER", phoneNumber, "MESSAGE", message);
 
     const sms = africastalking.SMS
     const options = {
-        from: "36667",
+        from: "BLUEWAVE",
         to: phoneNumber,
         message: message
     }

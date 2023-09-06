@@ -237,7 +237,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           menu.con(
             "Pay KES 300 deducted monthly." +
             "\nTerms&Conditions - www.airtel.com" +
-            "\nEnter PIN to Agree and Pay" +
+            '\nEnter PIN or Membership ID to Agree and Pay' +
             "\n0.Back" +
             "\n00.Main Menu"
           );
@@ -254,7 +254,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           menu.con(
             "Pay KES 3,292 deducted yearly." +
             "\nTerms&Conditions - www.airtel.com" +
-            "\nEnter PIN to Agree and Pay" +
+            '\nEnter PIN or Membership ID to Agree and Pay' +
             "\n0.Back" +
             "\n00.Main Menu"
           );
@@ -327,6 +327,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           let deduction_day = Number(menu.val);
           const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
+          
           let date = new Date();
           let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
           //today day of month
@@ -395,16 +396,11 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.bronze.yearly.confirm", {
         run: async () => {
           try {
-            const user_pin = Number(menu.val);
-            const { pin, user_id, partner_id } = await getUser(
-              args.phoneNumber
-            );
-
-            if (user_pin !== 1234 && user_pin !== pin) {
-              menu.con("PIN incorrect. Try again");
-              return;
+            let user_pin = Number(menu.val);
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if ( user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
-
             const date = new Date();
             const day = date.getDate();
             const nextDeduction = new Date(
@@ -488,10 +484,16 @@ export default function handleUssd(args: RequestBody, db: any) {
               const reference = policy.policy_type + policy_id + user_id + uuid;
 
               // Call the airtelMoney function and handle payment status
-              let paymentStatus = 200;
-              //await performPayment(userId, partner_id, policy_id, phone_number, policy_deduction_amount, reference, uuid);
-
-              if (paymentStatus === 200) {
+              const paymentStatus = await airtelMoney(
+                user_id,
+                partner_id,
+                policy_id,
+                phone_number,
+                policy_deduction_amount,
+                reference,
+              );
+             
+              if (paymentStatus.code === 200) {
                 menu.end(
                   `Congratulations, you are now covered.\n` +
                   `To stay covered KES ${policy_deduction_amount} will be deducted on day ${day} of every month`
@@ -834,7 +836,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
           console.log("POLICY: ", policy);
           menu.con(`By cancelling, you will no longer be covered for ${policy.policy_type.toUpperCase()} Insurance as of ${today}.
-            Enter PIN to  Confirm cancellation
+            E'\nEnter PIN or Membership ID to Confirm cancellation
             0.Back
             00.Main Menu`);
         },
@@ -2077,7 +2079,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
             menu.con(`Pay KES 1,456 deducted monthly.
                     Terms&Conditions - www.airtel.com
-                    Enter PIN to Agree and Pay
+                    '\nEnter PIN or Membership ID to Agree and Pay' +
                     0.Back
                     00.Main Menu`);
           } catch (error) {
@@ -2100,7 +2102,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: () => {
           menu.con(`Pay KES 1,456 deducted monthly.
                             Terms&Conditions - www.airtel.com
-                            Enter PIN to Agree and Pay
+                            '\nEnter PIN or Membership ID to Agree and Pay' +
                             n0.Back
                             00.Main Menu`);
         },

@@ -18,16 +18,12 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "pending"
         },
         transaction_reference: {
-            type: DataTypes.STRING,
+            type: DataTypes.UUID,
             allowNull: false
         },
         user_id: {
             type: DataTypes.UUID,
             allowNull: false
-        },
-        beneficiary_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true
         },
         policy_id: {
             type: DataTypes.UUID,
@@ -57,6 +53,18 @@ module.exports = (sequelize, DataTypes) => {
     });
     sequelize.models.beneficiary.hasMany(Transaction, {
         foreignKey: "beneficiary_id",
+    });
+    Transaction.belongsTo(sequelize.models.policy, {
+        foreignKey: "policy_id",
+    });
+    sequelize.models.policy.hasMany(Transaction, {
+        foreignKey: "policy_id",
+    });
+    Transaction.belongsTo(sequelize.models.partner, {
+        foreignKey: "partner_id",
+    });
+    sequelize.models.partner.hasMany(Transaction, {
+        foreignKey: "partner_id",
     });
     return Transaction;
 };

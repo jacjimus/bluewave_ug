@@ -129,6 +129,10 @@ module.exports = (sequelize, DataTypes) => {
         as: "user",
         foreignKey: "user_id",
     });
+    User.hasMany(Policy, {
+        as: "policies",
+        foreignKey: "user_id",
+    });
 
 
 

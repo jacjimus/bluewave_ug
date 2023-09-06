@@ -17,6 +17,8 @@ import { buyForFamily } from "./menus/buyForFamily";
 import { myAccount } from "./menus/myAccount";
 import { payNow } from "./menus/payNow";
 
+
+
 require("dotenv").config();
 
 let menu = new UssdMenu();
@@ -33,6 +35,18 @@ export default function (args: RequestBody, db: any) {
       args.phoneNumber = args.phoneNumber.substring(1);
     }
 
+    console.log(args.phoneNumber)
+    let userPhoneNumber = args.phoneNumber;
+    //if args.phoneNumber is 12 digit remove the first three country code
+    if (args.phoneNumber.length == 12) {
+     userPhoneNumber = args.phoneNumber.substring(3);
+     args.phoneNumber = userPhoneNumber;
+    }
+    
+
+    const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+    console.log("USER KYC", userKyc)
+
     async function getUser(phoneNumber: any) {
       return await User.findOne({
         where: {
@@ -42,7 +56,7 @@ export default function (args: RequestBody, db: any) {
     }
 
     // Retrieve user using provided phone number
-    const user = await getUser(args.phoneNumber);
+    const user = await getUser(userPhoneNumber);
 
     if (!user) {
       throw new Error("User not found");

@@ -100,7 +100,7 @@ function buyForFamily(menu, args, db) {
                 user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
-                product_id: 2,
+                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELF", newPolicy);
@@ -158,7 +158,7 @@ function buyForFamily(menu, args, db) {
                 user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
-                product_id: 2,
+                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             };
             let newPolicy = yield Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy);
@@ -300,7 +300,7 @@ function buyForFamily(menu, args, db) {
                 user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
-                product_id: 2,
+                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             };
             let newPolicy = yield Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy);
@@ -464,7 +464,7 @@ function buyForFamily(menu, args, db) {
                 user_id: user_id,
                 country_code: countryCode,
                 currency_code: currencyCode,
-                product_id: 2,
+                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy);
@@ -567,7 +567,7 @@ function buyForFamily(menu, args, db) {
             let newBeneficiary = yield Beneficiary.create(beneficiary);
             menu.con(`Pay UGX ${premium}  deducted monthly.
                     Terms&Conditions - www.airtel.com
-                    Enter PIN to Agree and Pay
+                    '\nEnter PIN or Membership ID to Agree and Pay' +
                     n0.Back
                     00.Main Menu`);
         }),
@@ -583,7 +583,7 @@ function buyForFamily(menu, args, db) {
             let premium = 40000;
             menu.con(`Pay UGX ${premium} deducted monthly.
                             Terms&Conditions - www.airtel.com
-                            Enter PIN to Agree and Pay
+                            '\nEnter PIN or Membership ID to Agree and Pay' +
                             n0.Back
                             00.Main Menu`);
         },
@@ -599,7 +599,7 @@ function buyForFamily(menu, args, db) {
             let premium = 40000;
             menu.con(`Pay UGX ${premium}  deducted monthly.
                     Terms&Conditions - www.airtel.com
-                    Enter PIN to Agree and Pay
+                    '\nEnter PIN or Membership ID to Agree and Pay' +
                     n0.Back
                     00.Main Menu`);
         },
@@ -609,35 +609,6 @@ function buyForFamily(menu, args, db) {
             '00': 'insurance'
         }
     });
-    // menu.state('buyForFamilySChedule', {
-    //     run: async () => {
-    //         // use menu.val to access user input value
-    //         let user_pin = Number(menu.val);
-    //         // get user details
-    //         const { user_id, pin } = await getUser(args.phoneNumber);
-    //         const policy = await Policy.findOne({
-    //             where: {
-    //                 user_id: user_id
-    //             }
-    //         })
-    //         let policy_deduction_amount = policy.policy_deduction_amount;
-    //         // check if pin is correct
-    //         if (user_pin == pin || user_pin == 1234) {
-    //             menu.con(`SCHEDULE
-    //                           Enter day of month to deduct UGX ${policy_deduction_amount} premium monthly (e.g. 1, 2, 3…31)
-    //                           0.Back
-    //                           00.Main Menu`
-    //             );
-    //         } else {
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-    //     next: {
-    //         '*\\d+': 'confirmation',
-    //         '0': 'buyForFamily',
-    //         '00': 'insurance'
-    //     }
-    // });
     //===============CONFIRMATION=================
     menu.state('confirmation', {
         run: () => __awaiter(this, void 0, void 0, function* () {
@@ -653,9 +624,9 @@ function buyForFamily(menu, args, db) {
                 const uuid = (0, uuid_1.v4)();
                 const partnerId = user.partner_id;
                 const phoneNumber = user.phone_number;
-                const reference = `${policy_type}${policy_id}${userId}${uuid}`;
-                const paymentStatus = yield (0, payment_1.default)(userId, partnerId, policy_id, phoneNumber, policy_deduction_amount, reference, uuid);
-                if (paymentStatus === 200) {
+                const reference = user.membership_id;
+                const paymentStatus = yield (0, payment_1.default)(userId, partnerId, policy_id, phoneNumber, policy_deduction_amount, reference);
+                if (paymentStatus.code === 200) {
                     menu.end(`Congratulations! You are now covered.
                         To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month.`);
                 }

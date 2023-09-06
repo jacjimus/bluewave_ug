@@ -335,7 +335,7 @@ export function myAccount(menu: any, args: any, db: any) {
 
             console.log("POLICY: ", policy)
             menu.con(`By cancelling, you will no longer be covered for ${(policy.policy_type).toUpperCase()} Insurance as of ${today}.
-                Enter PIN to  Confirm cancellation
+            '\nEnter PIN or Membership ID to  Confirm cancellation
                 0.Back
                 00.Main Menu` )
         },
@@ -352,13 +352,9 @@ export function myAccount(menu: any, args: any, db: any) {
 
     menu.state('cancelPolicyConfirm', {
         run: async () => {
-            const to = '254' + args.phoneNumber.substring(1);
-            const message = ' You CANCELLED your Medical cover cover. Your Policy will expire on DD/MM/YYYY and you will not be covered. Dial *187*7*1# to reactivate.';
-
-
-            const sms = await sendSMS(to, message);
+            const to = args.phoneNumber;
             let today = new Date();
-
+            
             //update policy status to cancelled
             const user = await User.findOne({
                 where: {
@@ -373,7 +369,7 @@ export function myAccount(menu: any, args: any, db: any) {
                     },
                 });
             }
-
+            
             console.log("POLICY: ", policy)
             if (policy) {
                 // 1. Cancel Policy
@@ -381,9 +377,12 @@ export function myAccount(menu: any, args: any, db: any) {
                 policy.policy_end_date = today;
                 await policy.save();
             }
-
+            const message = `You CANCELLED your Medical cover cover. Your Policy will expire on ${today} and you will not be covered. Dial *187*7*1# to reactivate.`;
+    
+            const sms = await sendSMS(to, message);
+            
             menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *187*7# to reactivate.
-                0.Back     00.Main Menu`
+            0.Back     00.Main Menu`
             )
         },
         next: {

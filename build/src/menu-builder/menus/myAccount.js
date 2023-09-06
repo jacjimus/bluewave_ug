@@ -300,7 +300,7 @@ function myAccount(menu, args, db) {
             let today = new Date();
             console.log("POLICY: ", policy);
             menu.con(`By cancelling, you will no longer be covered for ${(policy.policy_type).toUpperCase()} Insurance as of ${today}.
-                Enter PIN to  Confirm cancellation
+            '\nEnter PIN or Membership ID to  Confirm cancellation
                 0.Back
                 00.Main Menu`);
         }),

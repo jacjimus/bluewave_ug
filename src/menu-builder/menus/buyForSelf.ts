@@ -84,7 +84,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         run: () => {
             menu.con('Pay UGX 10,000  deducted monthly.' +
                 '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN to Agree and Pay' +
+                '\nEnter PIN or Membership ID to Agree and Pay' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -100,7 +100,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         run: () => {
             menu.con('Pay UGX 120,000 deducted yearly.' +
                 '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN to Agree and Pay' +
+                '\nEnter PIN or Membership ID to Agree and Pay' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -112,67 +112,16 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         }
     });
 
-    // menu.state('buyForSelf.bronze.pin', {
-    //     run: async () => {
-    //         // use menu.val to access user input value
-    //         let user_pin = Number(menu.val);
-    //         const { pin } = await getUser(args.phoneNumber);
-    //         console.log("USER PIN", user_pin, "PIN", pin)
-    //         // check if pin is correct
-    //         if (user_pin == pin) {
-    //             menu.con('SCHEDULE' +
-    //                 '\n Enter day of month to deduct UGX 10,000 premium monthly (e.g. 1, 2, 3…31)' +
-    //                 '\n0.Back' +
-    //                 '\n00.Main Menu'
-    //             );
-    //         } else {
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-
-    //     next: {
-    //         '*\\d+': 'buyForSelf.bronze.confirm',
-    //         '0': 'account',
-    //         '00': 'insurance'
-
-    //     }
-    // });
-
-    // menu.state('buyForSelf.bronze.yearly.pin', {
-    //     run: async () => {
-    //         // use menu.val to access user input value
-    //         let user_pin = Number(menu.val);
-    //         const { pin } = await getUser(args.phoneNumber);
-
-    //         // check if pin is correct
-    //         if (user_pin == pin) {
-    //             menu.con('SCHEDULE' +
-    //                 '\n Enter day of month to deduct UGX 120,000 premium yearly (e.g. 1, 2, 3…31)' +
-    //                 '\n0.Back' +
-    //                 '\n00.Main Menu'
-    //             );
-    //         } else {
-
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-
-    //     next: {
-    //         '*\\d+': 'buyForSelf.bronze.yearly.confirm',
-    //         '0': 'account',
-    //         '00': 'insurance'
-
-    //     }
-    // });
-
 
     menu.state('buyForSelf.bronze.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { pin , user_id, partner_id} = await getUser(args.phoneNumber);
-console.log("USER PIN", user_pin, "PIN", pin)
-            if ( user_pin !== pin) {
-                menu.con('PIN incorrect. Try again');
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            console.log("user_pin", user_pin)
+            console.log("pin", pin)
+            console.log("membership_id", membership_id)
+            if (user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
@@ -190,7 +139,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_amount: 10000,
                     policy_next_deduction_date: nextDeduction,
                     user_id: user_id,
-                    product_id: 2,
+                    product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                     premium: 10000,
                     installment_order: 1,
                     installment_date: new Date(),
@@ -240,9 +189,9 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.bronze.yearly.confirm', {
         run: async () => {
              let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
-            if ( user_pin !== 1234 || user_pin !== pin) {
-                menu.con('PIN incorrect. Try again');
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if ( user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
             let day = date.getDate();
@@ -260,7 +209,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_day: day * 1,
                     policy_deduction_amount: 120000,
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                    product_id: 2,
+                    product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                     premium: 120000,
                     installment_order: 2,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
@@ -328,7 +277,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
         run: () => {
             menu.con('Pay UGX 14,000 deducted monthly.' +
                 '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN to Agree and Pay' +
+                '\nEnter PIN or Membership ID to Agree and Pay' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -343,7 +292,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
         run: () => {
             menu.con('Pay UGX 167,000 deducted yearly.' +
                 '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN to Agree and Pay' +
+                '\nEnter PIN or Membership ID to Agree and Pay' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -416,12 +365,11 @@ console.log("USER PIN", user_pin, "PIN", pin)
 
     menu.state('buyForSelf.silver.confirm', {
         run: async () => {
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
             
-
-            if ( user_pin !== pin) {
-                menu.con('PIN incorrect. Try again');
+            let user_pin = Number(menu.val);
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if ( user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
@@ -441,7 +389,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_day: day * 1,
                     policy_deduction_amount: 14000,
                     policy_next_deduction_date: nextDeduction,
-                    product_id: 2,
+                    product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                     premium: 14000,
                     installment_order: 1,
                     installment_date: nextDeduction,
@@ -482,10 +430,9 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.silver.yearly.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { pin , user_id, partner_id} = await getUser(args.phoneNumber);
-
-            if (user_pin !== pin) {
-                menu.con('PIN incorrect. Try again');
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if ( user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
@@ -505,7 +452,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_day: day * 1,
                     policy_deduction_amount: 167000,
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                    product_id: 2,
+                    product_id: 'd18424d6-5316-4e12-9826-302b866a380c', 
                     premium: 167000,
                     installment_order: 2,
                     installment_date:new Date(date.getFullYear() + 1, date.getMonth(), day),
@@ -569,7 +516,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
         run: () => {
             menu.con('Pay UGX 18,000  deducted monthly.' +
                 '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN to Agree and Pay' +
+                '\nEnter PIN or Membership ID to Agree and Pay' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -621,10 +568,9 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('buyForSelf.gold.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { user_id,pin, partner_id } = await getUser(args.phoneNumber);
-            console.log("USER PIN", user_pin, "PIN", pin)
-            if ( user_pin !== pin) {
-                menu.con('PIN incorrect. Try again');
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if ( user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
@@ -643,7 +589,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_day: day * 1,
                     policy_deduction_amount: 18000,
                     policy_next_deduction_date: nextDeduction,
-                    product_id: 2,
+                    product_id: 'd18424d6-5316-4e12-9826-302b866a380c',  
                     premium: 18000,
                     installment_order: 1,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
@@ -680,7 +626,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
         run: () => {
             menu.con('Pay UGX 208,000 deducted yearly.' +
                 '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN to Agree and Pay' +
+                '\nEnter PIN or Membership ID to Agree and Pay' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -692,42 +638,12 @@ console.log("USER PIN", user_pin, "PIN", pin)
         }
     });
 
-
-    // menu.state('buyForSelf.gold.yearly.pin', {
-    //     run: async () => {
-    //         let user_pin = Number(menu.val);
-    //         const { pin } = await getUser(args.phoneNumber);
-
-    //         // check if pin is correct
-    //         if (user_pin == pin) {
-    //             menu.con('SCHEDULE' +
-    //                 '\n Enter day of month to deduct UGX 208,000 premium yearly (e.g. 1, 2, 3…31)' +
-    //                 '\n0.Back' +
-    //                 '\n00.Main Menu'
-    //             );
-
-
-    //         } else {
-
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-
-    //     next: {
-    //         '*\\d+': 'buyForSelf.gold.yearly.confirm',
-    //         '0': 'account',
-    //         '00': 'insurance'
-
-    //     }
-    // });
-
     menu.state('buyForSelf.gold.yearly.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
-            const { user_id , pin, partner_id} = await getUser(args.phoneNumber);
-         
-            if (  user_pin !== 1234 || user_pin !== pin) {
-                menu.con('PIN incorrect. Try again');
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if ( user_pin !== pin && user_pin !== membership_id ) {
+                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
             //today day of month
@@ -746,7 +662,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     policy_deduction_day: day * 1,
                     policy_deduction_amount: 208000,
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                    product_id: 2,
+                    product_id: 'd18424d6-5316-4e12-9826-302b866a380c',  
                     premium: 208000,
                     installment_order: 2,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
@@ -784,7 +700,7 @@ console.log("USER PIN", user_pin, "PIN", pin)
     menu.state('confirmation', {
         run: async () => {
             try {
-                const { user_id, phone_number, partner_id } = await getUser(args.phoneNumber);
+                const { user_id, phone_number, partner_id, membership_id } = await getUser(args.phoneNumber);
     
                 const policy = await Policy.findOne({
                     where: {
@@ -792,17 +708,20 @@ console.log("USER PIN", user_pin, "PIN", pin)
                     }
                 });
     
+                console.log("POLICY", policy)
                 if (policy) {
                     const policy_deduction_amount = policy.policy_deduction_amount;
                     const day = policy.policy_deduction_day;
                     const amount = policy_deduction_amount;
+                    const reference = membership_id
     
-                    const uuid = uuidv4();
-                    const reference = `${policy.policy_type}${policy.id}${user_id}${uuid}`;
+                    console.log(user_id, partner_id, policy.policy_id, phone_number, amount, reference)
+                   
+                    let paymentStatus = await airtelMoney(user_id, partner_id, policy.policy_id, phone_number, amount, reference);
+
+                    console.log(paymentStatus)
     
-                    let paymentStatus = await airtelMoney(user_id, partner_id, policy.policy_id, phone_number, policy_deduction_amount, reference, uuid);
-    
-                    if (paymentStatus === 200) {
+                    if (paymentStatus.code === 200) {
                         menu.end(`Congratulations! You are now covered. 
                         To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every month.`);
                     } else {
