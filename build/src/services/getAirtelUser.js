@@ -18,6 +18,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const db_1 = require("../models/db");
 const uuid_1 = require("uuid");
 require('dotenv').config();
+const sendSMS_1 = __importDefault(require("./sendSMS"));
 const User = db_1.db.users;
 function getAirtelUser(phoneNumber, country, currency, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -63,6 +64,9 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                     status: "active",
                     partner_id: partner_id,
                 });
+                // WELCOME SMS
+                const message = `Dear ${user.first_name}, welcome to Bluewave Insurance. Your membership ID is ${user.membership_id}. Dial *185*4*4# to access your account.`;
+                yield (0, sendSMS_1.default)(user.phone_number, message);
                 console.log("USER FOR AIRTEL API", user);
                 return user;
             }

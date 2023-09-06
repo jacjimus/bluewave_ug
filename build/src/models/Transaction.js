@@ -48,12 +48,6 @@ module.exports = (sequelize, DataTypes) => {
     sequelize.models.user.hasMany(Transaction, {
         foreignKey: "user_id",
     });
-    Transaction.belongsTo(sequelize.models.beneficiary, {
-        foreignKey: "beneficiary_id",
-    });
-    sequelize.models.beneficiary.hasMany(Transaction, {
-        foreignKey: "beneficiary_id",
-    });
     Transaction.belongsTo(sequelize.models.policy, {
         foreignKey: "policy_id",
     });

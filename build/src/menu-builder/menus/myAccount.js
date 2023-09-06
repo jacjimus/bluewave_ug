@@ -311,9 +311,7 @@ function myAccount(menu, args, db) {
     //cancel policy confirm
     menu.state('cancelPolicyConfirm', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const to = '254' + args.phoneNumber.substring(1);
-            const message = ' You CANCELLED your Medical cover cover. Your Policy will expire on DD/MM/YYYY and you will not be covered. Dial *187*7*1# to reactivate.';
-            const sms = yield (0, sendSMS_1.default)(to, message);
+            const to = args.phoneNumber;
             let today = new Date();
             //update policy status to cancelled
             const user = yield User.findOne({
@@ -336,8 +334,10 @@ function myAccount(menu, args, db) {
                 policy.policy_end_date = today;
                 yield policy.save();
             }
+            const message = `You CANCELLED your Medical cover cover. Your Policy will expire on ${today} and you will not be covered. Dial *187*7*1# to reactivate.`;
+            const sms = yield (0, sendSMS_1.default)(to, message);
             menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *187*7# to reactivate.
-                0.Back     00.Main Menu`);
+            0.Back     00.Main Menu`);
         }),
         next: {
             '0': 'myAccount',

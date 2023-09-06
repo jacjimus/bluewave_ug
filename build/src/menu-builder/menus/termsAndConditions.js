@@ -17,14 +17,8 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 function termsAndConditions(menu, buildInput) {
     menu.state('termsAndConditions', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            //change to kenya phone number format if not make to kenya format
-            // if (!isValidKenyanPhoneNumber(buildInput.phone)) {
-            //     buildInput.phone = `254${buildInput.phone.substring(1)}`;
-            // }
-            const to = `+${buildInput.phoneNumber}`;
-            console.log(buildInput.phoneNumber, to);
             const message = 'Visit [LINK TBC] to Terms & Conditions.';
-            console.log(to);
+            const to = buildInput.phoneNumber;
             const sms = yield (0, sendSMS_1.default)(to, message);
             console.log("SMS", sms);
             menu.end('Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS');

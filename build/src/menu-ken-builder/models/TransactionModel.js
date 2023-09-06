@@ -39,11 +39,6 @@ const transactionSchema = new mongoose_1.Schema({
         ref: 'User',
         required: true,
     },
-    beneficiary_id: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Beneficiary',
-        required: true,
-    }
 }, { timestamps: true });
 const TransactionModel = mongoose_1.default.model('Transaction', transactionSchema);
 exports.default = TransactionModel;

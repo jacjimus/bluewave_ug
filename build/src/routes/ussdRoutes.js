@@ -73,8 +73,25 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
             console.log('Policy not found');
             return res.status(404).json({ message: 'Policy not found' });
         }
+        let dollarUSLocale = Intl.NumberFormat('en-US');
+        let premium = dollarUSLocale.format(policy.policy_deduction_amount);
+        // Format date to dd/mm/yyyy
+        let formatDate = (date) => {
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        };
+        // Assuming policy.policy_end_date and policy.policy_next_deduction_date are Date objects
+        let policy_end_date = formatDate(policy.policy_end_date);
+        let policy_next_deduction_date = formatDate(policy.policy_next_deduction_date);
+        console.log("POLICY", policy_end_date, policy_next_deduction_date);
         const to = user.phone_number;
-        const paymentMessage = `Your monthly auto premium payment of Kes ${policy.policy_deduction_amount} for ${policy.policy_type} Medical cover was SUCCESSFUL. Cover was extended till ${policy.policy_end_date}. Next payment is on ${policy.policy_next_deduction_date}.`;
+        const policyType = policy.policy_type.toUpperCase();
+        const paymentMessage = `Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+        // Count characters in the message
+        const messageLength = paymentMessage.length;
+        console.log("MESSAGE LENGTH", messageLength, paymentMessage);
         if (status_code == 'TS') {
             // Send SMS to user
             yield (0, sendSMS_1.default)(to, paymentMessage);
