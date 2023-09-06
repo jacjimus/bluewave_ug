@@ -76,6 +76,12 @@ router.post('/callback', async (req, res) => {
             console.log('Policy not found');
             return res.status(404).json({ message: 'Policy not found' });
         }
+//update policy status
+        await policy.update({
+            policy_status: 'paid'
+        });
+        
+
         let dollarUSLocale = Intl.NumberFormat('en-US');
         let premium = dollarUSLocale.format(policy.policy_deduction_amount);
 // Format date to dd/mm/yyyy
@@ -104,7 +110,7 @@ let formatDate = (date) => {
 
         if (status_code == 'TS') {
             // Send SMS to user
-          await sendSMS(to, paymentMessage);
+         await sendSMS(to, paymentMessage);
 
             await Payment.create({
                 payment_amount: transaction.amount,
