@@ -29,7 +29,8 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                 'X-Country': country,
                 'X-Currency': currency,
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
             };
             const GET_USER_URL = `https://openapiuat.airtel.africa/standard/v1/users/${phoneNumber}`;
             console.log("GET_USER_URL", GET_USER_URL);
@@ -65,7 +66,7 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                     partner_id: partner_id,
                 });
                 // WELCOME SMS
-                const message = `Dear ${user.first_name}, welcome to Bluewave Insurance. Your membership ID is ${user.membership_id}. Dial *185*4*4# to access your account.`;
+                const message = `Dear ${user.first_name}, welcome to Bluewave Insurance. Your membership ID is ${user.membership_id} and PIN is ${user.pin}. Dial *185*4*4# to access your account.`;
                 yield (0, sendSMS_1.default)(user.phone_number, message);
                 console.log("USER FOR AIRTEL API", user);
                 return user;

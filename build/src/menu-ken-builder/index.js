@@ -303,8 +303,8 @@ function handleUssd(args, db) {
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
                     //today day of month
                     let day = date.getDate();
-                    let countryCode = partner_id == 2 ? "UGA" : "KEN";
-                    let currencyCode = partner_id == 2 ? "UGX" : "KES";
+                    let countryCode = "KEN";
+                    let currencyCode = "KES";
                     let policy = {
                         policy_type: "bronze",
                         beneficiary: "self",
@@ -362,8 +362,8 @@ function handleUssd(args, db) {
                         const date = new Date();
                         const day = date.getDate();
                         const nextDeduction = new Date(date.getFullYear() + 1, date.getMonth(), day);
-                        const countryCode = partner_id === 2 ? "UGA" : "KEN";
-                        const currencyCode = partner_id === 2 ? "UGX" : "KES";
+                        let countryCode = "KEN";
+                        let currencyCode = "KES";
                         const policy = {
                             policy_type: "bronze",
                             beneficiary: "self",
@@ -1295,8 +1295,8 @@ function handleUssd(args, db) {
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
                     const { user_id, partner_id } = yield getUser(args.phoneNumber);
-                    let countryCode = partner_id == 2 ? "UGA" : "KEN";
-                    let currencyCode = partner_id == 2 ? "UGX" : "KES";
+                    let countryCode = "KEN";
+                    let currencyCode = "KES";
                     //save policy details
                     let policy = {
                         policy_type: "bronze",
@@ -1355,8 +1355,8 @@ function handleUssd(args, db) {
                     const { user_id, partner_id } = yield getUser(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-                    let countryCode = User.partner_id == 2 ? "UGA" : "KEN";
-                    let currencyCode = User.partner_id == 2 ? "UGX" : "KES";
+                    let countryCode = "KEN";
+                    let currencyCode = "KES";
                     const policy = {
                         policy_type: "bronze",
                         beneficiary: "selfSpouse",
@@ -1475,8 +1475,8 @@ function handleUssd(args, db) {
                     const { user_id, partner_id } = yield getUser(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-                    let countryCode = partner_id == 2 ? "UGA" : "KEN";
-                    let currencyCode = partner_id == 2 ? "UGX" : "KES";
+                    let countryCode = "KEN";
+                    let currencyCode = "KES";
                     const policy = {
                         policy_type: "bronze",
                         beneficiary: "selfSpouse1Child",
@@ -1625,8 +1625,8 @@ function handleUssd(args, db) {
                     let spouse = menu.val;
                     console.log("SPOUSE NAME 1", spouse);
                     const { user_id, partner_id } = yield getUser(args.phoneNumber);
-                    let countryCode = partner_id == 2 ? "UGA" : "KEN";
-                    let currencyCode = partner_id == 2 ? "UGX" : "KES";
+                    let countryCode = "KEN";
+                    let currencyCode = "KES";
                     const policy = {
                         policy_type: "bronze",
                         beneficiary: "selfSpouse2Child",

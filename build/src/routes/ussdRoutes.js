@@ -73,6 +73,10 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
             console.log('Policy not found');
             return res.status(404).json({ message: 'Policy not found' });
         }
+        //update policy status
+        yield policy.update({
+            policy_status: 'paid'
+        });
         let dollarUSLocale = Intl.NumberFormat('en-US');
         let premium = dollarUSLocale.format(policy.policy_deduction_amount);
         // Format date to dd/mm/yyyy
@@ -88,7 +92,10 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
         console.log("POLICY", policy_end_date, policy_next_deduction_date);
         const to = user.phone_number;
         const policyType = policy.policy_type.toUpperCase();
-        const paymentMessage = `Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+        //`Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. 
+        // Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+        //Medical cover SMS 1: BOUGHT Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient cover 10,000  Go to My Account to ADD details
+        const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
         // Count characters in the message
         const messageLength = paymentMessage.length;
         console.log("MESSAGE LENGTH", messageLength, paymentMessage);

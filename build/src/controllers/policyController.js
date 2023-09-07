@@ -128,7 +128,7 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
             policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
         }
-        //policy pagination
+        // Policy pagination
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const startIndex = (page - 1) * limit;
