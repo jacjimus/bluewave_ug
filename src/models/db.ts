@@ -29,6 +29,12 @@ db.transactions = require('./Transaction')(sequelize, DataTypes)
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
 
+//insert a test pdf to policy table, colunm policy_documents which id jsonb[]
+// db.policies.update(
+//     { policy_documents: [{ name: "policy document", url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }] },
+//     { where: { partner_id: 3 } }
+// )
+
 
 
 //syncing the model

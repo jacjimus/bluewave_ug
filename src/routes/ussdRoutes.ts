@@ -101,7 +101,11 @@ let formatDate = (date) => {
   const to = user.phone_number;
 
   const policyType = policy.policy_type.toUpperCase();
-  const paymentMessage = `Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+ //`Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. 
+ // Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+
+  //Medical cover SMS 1: BOUGHT Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient cover 10,000  Go to My Account to ADD details
+  const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
   
   // Count characters in the message
   const messageLength = paymentMessage.length;

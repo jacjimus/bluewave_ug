@@ -8,7 +8,7 @@ import sendSMS from './sendSMS';
 
 const User = db.users;
 
-async function getAirtelUser(phoneNumber, country, currency, partner_id) {
+async function getAirtelUser(phoneNumber: string, country: string, currency: string, partner_id: number) {
     try {
         const token = await authToken();
         const headers = {
@@ -16,7 +16,8 @@ async function getAirtelUser(phoneNumber, country, currency, partner_id) {
             'X-Country': country,
             'X-Currency': currency,
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
         };
         const GET_USER_URL =  `https://openapiuat.airtel.africa/standard/v1/users/${phoneNumber}`;
 

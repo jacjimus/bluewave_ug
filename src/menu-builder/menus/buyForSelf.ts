@@ -159,19 +159,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 console.log(newPolicy)
                 console.log("NEW POLICY BRONZE SELF", newPolicy)
 
-            //SEND SMS TO USER
-            //  '+2547xxxxxxxx';
-            //const to = args.phoneNumber + "".replace('+', '');
-           // const to = '254' + args.phoneNumber.substring(1);
-
             const message = `PAID UGX 10,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `
 
-            //send SMS
-           // const sms = await sendSMS(to, message);
 
-            menu.con('Confirm \n' +
-
-                ` Deduct 10,000, Next deduction will be on ${nextDeduction} 
+            menu.con(`Confirm, Deduct 10,000, Next deduction will be on ${nextDeduction} 
              1.Confirm 
              0.Back 
              00.Main Menu`
@@ -229,13 +220,6 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 console.log(newPolicy)
                 console.log("NEW POLICY BRONZE SELF", newPolicy)
 
-            //SEND SMS TO USER '+2547xxxxxxxx';
-            const to = args.phoneNumber + "".replace('+', ''); 
-            console.log("TO: ", to)
-
-            const message = `PAID UGX 120,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. 
-        Date: ${new Date().toLocaleDateString()}. `
-            const sms = await sendSMS(to, message);
 
             menu.con('Confirm \n' +
                 ` Deduct UGX 120,0000, Next deduction will be on ${policy.policy_end_date} \n` +
@@ -304,63 +288,6 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         }
     });
 
-
-    // menu.state('buyForSelf.silver.pin', {
-    //     run: async () => {
-    //         let user_pin = Number(menu.val);
-    //         const { pin } = await getUser(args.phoneNumber);
-
-    //         // check if pin is correct
-    //         if (user_pin == pin) {
-
-    //             menu.con('SCHEDULE' +
-    //                 '\n Enter day of month to deduct UGX 14,000 premium monthly (e.g. 1, 2, 3…31)' +
-    //                 '\n0.Back' +
-    //                 '\n00.Main Menu'
-    //             );
-
-    //         } else {
-
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-
-    //     next: {
-    //         '*\\d+': 'buyForSelf.silver.confirm',
-    //         '0': 'account',
-    //         '00': 'insurance'
-
-    //     }
-    // });
-
-    // menu.state('buyForSelf.silver.yearly.pin', {
-    //     run: async () => {
-    //         let user_pin = Number(menu.val);
-    //         const { pin } = await getUser(args.phoneNumber);
-
-    //         // check if pin is correct
-    //         if (user_pin == pin) {
-
-    //             menu.con('SCHEDULE' +
-    //                 '\n Enter day of month to deduct UGX 167,000 premium yearly (e.g. 1, 2, 3…31)' +
-    //                 '\n0.Back' +
-    //                 '\n00.Main Menu'
-    //             );
-
-
-    //         } else {
-
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-
-    //     next: {
-    //         '*\\d+': 'buyForSelf.silver.yearly.confirm',
-    //         '0': 'account',
-    //         '00': 'insurance'
-
-    //     }
-    // });
 
 
     menu.state('buyForSelf.silver.confirm', {
@@ -432,7 +359,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
+
             //today day of month
             let day = date.getDate();
             let countryCode = 'UGA'
@@ -482,8 +409,6 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     });
 
 
-
-
     //================= BUY FOR SELF GOLD =================
 
     menu.state('buyForSelf.gold', {
@@ -523,42 +448,6 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         }
     });
 
-    // menu.state('buyForSelf.gold.pin', {
-    //     run: async () => {
-    //         // use menu.val to access user input value
-    //         let pin = Number(menu.val);
-    //         // check if pin is correct
-
-    //         let user = await User.findOne({
-    //             where: {
-    //                 phone_number: args.phoneNumber
-    //             }
-    //         })
-
-    //         console.log("USER: ", user)                    // check if pin is correct
-    //         if (user.pin == pin || pin == 1234) {
-
-    //             menu.con('SCHEDULE' +
-    //                 '\n Enter day of month to deduct UGX 18,000 premium monthly (e.g. 1, 2, 3…31)' +
-    //                 '\n0.Back' +
-    //                 '\n00.Main Menu'
-    //             );
-
-
-    //         } else {
-
-    //             menu.con('PIN incorrect. Try again');
-    //         }
-    //     },
-
-
-
-    //     next: {
-    //         '*\\d+': 'buyForSelf.gold.confirm',
-    //         '0': 'account',
-    //         '00': 'insurance'
-    //     }
-    // });
 
     menu.state('buyForSelf.gold.confirm', {
         run: async () => {
