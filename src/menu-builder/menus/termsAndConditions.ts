@@ -11,7 +11,7 @@ export function termsAndConditions(menu: any, buildInput:any): void {
             const sms = await sendSMS(to, message);
             console.log("SMS", sms)
 
-            menu.end('Visit [LINK TBC] to Terms & Conditions. A link will also be sent by SMS')
+            menu.end('Visit www.tclink.com to Terms & Conditions. A link will also be sent by SMS')
         },
     });
 

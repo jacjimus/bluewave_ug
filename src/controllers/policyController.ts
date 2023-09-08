@@ -174,7 +174,7 @@ console.log("SEARCH RESULTS", searchResults)
       partner_id: req?.partner_id,
     });
 
-    return res.status(200).json(result);
+    return res.status(200).json({ result: result });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error", error: error });

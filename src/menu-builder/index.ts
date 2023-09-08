@@ -1098,6 +1098,11 @@ const generatedHash = generateHash(hashData);
                 }
     
                 const hospitalDetails = policy.hospital_details;
+
+                  if(!hospitalDetails){
+                      menu.end("Sorry, you have not selected a hospital yet.");
+                  }
+
                 console.log("hospitalDetails", hospitalDetails);
     
                 const { hospital_name, hospital_address, contact_person, hospital_contact } = hospitalDetails;

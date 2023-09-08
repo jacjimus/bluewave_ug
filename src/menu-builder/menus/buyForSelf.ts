@@ -152,22 +152,27 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
+                    policy_pending_premium: 10000,
                 }
 
                 let newPolicy = await Policy.create(policy);
 
                 console.log(newPolicy)
                 console.log("NEW POLICY BRONZE SELF", newPolicy)
-
-                //update user column number_of_policies
-                const user = await User.findOne({ where: { user_id: user_id } }); 
-                console.log("USER", user)
-                let numberOfPolicies = user.number_of_policies;
-                numberOfPolicies = numberOfPolicies + 1;
+                const allPolicy = await Policy.findAll(
+                    {
+                        where: {
+                            user_id: user_id
+                        }
+                    }
+                
+                );
+                let numberOfPolicies = allPolicy.length;
+             
                 console.log("NUMBER OF POLICIES", numberOfPolicies)
                 await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-                console.log("USER UPDATED", user)
-
+              
+               
 
             const message = `PAID UGX 10,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `
 
@@ -224,19 +229,27 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
+                    policy_pending_premium: 120000,
                 }
 
                 let newPolicy = await Policy.create(policy);
                 console.log(newPolicy)
                 console.log("NEW POLICY BRONZE SELF", newPolicy)
 
-                const user = await User.findOne({ where: { user_id: user_id } }); 
-                console.log("USER", user)
-                let numberOfPolicies = user.number_of_policies;
-                numberOfPolicies = numberOfPolicies + 1;
+                const allPolicy = await Policy.findAll(
+                    {
+                        where: {
+                            user_id: user_id
+                        }
+                    }
+                
+                );
+                let numberOfPolicies = allPolicy.length;
+             
                 console.log("NUMBER OF POLICIES", numberOfPolicies)
                 await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-                console.log("USER UPDATED", user)
+              
+               
 
 
             menu.con('Confirm \n' +
@@ -345,6 +358,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
+                    policy_pending_premium: 14000,
                 }
 
               
@@ -353,14 +367,20 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 let newPolicy = await Policy.create(policy);
                 console.log(newPolicy)
                 console.log("NEW POLICY SILVER SELF", newPolicy)
-
-                const user = await User.findOne({ where: { user_id: user_id } }); 
-                console.log("USER", user)
-                let numberOfPolicies = user.number_of_policies;
-                numberOfPolicies = numberOfPolicies + 1;
+                const allPolicy = await Policy.findAll(
+                    {
+                        where: {
+                            user_id: user_id
+                        }
+                    }
+                
+                );
+                let numberOfPolicies = allPolicy.length;
+             
                 console.log("NUMBER OF POLICIES", numberOfPolicies)
                 await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-                console.log("USER UPDATED", user)
+              
+               
 
             menu.con('Confirm \n' +
 
@@ -414,18 +434,25 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
+                    policy_pending_premium: 167000,
                 }
 
                 let newPolicy = await Policy.create(policy);
                 console.log(newPolicy)
                 console.log("NEW POLICY SILVER SELF", newPolicy)
-                const user = await User.findOne({ where: { user_id: user_id } }); 
-                console.log("USER", user)
-                let numberOfPolicies = user.number_of_policies;
-                numberOfPolicies = numberOfPolicies + 1;
+                const allPolicy = await Policy.findAll(
+                    {
+                        where: {
+                            user_id: user_id
+                        }
+                    }
+                
+                );
+                let numberOfPolicies = allPolicy.length;
+             
                 console.log("NUMBER OF POLICIES", numberOfPolicies)
                 await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-                console.log("USER UPDATED", user)
+              
 
             menu.con('Confirm \n' +
                 ` Deduct UGX 167,000  Next deduction will be on ${policy.policy_end_date} \n` +
@@ -519,6 +546,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
+                    policy_pending_premium: 18000,
                 }
 
                 let newPolicy = await Policy.create(policy);
@@ -599,19 +627,26 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     partner_id: partner_id,
                     country_code: countryCode,
                     currency_code: currencyCode,
+                    policy_pending_premium: 208000,
                 }
 
                 let newPolicy = await Policy.create(policy);
                 console.log("NEW POLICY GOLD SELF", newPolicy)
 
-                const user = await User.findOne({ where: { user_id: user_id } }); 
-                console.log("USER", user)
-                let numberOfPolicies = user.number_of_policies;
-                numberOfPolicies = numberOfPolicies + 1;
+                const allPolicy = await Policy.findAll(
+                    {
+                        where: {
+                            user_id: user_id
+                        }
+                    }
+                
+                );
+                let numberOfPolicies = allPolicy.length;
+             
                 console.log("NUMBER OF POLICIES", numberOfPolicies)
                 await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-                console.log("USER UPDATED", user)
-
+              
+               
             menu.con('Confirm \n' +
                 ` Deduct UGX 16,800, Next deduction will be on ${policy.policy_end_date} \n` +
                 '\n1.Confirm \n' +
@@ -640,7 +675,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                         user_id
                     }
                 });
+
+
     
+                console.log("POLICY", policy)
                 //latest policy
                 
                 let newPolicy = policy[policy.length - 1];
@@ -652,6 +690,14 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     const amount = policy_deduction_amount;
                     const reference = membership_id
                     const policy_id = newPolicy.policy_id;
+                    let period: any
+                    if (newPolicy.installment_order === 1) {
+                        period = 'monthly'
+                    }
+                    else if (newPolicy.installment_order === 12) {
+                        period = 'yearly'
+                    }
+
     
                     console.log(user_id, partner_id, policy_id, phone_number, amount, reference)
                    
@@ -661,7 +707,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     
                     if (paymentStatus.code === 200) {
                         menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every month.`);
+                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every ${period}`);
                     } else {
                         menu.end(`Sorry, your payment was not successful. 
                         \n0. Back \n00. Main Menu`);
