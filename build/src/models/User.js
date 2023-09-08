@@ -117,14 +117,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        number_of_policies: {
+            type: DataTypes.INTEGER,
+            default: 0
+        }
     }, { timestamps: true });
-    // User.hasMany(Policy, {
-    //     as: 'policies',
-    //     foreignKey: "policy_id",
-    // });
-    // Policy.belongsTo(User, {
-    //     as: 'user',
-    //     foreignKey: "user_id",
-    // });
     return User;
 };

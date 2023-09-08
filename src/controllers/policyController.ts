@@ -7,6 +7,7 @@ const Partner = db.partners;
 const Log = db.logs;
 const { v4: uuidv4 } = require("uuid");
 const { Op,Sequelize, } = require("sequelize");
+import { globalSearch } from "../services/utils";
 
 
 import PolicyIssuance from "../services/PolicyIssuance";
@@ -35,6 +36,7 @@ interface Policy {
   country_code: string,
   policy_documents: string[]
 }
+
 
 
 /**
@@ -108,27 +110,14 @@ const getPolicies = async (req, res) => {
       dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
     }
 
-    // Define an array of searchable fields
-    const searchableFields = [
-      'policy_type',
-      'policy_status',
-      'beneficiary',
-      // Add other fields you want to search here
-    ];
 
     // Create a dynamic where condition for searchable fields
     const whereCondition = {
       partner_id: partner_id,
-      [Op.or]: [],
       ...dateFilters, // Apply the date filters to the query
     };
 
-    // Dynamically add search conditions for each searchable field
-    searchableFields.forEach((field) => {
-      whereCondition[Op.or].push(
-        Sequelize.where( Sequelize.col(field), { [Op.iLike]: `%${filter}%` })
-      );
-    });
+
 
     const policies = await Policy.findAndCountAll({
       where: whereCondition,
@@ -151,6 +140,8 @@ const getPolicies = async (req, res) => {
       return res.status(404).json({ message: "No policies found" });
     }
 
+ 
+
     // Add paid premium and pending premium
     policies.rows.forEach((policy) => {
       policy.dataValues.total_premium = policy.premium;
@@ -158,15 +149,20 @@ const getPolicies = async (req, res) => {
       policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
     });
 
+     //impletement search
+     const searchResults = globalSearch(policies.rows, filter);
+    
+console.log("SEARCH RESULTS", searchResults)
+
     // Calculate pagination information
-    const total = policies.count;
+    const total = searchResults.length;
     const totalPages = Math.ceil(total / limit);
 
     const result = {
       count: total,
       totalPages: totalPages,
       currentPage: page,
-      policies: policies.rows,
+      policies: searchResults
     };
 
     await Log.create({

@@ -38,7 +38,7 @@ const policySchema = new mongoose_1.Schema({
     parner_id: { type: Number, required: true },
     policy_start_date: { type: Date, required: true },
     policy_status: { type: String, required: true },
-    beneficiary_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Beneficiary', required: true },
+    beneficiary_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Beneficiary' },
     policy_type: { type: String, required: true },
     policy_end_date: { type: Date, required: true },
     policy_deduction_amount: { type: Number, required: true },

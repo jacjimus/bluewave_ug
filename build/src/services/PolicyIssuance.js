@@ -35,7 +35,6 @@ function token() {
             yield axios.post(POLICY_ISSUANCE_TOKEN_URL, inputBody, { headers })
                 .then((response) => {
                 token = response.data.responseObj.token.access_Token;
-                console.log("TOKEN", token);
             })
                 .catch(error => {
                 console.error(error);
@@ -66,7 +65,6 @@ function PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptOb
                 "ReceiptObj": ReceiptObj
             };
             const access_token = yield token();
-            console.log("TOKEN 2", token);
             const headers = {
                 'Content-Type': 'application/json',
                 'Accept': '*/*',

@@ -393,34 +393,14 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!partner_id) {
             return res.status(400).json({ message: "Please provide a partner id" });
         }
-        let users;
-        if (!filter || filter == "") {
-            users = yield User.findAll({
-                where: {
-                    partner_id: partner_id,
-                },
-                offset: (page - 1) * limit,
-                limit: limit,
-                order: [["createdAt", "DESC"]],
-            });
-        }
-        else {
-            users = yield User.findAll({
-                where: {
-                    partner_id: partner_id,
-                    [Op.or]: [
-                        { first_name: { [Op.iLike]: `%${filter}%` } },
-                        { last_name: { [Op.iLike]: `%${filter}%` } },
-                        { email: { [Op.iLike]: `%${filter}%` } },
-                        { phone_number: { [Op.iLike]: `%${filter}%` } },
-                        { national_id: { [Op.iLike]: `%${filter}%` } },
-                    ],
-                },
-                offset: (page - 1) * limit,
-                limit: limit,
-                order: [["createdAt", "DESC"]],
-            });
-        }
+        let users = yield User.findAll({
+            where: {
+                partner_id: partner_id,
+            },
+            offset: (page - 1) * limit,
+            limit: limit,
+            order: [["createdAt", "DESC"]],
+        });
         // Filter by start_date and end_date if provided
         const start_date = req.query.start_date;
         const end_date = req.query.end_date;
@@ -432,8 +412,12 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return userDate >= startDate && userDate <= endDate;
             });
         }
-        // Count all users
-        const count = yield User.count({ where: { partner_id: partner_id } });
+        // Filter by search term if provided
+        if (filter) {
+            users = (0, utils_1.globalSearch)(users, filter);
+        }
+        // Count the number of users
+        const count = users.length;
         // Remove password and other sensitive information from the response
         if (users) {
             for (let i = 0; i < users.length; i++) {
@@ -454,7 +438,7 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (users && users.length > 0) {
             status.result = users;
             return res.status(200).json({
-                result: { message: "Users fetched successfully", items: users, count },
+                result: { message: "Customers fetched successfully", items: users, count },
             });
         }
         yield Log.create({

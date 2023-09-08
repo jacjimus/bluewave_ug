@@ -391,7 +391,7 @@ function handleUssd(args, db) {
                         const newPolicy = yield Policy.create(policy);
                         const to = args.phoneNumber.replace("+", "");
                         const message = `PAID KES 3,294 to AAR KENYA for Bronze Cover. Cover Charge KES 0. Bal KES 3,294. TID: 715XXXXXXXX. 
-                                          Date: ${new Date().toLocaleDateString()}.`;
+    Date: ${new Date().toLocaleDateString()}.`;
                         // Send SMS to user
                         // const sms = await sendSMS(to, message);
                         menu.con(`Confirm\nDeduct KES 3,294, Next deduction will be on ${policy.policy_end_date}\n` +
@@ -1382,6 +1382,7 @@ function handleUssd(args, db) {
                     let newPolicy = yield Policy.create(policy).catch((err) => console.log(err));
                     console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy);
                     let beneficiary = {
+                        beneficiary_id: (0, uuid_1.v4)(),
                         full_name: spouse,
                         relationship: "spouse",
                         user_id: user_id,
@@ -1504,6 +1505,7 @@ function handleUssd(args, db) {
                     let newPolicy = yield Policy.create(policy).catch((err) => console.log(err));
                     console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy);
                     let beneficiary = {
+                        beneficiary_id: (0, uuid_1.v4)(),
                         full_name: spouse,
                         relationship: "spouse",
                         user_id: user_id,
@@ -1552,6 +1554,7 @@ function handleUssd(args, db) {
                     console.log("CHILD NAME 3", child1);
                     const { user_id } = yield getUser(args.phoneNumber);
                     let beneficiary = {
+                        beneficiary_id: (0, uuid_1.v4)(),
                         full_name: child1,
                         relationship: "child",
                         user_id: user_id,
@@ -1575,6 +1578,7 @@ function handleUssd(args, db) {
                     console.log("CHILD NAME 3", child1);
                     const { user_id } = yield getUser(args.phoneNumber);
                     let beneficiary = {
+                        beneficiary_id: (0, uuid_1.v4)(),
                         full_name: child1,
                         relationship: "child",
                         user_id: user_id,
@@ -1654,6 +1658,7 @@ function handleUssd(args, db) {
                     let newPolicy = yield Policy.create(policy);
                     console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy);
                     let beneficiary = {
+                        beneficiary_id: (0, uuid_1.v4)(),
                         full_name: spouse,
                         relationship: "spouse",
                         user_id: user_id,
@@ -1705,6 +1710,7 @@ function handleUssd(args, db) {
                     const { user_id } = yield getUser(args.phoneNumber);
                     //create beneficiary
                     let beneficiary = {
+                        beneficiary_id: (0, uuid_1.v4)(),
                         full_name: child1,
                         relationship: "child1",
                         user_id: user_id,
@@ -1726,6 +1732,7 @@ function handleUssd(args, db) {
                         const child2 = menu.val;
                         const { user_id } = yield getUser(args.phoneNumber);
                         const beneficiary = {
+                            beneficiary_id: (0, uuid_1.v4)(),
                             full_name: child2,
                             relationship: "child2",
                             user_id: user_id,

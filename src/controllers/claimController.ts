@@ -7,6 +7,11 @@ const { Op } = require("sequelize");
 
 const Log = db.logs;
 import { v4 as uuidv4 } from 'uuid';
+import {
+    getRandomInt,
+    isValidEmail,
+    globalSearch
+  } from "../services/utils";
 
 
 
@@ -27,6 +32,11 @@ import { v4 as uuidv4 } from 'uuid';
     *         required: false
     *         schema:
     *           type: number
+    *       - name: filter
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
     *       - name: page
     *         in: query
     *         required: false
@@ -77,22 +87,32 @@ const getClaims = async (req: any, res: any) => {
             claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
         }
 
+        
         // Check if a filter is provided to include additional search criteria
         if (filter) {
-            claimWhere[Op.or] = [
-                { claim_status: { [Op.iLike]: `%${filter}%` } },
-                { claim_type: { [Op.iLike]: `%${filter}%` } },
-                { claim_description: { [Op.iLike]: `%${filter}%` } },
-            ];
-        }
+            // Convert the filter to lowercase for case-insensitive search
+            const search = filter.toLowerCase();
 
-        // Retrieve claims based on the 'claimWhere' filter object
-        claim = await Claim.findAll({
+            // Use the filter() method to find objects matching the search term
+            claim = await Claim.findAll({
+                where: claimWhere,
+                order: [["createdAt", "DESC"]],
+                include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+            });
+
+            // Use the globalSearch() method to find objects matching the search term
+            claim = globalSearch(claim, search);
+        }else{
+             // Retrieve claims based on the 'claimWhere' filter object
+         claim = await Claim.findAll({
             where: claimWhere,
             order: [["createdAt", "DESC"]],
             include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
         });
+        }
 
+    console.log("CLAIM", claim);
+    
         if (!claim || claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }

@@ -3,9 +3,9 @@ import { db } from "../models/db";
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 import {
-  isValidKenyanPhoneNumber,
   getRandomInt,
   isValidEmail,
+  globalSearch
 } from "../services/utils";
 const { Op } = require("sequelize");
 const XLSX = require("xlsx");
@@ -489,10 +489,7 @@ const getUsers = async (req: any, res: any) => {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
-    let users: any;
-
-    if (!filter || filter == "") {
-      users = await User.findAll({
+    let users = await User.findAll({
         where: {
           partner_id: partner_id,
         },
@@ -500,23 +497,7 @@ const getUsers = async (req: any, res: any) => {
         limit: limit,
         order: [["createdAt", "DESC"]],
       });
-    } else {
-      users = await User.findAll({
-        where: {
-          partner_id: partner_id,
-          [Op.or]: [
-            { first_name: { [Op.iLike]: `%${filter}%` } },
-            { last_name: { [Op.iLike]: `%${filter}%` } },
-            { email: { [Op.iLike]: `%${filter}%` } },
-            { phone_number: { [Op.iLike]: `%${filter}%` } },
-            { national_id: { [Op.iLike]: `%${filter}%` } },
-          ],
-        },
-        offset: (page - 1) * limit,
-        limit: limit,
-        order: [["createdAt", "DESC"]],
-      });
-    }
+   
 
     // Filter by start_date and end_date if provided
     const start_date = req.query.start_date;
@@ -531,8 +512,13 @@ const getUsers = async (req: any, res: any) => {
       });
     }
 
-    // Count all users
-    const count = await User.count({ where: { partner_id: partner_id } });
+    // Filter by search term if provided
+    if (filter) {
+      users = globalSearch(users, filter);
+    }
+
+    // Count the number of users
+    const count = users.length;
 
     // Remove password and other sensitive information from the response
     if (users) {
@@ -555,7 +541,7 @@ const getUsers = async (req: any, res: any) => {
     if (users && users.length > 0) {
       status.result = users;
       return res.status(200).json({
-        result: { message: "Users fetched successfully", items: users, count },
+        result: { message: "Customers fetched successfully", items: users, count },
       });
     }
 

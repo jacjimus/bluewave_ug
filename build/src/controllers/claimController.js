@@ -17,6 +17,7 @@ const Partner = db_1.db.partners;
 const { Op } = require("sequelize");
 const Log = db_1.db.logs;
 const uuid_1 = require("uuid");
+const utils_1 = require("../services/utils");
 /**
     * @swagger
     * /api/v1/claims:
@@ -34,6 +35,11 @@ const uuid_1 = require("uuid");
     *         required: false
     *         schema:
     *           type: number
+    *       - name: filter
+    *         in: query
+    *         required: false
+    *         schema:
+    *           type: string
     *       - name: page
     *         in: query
     *         required: false
@@ -85,18 +91,26 @@ const getClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // Check if a filter is provided to include additional search criteria
         if (filter) {
-            claimWhere[Op.or] = [
-                { claim_status: { [Op.iLike]: `%${filter}%` } },
-                { claim_type: { [Op.iLike]: `%${filter}%` } },
-                { claim_description: { [Op.iLike]: `%${filter}%` } },
-            ];
+            // Convert the filter to lowercase for case-insensitive search
+            const search = filter.toLowerCase();
+            // Use the filter() method to find objects matching the search term
+            claim = yield Claim.findAll({
+                where: claimWhere,
+                order: [["createdAt", "DESC"]],
+                include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+            });
+            // Use the globalSearch() method to find objects matching the search term
+            claim = (0, utils_1.globalSearch)(claim, search);
         }
-        // Retrieve claims based on the 'claimWhere' filter object
-        claim = yield Claim.findAll({
-            where: claimWhere,
-            order: [["createdAt", "DESC"]],
-            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
-        });
+        else {
+            // Retrieve claims based on the 'claimWhere' filter object
+            claim = yield Claim.findAll({
+                where: claimWhere,
+                order: [["createdAt", "DESC"]],
+                include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+            });
+        }
+        console.log("CLAIM", claim);
         if (!claim || claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
@@ -534,6 +548,14 @@ const updateClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 claim_id: claim_id
             }
         });
+        // //update policy pendng premium
+        // const updatePolicy = await Policy.update({
+        //     policy_pending_premium: claim_amount,
+        // }, {
+        //     where: {
+        //         policy_id: policy_id
+        //     }
+        // });
         if (updateClaim) {
             return res.status(200).json({
                 result: {

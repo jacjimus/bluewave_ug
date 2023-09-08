@@ -18,33 +18,33 @@ function myAccount(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
-    menu.state('myAccount', {
+    menu.state("myAccount", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con('My Account ' +
-                '\n1. Pay Now' +
-                '\n2. Manage auto-renew' +
-                '\n3. My insurance policy' +
-                '\n4. Update My Profile' +
+            menu.con("My Account " +
+                "\n1. Pay Now" +
+                "\n2. Manage auto-renew" +
+                "\n3. My insurance policy" +
+                "\n4. Update My Profile" +
                 // '\n4. Cancel policy' +
-                '\n5. Add Beneficiary' +
-                '\n6. My Hospital' +
-                '\n0.Back' +
-                '\n00.Main Menu');
+                "\n5. Add Beneficiary" +
+                "\n6. My Hospital" +
+                "\n0.Back" +
+                "\n00.Main Menu");
         }),
         next: {
-            '1': 'payNow',
-            '2': 'manageAutoRenew',
-            '3': 'myInsurancePolicy',
-            '4': 'updateProfile',
+            "1": "payNow",
+            "2": "manageAutoRenew",
+            "3": "myInsurancePolicy",
+            "4": "updateProfile",
             // '4': 'cancelPolicy',
-            '5': 'listBeneficiaries',
-            '6': 'myHospitalOption',
-            '0': 'account',
-            '00': 'insurance',
-        }
+            "5": "listBeneficiaries",
+            "6": "myHospitalOption",
+            "0": "account",
+            "00": "insurance",
+        },
     });
     //update profile ( user dob and gender)
-    menu.state('updateProfile', {
+    menu.state("updateProfile", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.con(`Whats your gender
             1.  Male
@@ -54,17 +54,17 @@ function myAccount(menu, args, db) {
              `);
         }),
         next: {
-            '1': 'updateGender',
-            '2': 'updateGender',
-            '0': 'myAccount',
-            '00': 'insurance',
-        }
+            "1": "updateGender",
+            "2": "updateGender",
+            "0": "myAccount",
+            "00": "insurance",
+        },
     });
-    menu.state('updateGender', {
+    menu.state("updateGender", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const gender = menu.val == 1 ? "M" : "F";
             const user = yield User.update({
-                gender: gender
+                gender: gender,
             }, {
                 where: {
                     phone_number: args.phoneNumber,
@@ -77,12 +77,12 @@ function myAccount(menu, args, db) {
              `);
         }),
         next: {
-            '*[0-9]': 'updateDob',
-            '0': 'myAccount',
-            '00': 'insurance',
-        }
+            "*[0-9]": "updateDob",
+            "0": "myAccount",
+            "00": "insurance",
+        },
     });
-    menu.state('updateDob', {
+    menu.state("updateDob", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let dob = menu.val;
             console.log("dob", dob);
@@ -96,7 +96,7 @@ function myAccount(menu, args, db) {
             let date = new Date(year, month - 1, day);
             console.log(" dob date", date);
             const user = yield User.update({
-                dob: date
+                dob: date,
             }, {
                 where: {
                     phone_number: args.phoneNumber,
@@ -109,9 +109,9 @@ function myAccount(menu, args, db) {
              `);
         }),
         next: {
-            '0': 'myAccount',
-            '00': 'insurance',
-        }
+            "0": "myAccount",
+            "00": "insurance",
+        },
     });
     //update beneficiary
     // menu.state('addBeneficiary', {
@@ -130,16 +130,16 @@ function myAccount(menu, args, db) {
     //         '00': 'insurance',
     //     }
     // })
-    menu.state('addBeneficiaryName', {
+    menu.state("addBeneficiaryName", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con('Enter full name of beneficiary');
+            menu.con("Enter full name of beneficiary");
         }),
         next: {
-            '*[a-zA-Z]+': 'updateBeneficiaryName',
-        }
+            "*[a-zA-Z]+": "updateBeneficiaryName",
+        },
     });
     //list beneficiaries
-    menu.state('listBeneficiaries', {
+    menu.state("listBeneficiaries", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const user = yield User.findOne({
                 where: {
@@ -154,7 +154,7 @@ function myAccount(menu, args, db) {
                 });
                 console.log("BENEFICIARIES: ", beneficiaries);
                 if (beneficiaries.length > 0) {
-                    let beneficiaryInfo = '';
+                    let beneficiaryInfo = "";
                     for (let i = 0; i < beneficiaries.length; i++) {
                         let beneficiary = beneficiaries[i];
                         beneficiaryInfo += `${i + 1}. ${beneficiary.full_name.toUpperCase()}\n`;
@@ -170,28 +170,26 @@ function myAccount(menu, args, db) {
             }
         }),
         next: {
-            '*[0-9]': 'updateBeneficiaryGender',
-        }
+            "*[0-9]": "updateBeneficiaryGender",
+        },
     });
-    menu.state('updateBeneficiaryGender', {
+    menu.state("updateBeneficiaryGender", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con('Enter gender of beneficiary: ' +
-                '\n1. Male' +
-                '\n2. Female');
+            menu.con("Enter gender of beneficiary: " + "\n1. Male" + "\n2. Female");
         }),
         next: {
-            '*[0-9]': 'updateBeneficiaryDob',
-        }
+            "*[0-9]": "updateBeneficiaryDob",
+        },
     });
-    menu.state('updateBeneficiaryDob', {
+    menu.state("updateBeneficiaryDob", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con('Enter your date of birth in the format DDMMYYYY');
+            menu.con("Enter your date of birth in the format DDMMYYYY");
         }),
         next: {
-            '*[0-9]': 'updateBeneficiaryConfirm',
-        }
+            "*[0-9]": "updateBeneficiaryConfirm",
+        },
     });
-    menu.state('updateBeneficiaryConfirm', {
+    menu.state("updateBeneficiaryConfirm", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let dob = menu.val;
             console.log("dob", dob);
@@ -204,7 +202,7 @@ function myAccount(menu, args, db) {
             // Fetch the beneficiary ID from the previous step's input value
             const selected = args.text;
             const input = selected.trim();
-            const digits = input.split('*').map((digit) => parseInt(digit, 10));
+            const digits = input.split("*").map((digit) => parseInt(digit, 10));
             console.log("digits", digits);
             const beneficiaryId = digits[digits.length - 3];
             console.log("beneficiaryId", beneficiaryId);
@@ -234,24 +232,24 @@ function myAccount(menu, args, db) {
                     try {
                         let result = yield selectedBeneficiary.save();
                         console.log("Result after save:", result);
-                        menu.end('Beneficiary updated successfully');
+                        menu.end("Beneficiary updated successfully");
                     }
                     catch (error) {
                         console.error("Error saving beneficiary:", error);
-                        menu.end('Failed to update beneficiary. Please try again.');
+                        menu.end("Failed to update beneficiary. Please try again.");
                     }
                 }
                 else {
-                    menu.end('Invalid beneficiary selection');
+                    menu.end("Invalid beneficiary selection");
                 }
             }
             else {
-                menu.end('User not found');
+                menu.end("User not found");
             }
         }),
     });
     //============CANCEL POLICY=================
-    menu.state('cancelPolicy', {
+    menu.state("cancelPolicy", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const user = yield User.findOne({
                 where: {
@@ -267,9 +265,9 @@ function myAccount(menu, args, db) {
                 console.log("POLICY: ", policy);
                 if (policy) {
                     // 1. Cancel Policy
-                    menu.con('Hospital cover of Kes 1M a year(100k per night, max 10 nights)' +
-                        'Life cover of Kes 4M Funeral Benefit' +
-                        '\n1. Cancel Policy');
+                    menu.con("Hospital cover of Kes 1M a year(100k per night, max 10 nights)" +
+                        "Life cover of Kes 4M Funeral Benefit" +
+                        "\n1. Cancel Policy");
                 }
                 else {
                     menu.con("Your policy is INACTIVE\n0 Buy cover");
@@ -280,12 +278,12 @@ function myAccount(menu, args, db) {
             }
         }),
         next: {
-            '0': 'account',
-            '1': 'cancelPolicyPin',
-        }
+            "0": "account",
+            "1": "cancelPolicyPin",
+        },
     });
     //cancel policy pin
-    menu.state('cancelPolicyPin', {
+    menu.state("cancelPolicyPin", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const user = yield User.findOne({
                 where: {
@@ -299,17 +297,17 @@ function myAccount(menu, args, db) {
             });
             let today = new Date();
             console.log("POLICY: ", policy);
-            menu.con(`By cancelling, you will no longer be covered for ${(policy.policy_type).toUpperCase()} Insurance as of ${today}.
+            menu.con(`By cancelling, you will no longer be covered for ${policy.policy_type.toUpperCase()} Insurance as of ${today}.
             '\nEnter PIN or Membership ID to  Confirm cancellation
                 0.Back
                 00.Main Menu`);
         }),
         next: {
-            '*[0-9]': 'cancelPolicyConfirm',
-        }
+            "*[0-9]": "cancelPolicyConfirm",
+        },
     });
     //cancel policy confirm
-    menu.state('cancelPolicyConfirm', {
+    menu.state("cancelPolicyConfirm", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const to = args.phoneNumber;
             let today = new Date();
@@ -330,7 +328,7 @@ function myAccount(menu, args, db) {
             console.log("POLICY: ", policy);
             if (policy) {
                 // 1. Cancel Policy
-                policy.policy_status = 'cancelled';
+                policy.policy_status = "cancelled";
                 policy.policy_end_date = today;
                 yield policy.save();
             }
@@ -340,12 +338,12 @@ function myAccount(menu, args, db) {
             0.Back     00.Main Menu`);
         }),
         next: {
-            '0': 'myAccount',
-            '00': 'insurance',
-        }
+            "0": "myAccount",
+            "00": "insurance",
+        },
     });
     //my insurance policy
-    menu.state('myInsurancePolicy', {
+    menu.state("myInsurancePolicy", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const bronzeLastExpenseBenefit = "UGX 1,000,000";
             const silverLastExpenseBenefit = "UGX 1,500,000";
@@ -357,7 +355,7 @@ function myAccount(menu, args, db) {
             });
             console.log("USER: ", user);
             if (!user) {
-                menu.con('User not found');
+                menu.con("User not found");
                 return;
             }
             let policies = yield Policy.findAll({
@@ -367,46 +365,47 @@ function myAccount(menu, args, db) {
             });
             console.log("POLICIES: ", policies);
             if (policies.length === 0) {
-                menu.con('You have no policies\n' +
-                    '1. Buy cover\n' +
-                    '0. Back\n' +
-                    '00. Main Menu');
+                menu.con("You have no policies\n" +
+                    "1. Buy cover\n" +
+                    "0. Back\n" +
+                    "00. Main Menu");
                 return;
             }
-            let policyInfo = '';
+            let policyInfo = "";
             for (let i = 0; i < policies.length; i++) {
                 let policy = policies[i];
                 let benefit;
-                if (policy.policy_type == 'bronze') {
+                if (policy.policy_type == "bronze") {
                     benefit = bronzeLastExpenseBenefit;
                 }
-                else if (policy.policy_type == 'silver') {
+                else if (policy.policy_type == "silver") {
                     benefit = silverLastExpenseBenefit;
                 }
-                else if (policy.policy_type == 'gold') {
+                else if (policy.policy_type == "gold") {
                     benefit = goldLastExpenseBenefit;
                 }
-                policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-                    `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-                    `   Remaining: UGX ${policy.sum_insured}\n` +
-                    `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+                policyInfo +=
+                    `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
+                        `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+                        `   Remaining: UGX ${policy.sum_insured}\n` +
+                        `   Last Expense Per Person Benefit: ${benefit}\n\n`;
             }
             menu.end(`My Insurance Policies:\n\n${policyInfo}`);
         }),
         next: {
-            '1': 'account',
-            '0': 'account',
-            '00': 'insurance',
-        }
+            "1": "account",
+            "0": "account",
+            "00": "insurance",
+        },
     });
-    menu.state('manageAutoRenew', {
+    menu.state("manageAutoRenew", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con('Manage auto-renew ' +
-                '\n1. Activate auto-renew' +
-                '\n2. Deactivate auto-renew' +
-                '\n0.Back' +
-                '\n00.Main Menu');
-        })
+            menu.con("Manage auto-renew " +
+                "\n1. Activate auto-renew" +
+                "\n2. Deactivate auto-renew" +
+                "\n0.Back" +
+                "\n00.Main Menu");
+        }),
     });
 }
 exports.myAccount = myAccount;

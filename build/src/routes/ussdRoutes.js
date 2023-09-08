@@ -74,9 +74,6 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
             return res.status(404).json({ message: 'Policy not found' });
         }
         //update policy status
-        yield policy.update({
-            policy_status: 'paid'
-        });
         let dollarUSLocale = Intl.NumberFormat('en-US');
         let premium = dollarUSLocale.format(policy.policy_deduction_amount);
         // Format date to dd/mm/yyyy
@@ -100,6 +97,26 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
         const messageLength = paymentMessage.length;
         console.log("MESSAGE LENGTH", messageLength, paymentMessage);
         if (status_code == 'TS') {
+            policy.policy_status = 'paid';
+            policy.policy_paid_date = new Date();
+            //if policy_paid_amount is null set it to 0
+            if (policy.policy_paid_amount == null) {
+                policy.policy_paid_amount = 0;
+            }
+            if (policy.policy_paid_amount < policy.premium) {
+                policy.policy_paid_amount = policy.policy_paid_amount + policy.policy_deduction_amount;
+                policy.policy_pending_premium = policy.premium - policy.policy_paid_amount;
+            }
+            else {
+                policy.policy_paid_amount = policy.premium;
+                policy.policy_pending_premium = 0;
+            }
+            if (policy.policy_pending_premium > 0) {
+                policy.policy_next_deduction_date = new Date(policy.policy_next_deduction_date.setMonth(policy.policy_next_deduction_date.getMonth() + 1));
+                policy.installment_date = new Date(policy.installment_date.setMonth(policy.installment_date.getMonth() + 1));
+                policy.installment_alert_date = new Date(policy.installment_alert_date.setMonth(policy.installment_alert_date.getMonth() + 1));
+            }
+            yield policy.save();
             // Send SMS to user
             yield (0, sendSMS_1.default)(to, paymentMessage);
             yield Payment.create({

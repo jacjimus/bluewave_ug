@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.displayMedicalCoverMenu = void 0;
 function displayMedicalCoverMenu(menu) {
-    menu.state('medical_cover', {
+    menu.startState({
         run: () => {
             menu.con('Insurance ' +
                 '\n1. Medical cover' +

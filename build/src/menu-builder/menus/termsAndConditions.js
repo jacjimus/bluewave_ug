@@ -17,7 +17,7 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 function termsAndConditions(menu, buildInput) {
     menu.state('termsAndConditions', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const message = 'Visit [LINK TBC] to Terms & Conditions.';
+            const message = 'To view Medical cover Terms &Conditions Visit www.tclink.com ';
             const to = buildInput.phoneNumber;
             const sms = yield (0, sendSMS_1.default)(to, message);
             console.log("SMS", sms);

@@ -17,8 +17,6 @@ const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
 const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
-const startMenu_1 = require("./menus/startMenu");
-const displayInsuranceMenu_1 = require("./menus/displayInsuranceMenu");
 const displayMedicalCoverMenu_1 = require("./menus/displayMedicalCoverMenu");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
 const displayAccount_1 = require("./menus/displayAccount");
@@ -105,8 +103,8 @@ function default_1(args, db) {
                 console.log("Updated Session:", session);
             }
             // ===============SET MENU STATES============
-            (0, startMenu_1.startMenu)(menu);
-            (0, displayInsuranceMenu_1.displayInsuranceMenu)(menu);
+            //startMenu(menu);
+            // displayInsuranceMenu(menu);
             (0, displayMedicalCoverMenu_1.displayMedicalCoverMenu)(menu);
             (0, displayAccount_1.displayAccount)(menu, args, db);
             //=================BUY FOR SELF=================
