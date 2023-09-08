@@ -190,7 +190,7 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const result = {
             item: Object.assign(Object.assign({}, policy.dataValues), { total_premium,
                 paid_premium,
-                pending_premium }),
+                pending_premium, count: total_premium, items: policy }),
         };
         yield Log.create({
             log_id: uuidv4(),

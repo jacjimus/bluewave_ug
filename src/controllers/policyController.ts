@@ -232,12 +232,16 @@ const getPolicy = async (req: any, res: any) => {
     const paid_premium = policy.policy_deduction_amount;
     const pending_premium = total_premium - paid_premium;
 
+
+  
     const result = {
       item: {
         ...policy.dataValues,
         total_premium,
         paid_premium,
         pending_premium,
+        count: total_premium,
+        items: policy
       },
     };
 
