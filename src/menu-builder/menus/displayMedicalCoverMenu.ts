@@ -1,5 +1,5 @@
 export function displayMedicalCoverMenu(menu: any): void {
-    menu.state('medical_cover', {
+  menu.startState({
       run: () => {
         menu.con('Insurance ' +
           '\n1. Medical cover' +

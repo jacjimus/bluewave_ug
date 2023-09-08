@@ -110,8 +110,8 @@ const generatedHash = generateHash(hashData);
     }
 
       // ===============SET MENU STATES============
-      startMenu(menu);
-      displayInsuranceMenu(menu);
+      //startMenu(menu);
+     // displayInsuranceMenu(menu);
       displayMedicalCoverMenu(menu);
       displayAccount(menu, args, db);
       //=================BUY FOR SELF=================

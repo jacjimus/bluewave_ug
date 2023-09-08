@@ -6,7 +6,7 @@ const Product = db.products;
 const Partner = db.partners;
 const Log = db.logs;
 const { v4: uuidv4 } = require("uuid");
-const { Op } = require("sequelize");
+const { Op,Sequelize, } = require("sequelize");
 
 
 import PolicyIssuance from "../services/PolicyIssuance";
@@ -88,19 +88,19 @@ interface Policy {
     *         description: Invalid request
     */
 
-const getPolicies = async (req: any, res: any) => {
-  let status = {
-    code: 200,
-    result: {},
-  };
+const getPolicies = async (req, res) => {
   try {
     const filter = req.query.filter || "";
     const partner_id = req.query.partner_id;
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
 
     // Prepare the date range filters based on the provided start_date and end_date
-    const dateFilters: any = {}; // Use 'any' type temporarily, you can replace with the 'WhereOptions' type from Sequelize if available
+    const dateFilters: any = {};
+
     if (start_date) {
       dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
     }
@@ -108,28 +108,30 @@ const getPolicies = async (req: any, res: any) => {
       dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
     }
 
-    const policies: any[] = await Policy.findAll({
-      where: {
-        partner_id: partner_id,
-        [Op.or]: [
-          {
-            policy_type: { [Op.iLike]: `%${filter}%` },
-          },
-          {
-            policy_status: { [Op.iLike]: `%${filter}%` },
-          },
-          {
-            beneficiary: { [Op.iLike]: `%${filter}%` },
-          },
-          {
-            country_code: { [Op.iLike]: `%${filter}%` },
-          },
-          {
-            currency_code: { [Op.iLike]: `%${filter}%` },
-          },
-        ],
-        ...dateFilters, // Apply the date filters to the query
-      },
+    // Define an array of searchable fields
+    const searchableFields = [
+      'policy_type',
+      'policy_status',
+      'beneficiary',
+      // Add other fields you want to search here
+    ];
+
+    // Create a dynamic where condition for searchable fields
+    const whereCondition = {
+      partner_id: partner_id,
+      [Op.or]: [],
+      ...dateFilters, // Apply the date filters to the query
+    };
+
+    // Dynamically add search conditions for each searchable field
+    searchableFields.forEach((field) => {
+      whereCondition[Op.or].push(
+        Sequelize.where( Sequelize.col(field), { [Op.iLike]: `%${filter}%` })
+      );
+    });
+
+    const policies = await Policy.findAndCountAll({
+      where: whereCondition,
       order: [["id", "DESC"]],
       include: [
         {
@@ -141,64 +143,48 @@ const getPolicies = async (req: any, res: any) => {
           as: "product",
         },
       ],
+      offset: (page - 1) * limit,
+      limit: limit,
     });
 
-    if (!policies || policies.length === 0) {
+    if (!policies || policies.count === 0) {
       return res.status(404).json({ message: "No policies found" });
     }
 
-    // add paid premium and pending premium
-    for (let i = 0; i < policies.length; i++) {
-      policies[i].dataValues.total_premium = policies[i].premium;
-      policies[i].dataValues.paid_premium = policies[i].policy_deduction_amount;
-      policies[i].dataValues.pending_premium = policies[i].premium - policies[i].policy_deduction_amount;
-    }
+    // Add paid premium and pending premium
+    policies.rows.forEach((policy) => {
+      policy.dataValues.total_premium = policy.premium;
+      policy.dataValues.paid_premium = policy.policy_deduction_amount;
+      policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
+    });
 
-    // Policy pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const total = policies.length;
+    // Calculate pagination information
+    const total = policies.count;
+    const totalPages = Math.ceil(total / limit);
 
-    const resultPolicies = policies.slice(startIndex, endIndex);
-
-    const pagination: any = {};
-
-    if (endIndex < total) {
-      pagination.next = {
-        page: page + 1,
-        limit: limit,
-      };
-    }
-
-    if (startIndex > 0) {
-      pagination.prev = {
-        page: page - 1,
-        limit: limit,
-      };
-    }
-
-    status.result = {
+    const result = {
       count: total,
-      pagination: pagination,
-      items: resultPolicies,
+      totalPages: totalPages,
+      currentPage: page,
+      policies: policies.rows,
     };
 
     await Log.create({
       log_id: uuidv4(),
       timestamp: new Date(),
       message: `User ${req?.user_id} fetched policies`,
-      level: 'info',
+      level: "info",
       user: req?.user_id,
       partner_id: req?.partner_id,
     });
-    return res.status(status.code).json({ result: status.result });
+
+    return res.status(200).json(result);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ message: "Internal server error", error: error });
   }
 };
+
 
 
 /**

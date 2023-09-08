@@ -149,53 +149,76 @@ export function displayAccount(menu: any, args: any, db: any): void {
     }
 
   })
-
-  menu.state('choosePolicyTomakeClaim', {
+  menu.state('choosePolicyToMakeClaim', {
     run: async () => {
-      let policy = Number(menu.val);
-
-      let user = await User.findOne({
-        where: {
-          phone_number: args.phoneNumber
+      const policyIndex = Number(menu.val) - 1; // Adjust the policy index
+      const phoneNumber = args.phoneNumber;
+  
+      try {
+        const user = await User.findOne({
+          where: {
+            phone_number: phoneNumber,
+          },
+        });
+  
+        if (!user) {
+          throw new Error('User not found');
         }
-      })
-      let policies = await Policy.findAll({
-        where: {
-          user_id: user.user_id,
-        },
-      });
-
-      policies = policies[policy - 1];
-      console.log("POLICIES: ", policies);
-
-      let { id, premium, policy_type, beneficiary, sum_insured } = policies;
-
-      const claim = await Claim.create({
-        policy_id: id,
-        user_id: user?.user_id,
-        claim_date: new Date(),
-        claim_status: "pending",
-        partner_id: user.partner_id,
-        claim_description: "Admission of Claim",
-        claim_type: "medical claim",
-        claim_amount: sum_insured,
-
-      })
-
-
-      console.log("CLAIM", claim)
-      if (claim) {
-        //Paid Kes 5,000 for Medical cover. Your next payment will be due on day # of [NEXT MONTH]
-        //     menu.end(`Paid Kes ${amount} for Medical cover. 
-        // Your next payment will be due on day ${policy_deduction_day} of ${nextMonth}`)
-
-        menu.end(`Admission Claim - CLAIM ID: ${claim.claim_id},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`)
-      } else {
-        menu.end('Claim failed. Please try again')
+  
+        const policies = await Policy.findAll({
+          where: {
+            user_id: user.user_id,
+          },
+        });
+  
+        if (!policies || policies.length === 0) {
+          throw new Error('No policies found for this user');
+        }
+  
+        const selectedPolicy = policies[policyIndex];
+  
+        if (!selectedPolicy) {
+          throw new Error('Invalid policy selection');
+        }
+  
+        const {
+          id,
+          premium,
+          policy_type,
+          beneficiary,
+          sum_insured,
+        } = selectedPolicy;
+  
+        const claim = await Claim.create({
+          policy_id: id,
+          user_id: user?.user_id,
+          claim_date: new Date(),
+          claim_status: 'pending',
+          partner_id: user.partner_id,
+          claim_description: 'Admission of Claim',
+          claim_type: 'medical claim',
+          claim_amount: sum_insured,
+        });
+  
+        if (claim) {
+          const goldAndSilverMessage = `Your medical details have been confirmed. You are covered for Inpatient benefit of UGX 10,000,000`;
+          const bronzeMessage = `Your medical details have been confirmed. You are covered for Inpatient cash of UGX 4,500 per night payable from the second night`;
+  
+          const message = policy_type.toLowerCase() === 'bronze' ? bronzeMessage : goldAndSilverMessage;
+  
+          await sendSMS(phoneNumber, message);
+  
+          menu.end(`Admission Claim - CLAIM ID: ${claim.claim_id},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`);
+        } else {
+          menu.end('Claim failed. Please try again');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        menu.end('An error occurred while processing the claim');
       }
-    }
-
-  })
+    },
+  });
+  
 
 
 

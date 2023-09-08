@@ -569,6 +569,16 @@ const updateClaim = async (req: any, res: any) => {
             }
         });
 
+        // //update policy pendng premium
+
+        // const updatePolicy = await Policy.update({
+        //     policy_pending_premium: claim_amount,
+        // }, {
+        //     where: {
+        //         policy_id: policy_id
+        //     }
+        // });
+
         if (updateClaim) {
             return res.status(200).json({
                 result: {

@@ -159,6 +159,16 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 console.log(newPolicy)
                 console.log("NEW POLICY BRONZE SELF", newPolicy)
 
+                //update user column number_of_policies
+                const user = await User.findOne({ where: { user_id: user_id } }); 
+                console.log("USER", user)
+                let numberOfPolicies = user.number_of_policies;
+                numberOfPolicies = numberOfPolicies + 1;
+                console.log("NUMBER OF POLICIES", numberOfPolicies)
+                await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                console.log("USER UPDATED", user)
+
+
             const message = `PAID UGX 10,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `
 
 
@@ -202,7 +212,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                     premium: 120000,
-                    installment_order: 2,
+                    installment_order: 1,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     tax_rate_vat: '0.2',
@@ -219,6 +229,14 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 let newPolicy = await Policy.create(policy);
                 console.log(newPolicy)
                 console.log("NEW POLICY BRONZE SELF", newPolicy)
+
+                const user = await User.findOne({ where: { user_id: user_id } }); 
+                console.log("USER", user)
+                let numberOfPolicies = user.number_of_policies;
+                numberOfPolicies = numberOfPolicies + 1;
+                console.log("NUMBER OF POLICIES", numberOfPolicies)
+                await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                console.log("USER UPDATED", user)
 
 
             menu.con('Confirm \n' +
@@ -336,6 +354,14 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 console.log(newPolicy)
                 console.log("NEW POLICY SILVER SELF", newPolicy)
 
+                const user = await User.findOne({ where: { user_id: user_id } }); 
+                console.log("USER", user)
+                let numberOfPolicies = user.number_of_policies;
+                numberOfPolicies = numberOfPolicies + 1;
+                console.log("NUMBER OF POLICIES", numberOfPolicies)
+                await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                console.log("USER UPDATED", user)
+
             menu.con('Confirm \n' +
 
                 ` Deduct UGX 14,000, Next deduction will be on ${nextDeduction} \n` +
@@ -376,7 +402,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c', 
                     premium: 167000,
-                    installment_order: 2,
+                    installment_order: 1,
                     installment_date:new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     tax_rate_vat: '0.2',
@@ -393,6 +419,13 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 let newPolicy = await Policy.create(policy);
                 console.log(newPolicy)
                 console.log("NEW POLICY SILVER SELF", newPolicy)
+                const user = await User.findOne({ where: { user_id: user_id } }); 
+                console.log("USER", user)
+                let numberOfPolicies = user.number_of_policies;
+                numberOfPolicies = numberOfPolicies + 1;
+                console.log("NUMBER OF POLICIES", numberOfPolicies)
+                await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                console.log("USER UPDATED", user)
 
             menu.con('Confirm \n' +
                 ` Deduct UGX 167,000  Next deduction will be on ${policy.policy_end_date} \n` +
@@ -448,7 +481,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         }
     });
 
-
+ 
     menu.state('buyForSelf.gold.confirm', {
         run: async () => {
             let user_pin = Number(menu.val);
@@ -491,6 +524,14 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 let newPolicy = await Policy.create(policy);
                 console.log(newPolicy)
                 console.log("NEW POLICY GOLD SELF", newPolicy)
+
+                const user = await User.findOne({ where: { user_id: user_id } }); 
+                console.log("USER", user)
+                let numberOfPolicies = user.number_of_policies;
+                numberOfPolicies = numberOfPolicies + 1;
+                console.log("NUMBER OF POLICIES", numberOfPolicies)
+                await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                console.log("USER UPDATED", user)
 
             menu.con('Confirm \n' +
                 ` Deduct UGX 18,000, Next deduction will be on ${nextDeduction} \n` +
@@ -546,7 +587,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',  
                     premium: 208000,
-                    installment_order: 2,
+                    installment_order: 1,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     tax_rate_vat: '0.2',
@@ -563,6 +604,14 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 let newPolicy = await Policy.create(policy);
                 console.log("NEW POLICY GOLD SELF", newPolicy)
 
+                const user = await User.findOne({ where: { user_id: user_id } }); 
+                console.log("USER", user)
+                let numberOfPolicies = user.number_of_policies;
+                numberOfPolicies = numberOfPolicies + 1;
+                console.log("NUMBER OF POLICIES", numberOfPolicies)
+                await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                console.log("USER UPDATED", user)
+
             menu.con('Confirm \n' +
                 ` Deduct UGX 16,800, Next deduction will be on ${policy.policy_end_date} \n` +
                 '\n1.Confirm \n' +
@@ -577,6 +626,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         }
     });
 
+
+
     //===============CONFIRMATION=================
 
     menu.state('confirmation', {
@@ -584,22 +635,27 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             try {
                 const { user_id, phone_number, partner_id, membership_id } = await getUser(args.phoneNumber);
     
-                const policy = await Policy.findOne({
+                const policy = await Policy.findAll({
                     where: {
                         user_id
                     }
                 });
     
-                console.log("POLICY", policy)
-                if (policy) {
-                    const policy_deduction_amount = policy.policy_deduction_amount;
-                    const day = policy.policy_deduction_day;
+                //latest policy
+                
+                let newPolicy = policy[policy.length - 1];
+                
+                console.log("============ NewPolicy =============", newPolicy)
+                if (newPolicy) {
+                    const policy_deduction_amount = newPolicy.policy_deduction_amount;
+                    const day = newPolicy.policy_deduction_day;
                     const amount = policy_deduction_amount;
                     const reference = membership_id
+                    const policy_id = newPolicy.policy_id;
     
-                    console.log(user_id, partner_id, policy.policy_id, phone_number, amount, reference)
+                    console.log(user_id, partner_id, policy_id, phone_number, amount, reference)
                    
-                    let paymentStatus = await airtelMoney(user_id, partner_id, policy.policy_id, phone_number, amount, reference);
+                    let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
 
                     console.log(paymentStatus)
     

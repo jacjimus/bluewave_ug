@@ -1,3 +1,4 @@
+import { Transaction } from "sequelize"
 
 const { Sequelize, DataTypes } = require('sequelize')
 
@@ -34,6 +35,33 @@ db.transactions = require('./Transaction')(sequelize, DataTypes)
 //     { policy_documents: [{ name: "policy document", url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }] },
 //     { where: { partner_id: 3 } }
 // )
+
+// add column policy_pending_premium to policy table 
+
+//get policy by policy_id  policy_id ='6b586c01-d3d9-4870-8ee7-0ea543dc8501'
+// db.policies.findAll({
+//     // where: {
+//     //   policy_id: 'eba7ad59-3277-444d-a8ba-c5c3108c07ac'
+//     // }
+//   }).then((policy:any) => {
+//     console.log("POLICY: ", policy)
+ 
+//   }).catch((err:any) => {
+//     console.log(err)
+//   })
+
+//   db.transactions.findAll({
+//     // where: {
+//     //   policy_id: 'eba7ad59-3277-444d-a8ba-c5c3108c07ac'
+//     // }
+//   }).then((transaction:any) => {
+//     console.log("TRANSACTIONS: ", transaction)
+ 
+//   }).catch((err:any) => {
+//     console.log(err)
+//   })
+
+
 
 
 

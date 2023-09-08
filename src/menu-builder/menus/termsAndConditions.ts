@@ -5,7 +5,7 @@ export function termsAndConditions(menu: any, buildInput:any): void {
     menu.state('termsAndConditions', {
         run: async () => {
     
-            const message = 'Visit [LINK TBC] to Terms & Conditions.';
+            const message = 'To view Medical cover Terms &Conditions Visit www.tclink.com ';
             const to = buildInput.phoneNumber;
 
             const sms = await sendSMS(to, message);

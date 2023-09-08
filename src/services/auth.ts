@@ -21,7 +21,6 @@ async function authToken() {
         .then(response => {
             console.log(response.data);
             token = response.data.access_token;
-            console.log("TOKEN", token)
         })
         .catch(error => {
             console.error(error)

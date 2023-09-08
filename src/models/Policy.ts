@@ -120,6 +120,10 @@ module.exports = (sequelize, DataTypes) => {
         policy_paid_amount: {
             type: DataTypes.NUMBER,
             allowNull: true
+        },
+        policy_pending_premium: {
+            type: DataTypes.NUMBER,
+            allowNull: true
         }
     },
 

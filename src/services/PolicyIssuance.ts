@@ -29,7 +29,6 @@ async function token() {
         await axios.post(POLICY_ISSUANCE_TOKEN_URL, inputBody, { headers })
             .then((response: any) => {
                 token = response.data.responseObj.token.access_Token;
-                console.log("TOKEN", token)
             })
             .catch(error => {
                 console.error(error)
@@ -65,8 +64,6 @@ async function PolicyIssuance(ClientCreation: any, PolicyCreationRequest: any, M
         };
 
         const access_token = await token();
-
-        console.log("TOKEN 2", token)
         const headers = {
             'Content-Type': 'application/json',
             'Accept': '*/*',

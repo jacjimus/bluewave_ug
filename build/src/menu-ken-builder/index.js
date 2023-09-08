@@ -375,7 +375,7 @@ function handleUssd(args, db) {
                             policy_next_deduction_date: nextDeduction,
                             product_id: 2,
                             premium: 3292,
-                            installment_order: 2,
+                            installment_order: 1,
                             installment_date: nextDeduction,
                             installment_alert_date: nextDeduction,
                             tax_rate_vat: "0.2",
@@ -391,7 +391,7 @@ function handleUssd(args, db) {
                         const newPolicy = yield Policy.create(policy);
                         const to = args.phoneNumber.replace("+", "");
                         const message = `PAID KES 3,294 to AAR KENYA for Bronze Cover. Cover Charge KES 0. Bal KES 3,294. TID: 715XXXXXXXX. 
-    Date: ${new Date().toLocaleDateString()}.`;
+                                          Date: ${new Date().toLocaleDateString()}.`;
                         // Send SMS to user
                         // const sms = await sendSMS(to, message);
                         menu.con(`Confirm\nDeduct KES 3,294, Next deduction will be on ${policy.policy_end_date}\n` +

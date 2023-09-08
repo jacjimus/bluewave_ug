@@ -422,7 +422,7 @@ export default function handleUssd(args: RequestBody, db: any) {
               policy_next_deduction_date: nextDeduction,
               product_id: 2,
               premium: 3292,
-              installment_order: 2,
+              installment_order: 1,
               installment_date: nextDeduction,
               installment_alert_date: nextDeduction,
               tax_rate_vat: "0.2",
@@ -1627,6 +1627,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy);
 
           let beneficiary = {
+            beneficiary_id: uuidv4(),
             full_name: spouse,
             relationship: "spouse",
             user_id: user_id,
@@ -1791,6 +1792,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy);
 
           let beneficiary = {
+            beneficiary_id: uuidv4(),
             full_name: spouse,
             relationship: "spouse",
             user_id: user_id,
@@ -1847,6 +1849,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           const { user_id } = await getUser(args.phoneNumber);
 
           let beneficiary = {
+            beneficiary_id: uuidv4(),
             full_name: child1,
             relationship: "child",
             user_id: user_id,
@@ -1876,6 +1879,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           const { user_id } = await getUser(args.phoneNumber);
 
           let beneficiary = {
+            beneficiary_id: uuidv4(),
             full_name: child1,
             relationship: "child",
             user_id: user_id,
@@ -1986,6 +1990,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy);
 
           let beneficiary = {
+            beneficiary_id: uuidv4(),
             full_name: spouse,
             relationship: "spouse",
             user_id: user_id,
@@ -2044,6 +2049,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
           //create beneficiary
           let beneficiary = {
+            beneficiary_id: uuidv4(),
             full_name: child1,
             relationship: "child1",
             user_id: user_id,
@@ -2070,6 +2076,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             const { user_id } = await getUser(args.phoneNumber);
 
             const beneficiary = {
+              beneficiary_id: uuidv4(),
               full_name: child2,
               relationship: "child2",
               user_id: user_id,

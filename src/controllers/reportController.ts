@@ -970,11 +970,13 @@ const getPolicyExcelReportDownload = async (req, res) => {
 };
 
 // Download endpoint handler
-const handleDownload = (req, res) => {
+const handlePolicyDownload = (req, res) => {
   const { token } = req.query;
 
   // Verify the token and get the file path
   // This is where you check if the token is valid and retrieve the file path
+
+
 
   const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
 
@@ -986,6 +988,27 @@ const handleDownload = (req, res) => {
   res.setHeader(
     "Content-Disposition",
     "attachment; filename=policy_report.xlsx"
+  );
+
+  fs.createReadStream(filePath).pipe(res);
+};
+
+const handleClaimDownload = (req, res) => {
+  const { token } = req.query;
+
+  // Verify the token and get the file path
+  // This is where you check if the token is valid and retrieve the file path
+
+  const filePath = path.join(__dirname, "uploads", "claim_report.xlsx");
+
+  // Stream the file for download
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=claim_report.xlsx"
   );
 
   fs.createReadStream(filePath).pipe(res);
@@ -1155,6 +1178,209 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/v1/reports/claim/excel:
+ *   post:
+ *     tags:
+ *       - Reports
+ *     description: Excel claim report
+ *     operationId: ExcelClaimReport
+ *     summary: Excel claim report
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: filter
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: start_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: end_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Excel file generated successfully
+ *       400:
+ *         description: Invalid request
+ */
+const getClaimExcelReportDownload = async (req, res) => {
+
+  const {
+    partner_id,
+    page = 1,
+    limit = 50,
+    filter,
+    start_date,
+    end_date,
+  } = req.query;
+
+  try {
+    const whereClause: any = {
+      partner_id: partner_id,
+    };
+
+    if (filter) {
+      whereClause.claim_number = {
+        [Op.like]: `%${filter}%`,
+      };
+    }
+
+    if (start_date && end_date) {
+      whereClause.claim_date = {
+        [Op.between]: [start_date, end_date],
+      };
+    }
+
+    const options = {
+      where: whereClause,
+      offset: (page - 1) * limit,
+      limit: limit,
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["first_name", "last_name", "phone_number"],
+        },
+        {
+          model: Policy,
+          as: "policy",
+          attributes: ["policy_id", "policy_type", "policy_status"],
+        },
+      ],
+    };
+
+    let claims = await Claim.findAll(options);
+
+    if (!claims || claims.length === 0) {
+      return res.status(404).json({ message: "No claims found" });
+    }
+
+    console.log("I WAS CALLED 1")
+
+
+    const workbook = await generateClaimExcelReport(claims);
+    // Save the workbook to a temporary file
+    const tempFilePath = path.join(__dirname, "uploads", "claim_report.xlsx");
+    await workbook.xlsx.writeFile(tempFilePath);
+
+    // Get the base URL from environment variable or use a default
+    const BASE_URL = process.env.BASE_URL || "http://localhost:4000";
+
+    // Generate a unique download token
+    const downloadToken = Date.now();
+
+    // Create a URL for the download endpoint including the token
+    // the file is located at src/uploads/claim_report.xlsx
+    const downloadURL = `${BASE_URL}/api/v1/reports/claim/excel/download?token=${downloadToken}`;
+
+    // Store the download token somewhere (e.g., in-memory cache or database)
+    // This is needed to verify the download request
+
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Excel claim report generated successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
+
+    // Return the download URL to the user
+    res.status(200).json({ downloadURL });
+  }
+  catch (error) {
+    console.error("Error generating Excel report:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+
+
+}
+
+//generateClaimExcelReport
+
+function generateClaimExcelReport(claims: any[]) {
+  const workbook = new excelJS.Workbook(); // Create a new workbook
+  const worksheet = workbook.addWorksheet("Claim Report");
+
+
+  console.log("I WAS CALLED 2")
+  // Define columns for data in Excel. Key must match data key
+
+  worksheet.columns = [
+  
+    { header: "Claim Number", key: "claim_number", width: 20 },
+    { header: "Claim Date", key: "claim_date", width: 20 },
+    { header: "Customer Name", key: "full_name", width: 20 },
+    { header: "Phone Number", key: "phone_number", width: 20 },
+    { header: "Claim Status", key: "claim_status", width: 20 },
+    { header: "Claim Amount", key: "claim_amount", width: 20 },
+    { header: "Claim Description", key: "claim_description", width: 20 },
+    { header: "Claim Type", key: "claim_type", width: 20 },
+    { header: "Claim Documents", key: "claim_documents", width: 20 },
+    { header: "Claim Comments", key: "claim_comments", width: 20 },
+    { header: "Policy ID", key: "policy_id", width: 20 },
+    { header: "User ID", key: "user_id", width: 20 },
+    { header: "Partner ID", key: "partner_id", width: 20 },
+    { header: "Created At", key: "createdAt", width: 20 },
+    { header: "Updated At", key: "updatedAt", width: 20 },
+ 
+  ];
+
+  claims.forEach((claim) => {
+    worksheet.addRow({
+      claim_date: moment(claim.claim_date).format("YYYY-MM-DD"),
+      claim_number: claim.claim_id,
+      claim_status: claim.claim_status,
+      claim_amount: claim.claim_amount,
+      claim_description: claim.claim_description,
+      claim_type: claim.claim_type,
+      claim_documents: claim.claim_documents,
+      claim_comments: claim.claim_comments,
+      policy_id: claim.policy_id,
+      user_id: claim.user_id,
+      partner_id: claim.partner_id,
+      createdAt: moment(claim.createdAt).format("YYYY-MM-DD"),
+      updatedAt: moment(claim.updatedAt).format("YYYY-MM-DD"),
+      full_name: `${claim.user.first_name} ${claim.user.last_name}`,
+      phone_number: claim.user.phone_number,
+  
+    });
+  });
+
+
+  return workbook;
+
+
+
+}
+
+
+
 module.exports = {
   getPolicySummary,
   getClaimSummary,
@@ -1162,5 +1388,7 @@ module.exports = {
   getDailyPolicySalesReport,
   getPolicyExcelReportDownload,
   getAggregatedDailyPolicySalesReport,
-  handleDownload,
+  handlePolicyDownload,
+  handleClaimDownload,
+  getClaimExcelReportDownload
 };

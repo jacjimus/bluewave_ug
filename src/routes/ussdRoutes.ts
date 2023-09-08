@@ -76,45 +76,67 @@ router.post('/callback', async (req, res) => {
             console.log('Policy not found');
             return res.status(404).json({ message: 'Policy not found' });
         }
-//update policy status
-        await policy.update({
-            policy_status: 'paid'
-        });
-        
+        //update policy status
+
+
 
         let dollarUSLocale = Intl.NumberFormat('en-US');
         let premium = dollarUSLocale.format(policy.policy_deduction_amount);
-// Format date to dd/mm/yyyy
-let formatDate = (date) => {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const yyyy = date.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  };
-  
-  // Assuming policy.policy_end_date and policy.policy_next_deduction_date are Date objects
-  let policy_end_date = formatDate(policy.policy_end_date);
-  let policy_next_deduction_date = formatDate(policy.policy_next_deduction_date);
-  
-  console.log("POLICY", policy_end_date, policy_next_deduction_date);
-  
-  const to = user.phone_number;
+        // Format date to dd/mm/yyyy
+        let formatDate = (date) => {
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        };
 
-  const policyType = policy.policy_type.toUpperCase();
- //`Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. 
- // Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+        // Assuming policy.policy_end_date and policy.policy_next_deduction_date are Date objects
+        let policy_end_date = formatDate(policy.policy_end_date);
+        let policy_next_deduction_date = formatDate(policy.policy_next_deduction_date);
 
-  //Medical cover SMS 1: BOUGHT Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient cover 10,000  Go to My Account to ADD details
-  const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
-  
-  // Count characters in the message
-  const messageLength = paymentMessage.length;
-  console.log("MESSAGE LENGTH", messageLength, paymentMessage);
- 
+        console.log("POLICY", policy_end_date, policy_next_deduction_date);
+
+        const to = user.phone_number;
+
+        const policyType = policy.policy_type.toUpperCase();
+        //`Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL. 
+        // Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
+
+        //Medical cover SMS 1: BOUGHT Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient cover 10,000  Go to My Account to ADD details
+        const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
+
+        // Count characters in the message
+        const messageLength = paymentMessage.length;
+        console.log("MESSAGE LENGTH", messageLength, paymentMessage);
+
 
         if (status_code == 'TS') {
+            policy.policy_status = 'paid'
+            policy.policy_paid_date = new Date()
+
+            //if policy_paid_amount is null set it to 0
+            if (policy.policy_paid_amount == null) {
+                policy.policy_paid_amount = 0
+            }
+
+            if (policy.policy_paid_amount < policy.premium) {
+                policy.policy_paid_amount = policy.policy_paid_amount + policy.policy_deduction_amount
+                policy.policy_pending_premium = policy.premium - policy.policy_paid_amount
+            }else{
+                policy.policy_paid_amount = policy.premium
+                policy.policy_pending_premium = 0
+            }
+
+            if(policy.policy_pending_premium > 0){
+            policy.policy_next_deduction_date = new Date(policy.policy_next_deduction_date.setMonth(policy.policy_next_deduction_date.getMonth() + 1))
+            policy.installment_date = new Date(policy.installment_date.setMonth(policy.installment_date.getMonth() + 1))
+            policy.installment_alert_date = new Date(policy.installment_alert_date.setMonth(policy.installment_alert_date.getMonth() + 1))
+            }
+
+            await policy.save()
+
             // Send SMS to user
-         await sendSMS(to, paymentMessage);
+            await sendSMS(to, paymentMessage);
 
             await Payment.create({
                 payment_amount: transaction.amount,
