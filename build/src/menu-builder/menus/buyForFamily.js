@@ -19,9 +19,6 @@ function buyForFamily(menu, args, db) {
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
     const User = db.users;
-    //const Claim = db.claims;
-    //const Session = db.sessions;
-    //const Transaction = db.transactions;
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
@@ -54,19 +51,6 @@ function buyForFamily(menu, args, db) {
         }
     });
     //================BUY FOR FAMILY SELF=================
-    // menu.state('buyForFamily.self', {
-    //     run: async () => {
-    //         menu.con('\nEnter day of the month you want to deduct premium' +
-    //             '\n0.Back' +
-    //             '\n00.Main Menu'
-    //         )
-    //     },
-    //     next: {
-    //         '*[0-9]+': 'buyForFamily.self.confirm',
-    //         '0': 'buyForFamily',
-    //         '00': 'insurance'
-    //     }
-    // });
     //buy for family self confirm
     menu.state('buyForFamily.self.confirm', {
         run: () => __awaiter(this, void 0, void 0, function* () {
@@ -105,13 +89,14 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELF", newPolicy);
-            const user = yield User.findOne({ where: { user_id: user_id } });
-            console.log("USER", user);
-            let numberOfPolicies = user.number_of_policies;
-            numberOfPolicies = numberOfPolicies + 1;
+            const allPolicy = yield Policy.findAll({
+                where: {
+                    user_id: user_id
+                }
+            });
+            let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-            console.log("USER UPDATED", user);
             menu.con('Confirm \n' +
                 ` Deduct UGX ${policy.premium}, Next deduction will be on ${nextDeduction} \n` +
                 '\n1.Confirm \n' +
@@ -126,7 +111,6 @@ function buyForFamily(menu, args, db) {
     //=============BUY FOR FAMILY SELF SPOUSE================
     menu.state('buyForFamily.selfSpouse', {
         run: () => {
-            //save policy details to db
             menu.con('\nEnter Spouse name' +
                 '\n0.Back' +
                 '\n00.Main Menu');
@@ -175,6 +159,14 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy);
+            const allPolicy = yield Policy.findAll({
+                where: {
+                    user_id: user_id
+                }
+            });
+            let numberOfPolicies = allPolicy.length;
+            console.log("NUMBER OF POLICIES", numberOfPolicies);
+            yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
                 full_name: spouse,
@@ -246,7 +238,16 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy);
+            const allPolicy = yield Policy.findAll({
+                where: {
+                    user_id: user_id
+                }
+            });
+            let numberOfPolicies = allPolicy.length;
+            console.log("NUMBER OF POLICIES", numberOfPolicies);
+            yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
             let beneficiary = {
+                beneficiary_id: (0, uuid_1.v4)(),
                 full_name: spouse,
                 relationship: 'spouse',
                 user_id: user_id
@@ -269,7 +270,6 @@ function buyForFamily(menu, args, db) {
             try {
                 const childName = menu.val;
                 console.log("CHILD NAME", childName);
-                // Save child's name to the database (users collection)
                 const { user_id } = yield getUser(args.phoneNumber);
                 const beneficiary = {
                     beneficiary_id: (0, uuid_1.v4)(),
@@ -279,22 +279,11 @@ function buyForFamily(menu, args, db) {
                 };
                 const newBeneficiary = yield Beneficiary.create(beneficiary);
                 console.log("New Beneficiary", newBeneficiary);
-                const selectedDay = Number(menu.val);
+                const selectedDay = new Date().getDate();
                 const date = new Date();
                 const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, selectedDay);
-                const policy = yield Policy.findOne({
-                    where: {
-                        user_id: user_id,
-                    },
-                });
-                console.log("Policy", policy);
-                if (policy) {
-                    policy.policy_deduction_day = selectedDay;
-                    policy.policy_next_deduction_date = nextDeduction;
-                    yield policy.save();
-                }
                 menu.con('Confirm \n' +
-                    ` Deduct UGX ${policy.premium}, Next deduction will be on ${nextDeduction} \n` +
+                    ` Deduct UGX 30,000, Next deduction will be on ${nextDeduction} \n` +
                     '\n1. Confirm \n' +
                     '\n0. Back\n' +
                     '00. Main Menu');
@@ -358,6 +347,14 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy);
+            const allPolicy = yield Policy.findAll({
+                where: {
+                    user_id: user_id
+                }
+            });
+            let numberOfPolicies = allPolicy.length;
+            console.log("NUMBER OF POLICIES", numberOfPolicies);
+            yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
                 full_name: spouse,
@@ -375,51 +372,10 @@ function buyForFamily(menu, args, db) {
             '0': 'buyForFamily',
             '00': 'insurance'
         }
-        //     menu.con('\n Enter Spouse ID' +
-        //         '\n0.Back' +
-        //         '\n00.Main Menu'
-        //     )
-        // },
-        // next: {
-        //     '*\\d+': 'buyForFamily.selfSpouse2Child.spouse.id',
-        //     '0': 'buyForFamily',
-        //     '00': 'insurance'
-        // }
     });
-    //buy for family selfSpouse2Child spouse id
-    // menu.state('buyForFamily.selfSpouse2Child.spouse.id', {
-    //     run: async () => {
-    //         // use menu.val to access user input value
-    //         let id_number = menu.val;
-    //         console.log(" spouse National id 2", id_number)
-    //         //save spouse id to db users collection
-    //         const { user_id , partner_id} = await getUser(args.phoneNumber);
-    //         //update beneficiary national id
-    //         let beneficiary = await Beneficiary.findOne({
-    //             where: {
-    //                 user_id: user_id
-    //             }
-    //         })
-    //         console.log("new beneficiary 2", beneficiary)
-    //         if (beneficiary) {
-    //             beneficiary.national_id = id_number;
-    //             beneficiary.save();
-    //         }
-    //     //     menu.con('\nEnter Child 1 name' +
-    //     //         '\n0.Back' +
-    //     //         '\n00.Main Menu'
-    //     //     )
-    //     // },
-    //     // next: {
-    //     //     '*[a-zA-Z]+': 'buyForFamily.selfSpouse2Child.child1.name',
-    //     //     '0': 'buyForFamily',
-    //     //     '00': 'insurance'
-    //     // }
-    // });
     //buyForFamily.selfSpouse2Children child1 name
     menu.state('buyForFamily.selfSpouse2Child.child1.name', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            // use menu.val to access user input value
             let child1 = menu.val;
             console.log("child1 3 NAME", child1);
             //save child1 name to db users collection
@@ -449,7 +405,6 @@ function buyForFamily(menu, args, db) {
             let child2 = menu.val;
             //save child2 name to db users collection
             const { user_id } = yield getUser(args.phoneNumber);
-            let premium = 40000;
             //create beneficiary
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
@@ -458,7 +413,8 @@ function buyForFamily(menu, args, db) {
                 user_id: user_id
             };
             let newBeneficiary = yield Beneficiary.create(beneficiary);
-            menu.con(`Pay UGX ${premium}  deducted monthly.
+            console.log("new beneficiary 4", newBeneficiary);
+            menu.con(`Pay UGX 40000 deducted monthly.
                     Terms&Conditions - www.airtel.com
                     '\nEnter PIN or Membership ID to Agree and Pay' +
                     n0.Back
@@ -489,8 +445,7 @@ function buyForFamily(menu, args, db) {
     menu.state('buyForFamilyPin', {
         run: () => {
             console.log("buyForFamilyPin");
-            let premium = 40000;
-            menu.con(`Pay UGX ${premium}  deducted monthly.
+            menu.con(`Pay UGX 40,000 deducted monthly.
                     Terms&Conditions - www.airtel.com
                     '\nEnter PIN or Membership ID to Agree and Pay' +
                     n0.Back
@@ -506,26 +461,42 @@ function buyForFamily(menu, args, db) {
     menu.state('confirmation', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield getUser(args.phoneNumber);
-                const userId = user.user_id;
-                const { policy_id, policy_deduction_amount, policy_deduction_day, policy_type } = yield Policy.findOne({
+                const { user_id, phone_number, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                const policy = yield Policy.findAll({
                     where: {
-                        user_id: userId
+                        user_id
                     }
                 });
-                console.log("POLICY ID", policy_id);
-                const uuid = (0, uuid_1.v4)();
-                const partnerId = user.partner_id;
-                const phoneNumber = user.phone_number;
-                const reference = user.membership_id;
-                const paymentStatus = yield (0, payment_1.default)(userId, partnerId, policy_id, phoneNumber, policy_deduction_amount, reference);
-                if (paymentStatus.code === 200) {
-                    menu.end(`Congratulations! You are now covered.
-                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month.`);
+                //latest policy
+                let newPolicy = policy[policy.length - 1];
+                console.log("============ NewPolicy =============", newPolicy);
+                if (newPolicy) {
+                    const policy_deduction_amount = newPolicy.policy_deduction_amount;
+                    const day = newPolicy.policy_deduction_day;
+                    const amount = policy_deduction_amount;
+                    const reference = membership_id;
+                    const policy_id = newPolicy.policy_id;
+                    let period;
+                    if (newPolicy.installment_order === 1) {
+                        period = 'monthly';
+                    }
+                    else if (newPolicy.installment_order === 12) {
+                        period = 'yearly';
+                    }
+                    console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
+                    let paymentStatus = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, amount, reference);
+                    console.log(paymentStatus);
+                    if (paymentStatus.code === 200) {
+                        menu.end(`Congratulations! You are now covered. 
+                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every ${period}`);
+                    }
+                    else {
+                        menu.end(`Sorry, your payment was not successful. 
+                        \n0. Back \n00. Main Menu`);
+                    }
                 }
                 else {
-                    menu.end(`Sorry, your payment was not successful.
-                        \n0. Back \n00. Main Menu`);
+                    menu.end('You do not have an active policy.');
                 }
             }
             catch (error) {

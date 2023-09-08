@@ -50,6 +50,49 @@ exports.db.transactions = require('./Transaction')(sequelize, DataTypes);
 //   }).catch((err:any) => {
 //     console.log(err)
 //   })
+//update users table column number_of_policies with the number of policies a user has
+exports.db.users.findAll().then((user) => {
+    console.log("USER: ", user);
+    user.forEach((user) => {
+        exports.db.policies.findAll({
+            where: {
+                user_id: user.user_id
+            }
+        }).then((policy) => {
+            console.log("POLICY: ", policy);
+            exports.db.users.update({ number_of_policies: policy.length }, { where: { user_id: user.user_id } });
+        }).catch((err) => {
+            console.log(err);
+        });
+    });
+}).catch((err) => {
+    console.log(err);
+});
+//update pending premium for policies
+//   db.policies.findAll().then((policy:any) => {
+//     console.log("POLICY: ", policy)
+//    policy.forEach((policy:any) => {
+//     db.transactions.findAll({
+//         where: {
+//           policy_id: policy.policy_id
+//         }
+//       }).then((transaction:any) => {
+//         console.log("TRANSACTIONS: ", transaction)
+//         let pendingPremium = 0
+//         transaction.forEach((transaction:any) => {
+//             pendingPremium += transaction.amount
+//         })
+//         db.policies.update(
+//             { policy_pending_premium: pendingPremium },
+//             { where: { policy_id: policy.policy_id } }
+//         )
+//       }).catch((err:any) => {
+//         console.log(err)
+//       })
+//    })
+//   }).catch((err:any) => {
+//     console.log(err)
+//   })
 //syncing the model
 sequelize.sync().then(() => {
     console.log(`Database & tables created!`);

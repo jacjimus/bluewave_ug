@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         policy_id: {
             type: DataTypes.UUID,
             defaultValue: (0, uuidv4_1.uuid)(),
+            unique: true,
             primaryKey: true,
         },
         product_id: {
