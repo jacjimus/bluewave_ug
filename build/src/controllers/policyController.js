@@ -135,7 +135,12 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             user: req === null || req === void 0 ? void 0 : req.user_id,
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
-        return res.status(200).json({ result: result });
+        return res.status(200).json({
+            result: {
+                count: total,
+                items: searchResults
+            },
+        });
     }
     catch (error) {
         console.error(error);
