@@ -1294,6 +1294,138 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/v1/reports/aggregated/monthly/sales:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Aggregated monthly policy sales
+ *     operationId: Aggregated monthlyPolicySales
+ *     summary: Aggregated monthly policy sales
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: month
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+const getAggregatedMonthlySalesReport = async (req, res) => {
+  try {
+    const filterMonth = req.query.month; // Get the month filter from the query
+
+    // Validate and sanitize the input
+    if (!filterMonth || isNaN(filterMonth) || filterMonth < 1 || filterMonth > 12) {
+      return res.status(400).json({ message: 'Invalid or missing month filter' });
+    }
+
+    const query = `
+        SELECT
+          EXTRACT(MONTH FROM policy_paid_date) AS month,
+          EXTRACT(DAY FROM policy_paid_date) AS day,
+          policy_id,
+          SUM(policy_deduction_amount) AS total_amount,
+          COUNT(DISTINCT user_id) AS total_users
+        FROM
+          policies 
+        WHERE
+          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+          AND EXTRACT(MONTH FROM policy_paid_date) = :filterMonth -- Apply the month filter
+          AND partner_id = :partner_id
+        GROUP BY
+          EXTRACT(MONTH FROM policy_paid_date),
+          EXTRACT(DAY FROM policy_paid_date),
+          policy_id
+        ORDER BY
+          month,
+          day,
+          policy_id;
+      `;
+
+    // Execute the query using your database connection
+    const results = await db.sequelize.query(query, {
+      replacements: { partner_id: req.query.partner_id, filterMonth: filterMonth },
+      type: QueryTypes.SELECT,
+    });
+    // Prepare the response data
+    const labels = [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+      '11',
+      '12',
+      '13',
+      '14',
+      '15',
+      '16',
+      '17',
+      '18',
+      '19',
+      '20',
+      '21',
+      '22',
+      '23',
+      '24',
+      '25',
+      '26',
+      '27',
+      '28',
+      '29',
+      '30',
+      '31',
+    ];
+
+    const datasets = [
+      {
+        label: 'Policy Sales',
+        data: labels.map((label) => {
+          const result = results.find((item) => item.day === parseInt(label));
+          return result ? result.total_amount.toString() : '0';
+        }),
+        backgroundColor: '#0073bd',
+      },
+      {
+        label: 'Customers',
+        data: labels.map((label) => {
+          const result = results.find((item) => item.day === parseInt(label));
+          return result ? result.total_users.toString() : '0';
+        }),
+        backgroundColor: '#e40102',
+      },
+    ];
+
+    const data = {
+      labels: labels,
+      datasets: datasets,
+    };
+
+    // Send the results as a response
+    res.status(200).json({ data });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 /**
  * @swagger
@@ -1506,6 +1638,7 @@ module.exports = {
   getPolicyExcelReportDownload,
   getAggregatedDailyPolicySalesReport,
   getAggregatedAnnuallyPolicySalesReport,
+  getAggregatedMonthlySalesReport ,
   handlePolicyDownload,
   handleClaimDownload,
   getClaimExcelReportDownload
