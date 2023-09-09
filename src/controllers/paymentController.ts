@@ -97,7 +97,9 @@ const getPayments = async (req: any, res: any) => {
         });
 
         if (!payments || payments.length === 0) {
-            return res.status(404).json({ message: "No payments found" });
+            return res.status(404).json({
+                code: 404,
+                 message: "No payments found" });
         }
         await Log.create({
             log_id: uuidv4(),
@@ -109,13 +111,16 @@ const getPayments = async (req: any, res: any) => {
         });
         return res.status(200).json({
             result: {
+                code: 200,
                 count: payments.length,
                 items: payments,
             },
         });
     } catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({
+            code: 500,
+             message: "Internal server error", error: error });
     }
 };
 
@@ -172,15 +177,17 @@ const getPayment = async (req: any, res: any) => {
         if (payment) {
             res.status(200).json({
                 result: {
+                    code: 200,
                     item: payment
                 }
             });
         } else {
-            res.status(404).json({ message: "Payment not found" });
+            res.status(404).json({ 
+                code: 404,message: "Payment not found" });
         }
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        res.status(500).json({   code: 500,message: "Internal server error", error: error.message });
     }
 };
 
@@ -260,11 +267,12 @@ const getPolicyPayments = async (req: any, res: any) => {
                 }
             });
         } else {
-            res.status(404).json({ message: "No payments found" });
+            res.status(404).json({  code: 404, message: "No payments found" });
         }
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        res.status(500).json({ 
+            code: 500,message: "Internal server error", error: error.message });
     }
 };
 
@@ -342,13 +350,16 @@ const getUserPayments = async (req: any, res: any) => {
 
         return res.status(200).json({
             result: {
+                code: 200,
                 count: user_payments.length,
                 items: paginatedPayments
             }
         });
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        res.status(500).json({ 
+            code: 500,
+            message: "Internal server error", error: error.message });
     }
 };
 
@@ -396,12 +407,14 @@ const createPayment = async (req: any, res: any) => {
         });
         return res.status(201).json({
             result: {
+                code: 201,
                 item: payment
             }
         });
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        res.status(500).json({
+            code: 500, message: "Internal server error", error: error.message });
     }
 };
 

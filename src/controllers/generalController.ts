@@ -77,11 +77,14 @@ const uploadDocument = async (req: any, res: any) => {
     //   partner_id: req?.partner_id,
     // });
 
-    return res.json({ message: 'File uploaded successfully', fileUrl });
+    return res.json({ 
+      code: 200,
+      message: 'File uploaded successfully', fileUrl });
 
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: 'Internal server error', error: error });
+    return res.status(500).json({
+      code: 500, message: 'Internal server error', error: error });
   }
 };
 

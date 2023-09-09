@@ -137,6 +137,8 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         });
         return res.status(200).json({
             result: {
+                code: 200,
+                message: "Policies fetched successfully",
                 count: total,
                 items: searchResults
             },
@@ -144,7 +146,7 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -186,7 +188,10 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         if (!policy) {
-            return res.status(404).json({ message: "No policy found" });
+            return res.status(404).json({
+                code: 404,
+                message: "No policy found"
+            });
         }
         // Calculate paid and pending premiums
         const total_premium = policy.premium;
@@ -205,11 +210,17 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             user: req === null || req === void 0 ? void 0 : req.user_id,
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
-        return res.status(200).json({ result });
+        return res.status(200).json({
+            code: 200,
+            result
+        });
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
+        return res.status(500).json({
+            code: 500,
+            message: "Internal server error", error: error.message
+        });
     }
 });
 /**
@@ -300,7 +311,11 @@ const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function
             count,
             items: policy
         };
-        return res.status(status.code).json({ result: { item: status.result } });
+        return res.status(status.code).json({ result: {
+                code: 200,
+                message: "Policies fetched successfully",
+                item: status.result
+            } });
     }
     catch (error) {
         console.log(error);
@@ -353,6 +368,7 @@ const createPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         });
         return res.status(200).json({
             result: {
+                code: 200,
                 message: "Policy created successfully",
                 policy: newPolicy
             }
@@ -360,7 +376,10 @@ const createPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({
+            code: 500,
+            message: "Internal server error", error: error
+        });
     }
 });
 /**
@@ -466,7 +485,7 @@ const policyIssuance = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
     catch (error) {
         console.log("ERROR ON POLICY ISSURANC", error);
-        return res.status(500).json({ message: "Internal server error" }, error);
+        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -548,11 +567,16 @@ const updatePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         //send policy details
-        return res.status(201).json({ result: { message: "Policy updated successfully" } });
+        return res.status(201).json({ result: {
+                code: 200, message: "Policy updated successfully"
+            } });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error });
+        return res.status(500).json({
+            code: 500,
+            message: "Internal server error", error
+        });
     }
 });
 /**
@@ -594,11 +618,15 @@ const deletePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         //send policy details
-        return res.status(201).json({ result: { message: "Policy deleted successfully" } });
+        return res.status(201).json({ result: {
+                code: 201, message: "Policy deleted successfully"
+            } });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error });
+        return res.status(500).json({
+            code: 500, message: "Internal server error", error
+        });
     }
 });
 module.exports = {

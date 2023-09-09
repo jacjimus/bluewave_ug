@@ -91,6 +91,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         role: {
             type: DataTypes.STRING,
             allowNull: true,
+            enum: ["user", "admin", "superadmin", "partner", "manager", "agent"],
             default: "user"
         },
         is_active: {

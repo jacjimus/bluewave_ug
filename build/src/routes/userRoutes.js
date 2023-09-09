@@ -34,6 +34,7 @@ router.get('/:user_id', isSuperAdmin, userController.getUser);
 router.post('/partnerSwitch', isSuperAdmin, userController.partnerSwitch);
 router.post('/login', userController.login);
 router.post('/signup', userController.signup);
+router.post('/admin/signup', userController.adminSignup);
 router.post('/group/signup', upload.single('excel_file'), userController.bulkUserRegistration);
 router.post('/partner/register', isBluewave, userController.partnerRegistration);
 router.put('/:user_id', userController.updateUser);

@@ -162,6 +162,7 @@ const SessionModel = db.sessions;
       });
     } catch (error) {
       res.status(400).json({
+        code: 400,
         message: 'Invalid request',
         error: error.message
       });

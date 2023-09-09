@@ -122,6 +122,7 @@ const getClaims = async (req: any, res: any) => {
             let paginatedClaims = claim.slice(offset, offset + limit);
             return res.status(200).json({
                 result: {
+                    code: 200,
                     count: claim.length,
                     items: paginatedClaims,
                 },
@@ -135,10 +136,14 @@ const getClaims = async (req: any, res: any) => {
             user: req?.user_id,
             partner_id: req?.partner_id,
         });
-        return res.status(200).json({ result: claim });
+        return res.status(200).json({ 
+            code: 200,
+            result: claim });
     } catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Error fetching claims", error: error });
+        return res.status(500).json({ 
+            code: 200,
+            message: "Error fetching claims", error: error });
     }
 };
 /**
@@ -193,12 +198,15 @@ const getClaim = async (req: any, res: any) => {
         });
         return res.status(200).json({
             result: {
+                code: 200,
+                message: 'Claim fetched successfully',
                 item: claim
             }
         });
     } catch (error) {
         console.error('Error getting claim:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        return res.status(500).json({
+            code: 500, message: 'Internal server error', error: error.message });
     }
 };
 
@@ -270,6 +278,8 @@ const getUserClaims = async (req: any, res: any) => {
             const paginatedClaims = claims.slice(offset, offset + limit);
             return res.status(200).json({
                 result: {
+                    code: 200,
+                    message: 'Claims fetched successfully',
                     count: claims.length,
                     items: paginatedClaims
                 }
@@ -287,7 +297,8 @@ const getUserClaims = async (req: any, res: any) => {
         return res.status(200).json(claims);
     } catch (error) {
         console.error('Error fetching claims:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        return res.status(500).json({
+            code: 500, message: 'Internal server error', error: error.message });
     }
 };
 
@@ -350,7 +361,8 @@ const getPolicyClaims = async (req: any, res: any) => {
         });
 
         if (!claims || claims.length === 0) {
-            return res.status(404).json({ message: 'No claims found' });
+            return res.status(404).json({ 
+                code: 404,message: 'No claims found' });
         }
 
         if (page && limit) {
@@ -358,6 +370,7 @@ const getPolicyClaims = async (req: any, res: any) => {
             const paginatedClaims = claims.slice(offset, offset + limit);
             return res.status(200).json({
                 result: {
+                    code: 200,
                     count: claims.length,
                     items: paginatedClaims
                 }
@@ -374,7 +387,8 @@ const getPolicyClaims = async (req: any, res: any) => {
         return res.status(200).json(claims);
     } catch (error) {
         console.error('Error fetching claims:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        return res.status(500).json({ 
+            code: 500,message: 'Internal server error', error: error.message });
     }
 };
 
@@ -443,13 +457,15 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (!policy) {
-            return res.status(404).json({ message: "No policy found" });
+            return res.status(404).json({ 
+                code: 404,message: "No policy found" });
         }
 
         // Check if user exists
         const user = await User.findByPk(user_id);
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ 
+                code: 404,message: "User not found" });
         }
 
         // Check if user has the policy
@@ -461,7 +477,8 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (!userPolicy) {
-            return res.status(404).json({ message: "User does not have the policy" });
+            return res.status(404).json({ 
+                code: 404,message: "User does not have the policy" });
         }
 
         // Check if the policy already has an active claim
@@ -472,7 +489,8 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (existingClaim) {
-            return res.status(409).json({ message: "Policy already has an active claim" });
+            return res.status(409).json({ 
+                code: 400,message: "Policy already has an active claim" });
         }
 
 
@@ -501,10 +519,12 @@ const createClaim = async (req: any, res: any) => {
             partner_id: req?.partner_id,
         });
 
-        return res.status(201).json({ message: "Claim created successfully", claim: newClaim });
+        return res.status(201).json({ 
+            code: 201,message: "Claim created successfully", claim: newClaim });
     } catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ message: "Error creating claim", error: error.message });
+        return res.status(500).json({
+            code: 500, message: "Error creating claim", error: error.message });
     }
 };
 
@@ -602,13 +622,15 @@ const updateClaim = async (req: any, res: any) => {
         if (updateClaim) {
             return res.status(200).json({
                 result: {
+                    code: 200,
                     message: 'Claim updated successfully'
                 }
             })
         }
     } catch (error) {
         console.log(error)
-        return res.status(404).json({ message: "Error updating claim", error: error });
+        return res.status(500).json({ 
+            code: 500,message: "Error updating claim", error: error });
 
     }
 }
@@ -634,12 +656,14 @@ const deleteClaim = async (req: any, res: any) => {
         });
         if (deleteClaim) {
             return res.status(200).json({
+                code: 200,
                 message: 'Claim deleted successfully'
             })
         }
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ message: "Error deleting claim", error: error });
+        return res.status(500).json({ 
+            code: 500,message: "Error deleting claim", error: error });
 
     }
 }

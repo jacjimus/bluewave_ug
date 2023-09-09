@@ -74,23 +74,22 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             !password ||
             !phone_number ||
             !partner_id) {
-            return res.status(400).json({ message: "Please provide all fields" });
+            return res.status(400).json({ code: 400, message: "Please provide all fields" });
         }
         // if (!isValidKenyanPhoneNumber(phone_number)) {
         //   return res.status(400).json({ message: "Please enter a valid phone number" });
         // }
         if (!(0, utils_1.isValidEmail)(email)) {
-            return res.status(400).json({ message: "Please enter a valid email" });
+            return res.status(400).json({ code: 400, message: "Please enter a valid email" });
         }
         let nationalId = national_id.toString();
         // Generate a random integer for the primary key
-        let randomId = (0, utils_1.getRandomInt)(10000000, 99999999);
-        let userIDcheck = yield User.findAll({ where: { id: randomId } });
-        if (userIDcheck.length > 0) {
-            randomId = (0, utils_1.getRandomInt)(10000000, 99999999);
-        }
+        //let randomId = getRandomInt(10000000, 99999999);
+        // let userIDcheck: any = await User.findAll({ where: { id: randomId } });
+        // if (userIDcheck.length > 0) {
+        //   randomId = getRandomInt(10000000, 99999999);
+        // }
         const userData = {
-            id: randomId,
             membership_id: Math.floor(100000 + Math.random() * 900000),
             first_name,
             middle_name,
@@ -121,21 +120,21 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //checking if the user already exists
         let user = yield User.findAll({ where: { email: email } });
         //check if national id exists
-        let nationalIdExists = yield User.findAll({
-            where: { national_id: national_id },
-        });
+        // let nationalIdExists: any = await User.findAll({
+        //   where: { national_id: national_id },
+        // });
         //check if phone number exists
         let phoneNumberExists = yield User.findAll({
             where: { phone_number: phone_number },
         });
-        if (nationalIdExists && nationalIdExists.length > 0) {
-            return res.status(409).json({ message: "National ID already exists" });
-        }
+        // if (nationalIdExists && nationalIdExists.length > 0) {
+        //   return res.status(409).json({code: 200, message: "National ID already exists" });
+        // }
         if (phoneNumberExists && phoneNumberExists.length > 0) {
-            return res.status(409).json({ message: "Phone number already exists" });
+            return res.status(409).json({ code: 409, message: "Phone number already exists" });
         }
         if (user && user.length > 0) {
-            return res.status(409).json({ message: "User already exists" });
+            return res.status(409).json({ code: 409, message: "User already exists" });
         }
         console.log("USER DATA", userData);
         //saving the user
@@ -161,6 +160,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 .status(201)
                 .json({
                 result: {
+                    code: 200,
                     message: "User login successfully",
                     token: token,
                     user: newUser,
@@ -170,7 +170,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.log("ERROR", error);
-        return res.status(409).send("Details are not correct");
+        return res.status(409).send({ code: 409, message: "Details are not correct" });
     }
 });
 //partnerRegistration
@@ -227,7 +227,7 @@ const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, func
         //checking if the partner already exists using email and partner id
         let partner = yield Partner.findOne({ where: { email: email } });
         if (partner && partner.length > 0) {
-            return res.status(409).json({ message: "Partner already exists" });
+            return res.status(409).json({ code: 409, message: "Partner already exists" });
         }
         //saving the partner
         const newPartner = yield Partner.create(partnerData);
@@ -244,6 +244,7 @@ const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, func
             return res
                 .status(201)
                 .json({
+                code: 201,
                 message: "Partner registered successfully",
                 partner: newPartner,
             });
@@ -251,7 +252,7 @@ const partnerRegistration = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ code: 500, message: "Internal server error" });
     }
 });
 /**
@@ -280,7 +281,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!email || !password) {
             return res
                 .status(400)
-                .json({ message: "Please provide an email and password" });
+                .json({ code: 400, message: "Please provide an email and password" });
         }
         //find a user by their email
         const user = yield User.findOne({
@@ -291,7 +292,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //console.log("USER",user)
         console.log(!user, user.length == 0);
         if (!user || user.length === 0) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ code: 401, message: "Invalid credentials" });
         }
         //if user email is found, compare password with bcrypt
         if (user) {
@@ -318,6 +319,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     .status(201)
                     .json({
                     result: {
+                        code: 201,
                         message: "User login successfully",
                         token: token,
                         user: user,
@@ -330,7 +332,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("ERROR", error);
         return res
             .status(400)
-            .json({ message: "Invalid credentials", error: error });
+            .json({ code: 400, message: "Invalid credentials", error: error });
     }
 });
 /**
@@ -449,13 +451,13 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             user: req.params.user_id,
             partner_id: req.query.partner_id,
         });
-        return res.status(404).json({ message: "No users found" });
+        return res.status(404).json({ code: 404, message: "No users found" });
     }
     catch (error) {
         console.log("ERROR", error);
         return res
             .status(500)
-            .json({ message: "Internal server error", error: error });
+            .json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -512,7 +514,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         return res
             .status(200)
-            .json({ result: { message: "User fetched successfully", item: user } });
+            .json({ result: { code: 200, message: "User fetched successfully", item: user } });
     }
     catch (error) {
         console.log("ERROR", error);
@@ -594,7 +596,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         return res
             .status(201)
             .json({
-            result: { message: "User updated successfully", item: updatedUser },
+            result: { code: 201, message: "User updated successfully", item: updatedUser },
         });
     }
     catch (error) {
@@ -623,7 +625,7 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         //send users details
         return res
             .status(201)
-            .json({ result: { message: "User deleted successfully" } });
+            .json({ result: { code: 201, message: "User deleted successfully" } });
     }
     catch (error) {
         console.log("ERROR", error);
@@ -668,14 +670,14 @@ const getPartner = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         return res
             .status(200)
             .json({
-            result: { message: "partner fetched successfully", item: partner },
+            result: { code: 200, message: "partner fetched successfully", item: partner },
         });
     }
     catch (error) {
         console.log("ERROR", error);
         return res
             .status(500)
-            .json({ message: "Internal server error", error: error });
+            .json({ code: 500, message: "Internal server error", error: error });
     }
 });
 //partner switch
@@ -721,13 +723,13 @@ const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         //saving the user
         //send users details
         console.log("updated user", updatedUser);
-        return res.status(201).json({ message: "Partner updated successfully" });
+        return res.status(201).json({ code: 201, message: "Partner updated successfully" });
     }
     catch (error) {
         console.log("ERROR", error);
         return res
             .status(500)
-            .json({ message: "Internal server error", error: error });
+            .json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -817,7 +819,7 @@ const bulkUserRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         return res
             .status(200)
-            .json({ message: "Users created successfully", items: createdUsers });
+            .json({ code: 200, message: "Users created successfully", items: createdUsers });
     }
     catch (error) {
         console.log(error);
@@ -836,7 +838,55 @@ const createUserFunction = (userData) => __awaiter(void 0, void 0, void 0, funct
         throw error;
     }
 });
+/** @swagger
+ * /api/v1/users/admin/signup:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: Register a admin
+ *     operationId: registerAdmin
+ *     summary: Register a admin
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: {  "username": "admin123", "email": "admin@example.com", "password": "securePassword", "role": "admin", "partner_id": "1" }
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
+function adminSignup(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { username, email, password, role, partner_id } = req.body;
+        // Perform validation on the data
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'Incomplete data provided' });
+        }
+        let user = yield User.findAll({ where: { email: email } });
+        if (user && user.length > 0) {
+            return res.status(409).json({ code: 409, message: "Sorry, User already exists with the same email" });
+        }
+        // Logic for admin signup goes here
+        // You can store the admin data in a database, hash the password, etc.
+        const admin = {
+            name: username,
+            email,
+            password: yield bcrypt.hash(password, 10),
+            role,
+            partner_id,
+        };
+        //save admin to database
+        let newAdmin = yield User.create(admin);
+        console.log("NEW ADMIN", newAdmin);
+        // Return a success response
+        return res.status(200).json({ code: 200, message: 'Admin registered successfully' });
+    });
+}
 module.exports = {
+    adminSignup,
     signup,
     login,
     getUsers,

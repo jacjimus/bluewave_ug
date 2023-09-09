@@ -135,11 +135,11 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             user: req === null || req === void 0 ? void 0 : req.user_id,
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
-        return res.status(status.code).json({ result: status.result });
+        return res.status(status.code).json({ code: 200, result: status.result });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -191,11 +191,11 @@ const getProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             user: req === null || req === void 0 ? void 0 : req.user_id,
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
-        return res.status(status.code).json({ result: status.result });
+        return res.status(status.code).json({ code: 200, result: status.result });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -238,6 +238,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
         return res.status(200).json({
             result: {
+                code: 200,
                 message: "Product created successfully",
                 product: newProduct
             }
@@ -245,7 +246,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -315,11 +316,15 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         //send product details
-        return res.status(201).json({ result: { message: "Product updated successfully" } });
+        return res.status(201).json({ result: {
+                code: 200, message: "Product updated successfully"
+            } });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({
+            code: 500, message: "Internal server error", error: error
+        });
     }
 });
 /**
@@ -361,11 +366,16 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             user: req === null || req === void 0 ? void 0 : req.user_id,
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
-        return res.status(201).json({ result: { message: "Product deleted successfully" } });
+        return res.status(201).json({ result: {
+                code: 200, message: "Product deleted successfully"
+            } });
     }
     catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", error: error });
+        return res.status(500).json({
+            code: 200,
+            message: "Internal server error", error: error
+        });
     }
 });
 module.exports = {

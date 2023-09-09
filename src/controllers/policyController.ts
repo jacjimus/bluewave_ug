@@ -176,13 +176,15 @@ console.log("SEARCH RESULTS", searchResults)
 
     return res.status(200).json({
       result: {
+        code: 200,
+        message: "Policies fetched successfully",
           count: total,
           items: searchResults
       },
   });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error", error: error });
+    return res.status(500).json({code: 500, message: "Internal server error", error: error });
   }
 };
 
@@ -229,7 +231,9 @@ const getPolicy = async (req: any, res: any) => {
     });
 
     if (!policy) {
-      return res.status(404).json({ message: "No policy found" });
+      return res.status(404).json({
+        code: 404,
+         message: "No policy found" });
     }
 
     // Calculate paid and pending premiums
@@ -258,10 +262,14 @@ const getPolicy = async (req: any, res: any) => {
       user: req?.user_id,
       partner_id: req?.partner_id,
     });
-    return res.status(200).json({ result });
+    return res.status(200).json({ 
+      code: 200,
+      result });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
+    return res.status(500).json({ 
+      code: 500,
+      message: "Internal server error", error: error.message });
   }
 };
 
@@ -367,7 +375,10 @@ const getUserPolicies = async (req: any, res: any) => {
       count,
       items: policy
     };
-    return res.status(status.code).json({ result: { item: status.result } });
+    return res.status(status.code).json({ result: {
+      code: 200, 
+      message: "Policies fetched successfully",
+      item: status.result } });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ message: "Internal server error", error: error });
@@ -429,13 +440,16 @@ const createPolicy = async (req: any, res: any) => {
     });
     return res.status(200).json({
       result: {
+        code: 200,
         message: "Policy created successfully",
         policy: newPolicy
       }
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ message: "Internal server error", error: error });
+    return res.status(500).json({ 
+      code: 500,
+      message: "Internal server error", error: error });
   }
 
 }
@@ -554,7 +568,7 @@ const policyIssuance = async (req: any, res: any) => {
 
   } catch (error) {
     console.log("ERROR ON POLICY ISSURANC", error)
-    return res.status(500).json({ message: "Internal server error" }, error);
+    return res.status(500).json({code: 500, message: "Internal server error", error: error  });
   }
 };
 
@@ -666,10 +680,13 @@ const updatePolicy = async (req: any, res: any) => {
       partner_id: req?.partner_id,
     });
     //send policy details
-    return res.status(201).json({ result: { message: "Policy updated successfully" } });
+    return res.status(201).json({ result: { 
+      code: 200,message: "Policy updated successfully" } });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ message: "Internal server error", error });
+    return res.status(500).json({ 
+      code: 500,
+      message: "Internal server error", error });
   }
 }
 
@@ -712,10 +729,12 @@ const deletePolicy = async (req: any, res: any) => {
       partner_id: req?.partner_id,
     });
     //send policy details
-    return res.status(201).json({ result: { message: "Policy deleted successfully" } });
+    return res.status(201).json({ result: { 
+      code: 201,message: "Policy deleted successfully" } });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Internal server error", error });
+    return res.status(500).json({ 
+      code: 500,message: "Internal server error", error });
 
   }
 }

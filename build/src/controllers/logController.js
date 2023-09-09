@@ -158,6 +158,7 @@ const getSessions = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
     catch (error) {
         res.status(400).json({
+            code: 400,
             message: 'Invalid request',
             error: error.message
         });
