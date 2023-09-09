@@ -20,14 +20,16 @@ exports.isValidEmail = isValidEmail;
 function globalSearch(array, searchTerm) {
     console.log("SEARCH TERM", searchTerm);
     console.log("ARRAY", array.length);
-    // console.log("ARRAY", array)
     // Convert the searchTerm to lowercase for case-insensitive search
     const search = searchTerm.toLowerCase();
     // Use the filter() method to find objects matching the search term
     const results = array.filter((item) => {
-        console.log("ITEM", item.dataValues);
+        var _a, _b;
+        // Spread all object fields into the ITEM
+        const ITEM = Object.assign(Object.assign(Object.assign({}, item.dataValues), (_a = item === null || item === void 0 ? void 0 : item.user) === null || _a === void 0 ? void 0 : _a.dataValues), (_b = item === null || item === void 0 ? void 0 : item.policy) === null || _b === void 0 ? void 0 : _b.dataValues);
+        console.log("ITEM", ITEM);
         // Combine all object values into a single string for searching
-        const objectValues = Object.values(item.dataValues).join(' ').toLowerCase();
+        const objectValues = Object.values(ITEM).join(' ').toLowerCase();
         return objectValues.includes(search);
     });
     return results;
