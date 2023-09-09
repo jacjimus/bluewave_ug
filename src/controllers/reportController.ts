@@ -1136,10 +1136,96 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
   try {
     const query = `
         SELECT
+          EXTRACT(DOW FROM policy_paid_date) AS day_of_week,
+          SUM(policy_deduction_amount) AS total_amount,
+          COUNT(DISTINCT user_id) AS total_users -- Added this line
+        FROM
+          policies 
+        WHERE
+          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') AND partner_id = :partner_id
+        GROUP BY
+          day_of_week
+        ORDER BY
+          day_of_week;
+      `;
+
+    // Execute the query using your database connection
+    const results = await db.sequelize.query(query, {
+      replacements: { partner_id: req.query.partner_id },
+      type: QueryTypes.SELECT,
+    });
+
+    // Prepare the response data
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    const labels = daysOfWeek;
+    const datasets = [
+      {
+        label: 'Policy Sales',
+        data: daysOfWeek.map((day) => {
+          const result = results.find((item) => item.day_of_week === daysOfWeek.indexOf(day));
+          return result ? result.total_amount.toString() : '0';
+        }),
+        backgroundColor: '#0073bd',
+      },
+      {
+        label: 'Customers',
+        data: daysOfWeek.map((day) => {
+          const result = results.find((item) => item.day_of_week === daysOfWeek.indexOf(day));
+          return result ? result.total_users.toString() : '0';
+        }),
+        backgroundColor: '#e40102',
+      },
+    ];
+
+    const data = {
+      labels: labels,
+      datasets: datasets,
+    };
+
+    // Send the results as a response
+    res.status(200).json({ data });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+///aggregated/annual/sales
+
+/**
+ * @swagger
+ * /api/v1/reports/aggregated/annual/sales:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Aggregated daily policy sales
+ *     operationId: Aggregated dailyPolicySales
+ *     summary: Aggregated daily policy sales
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
+  try {
+    const query = `
+        SELECT
           EXTRACT(MONTH FROM policy_paid_date) AS month,
           EXTRACT(DAY FROM policy_paid_date) AS day,
           policy_id,
-          SUM(policy_deduction_amount) AS total_amount
+          SUM(policy_deduction_amount) AS total_amount,
+          COUNT(DISTINCT user_id) AS total_users -- Added this line
         FROM
           policies 
         WHERE
@@ -1160,23 +1246,54 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
       type: QueryTypes.SELECT,
     });
 
-    console.log("RESULTS", results);
+    // Prepare the response data
+    const labels = [
+      'Jan',
+      'Feb',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
 
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Aggregated daily policy sales fetched successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
+    const datasets = [
+      {
+        label: 'Policy Sales',
+        data: labels.map((label) => {
+          const result = results.find((item) => item.month === labels.indexOf(label) + 1);
+          return result ? result.total_amount.toString() : '0';
+        }),
+        backgroundColor: '#0073bd',
+      },
+      {
+        label: 'Customers',
+        data: labels.map((label) => {
+          const result = results.find((item) => item.month === labels.indexOf(label) + 1);
+          return result ? result.total_users.toString() : '0';
+        }),
+        backgroundColor: '#e40102',
+      },
+    ];
+
+    const data = {
+      labels: labels,
+      datasets: datasets,
+    };
+
     // Send the results as a response
-    res.status(200).json(results);
+    res.status(200).json({ data });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 /**
  * @swagger
@@ -1388,6 +1505,7 @@ module.exports = {
   getDailyPolicySalesReport,
   getPolicyExcelReportDownload,
   getAggregatedDailyPolicySalesReport,
+  getAggregatedAnnuallyPolicySalesReport,
   handlePolicyDownload,
   handleClaimDownload,
   getClaimExcelReportDownload

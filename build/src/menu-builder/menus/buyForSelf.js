@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForSelf = void 0;
 const payment_1 = __importDefault(require("../../services/payment"));
+const uuid_1 = require("uuid");
 function buyForSelf(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
@@ -62,10 +63,10 @@ function buyForSelf(menu, args, db) {
             first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
             last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
             const full_name = first_name + " " + last_name;
-            menu.con(`Hospital cover for ${full_name}, ${phone_number} UGX 1,500,000 a year 
+            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
                     PAY
-                    1. UGX 10,000 deducted monthly
-                    2. UGX 120,000 yearly
+                    1. Monthly UGX 10,000
+                    2. Yearly UGX 120,000 
                     0. Back
                     00. Main Menu`);
         }),
@@ -121,6 +122,7 @@ function buyForSelf(menu, args, db) {
             let countryCode = 'UGA';
             let currencyCode = 'UGX';
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'bronze',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -182,6 +184,7 @@ function buyForSelf(menu, args, db) {
             let currencyCode = 'UGX';
             //save policy details
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'bronze',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -291,6 +294,7 @@ function buyForSelf(menu, args, db) {
             let currencyCode = 'UGX';
             //save policy details
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'silver',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -352,6 +356,7 @@ function buyForSelf(menu, args, db) {
             let currencyCode = 'UGX';
             //save policy details
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'silver',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -447,6 +452,7 @@ function buyForSelf(menu, args, db) {
             let countryCode = 'UGA';
             let currencyCode = 'UGX';
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'gold',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -521,6 +527,7 @@ function buyForSelf(menu, args, db) {
             let currencyCode = 'UGX';
             //save policy details
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'gold',
                 beneficiary: 'self',
                 policy_status: 'pending',

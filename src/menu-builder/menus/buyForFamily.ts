@@ -62,7 +62,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             //save policy details
             let policy = {
-
+                policy_d: uuidv4(),
                 policy_type: 'bronze',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -149,6 +149,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let currencyCode = 'UGX';
 
             const policy = {
+                policy_d: uuidv4(),
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse',
                 policy_status: 'pending',
@@ -248,6 +249,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let day = date.getDate();
 
             const policy = {
+                policy_d: uuidv4(),
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse1Child',
                 policy_status: 'pending',
@@ -381,6 +383,7 @@ menu.state('buyForFamily.selfSpouse1Child.confirm', {
             let countryCode = 'UGA'
             let currencyCode = 'UGX';
             const policy = {
+                policy_d: uuidv4(),
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse2Child',
                 policy_status: 'pending',
@@ -578,21 +581,18 @@ menu.state('buyForFamily.selfSpouse1Child.confirm', {
                     const amount = policy_deduction_amount;
                     const reference = membership_id
                     const policy_id = newPolicy.policy_id;
-                    let period: any
-                    if (newPolicy.installment_order === 1) {
-                        period = 'monthly'
-                    }
-                    else if (newPolicy.installment_order === 12) {
-                        period = 'yearly'
-                    }
+                    let period = 'monthly'; // Default period
 
-    
-                    console.log(user_id, partner_id, policy_id, phone_number, amount, reference)
-                   
+                    if (newPolicy.installment_order === 12) {
+                        period = 'yearly';
+                    }
+                    
+                    console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
+                    
                     let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
-
-                    console.log(paymentStatus)
-    
+                    
+                    console.log(paymentStatus);
+                    
                     if (paymentStatus.code === 200) {
                         menu.end(`Congratulations! You are now covered. 
                         To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every ${period}`);

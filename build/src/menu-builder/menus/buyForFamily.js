@@ -63,6 +63,7 @@ function buyForFamily(menu, args, db) {
             let currencyCode = 'UGX';
             //save policy details
             let policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'bronze',
                 beneficiary: 'self',
                 policy_status: 'pending',
@@ -133,6 +134,7 @@ function buyForFamily(menu, args, db) {
             let countryCode = 'UGA';
             let currencyCode = 'UGX';
             const policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse',
                 policy_status: 'pending',
@@ -212,6 +214,7 @@ function buyForFamily(menu, args, db) {
             let currencyCode = 'UGX';
             let day = date.getDate();
             const policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse1Child',
                 policy_status: 'pending',
@@ -321,6 +324,7 @@ function buyForFamily(menu, args, db) {
             let countryCode = 'UGA';
             let currencyCode = 'UGX';
             const policy = {
+                policy_d: (0, uuid_1.v4)(),
                 policy_type: 'bronze',
                 beneficiary: 'selfSpouse2Child',
                 policy_status: 'pending',
@@ -476,11 +480,8 @@ function buyForFamily(menu, args, db) {
                     const amount = policy_deduction_amount;
                     const reference = membership_id;
                     const policy_id = newPolicy.policy_id;
-                    let period;
-                    if (newPolicy.installment_order === 1) {
-                        period = 'monthly';
-                    }
-                    else if (newPolicy.installment_order === 12) {
+                    let period = 'monthly'; // Default period
+                    if (newPolicy.installment_order === 12) {
                         period = 'yearly';
                     }
                     console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
