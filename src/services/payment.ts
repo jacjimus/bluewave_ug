@@ -45,6 +45,7 @@ async function createTransaction(user_id: any, partner_id:any, policy_id: any, t
       partner_id: partner_id,
     });
     console.log('TRANSACTION', transaction);
+
     return transaction;
   } catch (error) {
     throw new Error(`Failed to create a transaction: ${error.message}`);
@@ -92,6 +93,7 @@ async function airtelMoney(user_id:any, partner_id: number, policy_id: any, phon
       const  transaction = response.data.data.transaction;
       console.log('TRANSACTION', transaction);
       await createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
+      
       status.result=response.data.status
       return status;
     } else {

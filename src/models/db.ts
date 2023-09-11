@@ -1,6 +1,6 @@
-import { Transaction } from "sequelize"
-
 const { Sequelize, DataTypes } = require('sequelize')
+import { v4 as uuidv4 } from 'uuid'
+
 
 const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@bluewave-postgres.cemxniymyjt7.us-east-1.rds.amazonaws.com:5432/airtelDB`, { dialect: "postgres" })
 
@@ -26,6 +26,7 @@ db.partners = require('./Partner')(sequelize, DataTypes)
 db.products = require('./Product')(sequelize, DataTypes)
 db.logs = require('./Log')(sequelize, DataTypes)
 db.transactions = require('./Transaction')(sequelize, DataTypes)
+db.installments = require('./Installment')(sequelize, DataTypes)
 
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
@@ -85,6 +86,37 @@ db.users.findAll().then((user:any) => {
     console.log(err)
   })
 
+  //update installment_order for policies with multiple installments
+  db.policies.findAll().then((policy:any) => {
+    console.log("POLICY: ", policy)
+   policy.forEach((policy:any) => {
+    db.installments.findAll({
+        where: {
+          policy_id: policy.policy_id
+        }
+      }).then((installment:any) => {
+        console.log("INSTALLMENT: ", installment)
+        let installmentOrder = 0
+        installment.forEach((installment:any) => {
+            installmentOrder += 1
+            db.policies.update(
+                { installment_order: installmentOrder },
+                { where: { policy_id: policy.policy_id }
+               }
+            )
+
+        })
+      }).catch((err:any) => {
+        console.log(err)
+      })
+   })
+  }).catch((err:any) => {
+    console.log(err)
+  })
+
+
+
+
 
 
   //update pending premium for policies
@@ -113,6 +145,34 @@ db.users.findAll().then((user:any) => {
 //     console.log(err)
 //   })
 
+
+// const selectedPolicy = await db.policies.findOne({
+//   where: {
+//     policy_id: policy_id
+//   }
+// })
+// console.log('POLICY', selectedPolicy);
+
+// if(selectedPolicy.policy_status == 'paid' && selectedPolicy.policy_paid_amount == selectedPolicy.premium){
+//   console.log('POLICY ALREADY PAID FOR');
+//    // create installment
+//    await db.installments.create({
+//     installment_id: uuidv4(),
+//     policy_id: selectedPolicy.policy_id,
+//     installment_order: selectedPolicy.installment_order,
+//     installment_date: new Date(),
+//     installment_alert_date: new Date(),
+//     tax_rate_vat: selectedPolicy.tax_rate_vat,
+//     tax_rate_ext: selectedPolicy.tax_rate_ext,
+//     premium: selectedPolicy.premium,
+//     sum_insured: selectedPolicy.sum_insured,
+//     excess_premium: selectedPolicy.excess_premium,
+//     discount_premium: selectedPolicy.discount_premium,
+//     currency_code: selectedPolicy.currency_code,
+//     country_code: selectedPolicy.country_code,
+//   });
+ 
+// }
 
 
 

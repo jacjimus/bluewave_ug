@@ -7,10 +7,6 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
     const User = db.users;
     const Policy = db.policies;
-    //const Claim = db.claims;
-    //const Session = db.sessions;
-    //const Beneficiary = db.beneficiaries;
-    //const Transaction = db.transactions;
 
     if (args.phoneNumber.charAt(0) == "+") {
 
@@ -26,12 +22,33 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             }
         })
     }
-
+    const findUserByPhoneNumber = async (phoneNumber:any) => {
+        return await User.findOne({
+          where: {
+            phone_number: phoneNumber,
+          },
+        });
+      };
+      
+      const findPendingPolicyByUser = async (user: any) => {
+        return await Policy.findOne({
+          where: {
+            user_id: user?.user_id,
+            policy_status: 'paid',
+          },
+        });
+      };
 
     menu.state('buyForSelf', {
-        run: () => {
+        run: async () => {
 
+        const user = await findUserByPhoneNumber(args.phoneNumber);
+        const policy = await findPendingPolicyByUser(user);
 
+        if (policy) {
+            menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
+            return;
+        }
             menu.con('Buy for self ' +
                 '\n1. Bronze  – UGX 10,000' +
                 '\n2. Silver – UGX 14,000' +
@@ -53,8 +70,6 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
 
     //================= BUY FOR SELF BRONZE =================
-
-    //export function buyForSelfBronze(menu: any,  args:any, User:any): void {
     menu.state('buyForSelf.bronze', {
         run: async () => {
             let { first_name, last_name, phone_number}= await getUser(args.phoneNumber);
@@ -141,7 +156,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: nextDeduction,
                     user_id: user_id,
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                    premium: 10000,
+                    premium: 120000,
                     installment_order: 1,
                     installment_date: new Date(),
                     installment_alert_date: new Date(),
@@ -219,7 +234,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                     premium: 120000,
-                    installment_order: 1,
+                    installment_order: 0,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     tax_rate_vat: '0.2',
@@ -348,7 +363,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_deduction_amount: 14000,
                     policy_next_deduction_date: nextDeduction,
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                    premium: 14000,
+                    premium: 167000,
                     installment_order: 1,
                     installment_date: nextDeduction,
                     installment_alert_date:nextDeduction,
@@ -426,7 +441,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c', 
                     premium: 167000,
-                    installment_order: 1,
+                    installment_order: 0,
                     installment_date:new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     tax_rate_vat: '0.2',
@@ -538,7 +553,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_deduction_amount: 18000,
                     policy_next_deduction_date: nextDeduction,
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',  
-                    premium: 18000,
+                    premium: 208000,
                     installment_order: 1,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
@@ -621,7 +636,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',  
                     premium: 208000,
-                    installment_order: 1,
+                    installment_order: 0,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                     tax_rate_vat: '0.2',
@@ -676,18 +691,13 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             try {
                 const { user_id, phone_number, partner_id, membership_id } = await getUser(args.phoneNumber);
     
-                const policy = await Policy.findAll({
+                const newPolicy = await Policy.findOne({
                     where: {
                         user_id
                     }
                 });
 
 
-    
-                console.log("POLICY", policy)
-                //latest policy
-                
-                let newPolicy = policy[policy.length - 1];
                 
                 console.log("============ NewPolicy =============", newPolicy)
                 if (newPolicy) {
@@ -696,11 +706,9 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     const amount = policy_deduction_amount;
                     const reference = membership_id
                     const policy_id = newPolicy.policy_id;
-                    let period: any
-                    if (newPolicy.installment_order === 1) {
-                        period = 'monthly'
-                    }
-                    else if (newPolicy.installment_order === 12) {
+                    let period = 'monthly'
+                    
+                    if (newPolicy.installment_order === 0) {
                         period = 'yearly'
                     }
 
@@ -708,12 +716,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     console.log(user_id, partner_id, policy_id, phone_number, amount, reference)
                    
                     let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
-
-                    console.log(paymentStatus)
-    
+            
                     if (paymentStatus.code === 200) {
                         menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every ${period}`);
+                        To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
                     } else {
                         menu.end(`Sorry, your payment was not successful. 
                         \n0. Back \n00. Main Menu`);

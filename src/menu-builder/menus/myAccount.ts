@@ -9,24 +9,24 @@ export function myAccount(menu: any, args: any, db: any) {
       menu.con(
         "My Account " +
           "\n1. Pay Now" +
-          "\n2. Manage auto-renew" +
-          "\n3. My insurance policy" +
+          "\n2. My insurance policy" +
+          "\n3. Renew Policy" +
           "\n4. Update My Profile" +
-          // '\n4. Cancel policy' +
-          "\n5. Add Beneficiary" +
-          "\n6. My Hospital" +
+           '\n5. Cancel policy' +
+          "\n6. Add Beneficiary" +
+          "\n7. My Hospital" +
           "\n0.Back" +
           "\n00.Main Menu"
       );
     },
     next: {
       "1": "payNow",
-      "2": "manageAutoRenew",
-      "3": "myInsurancePolicy",
+      "2": "myInsurancePolicy",
+      "3": "renewPolicy",
       "4": "updateProfile",
-      // '4': 'cancelPolicy',
-      "5": "listBeneficiaries",
-      "6": "myHospitalOption",
+       '5': 'cancelPolicy',
+      "6": "listBeneficiaries",
+      "7": "myHospitalOption",
       "0": "account",
       "00": "insurance",
     },
@@ -287,10 +287,14 @@ export function myAccount(menu: any, args: any, db: any) {
         if (policy) {
           // 1. Cancel Policy
           menu.con(
-            "Hospital cover of Kes 1M a year(100k per night, max 10 nights)" +
-              "Life cover of Kes 4M Funeral Benefit" +
-              "\n1. Cancel Policy"
-          );
+            `Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
+            `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+            `   Remaining: UGX ${policy.sum_insured}\n` +
+            `   Last Expense Per Person Benefit: ${policy.benefit}\n\n` +
+            "\n1. Cancel Policy"
+            );
+        
+            
         } else {
           menu.con("Your policy is INACTIVE\n0 Buy cover");
         }
@@ -395,6 +399,7 @@ export function myAccount(menu: any, args: any, db: any) {
 
       let policies = await Policy.findAll({
         where: {
+          policy_status: "paid",
           user_id: user?.user_id,
         },
       });
@@ -425,15 +430,27 @@ export function myAccount(menu: any, args: any, db: any) {
           benefit = goldLastExpenseBenefit;
         }
 
+//         Bronze cover ACTIVE up to DD/MM/YYYY
+// Inpatient limit L: UGX 3,000,000. Balance remaining UGX 2,300,000 
+  //format date to dd/mm/yyyy
+  let formatDate = (date:any) => {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  policy.policy_end_date = formatDate(policy.policy_end_date)
+
         policyInfo +=
           `${
             i + 1
-          }. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${
+          }. ${policy.policy_type.toUpperCase()} ACTIVE to ${
             policy.policy_end_date
           }\n` +
-          `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-          `   Remaining: UGX ${policy.sum_insured}\n` +
-          `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+          `   Inpatient limit: UGX ${policy.sum_insured}\n` 
+          // \n` +
+          // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
       }
 
       menu.end(`My Insurance Policies:\n\n${policyInfo}`);

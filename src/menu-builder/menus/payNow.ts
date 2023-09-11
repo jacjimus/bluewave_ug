@@ -5,18 +5,93 @@ export function payNow(menu: any, args: any, db: any): void {
   const User = db.users;
   const Policy = db.policies;
 
+
+  const findUserByPhoneNumber = async (phoneNumber) => {
+    return await User.findOne({
+      where: {
+        phone_number: phoneNumber,
+      },
+    });
+  };
+  
+  const findPendingPolicyByUser = async (user) => {
+    return await Policy.findOne({
+      where: {
+        user_id: user?.user_id,
+        policy_status: 'pending',
+      },
+    });
+  };
+  
   menu.state('payNow', {
+    run: async () => {
+      const user = await findUserByPhoneNumber(args.phoneNumber);
+  
+      if (!user) {
+        menu.end('User not found');
+        return;
+      }
+  
+      const policy = await findPendingPolicyByUser(user);
+  
+      if (!policy) {
+        menu.end('You have no pending policies');
+        return;
+      }
+  
+      const outstandingPremiumMessage = `Your outstanding premium is UGX ${policy.policy_pending_premium}`;
+      const enterPinMessage = 'Enter PIN to Pay Now\n0. Back\n00. Main Menu';
+  
+      menu.con(`${outstandingPremiumMessage}\n${enterPinMessage}`);
+    },
+    next: {
+      '*\\d+': 'payNowPin',
+      '0': 'account',
+      '00': 'insurance',
+    },
+  });
+  
+  menu.state('payNowPin', {
+    run: async () => {
+      const pin = parseInt(menu.val);
+  
+      if (isNaN(pin)) {
+        menu.end('Invalid PIN');
+        return;
+      }
+  
+      const user = await findUserByPhoneNumber(args.phoneNumber);
+      const selectedPolicy = await findPendingPolicyByUser(user);
+  
+      if (!selectedPolicy) {
+        menu.end('You have no pending policies');
+        return;
+      }
+  
+      const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount } = user;
+      const reference = user.membership_id;
+  
+      const payment = await airtelMoney(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
+  
+      if (payment.code === 200) {
+        const message = `Paid UGX ${policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on day ${selectedPolicy.policy_next_deduction_date} of ${selectedPolicy.policy_next_deduction_month}`;
+        menu.end(message);
+      } else {
+        menu.end('Payment failed. Please try again');
+      }
+    },
+  });
+  
+
+
+  menu.state('renewPolicy', {
     run: async () => {
       const bronzeLastExpenseBenefit = "UGX 1,000,000";
       const silverLastExpenseBenefit = "UGX 1,500,000";
       const goldLastExpenseBenefit = "UGX 2,000,000";
 
       try {
-        const user = await User.findOne({
-          where: {
-            phone_number: args.phoneNumber,
-          },
-        });
+        const user = await findUserByPhoneNumber(args.phoneNumber);
 
         if (!user) {
           throw new Error('User not found');
@@ -58,10 +133,10 @@ export function payNow(menu: any, args: any, db: any): void {
               break;
           }
 
-          policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-            `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-            `   Remaining: UGX ${policy.sum_insured}\n` +
-            `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+          policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n`
+            // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+            // `   Remaining: UGX ${policy.sum_insured}\n` +
+            // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
         }
 
         menu.con(`Choose policy to pay for
@@ -111,11 +186,7 @@ export function payNow(menu: any, args: any, db: any): void {
             menu.end(`Your ${selectedPolicy.policy_type.toUpperCase()} cover is already paid for`);
           }
 
-          if (selectedPolicy.policy_paid_amount < selectedPolicy.premium) {
-            selectedPolicy.installment_order += 1;
-            selectedPolicy.policy_paid_amount += selectedPolicy.policy_deduction_amount;
-            selectedPolicy.policy_pending_premium = selectedPolicy.premium - selectedPolicy.policy_paid_amount;
-          }
+      
         }
 
         selectedPolicy.policy_pending_premium = selectedPolicy.premium - selectedPolicy.policy_paid_amount;
