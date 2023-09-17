@@ -18,10 +18,6 @@ const uuid_1 = require("uuid");
 function buyForSelf(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
-    //const Claim = db.claims;
-    //const Session = db.sessions;
-    //const Beneficiary = db.beneficiaries;
-    //const Transaction = db.transactions;
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
@@ -35,15 +31,36 @@ function buyForSelf(menu, args, db) {
             });
         });
     }
+    const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
+        return yield User.findOne({
+            where: {
+                phone_number: phoneNumber,
+            },
+        });
+    });
+    const findPendingPolicyByUser = (user) => __awaiter(this, void 0, void 0, function* () {
+        return yield Policy.findOne({
+            where: {
+                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                policy_status: 'paid',
+            },
+        });
+    });
     menu.state('buyForSelf', {
-        run: () => {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const policy = yield findPendingPolicyByUser(user);
+            if (policy) {
+                menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
+                return;
+            }
             menu.con('Buy for self ' +
                 '\n1. Bronze  – UGX 10,000' +
                 '\n2. Silver – UGX 14,000' +
                 '\n3. Gold – UGX 18,000' +
                 '\n0.Back' +
                 '\n00.Main Menu');
-        },
+        }),
         next: {
             '1': 'buyForSelf.bronze',
             '2': 'buyForSelf.silver',
@@ -54,7 +71,6 @@ function buyForSelf(menu, args, db) {
     });
     //}
     //================= BUY FOR SELF BRONZE =================
-    //export function buyForSelfBronze(menu: any,  args:any, User:any): void {
     menu.state('buyForSelf.bronze', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let { first_name, last_name, phone_number } = yield getUser(args.phoneNumber);
@@ -117,6 +133,7 @@ function buyForSelf(menu, args, db) {
             }
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
+            let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate() - 3);
             //today day of month
             let day = date.getDate();
             let countryCode = 'UGA';
@@ -133,10 +150,10 @@ function buyForSelf(menu, args, db) {
                 policy_next_deduction_date: nextDeduction,
                 user_id: user_id,
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 10000,
+                premium: 120000,
                 installment_order: 1,
-                installment_date: new Date(),
-                installment_alert_date: new Date(),
+                installment_date: nextDeduction,
+                installment_alert_date: installment_alert_date,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
@@ -179,7 +196,7 @@ function buyForSelf(menu, args, db) {
             }
             let date = new Date();
             let day = date.getDate();
-            let nextDeduction = new Date(date.getFullYear() + 1, date.getMonth(), day);
+            let installment_alert_date = new Date(date.getFullYear() + 1, date.getMonth(), day - 3);
             let countryCode = 'UGA';
             let currencyCode = 'UGX';
             //save policy details
@@ -195,9 +212,9 @@ function buyForSelf(menu, args, db) {
                 policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                 premium: 120000,
-                installment_order: 1,
+                installment_order: 0,
                 installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                installment_alert_date: installment_alert_date,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
@@ -304,7 +321,7 @@ function buyForSelf(menu, args, db) {
                 policy_deduction_amount: 14000,
                 policy_next_deduction_date: nextDeduction,
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 14000,
+                premium: 167000,
                 installment_order: 1,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
@@ -367,9 +384,9 @@ function buyForSelf(menu, args, db) {
                 policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                 premium: 167000,
-                installment_order: 1,
+                installment_order: 0,
                 installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day - 3),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '3000000',
@@ -462,7 +479,7 @@ function buyForSelf(menu, args, db) {
                 policy_deduction_amount: 18000,
                 policy_next_deduction_date: nextDeduction,
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 18000,
+                premium: 208000,
                 installment_order: 1,
                 installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
@@ -538,7 +555,7 @@ function buyForSelf(menu, args, db) {
                 policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                 premium: 208000,
-                installment_order: 1,
+                installment_order: 0,
                 installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
                 tax_rate_vat: '0.2',
@@ -578,14 +595,11 @@ function buyForSelf(menu, args, db) {
         run: () => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { user_id, phone_number, partner_id, membership_id } = yield getUser(args.phoneNumber);
-                const policy = yield Policy.findAll({
+                const newPolicy = yield Policy.findOne({
                     where: {
                         user_id
                     }
                 });
-                console.log("POLICY", policy);
-                //latest policy
-                let newPolicy = policy[policy.length - 1];
                 console.log("============ NewPolicy =============", newPolicy);
                 if (newPolicy) {
                     const policy_deduction_amount = newPolicy.policy_deduction_amount;
@@ -593,19 +607,15 @@ function buyForSelf(menu, args, db) {
                     const amount = policy_deduction_amount;
                     const reference = membership_id;
                     const policy_id = newPolicy.policy_id;
-                    let period;
-                    if (newPolicy.installment_order === 1) {
-                        period = 'monthly';
-                    }
-                    else if (newPolicy.installment_order === 12) {
+                    let period = 'monthly';
+                    if (newPolicy.installment_order === 0) {
                         period = 'yearly';
                     }
                     console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
                     let paymentStatus = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, amount, reference);
-                    console.log(paymentStatus);
                     if (paymentStatus.code === 200) {
                         menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${policy_deduction_amount} will be deducted on day ${day} of every ${period}`);
+                        To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
                     }
                     else {
                         menu.end(`Sorry, your payment was not successful. 

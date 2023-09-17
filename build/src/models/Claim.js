@@ -7,6 +7,10 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             primaryKey: true,
         },
+        claim_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         policy_id: {
             type: DataTypes.UUID,
             allowNull: false

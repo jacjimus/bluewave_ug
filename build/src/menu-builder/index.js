@@ -16,6 +16,7 @@ const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
+const uuid_1 = require("uuid");
 const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
 const displayMedicalCoverMenu_1 = require("./menus/displayMedicalCoverMenu");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
@@ -105,7 +106,7 @@ function default_1(args, db) {
             // ===============SET MENU STATES============
             //startMenu(menu);
             // displayInsuranceMenu(menu);
-            (0, displayMedicalCoverMenu_1.displayMedicalCoverMenu)(menu);
+            (0, displayMedicalCoverMenu_1.displayMedicalCoverMenu)(menu, args, db);
             (0, displayAccount_1.displayAccount)(menu, args, db);
             //=================BUY FOR SELF=================
             (0, buyForSelf_1.buyForSelf)(menu, args, db);
@@ -956,19 +957,35 @@ function default_1(args, db) {
                                     phone_number: args.phoneNumber,
                                 },
                             });
-                            let updatePolicy = yield Policy.update({
-                                hospital_details: {
-                                    hospital_name: selectedHospital,
-                                    hospital_address: address,
-                                    contact_person: contactPerson,
-                                    hospital_contact: contact,
-                                },
-                            }, {
+                            const userHospitalDetails = yield db.user_hospitals.findOne({
                                 where: {
-                                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                                    user_id: user.user_id,
                                 },
                             });
-                            console.log("updatePolicy", updatePolicy);
+                            if (userHospitalDetails) {
+                                //update the hospital details
+                                const updateUserHospital = yield db.user_hospitals.update({
+                                    hospital_name: selectedHospital,
+                                    hospital_address: address,
+                                    hospital_contact_person: contactPerson,
+                                    hospital_contact_person_phone_number: contact,
+                                }, {
+                                    where: {
+                                        user_id: user.user_id,
+                                    }
+                                });
+                                console.log("updateUserHospital", updateUserHospital);
+                                menu.end(`Hospital Details:\nHospital: ${selectedHospital}\nAddress: ${address}\nContact Person: ${contactPerson}\nContact: ${contact}`);
+                            }
+                            const newUserHospital = yield db.user_hospitals.create({
+                                user_hospital_id: (0, uuid_1.v4)(),
+                                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                                hospital_name: selectedHospital,
+                                hospital_address: address,
+                                hospital_contact_person: contactPerson,
+                                hospital_contact_person_phone_number: contact,
+                            });
+                            console.log("newUserHospital", newUserHospital);
                             menu.end(`Hospital Details:\nHospital: ${selectedHospital}\nAddress: ${address}\nContact Person: ${contactPerson}\nContact: ${contact}`);
                         }
                     }
@@ -1000,31 +1017,17 @@ function default_1(args, db) {
             menu.state("myHospital", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
-                        const user = yield User.findOne({
-                            where: {
-                                phone_number: args.phoneNumber,
-                            },
-                        });
-                        if (!user) {
-                            menu.end("User not found.");
-                            return;
-                        }
-                        const policy = yield Policy.findOne({
+                        const hospitalDetails = yield db.user_hospitals.findOne({
                             where: {
                                 user_id: user.user_id,
                             },
                         });
-                        if (!policy) {
-                            menu.end("Policy not found for this user.");
-                            return;
-                        }
-                        const hospitalDetails = policy.hospital_details;
                         if (!hospitalDetails) {
                             menu.end("Sorry, you have not selected a hospital yet.");
                         }
                         console.log("hospitalDetails", hospitalDetails);
-                        const { hospital_name, hospital_address, contact_person, hospital_contact } = hospitalDetails;
-                        const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${contact_person}\nContact: ${hospital_contact}`;
+                        const { hospital_name, hospital_address, hospital_contact_person, hospital_contact_person_phone_number } = hospitalDetails;
+                        const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact_person_phone_number}`;
                         menu.end(hospitalInfo);
                     }
                     catch (error) {

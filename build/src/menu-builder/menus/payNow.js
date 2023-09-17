@@ -17,17 +17,75 @@ const payment_1 = __importDefault(require("../../services/payment"));
 function payNow(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
+    const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
+        return yield User.findOne({
+            where: {
+                phone_number: phoneNumber,
+            },
+        });
+    });
+    const findPendingPolicyByUser = (user) => __awaiter(this, void 0, void 0, function* () {
+        return yield Policy.findOne({
+            where: {
+                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                policy_status: 'pending',
+            },
+        });
+    });
     menu.state('payNow', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            if (!user) {
+                menu.end('User not found');
+                return;
+            }
+            const policy = yield findPendingPolicyByUser(user);
+            if (!policy) {
+                menu.end('You have no pending policies');
+                return;
+            }
+            const outstandingPremiumMessage = `Your outstanding premium is UGX ${policy.policy_pending_premium}`;
+            const enterPinMessage = 'Enter PIN to Pay Now\n0. Back\n00. Main Menu';
+            menu.con(`${outstandingPremiumMessage}\n${enterPinMessage}`);
+        }),
+        next: {
+            '*\\d+': 'payNowPin',
+            '0': 'account',
+            '00': 'insurance',
+        },
+    });
+    menu.state('payNowPin', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const pin = parseInt(menu.val);
+            if (isNaN(pin)) {
+                menu.end('Invalid PIN');
+                return;
+            }
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const selectedPolicy = yield findPendingPolicyByUser(user);
+            if (!selectedPolicy) {
+                menu.end('You have no pending policies');
+                return;
+            }
+            const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount } = user;
+            const reference = user.membership_id;
+            const payment = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
+            if (payment.code === 200) {
+                const message = `Paid UGX ${policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on day ${selectedPolicy.policy_next_deduction_date} of ${selectedPolicy.policy_next_deduction_month}`;
+                menu.end(message);
+            }
+            else {
+                menu.end('Payment failed. Please try again');
+            }
+        }),
+    });
+    menu.state('renewPolicy', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const bronzeLastExpenseBenefit = "UGX 1,000,000";
             const silverLastExpenseBenefit = "UGX 1,500,000";
             const goldLastExpenseBenefit = "UGX 2,000,000";
             try {
-                const user = yield User.findOne({
-                    where: {
-                        phone_number: args.phoneNumber,
-                    },
-                });
+                const user = yield findUserByPhoneNumber(args.phoneNumber);
                 if (!user) {
                     throw new Error('User not found');
                 }
@@ -60,10 +118,10 @@ function payNow(menu, args, db) {
                         default:
                             break;
                     }
-                    policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-                        `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-                        `   Remaining: UGX ${policy.sum_insured}\n` +
-                        `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+                    policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n`;
+                    // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+                    // `   Remaining: UGX ${policy.sum_insured}\n` +
+                    // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
                 }
                 menu.con(`Choose policy to pay for
           ${policyInfo}
@@ -103,11 +161,6 @@ function payNow(menu, args, db) {
                     console.log('Policy', selectedPolicy, selectedPolicy.policy_paid_amount, selectedPolicy.premium, selectedPolicy.policy_paid_amount == selectedPolicy.premium);
                     if (selectedPolicy.policy_paid_amount == selectedPolicy.premium) {
                         menu.end(`Your ${selectedPolicy.policy_type.toUpperCase()} cover is already paid for`);
-                    }
-                    if (selectedPolicy.policy_paid_amount < selectedPolicy.premium) {
-                        selectedPolicy.installment_order += 1;
-                        selectedPolicy.policy_paid_amount += selectedPolicy.policy_deduction_amount;
-                        selectedPolicy.policy_pending_premium = selectedPolicy.premium - selectedPolicy.policy_paid_amount;
                     }
                 }
                 selectedPolicy.policy_pending_premium = selectedPolicy.premium - selectedPolicy.policy_paid_amount;

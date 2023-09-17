@@ -22,23 +22,23 @@ function myAccount(menu, args, db) {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.con("My Account " +
                 "\n1. Pay Now" +
-                "\n2. Manage auto-renew" +
-                "\n3. My insurance policy" +
-                "\n4. Update My Profile" +
-                // '\n4. Cancel policy' +
-                "\n5. Add Beneficiary" +
-                "\n6. My Hospital" +
+                "\n2. My insurance policy" +
+                "\n3. Renew Policy" +
+                "\n4. Update My Profile(KYC)" +
+                "\n5. Cancel policy" +
+                "\n6. Update Beneficiary Details" +
+                "\n7. My Hospital" +
                 "\n0.Back" +
                 "\n00.Main Menu");
         }),
         next: {
             "1": "payNow",
-            "2": "manageAutoRenew",
-            "3": "myInsurancePolicy",
+            "2": "myInsurancePolicy",
+            "3": "renewPolicy",
             "4": "updateProfile",
-            // '4': 'cancelPolicy',
-            "5": "listBeneficiaries",
-            "6": "myHospitalOption",
+            "5": "cancelPolicy",
+            "6": "listBeneficiaries",
+            "7": "myHospitalOption",
             "0": "account",
             "00": "insurance",
         },
@@ -46,7 +46,7 @@ function myAccount(menu, args, db) {
     //update profile ( user dob and gender)
     menu.state("updateProfile", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con(`Whats your gender
+            menu.con(`Whats their gender
             1.  Male
             2. Female
             0. Back
@@ -71,7 +71,7 @@ function myAccount(menu, args, db) {
                 },
             });
             console.log("USER: ", user);
-            menu.con(`Enter your date of birth in the format DDMMYYYY
+            menu.con(`Enter your date of birth in the format DDMMYYYY e.g 01011990
             0. Back
             00. Main Menu
              `);
@@ -103,6 +103,55 @@ function myAccount(menu, args, db) {
                 },
             });
             console.log("USER DOB UPDATE: ", user);
+            menu.con(`Enter your marital status
+            1. Single
+            2. Married
+            3. Divorced
+            4. Widowed
+            0. Back
+            00. Main Menu
+              `);
+        }),
+        next: {
+            "*[0-9]": "updateMaritalStatus",
+            "0": "myAccount",
+            "00": "insurance",
+        },
+    });
+    menu.state("updateMaritalStatus", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const { gender } = yield User.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+            let title = "";
+            let ben_marital_status = menu.val;
+            if (ben_marital_status == 1) {
+                ben_marital_status = "single";
+                gender == "M" ? title = "Mr" : title = "Ms";
+            }
+            else if (ben_marital_status == 2) {
+                ben_marital_status = "married";
+                gender == "M" ? title = "Mr" : title = "Mrs";
+            }
+            else if (ben_marital_status == 3) {
+                ben_marital_status = "divorced";
+                gender == "M" ? title = "Mr" : title = "Ms";
+            }
+            else if (ben_marital_status == 4) {
+                ben_marital_status = "widowed";
+                gender == "M" ? title = "Mr" : title = "Mrs";
+            }
+            console.log("ben_marital_status", ben_marital_status);
+            const user = yield User.update({
+                marital_status: ben_marital_status,
+                title: title
+            }, {
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
             menu.con(`Your profile has been updated successfully
             0. Back
             00. Main Menu
@@ -113,26 +162,9 @@ function myAccount(menu, args, db) {
             "00": "insurance",
         },
     });
-    //update beneficiary
-    // menu.state('addBeneficiary', {
-    //     run: async () => {
-    //         menu.con('Update or add Beneficiary ' +
-    //             '\n1. Update Beneficiary' +
-    //             '\n2. Add Beneficiary' +
-    //             '\n0.Back' +
-    //             '\n00.Main Menu'
-    //         )
-    //     },
-    //     next: {
-    //         '1': 'listBeneficiaries',
-    //         '2': 'addBeneficiaryName',
-    //         '0': 'myAccount',
-    //         '00': 'insurance',
-    //     }
-    // })
     menu.state("addBeneficiaryName", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con("Enter full name of beneficiary");
+            menu.con("Enter full name of  beneficiary");
         }),
         next: {
             "*[a-zA-Z]+": "updateBeneficiaryName",
@@ -146,6 +178,7 @@ function myAccount(menu, args, db) {
                     phone_number: args.phoneNumber,
                 },
             });
+            console.log("USER: ", user === null || user === void 0 ? void 0 : user.user_id);
             if (user) {
                 const beneficiaries = yield Beneficiary.findAll({
                     where: {
@@ -183,7 +216,52 @@ function myAccount(menu, args, db) {
     });
     menu.state("updateBeneficiaryDob", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con("Enter your date of birth in the format DDMMYYYY");
+            const ben_dob = menu.val;
+            console.log("ben_dob", ben_dob);
+            // convert ddmmyyyy to valid date
+            let day = ben_dob.substring(0, 2);
+            let month = ben_dob.substring(2, 4);
+            let year = ben_dob.substring(4, 8);
+            let date = new Date(year, month - 1, day);
+            console.log("date", date);
+            //get the second last digit of the input
+            const selected = args.text;
+            const input = selected.trim();
+            const digits = input.split("*").map((digit) => parseInt(digit, 10));
+            console.log("digits", digits);
+            const beneficiaryId = digits[digits.length - 2];
+            console.log("beneficiaryId", beneficiaryId);
+            //get all beneficiaries for this user and select the one with the beneficiaryId index
+            const user = yield User.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+            const beneficiaries = yield Beneficiary.findAll({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                },
+            });
+            let myBeneficiary = beneficiaries[beneficiaryId - 1];
+            console.log("myBeneficiary", myBeneficiary);
+            // FIRST_NAME LAST_NAME
+            // divide the name into first name and last name and save them separately
+            let names = myBeneficiary.full_name.split(" ");
+            let first_name = names[0];
+            let last_name = names[1];
+            console.log("GENDER", digits[digits.length - 1]);
+            if (myBeneficiary) {
+                // Update the beneficiary's information
+                let thisYear = new Date().getFullYear();
+                myBeneficiary.dob = date;
+                myBeneficiary.age = thisYear - date.getFullYear();
+                myBeneficiary.first_name = first_name;
+                myBeneficiary.last_name = last_name;
+                myBeneficiary.gender = digits[digits.length - 1] == 1 ? "M" : "F";
+                myBeneficiary.save();
+            }
+            console.log("==== myBeneficiary =======", myBeneficiary);
+            menu.con("Enter beneficiary date of birth in the format DDMMYYYY e.g 01011990");
         }),
         next: {
             "*[0-9]": "updateBeneficiaryConfirm",
@@ -232,7 +310,7 @@ function myAccount(menu, args, db) {
                     try {
                         let result = yield selectedBeneficiary.save();
                         console.log("Result after save:", result);
-                        menu.end("Beneficiary updated successfully");
+                        menu.con("Enter the phone number of the beneficiary eg 0772123456");
                     }
                     catch (error) {
                         console.error("Error saving beneficiary:", error);
@@ -247,6 +325,51 @@ function myAccount(menu, args, db) {
                 menu.end("User not found");
             }
         }),
+        next: {
+            "*[0-9]": "updateBeneficiaryPhoneNumber",
+            "1": "cancelPolicyPin",
+        },
+    });
+    menu.state("updateBeneficiaryPhoneNumber", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            let ben_first_phone = menu.val;
+            //remove all non numeric characters
+            ben_first_phone = ben_first_phone.replace(/\D/g, "");
+            console.log("ben_first_phone", ben_first_phone);
+            //remove leading 0 if any and add 256
+            if (ben_first_phone.startsWith("0")) {
+                ben_first_phone = "256" + ben_first_phone.substring(1);
+            }
+            else if (ben_first_phone.startsWith("7")) {
+                ben_first_phone = "256" + ben_first_phone;
+            }
+            //check if phone number is valid
+            if (ben_first_phone.length != 12) {
+                menu.end("Invalid phone number");
+                return;
+            }
+            let user = yield User.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+            console.log("ben_first_phone", ben_first_phone);
+            const beneficiary = yield Beneficiary.update({
+                phone_number: ben_first_phone,
+            }, {
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                },
+            });
+            menu.con(`Your beneficiary profile has been updated successfully
+            0. Back
+            00. Main Menu
+             `);
+        }),
+        next: {
+            "0": "myAccount",
+            "00": "insurance",
+        },
     });
     //============CANCEL POLICY=================
     menu.state("cancelPolicy", {
@@ -265,8 +388,10 @@ function myAccount(menu, args, db) {
                 console.log("POLICY: ", policy);
                 if (policy) {
                     // 1. Cancel Policy
-                    menu.con("Hospital cover of Kes 1M a year(100k per night, max 10 nights)" +
-                        "Life cover of Kes 4M Funeral Benefit" +
+                    menu.con(`Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
+                        `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+                        `   Remaining: UGX ${policy.sum_insured}\n` +
+                        `   Last Expense Per Person Benefit: ${policy.benefit}\n\n` +
                         "\n1. Cancel Policy");
                 }
                 else {
@@ -360,6 +485,7 @@ function myAccount(menu, args, db) {
             }
             let policies = yield Policy.findAll({
                 where: {
+                    policy_status: "paid",
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
                 },
             });
@@ -384,11 +510,21 @@ function myAccount(menu, args, db) {
                 else if (policy.policy_type == "gold") {
                     benefit = goldLastExpenseBenefit;
                 }
+                //         Bronze cover ACTIVE up to DD/MM/YYYY
+                // Inpatient limit L: UGX 3,000,000. Balance remaining UGX 2,300,000 
+                //format date to dd/mm/yyyy
+                let formatDate = (date) => {
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const mm = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
+                    return `${dd}/${mm}/${yyyy}`;
+                };
+                policy.policy_end_date = formatDate(policy.policy_end_date);
                 policyInfo +=
-                    `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-                        `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-                        `   Remaining: UGX ${policy.sum_insured}\n` +
-                        `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+                    `${i + 1}. ${policy.policy_type.toUpperCase()} ACTIVE to ${policy.policy_end_date}\n` +
+                        `   Inpatient limit: UGX ${policy.sum_insured}\n`;
+                // \n` +
+                // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
             }
             menu.end(`My Insurance Policies:\n\n${policyInfo}`);
         }),

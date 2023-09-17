@@ -14,24 +14,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.displayAccount = void 0;
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
+const utils_1 = require("../../services/utils");
 function displayAccount(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
     const Claim = db.claims;
     menu.state('account', {
-        run: () => {
-            menu.con('Medical cover ' +
-                '\n1. Buy for self' +
-                '\n2. Buy (family)' +
-                '\n3. Buy (others)' +
-                '\n4. Admission Claim' +
-                '\n5. My Account' +
-                '\n6. Choose Hopital' +
-                '\n7. Terms & Conditions' +
-                '\n8. FAQs' +
-                '\n0.Back' +
-                '\n00.Main Menu');
-        },
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const user = yield db.users.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
+                    gender: {
+                        [db.Sequelize.Op.ne]: null,
+                    },
+                },
+            });
+            console.log(" ============== USER ================ ", user);
+            if (user) {
+                menu.con('Medical cover ' +
+                    '\n1. Buy for self' +
+                    '\n2. Buy (family)' +
+                    '\n3. Buy (others)' +
+                    '\n4. Admission Claim' +
+                    '\n5. My Account' +
+                    '\n6. Choose Hopital' +
+                    '\n7. Terms & Conditions' +
+                    '\n8. FAQs' +
+                    '\n0. UPDATE PROFIKLE' +
+                    '\n00.Main Menu');
+            }
+            else {
+                menu.con('Medical cover ' +
+                    '\n0. Update profile(KYC)');
+            }
+        }),
         next: {
             '1': 'buyForSelf',
             '2': 'buyForFamily',
@@ -41,13 +57,43 @@ function displayAccount(menu, args, db) {
             '6': 'chooseHospital',
             '7': 'termsAndConditions',
             '8': 'faqs',
+            '0': 'updateProfile',
+            '00': 'insurance',
         }
     });
     //buyForOthers
     //ask for phone number and name of person to buy for
     menu.state('buyForOthers', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con('Enter full name or phone number of person to buy for');
+            menu.con('Enter full name of person to buy for');
+        }),
+        next: {
+            '*[a-zA-Z]+': 'buyForOthersPhoneNumber',
+        }
+    });
+    menu.state('buyForOthersPhoneNumber', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            let name = menu.val;
+            let user = yield User.findOne({
+                where: {
+                    phone_number: args.phoneNumber
+                }
+            });
+            // save beneficiary name
+            user === null || user === void 0 ? void 0 : user.update({
+                beneficiary_name: name
+            });
+            //divide the name into first name and last name and save them separately
+            let names = name.split(" ");
+            let first_name = names[0];
+            let last_name = names[1];
+            const newBeneficiary = yield db.beneficiaries.create({
+                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                full_name: name,
+                first_name: first_name,
+                last_name: last_name,
+            });
+            menu.con('Enter phone Number of person to buy for');
         }),
         next: {
             '*[a-zA-Z]+': 'buyForOthersOptions',
@@ -55,22 +101,21 @@ function displayAccount(menu, args, db) {
     });
     menu.state('buyForOthersOptions', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            let name = menu.val;
+            let beneficiary_phone_number = menu.val;
             console.log("NAME: ", name);
             let user = yield User.findOne({
                 where: {
                     phone_number: args.phoneNumber
                 }
             });
-            console.log("USER: ", user);
-            //update user name
-            user.name = name;
-            user.save().then((user) => {
-                console.log("USER: ", user);
-            }).catch((err) => {
-                console.log("ERR: ", err);
+            //update beneficiary phone number
+            user === null || user === void 0 ? void 0 : user.update({
+                beneficiary_phone_number: name
             });
-            console.log("USER: ", user);
+            const newBeneficiary = yield db.beneficiaries.update({
+                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                phone_number: beneficiary_phone_number,
+            });
             menu.con('Buy for others ' +
                 '\n1. Bronze  – UGX 10,000' +
                 '\n2. Silver – UGX 14,000' +
@@ -129,13 +174,13 @@ function displayAccount(menu, args, db) {
                     `   Last Expense Per Person Benefit: ${benefit}\n\n`;
             }
             // menu.end(`My Insurance Policies:\n\n${policyInfo}`);
-            menu.con(`Choose policy to make a claim for
+            menu.con(`Please, Choose policy to make a claim for
         ${policyInfo}
        
         00.Main Menu`);
         }),
         next: {
-            '*\\d+': 'choosePolicyTomakeClaim',
+            '*\\d+': 'choosePolicyToMakeClaim',
             '0': 'account',
             '00': 'insurance',
         }
@@ -151,28 +196,42 @@ function displayAccount(menu, args, db) {
                     },
                 });
                 if (!user) {
-                    throw new Error('User not found');
+                    throw new Error('Sorry. recgiister first');
                 }
                 const policies = yield Policy.findAll({
                     where: {
+                        policy_status: 'paid',
                         user_id: user.user_id,
                     },
                 });
                 if (!policies || policies.length === 0) {
-                    throw new Error('No policies found for this user');
+                    throw new Error('Sorry, No paid policies found, please buy a policy first or contact customer care');
                 }
                 const selectedPolicy = policies[policyIndex];
                 if (!selectedPolicy) {
-                    throw new Error('Invalid policy selection');
+                    throw new Error('Sorry, Invalid policy selection');
                 }
-                const { id, premium, policy_type, beneficiary, sum_insured, } = selectedPolicy;
+                const { policy_id, premium, policy_type, beneficiary, sum_insured, } = selectedPolicy;
+                // check if claim has been made for this policy
+                const existingClaim = yield Claim.findOne({
+                    where: {
+                        policy_id: policy_id,
+                    },
+                });
+                if (existingClaim) {
+                    menu.end('Claim already made for this policy');
+                }
+                // Example usage:
+                const claimId = (0, utils_1.generateClaimId)();
+                console.log(claimId);
                 const claim = yield Claim.create({
-                    policy_id: id,
+                    claim_number: claimId,
+                    policy_id: policy_id,
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
                     claim_date: new Date(),
                     claim_status: 'pending',
                     partner_id: user.partner_id,
-                    claim_description: 'Admission of Claim',
+                    claim_description: `Admission of Claim: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
                     claim_type: 'medical claim',
                     claim_amount: sum_insured,
                 });
@@ -181,7 +240,7 @@ function displayAccount(menu, args, db) {
                     const bronzeMessage = `Your medical details have been confirmed. You are covered for Inpatient cash of UGX 4,500 per night payable from the second night`;
                     const message = policy_type.toLowerCase() === 'bronze' ? bronzeMessage : goldAndSilverMessage;
                     yield (0, sendSMS_1.default)(phoneNumber, message);
-                    menu.end(`Admission Claim - CLAIM ID: ${claim.claim_id},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`);
+                    menu.end(`Admission Claim - CLAIM ID: ${claim.claim_number},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`);
                 }
                 else {
                     menu.end('Claim failed. Please try again');

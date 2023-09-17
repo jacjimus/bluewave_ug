@@ -30,9 +30,9 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                 'X-Currency': currency,
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
             };
-            const GET_USER_URL = `https://openapiuat.airtel.africa/standard/v1/users/${phoneNumber}`;
+            const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
+            const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
             console.log("GET_USER_URL", GET_USER_URL);
             const response = yield axios_1.default.get(GET_USER_URL, { headers });
             console.log("RESPONCE KYC", response.data);
@@ -49,9 +49,25 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                     console.log("User exists");
                     return userExists;
                 }
+                function generateMembershipId() {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        while (true) {
+                            const membershipId = Math.floor(100000 + Math.random() * 900000);
+                            // Check if membership ID exists in the database
+                            const user = yield User.findOne({
+                                where: {
+                                    membership_id: membershipId,
+                                },
+                            });
+                            if (!user) {
+                                return membershipId; // Unique ID found, return it
+                            }
+                        }
+                    });
+                }
                 const user = yield User.create({
                     user_id: (0, uuid_1.v4)(),
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
+                    membership_id: yield generateMembershipId(),
                     name: `${userData.first_name} ${userData.last_name}`,
                     first_name: userData.first_name,
                     last_name: userData.last_name,

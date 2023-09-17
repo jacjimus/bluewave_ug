@@ -131,10 +131,10 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //   return res.status(409).json({code: 200, message: "National ID already exists" });
         // }
         if (phoneNumberExists && phoneNumberExists.length > 0) {
-            return res.status(409).json({ code: 409, message: "Phone number already exists" });
+            return res.status(409).json({ code: 409, message: "Sorry, Phone number already exists" });
         }
         if (user && user.length > 0) {
-            return res.status(409).json({ code: 409, message: "User already exists" });
+            return res.status(409).json({ code: 409, message: "Sorry, Customer already exists" });
         }
         console.log("USER DATA", userData);
         //saving the user
@@ -161,9 +161,8 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 .json({
                 result: {
                     code: 200,
-                    message: "User login successfully",
-                    token: token,
-                    user: newUser,
+                    message: "Customer registered successfully",
+                    token: token
                 },
             });
         }
@@ -320,9 +319,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     .json({
                     result: {
                         code: 201,
-                        message: "User login successfully",
+                        message: "Customer login successfully",
                         token: token,
-                        user: user,
                     },
                 });
             }
@@ -451,7 +449,7 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             user: req.params.user_id,
             partner_id: req.query.partner_id,
         });
-        return res.status(404).json({ code: 404, message: "No users found" });
+        return res.status(404).json({ code: 404, message: "Sorry, No Customer found" });
     }
     catch (error) {
         console.log("ERROR", error);
@@ -514,7 +512,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         return res
             .status(200)
-            .json({ result: { code: 200, message: "User fetched successfully", item: user } });
+            .json({ result: { code: 200, message: "Customer fetched successfully", item: user } });
     }
     catch (error) {
         console.log("ERROR", error);
@@ -560,7 +558,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         let user = getUserFunc(req.params.user_id, req.query.partner_id);
         //check if user exists
         if (!user || user.length === 0) {
-            return res.status(404).json({ message: "No user found" });
+            return res.status(404).json({ message: "No Customer found" });
         }
         const data = {
             first_name,
@@ -625,7 +623,7 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         //send users details
         return res
             .status(201)
-            .json({ result: { code: 201, message: "User deleted successfully" } });
+            .json({ result: { code: 201, message: "Customer deleted successfully" } });
     }
     catch (error) {
         console.log("ERROR", error);
@@ -680,6 +678,43 @@ const getPartner = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             .json({ code: 500, message: "Internal server error", error: error });
     }
 });
+/**
+ * @swagger
+ * /api/v1/users/partners:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     description: List Partners
+ *     operationId: getAllPartners
+ *     summary: Get All Partners
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+const listPartners = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let partner = yield Partner.findAll();
+        console.log(partner);
+        if (!partner || partner.length === 0) {
+            return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
+        }
+        return res
+            .status(200)
+            .json({
+            result: { code: 200, message: "All partners fetched successfully", items: partner },
+        });
+    }
+    catch (error) {
+        console.log("ERROR", error);
+        return res
+            .status(500)
+            .json({ code: 500, message: "Internal server error", error: error });
+    }
+});
 //partner switch
 /**
  * @swagger
@@ -716,7 +751,7 @@ const partnerSwitch = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
         console.log("PARTNER", partner);
         if (!partner || partner.length === 0) {
-            return res.status(404).json({ item: 0, message: "No partner found" });
+            return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
         }
         //update the partner id
         let updatedUser = yield User.update({ partner_id: partner_id_to_update }, { where: { user_id: user_id } });
@@ -819,7 +854,7 @@ const bulkUserRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         return res
             .status(200)
-            .json({ code: 200, message: "Users created successfully", items: createdUsers });
+            .json({ code: 200, message: "Customers created successfully", items: createdUsers });
     }
     catch (error) {
         console.log(error);
@@ -867,7 +902,7 @@ function adminSignup(req, res) {
         }
         let user = yield User.findAll({ where: { email: email } });
         if (user && user.length > 0) {
-            return res.status(409).json({ code: 409, message: "Sorry, User already exists with the same email" });
+            return res.status(409).json({ code: 409, message: "Sorry, Customer already exists with the same email" });
         }
         // Logic for admin signup goes here
         // You can store the admin data in a database, hash the password, etc.
@@ -897,4 +932,5 @@ module.exports = {
     partnerRegistration,
     partnerSwitch,
     bulkUserRegistration,
+    listPartners
 };

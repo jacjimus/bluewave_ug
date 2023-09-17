@@ -23,6 +23,8 @@ exports.db.partners = require('./Partner')(sequelize, DataTypes);
 exports.db.products = require('./Product')(sequelize, DataTypes);
 exports.db.logs = require('./Log')(sequelize, DataTypes);
 exports.db.transactions = require('./Transaction')(sequelize, DataTypes);
+exports.db.installments = require('./Installment')(sequelize, DataTypes);
+exports.db.user_hospitals = require('./UserHospital')(sequelize, DataTypes);
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
 //insert a test pdf to policy table, colunm policy_documents which id jsonb[]
@@ -68,6 +70,29 @@ exports.db.users.findAll().then((user) => {
 }).catch((err) => {
     console.log(err);
 });
+//update installment_order for policies with multiple installments
+exports.db.policies.findAll().then((policy) => {
+    console.log("POLICY: ", policy);
+    policy.forEach((policy) => {
+        exports.db.installments.findAll({
+            where: {
+                policy_id: policy.policy_id
+            }
+        }).then((installment) => {
+            console.log("INSTALLMENT: ", installment);
+            let installmentOrder = 0;
+            installment.forEach((installment) => {
+                installmentOrder += 1;
+                exports.db.policies.update({ installment_order: installmentOrder }, { where: { policy_id: policy.policy_id }
+                });
+            });
+        }).catch((err) => {
+            console.log(err);
+        });
+    });
+}).catch((err) => {
+    console.log(err);
+});
 //update pending premium for policies
 //   db.policies.findAll().then((policy:any) => {
 //     console.log("POLICY: ", policy)
@@ -93,6 +118,42 @@ exports.db.users.findAll().then((user) => {
 //   }).catch((err:any) => {
 //     console.log(err)
 //   })
+// const selectedPolicy = await db.policies.findOne({
+//   where: {
+//     policy_id: policy_id
+//   }
+// })
+// console.log('POLICY', selectedPolicy);
+// if(selectedPolicy.policy_status == 'paid' && selectedPolicy.policy_paid_amount == selectedPolicy.premium){
+//   console.log('POLICY ALREADY PAID FOR');
+//    // create installment
+//    await db.installments.create({
+//     installment_id: uuidv4(),
+//     policy_id: selectedPolicy.policy_id,
+//     installment_order: selectedPolicy.installment_order,
+//     installment_date: new Date(),
+//     installment_alert_date: new Date(),
+//     tax_rate_vat: selectedPolicy.tax_rate_vat,
+//     tax_rate_ext: selectedPolicy.tax_rate_ext,
+//     premium: selectedPolicy.premium,
+//     sum_insured: selectedPolicy.sum_insured,
+//     excess_premium: selectedPolicy.excess_premium,
+//     discount_premium: selectedPolicy.discount_premium,
+//     currency_code: selectedPolicy.currency_code,
+//     country_code: selectedPolicy.country_code,
+//   });
+// }
+// delete users with user_id a1a3721d-18f8-4fd9-baca-0c1de553d182 and 5c7ae55c-76bf-43b7-979e-5fc16bfaab43
+// db.users.destroy({
+//     where: {
+//       user_id: '5c7ae55c-76bf-43b7-979e-5fc16bfaab43'
+//     }
+//   }).then((user:any) => {
+//     console.log("DELETED USER: ", user)
+//   }).catch((err:any) => {
+//     console.log(err)
+//   })
+//DE
 //syncing the model
 sequelize.sync().then(() => {
     console.log(`Database & tables created!`);

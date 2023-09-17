@@ -47,22 +47,20 @@ function displayFaqsMenu(menu) {
     menu.state('bronzeCover', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.end('Get Free Cover for Bronze Hospitalization cover for 30 nights / year ' +
-                '\nPays keys 4,500 per night from 2nd night. Payout for ICU is Kes9,000 for max 10 nights' +
+                '\nPays UGX 4,500 per night from 2nd night. Payout for ICU is UGX 9,000 for max 10 nights' +
                 '\nTs&Cs apply');
         }),
     });
     menu.state('silverCover', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.end('Outpatient limit of Kes 300,000' +
-                '\nMaternity covered up to Kes 100,000' +
+            menu.end('Outpatient limit of UGX 3,000,000' +
                 '\nCan cover up to 6 dependents' +
                 '\nTs&Cs apply');
         }),
     });
     menu.state('goldCover', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.end('Outpatient limit of Kes 400,000' +
-                '\nMaternity covered up to Kes 100,000' +
+            menu.end('Outpatient limit of Kes 5,000,000' +
                 '\nCan cover up to 6 dependents' +
                 '\nTs&Cs apply');
         }),
