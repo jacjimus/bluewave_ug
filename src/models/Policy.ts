@@ -96,10 +96,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.NUMBER,
             allowNull: true
         },
-        hospital_details: {
-            type: DataTypes.JSONB,
-            allowNull: true
-        },
         currency_code: {
             type: DataTypes.STRING,
             allowNull: true

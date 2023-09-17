@@ -1,4 +1,3 @@
-
 module.exports = (sequelize, DataTypes) => {
     const Beneficiary = sequelize.define("beneficiary", {
         beneficiary_id: {
@@ -8,6 +7,14 @@ module.exports = (sequelize, DataTypes) => {
       
         },
         full_name: {
+            type: DataTypes.STRING,
+
+        },
+        first_name: {
+            type: DataTypes.STRING,
+
+        },
+        last_name: {
             type: DataTypes.STRING,
 
         },
@@ -26,7 +33,26 @@ module.exports = (sequelize, DataTypes) => {
         age: {
             type: DataTypes.INTEGER,
             allowNull: true
-        }
+        },
+        dob: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        phone_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        gender: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        status: {
+            type: DataTypes.STRING,
+            defaultValue: "pending"
+        },
+
+
+
     })
     Beneficiary.belongsTo(sequelize.models.user, {
         foreignKey: "user_id",

@@ -247,19 +247,27 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             )
         },
         next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse',
+            '*[a-zA-Z]+': 'buyForFamily.selfSpouseName',
             '0': 'buyForFamily',
             '00': 'insurance'
         }
     });
 
 
-    menu.state('buyForFamily.selfSpouse', {
+    menu.state('buyForFamily.selfSpouseName', {
         run: async () => {
             let { user_id,first_name, last_name, phone_number}= await findUserByPhoneNumber(args.phoneNumber);
             let spouse = menu.val;
+//split name into first name and last name
+            let names = spouse.split(" ");
+            let ben_first_name = names[0];
+            let ben_last_name = names[1];
+
+
             let beneficiary = {
                 beneficiary_id: uuidv4(),
+                first_name: ben_first_name,
+                last_name: ben_last_name,
                 full_name: spouse,
                 relationship: 'spouse',
                 user_id: user_id
@@ -446,8 +454,15 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let { user_id}= await findUserByPhoneNumber(args.phoneNumber);
 
             let spouse = menu.val;
+            let names = spouse.split(" ");
+            let ben_first_name = names[0];
+            let ben_last_name = names[1];
+
+
             let beneficiary = {
                 beneficiary_id: uuidv4(),
+                first_name: ben_first_name,
+                last_name: ben_last_name,
                 full_name: spouse,
                 relationship: 'spouse',
                 user_id: user_id
@@ -475,10 +490,17 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let { user_id,first_name, last_name, phone_number}= await findUserByPhoneNumber(args.phoneNumber);
 
             const child  = menu.val;
+
+            let names = child.split(" ");
+            let ben_first_name = names[0];
+            let ben_last_name = names[1];
+
             let beneficiary = {
                 beneficiary_id: uuidv4(),
                 full_name: child,
                 relationship: 'child',
+                first_name: ben_first_name,
+                last_name: ben_last_name,
                 user_id: user_id
             }
 
@@ -581,13 +603,19 @@ menu.state('buyForFamily.selfSpouse1Child.confirm', {
   
         const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
   
-        const beneficiary = {
-          beneficiary_id: uuidv4(),
-          full_name: childName,
-          relationship: 'child',
-          user_id: user_id,
-        };
-  
+        let names = childName.split(" ");
+        let ben_first_name = names[0];
+        let ben_last_name = names[1];
+
+        let beneficiary = {
+            beneficiary_id: uuidv4(),
+            full_name: childName,
+            relationship: 'child',
+            first_name: ben_first_name,
+            last_name: ben_last_name,
+            user_id: user_id
+        }
+
         const newBeneficiary = await Beneficiary.create(beneficiary);
         console.log("New Beneficiary", newBeneficiary);
   
@@ -687,12 +715,19 @@ menu.state('buyForFamily.selfSpouse1Child.yearly.confirm', {
   
         const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
   
-        const beneficiary = {
-          beneficiary_id: uuidv4(),
-          full_name: childName,
-          relationship: 'child',
-          user_id: user_id,
-        };
+        let names = childName.split(" ");
+        let ben_first_name = names[0];
+        let ben_last_name = names[1];
+
+        let beneficiary = {
+            beneficiary_id: uuidv4(),
+            full_name: childName,
+            relationship: 'child',
+            first_name: ben_first_name,
+            last_name: ben_last_name,
+            user_id: user_id
+        }
+
   
         const newBeneficiary = await Beneficiary.create(beneficiary);
         console.log("New Beneficiary", newBeneficiary);
@@ -787,14 +822,18 @@ menu.state('buyForFamily.selfSpouse1Child.yearly.confirm', {
             console.log("NUMBER OF POLICIES", numberOfPolicies)
             await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
           
-           
+            let names = spouse.split(" ");
+        let ben_first_name = names[0];
+        let ben_last_name = names[1];
 
-            let beneficiary = {
-                beneficiary_id: uuidv4(),
-                full_name: spouse,
-                relationship: 'spouse',
-                user_id: user_id
-            }
+        let beneficiary = {
+            beneficiary_id: uuidv4(),
+            full_name: spouse,
+            relationship: 'spouse',
+            first_name: ben_first_name,
+            last_name: ben_last_name,
+            user_id: user_id
+        }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
             console.log("new beneficiary 1", newBeneficiary)
@@ -818,16 +857,21 @@ menu.state('buyForFamily.selfSpouse1Child.yearly.confirm', {
     //buyForFamily.selfSpouse2Children child1 name
     menu.state('buyForFamily.selfSpouse2Child.child1.name', {
         run: async () => {
-            let child1 = menu.val;
-            console.log("child1 3 NAME", child1)
+            let childName = menu.val;
+            console.log("child1 3 NAME", childName)
             //save child1 name to db users collection
             const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
 
-            //create beneficiary
+            let names = childName.split(" ");
+            let ben_first_name = names[0];
+            let ben_last_name = names[1];
+    
             let beneficiary = {
                 beneficiary_id: uuidv4(),
-                full_name: child1,
-                relationship: 'child1',
+                full_name: childName,
+                relationship: 'child',
+                first_name: ben_first_name,
+                last_name: ben_last_name,
                 user_id: user_id
             }
 
@@ -849,15 +893,20 @@ menu.state('buyForFamily.selfSpouse1Child.yearly.confirm', {
     //buyForFamily.selfSpouse2Children child2
     menu.state('buyForFamily.selfSpouse2Child.child2.name', {
         run: async () => {
-            let child2 = menu.val;
+            let childName = menu.val;
             //save child2 name to db users collection
             const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
           
-            //create beneficiary
+            let names = childName.split(" ");
+            let ben_first_name = names[0];
+            let ben_last_name = names[1];
+    
             let beneficiary = {
                 beneficiary_id: uuidv4(),
-                full_name: child2,
-                relationship: 'child2',
+                full_name: childName,
+                relationship: 'child',
+                first_name: ben_first_name,
+                last_name: ben_last_name,
                 user_id: user_id
             }
 

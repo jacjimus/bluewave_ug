@@ -28,6 +28,8 @@ export function displayFaqsMenu(menu: any): void {
     }
   });
 
+
+  
   menu.state('eligibility', {
     run: async () => {
       menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
@@ -36,10 +38,11 @@ export function displayFaqsMenu(menu: any): void {
     },
   });
 
+  
   menu.state('bronzeCover', {
     run: async () => {
       menu.end('Get Free Cover for Bronze Hospitalization cover for 30 nights / year ' +
-        '\nPays keys 4,500 per night from 2nd night. Payout for ICU is Kes9,000 for max 10 nights' +
+        '\nPays UGX 4,500 per night from 2nd night. Payout for ICU is UGX 9,000 for max 10 nights' +
         '\nTs&Cs apply'
       )
     },
@@ -47,18 +50,17 @@ export function displayFaqsMenu(menu: any): void {
 
   menu.state('silverCover', {
     run: async () => {
-      menu.end('Outpatient limit of Kes 300,000' +
-        '\nMaternity covered up to Kes 100,000' +
+      menu.end('Outpatient limit of UGX 3,000,000' +
         '\nCan cover up to 6 dependents' +
         '\nTs&Cs apply'
       )
     },
   });
 
+
   menu.state('goldCover', {
     run: async () => {
-      menu.end('Outpatient limit of Kes 400,000' +
-        '\nMaternity covered up to Kes 100,000' +
+      menu.end('Outpatient limit of Kes 5,000,000' +
         '\nCan cover up to 6 dependents' +
         '\nTs&Cs apply'
       )

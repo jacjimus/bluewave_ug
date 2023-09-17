@@ -3,6 +3,7 @@ import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-builder";
 import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
 import getAirtelUser from "../services/getAirtelUser";
 
@@ -112,7 +113,7 @@ const generatedHash = generateHash(hashData);
       // ===============SET MENU STATES============
       //startMenu(menu);
      // displayInsuranceMenu(menu);
-      displayMedicalCoverMenu(menu);
+      displayMedicalCoverMenu(menu, args, db);
       displayAccount(menu, args, db);
       //=================BUY FOR SELF=================
       buyForSelf(menu, args, db);
@@ -1024,22 +1025,42 @@ const generatedHash = generateHash(hashData);
                   phone_number: args.phoneNumber,
                 },
               });
-              let updatePolicy = await Policy.update(
-                {
-                  hospital_details: {
+
+              const userHospitalDetails = await db.user_hospitals.findOne({
+                where: {
+                    user_id: user.user_id,
+                },
+            });
+
+            if(userHospitalDetails){
+                //update the hospital details
+                const updateUserHospital = await db.user_hospitals.update({
                     hospital_name: selectedHospital,
                     hospital_address: address,
-                    contact_person: contactPerson,
-                    hospital_contact: contact,
+                    hospital_contact_person: contactPerson,
+                    hospital_contact_person_phone_number: contact,
                   },
-                },
-                {
-                  where: {
-                    user_id: user?.user_id,
-                  },
-                }
-              );
-              console.log("updatePolicy", updatePolicy);
+                  {
+                      where: {
+                          user_id: user.user_id,
+                      }
+                  }
+                );
+                console.log("updateUserHospital", updateUserHospital);
+                menu.end(
+                    `Hospital Details:\nHospital: ${selectedHospital}\nAddress: ${address}\nContact Person: ${contactPerson}\nContact: ${contact}`
+                  );
+            }
+              const newUserHospital = await db.user_hospitals.create({
+                user_hospital_id: uuidv4(),
+                user_id: user?.user_id,
+                hospital_name: selectedHospital,
+                hospital_address: address,
+                hospital_contact_person: contactPerson,
+                hospital_contact_person_phone_number: contact,
+              });
+              console.log("newUserHospital", newUserHospital);
+      
 
               menu.end(
                 `Hospital Details:\nHospital: ${selectedHospital}\nAddress: ${address}\nContact Person: ${contactPerson}\nContact: ${contact}`
@@ -1075,38 +1096,22 @@ const generatedHash = generateHash(hashData);
       menu.state("myHospital", {
         run: async () => {
             try {
-                const user = await User.findOne({
-                    where: {
-                        phone_number: args.phoneNumber,
-                    },
-                });
-    
-                if (!user) {
-                    menu.end("User not found.");
-                    return;
-                }
-    
-                const policy = await Policy.findOne({
+        
+                const hospitalDetails = await db.user_hospitals.findOne({
                     where: {
                         user_id: user.user_id,
                     },
                 });
-    
-                if (!policy) {
-                    menu.end("Policy not found for this user.");
-                    return;
-                }
-    
-                const hospitalDetails = policy.hospital_details;
 
                   if(!hospitalDetails){
                       menu.end("Sorry, you have not selected a hospital yet.");
                   }
 
                 console.log("hospitalDetails", hospitalDetails);
+
     
-                const { hospital_name, hospital_address, contact_person, hospital_contact } = hospitalDetails;
-                const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${contact_person}\nContact: ${hospital_contact}`;
+                const { hospital_name, hospital_address, hospital_contact_person, hospital_contact_person_phone_number } = hospitalDetails;
+                const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact_person_phone_number}`;
     
                 menu.end(hospitalInfo);
             } catch (error) {

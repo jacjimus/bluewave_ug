@@ -185,8 +185,6 @@ export function payNow(menu: any, args: any, db: any): void {
           if (selectedPolicy.policy_paid_amount == selectedPolicy.premium) {
             menu.end(`Your ${selectedPolicy.policy_type.toUpperCase()} cover is already paid for`);
           }
-
-      
         }
 
         selectedPolicy.policy_pending_premium = selectedPolicy.premium - selectedPolicy.policy_paid_amount;

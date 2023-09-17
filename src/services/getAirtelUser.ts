@@ -17,9 +17,10 @@ async function getAirtelUser(phoneNumber: string, country: string, currency: str
             'X-Currency': currency,
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
         };
-        const GET_USER_URL =  `https://openapiuat.airtel.africa/standard/v1/users/${phoneNumber}`;
+
+        const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
+        const GET_USER_URL =  `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
         console.log("GET_USER_URL", GET_USER_URL);
 
@@ -41,10 +42,28 @@ async function getAirtelUser(phoneNumber: string, country: string, currency: str
                 console.log("User exists");
                 return userExists;
             }
+
+            async function generateMembershipId() {
+                while (true) {
+                  const membershipId = Math.floor(100000 + Math.random() * 900000);
+              
+                  // Check if membership ID exists in the database
+                  const user = await User.findOne({
+                    where: {
+                      membership_id: membershipId,
+                    },
+                  });
+              
+                  if (!user) {
+                    return membershipId; // Unique ID found, return it
+                  }
+                }
+              }
+              
            
             const user = await User.create({
                 user_id: uuidv4(),
-                membership_id: Math.floor(100000 + Math.random() * 900000),
+                membership_id: await generateMembershipId(),
                 name: `${userData.first_name} ${userData.last_name}`,
                 first_name: userData.first_name,
                 last_name: userData.last_name,

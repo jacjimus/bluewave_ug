@@ -6,14 +6,15 @@ export function myAccount(menu: any, args: any, db: any) {
   const Beneficiary = db.beneficiaries;
   menu.state("myAccount", {
     run: async () => {
+      
       menu.con(
         "My Account " +
           "\n1. Pay Now" +
           "\n2. My insurance policy" +
           "\n3. Renew Policy" +
-          "\n4. Update My Profile" +
-           '\n5. Cancel policy' +
-          "\n6. Add Beneficiary" +
+          "\n4. Update My Profile(KYC)" +
+          "\n5. Cancel policy" +
+          "\n6. Update Beneficiary Details" +
           "\n7. My Hospital" +
           "\n0.Back" +
           "\n00.Main Menu"
@@ -24,7 +25,7 @@ export function myAccount(menu: any, args: any, db: any) {
       "2": "myInsurancePolicy",
       "3": "renewPolicy",
       "4": "updateProfile",
-       '5': 'cancelPolicy',
+      "5": "cancelPolicy",
       "6": "listBeneficiaries",
       "7": "myHospitalOption",
       "0": "account",
@@ -35,7 +36,7 @@ export function myAccount(menu: any, args: any, db: any) {
   //update profile ( user dob and gender)
   menu.state("updateProfile", {
     run: async () => {
-      menu.con(`Whats your gender
+      menu.con(`Whats their gender
             1.  Male
             2. Female
             0. Back
@@ -66,7 +67,7 @@ export function myAccount(menu: any, args: any, db: any) {
 
       console.log("USER: ", user);
 
-      menu.con(`Enter your date of birth in the format DDMMYYYY
+      menu.con(`Enter your date of birth in the format DDMMYYYY e.g 01011990
             0. Back
             00. Main Menu
              `);
@@ -106,6 +107,61 @@ export function myAccount(menu: any, args: any, db: any) {
 
       console.log("USER DOB UPDATE: ", user);
 
+      menu.con(`Enter your marital status
+            1. Single
+            2. Married
+            3. Divorced
+            4. Widowed
+            0. Back
+            00. Main Menu
+              `);
+    },
+    next: {
+      "*[0-9]": "updateMaritalStatus",
+      "0": "myAccount",
+      "00": "insurance",
+    },
+  });
+
+  menu.state("updateMaritalStatus", {
+    run: async () => {
+
+      const { gender } = await User.findOne({
+        where: {
+          phone_number: args.phoneNumber,
+        },
+      });
+
+      let title ="";
+
+      let ben_marital_status = menu.val;
+      if (ben_marital_status == 1) {
+        ben_marital_status = "single";
+        gender == "M" ? title = "Mr" : title = "Ms"
+      } else if (ben_marital_status == 2) {
+        ben_marital_status = "married";
+        gender == "M"  ? title = "Mr" : title = "Mrs"
+      } else if (ben_marital_status == 3) {
+        ben_marital_status = "divorced";
+        gender == "M"  ? title = "Mr" : title = "Ms"
+      } else if (ben_marital_status == 4) {
+        ben_marital_status = "widowed";
+        gender == "M" ? title = "Mr" : title = "Mrs"
+      }
+
+      console.log("ben_marital_status", ben_marital_status);
+      const user = await User.update(
+        {
+          marital_status: ben_marital_status,
+          title: title
+        },
+        {
+          where: {
+            phone_number: args.phoneNumber,
+          },
+        }
+      );
+
       menu.con(`Your profile has been updated successfully
             0. Back
             00. Main Menu
@@ -117,28 +173,11 @@ export function myAccount(menu: any, args: any, db: any) {
     },
   });
 
-  //update beneficiary
-  // menu.state('addBeneficiary', {
-  //     run: async () => {
-  //         menu.con('Update or add Beneficiary ' +
 
-  //             '\n1. Update Beneficiary' +
-  //             '\n2. Add Beneficiary' +
-  //             '\n0.Back' +
-  //             '\n00.Main Menu'
-  //         )
-  //     },
-  //     next: {
-  //         '1': 'listBeneficiaries',
-  //         '2': 'addBeneficiaryName',
-  //         '0': 'myAccount',
-  //         '00': 'insurance',
-  //     }
-  // })
 
   menu.state("addBeneficiaryName", {
     run: async () => {
-      menu.con("Enter full name of beneficiary");
+      menu.con("Enter full name of  beneficiary");
     },
     next: {
       "*[a-zA-Z]+": "updateBeneficiaryName",
@@ -153,6 +192,8 @@ export function myAccount(menu: any, args: any, db: any) {
           phone_number: args.phoneNumber,
         },
       });
+      console.log("USER: ", user?.user_id)
+
       if (user) {
         const beneficiaries = await Beneficiary.findAll({
           where: {
@@ -193,7 +234,65 @@ export function myAccount(menu: any, args: any, db: any) {
 
   menu.state("updateBeneficiaryDob", {
     run: async () => {
-      menu.con("Enter your date of birth in the format DDMMYYYY");
+      const ben_dob = menu.val;
+      console.log("ben_dob", ben_dob);
+
+      // convert ddmmyyyy to valid date
+      let day = ben_dob.substring(0, 2);
+      let month = ben_dob.substring(2, 4);
+      let year = ben_dob.substring(4, 8);
+      let date = new Date(year, month - 1, day);
+      console.log("date", date);
+
+      //get the second last digit of the input
+      const selected = args.text;
+      const input = selected.trim();
+      const digits = input.split("*").map((digit) => parseInt(digit, 10));
+      console.log("digits", digits);
+      const beneficiaryId = digits[digits.length - 2];
+      console.log("beneficiaryId", beneficiaryId);
+
+      //get all beneficiaries for this user and select the one with the beneficiaryId index
+
+      const user = await User.findOne({ 
+        where: {
+          phone_number: args.phoneNumber,
+        },
+      });
+
+
+      const beneficiaries = await Beneficiary.findAll({ 
+        where: {
+          user_id: user?.user_id,
+        },
+      });
+
+      let myBeneficiary = beneficiaries[beneficiaryId - 1];
+      console.log("myBeneficiary", myBeneficiary);
+
+      // FIRST_NAME LAST_NAME
+      // divide the name into first name and last name and save them separately
+      let names = myBeneficiary.full_name.split(" ");
+      let first_name = names[0];
+      let last_name = names[1];
+
+ console.log("GENDER", digits[digits.length - 1] )
+      if (myBeneficiary) {
+        // Update the beneficiary's information
+        let thisYear = new Date().getFullYear();
+        myBeneficiary.dob = date;
+        myBeneficiary.age = thisYear - date.getFullYear();
+        myBeneficiary.first_name = first_name;
+        myBeneficiary.last_name = last_name;
+        myBeneficiary.gender = digits[digits.length - 1] == 1 ? "M" : "F";
+        myBeneficiary.save();
+
+      }
+
+      console.log("==== myBeneficiary =======", myBeneficiary);
+
+
+      menu.con("Enter beneficiary date of birth in the format DDMMYYYY e.g 01011990");
     },
     next: {
       "*[0-9]": "updateBeneficiaryConfirm",
@@ -249,11 +348,10 @@ export function myAccount(menu: any, args: any, db: any) {
           selectedBeneficiary.gender = gender;
 
           try {
+            
             let result = await selectedBeneficiary.save();
-
             console.log("Result after save:", result);
-
-            menu.end("Beneficiary updated successfully");
+            menu.con("Enter the phone number of the beneficiary eg 0772123456");
           } catch (error) {
             console.error("Error saving beneficiary:", error);
             menu.end("Failed to update beneficiary. Please try again.");
@@ -264,6 +362,58 @@ export function myAccount(menu: any, args: any, db: any) {
       } else {
         menu.end("User not found");
       }
+    },
+  next: {
+    "*[0-9]": "updateBeneficiaryPhoneNumber",
+    "1": "cancelPolicyPin",
+  },
+  });
+
+  menu.state("updateBeneficiaryPhoneNumber", {
+    run: async () => {
+      let ben_first_phone = menu.val;
+   
+      //remove all non numeric characters
+      ben_first_phone = ben_first_phone.replace(/\D/g, "");
+      console.log("ben_first_phone", ben_first_phone);
+      //remove leading 0 if any and add 256
+      if (ben_first_phone.startsWith("0")) {
+        ben_first_phone = "256" + ben_first_phone.substring(1);
+      } else if (ben_first_phone.startsWith("7")) {
+        ben_first_phone = "256" + ben_first_phone;
+      }
+      //check if phone number is valid
+      if (ben_first_phone.length != 12) {
+        menu.end("Invalid phone number");
+        return;
+      }
+
+      let user = await User.findOne({
+        where: {
+          phone_number: args.phoneNumber,
+        },
+      });
+
+      console.log("ben_first_phone", ben_first_phone);
+      const beneficiary = await Beneficiary.update(
+        {
+          phone_number: ben_first_phone,
+        },
+        {
+          where: {
+           user_id: user?.user_id,
+          },
+        }
+      );
+
+      menu.con(`Your beneficiary profile has been updated successfully
+            0. Back
+            00. Main Menu
+             `);
+    },
+    next: {
+      "0": "myAccount",
+      "00": "insurance",
     },
   });
 

@@ -502,7 +502,7 @@ const createPolicy = async (req: any, res: any) => {
   */
 const policyIssuance = async (req: any, res: any) => {
   try {
-    const { PolicyCreationRequest, MemObj, ReceiptObj } = req.body;
+    const {  ReceiptObj } = req.body;
 
     const { user_id, policy_id, partner_id, product_id } = req.query;
 
@@ -531,19 +531,76 @@ const policyIssuance = async (req: any, res: any) => {
       Address_Line1: user.address_line
     }
 
-    // let PolicyCreationRequest = {
-    //     Quotation_No: policy.quotation_no,
-    //     Intermediary_Cd: policy.intermediary_cd,
-    //     Source_System_Nm: policy.source_system_nm,
-    //     Employee_No: policy.employee_no,
-    //     Quotation_Dt: policy.quotation_dt,
-    //     IsPayment: policy.is_payment,
-    //     Policy_Tenure: policy.policy_tenure,
-    //     FamilyType_Cd: policy.familytype_cd,
-    //     Cal_Type: policy.cal_type,
-    //     Business_Type: policy.business_type,
-    //     Subsidiary_Cd: policy.subsidiary_cd
-    // }
+    let PolicyCreationRequest = {
+        Quotation_No: policy.quotation_no,
+        Intermediary_Cd: policy.intermediary_cd,
+        Source_System_Nm: policy.source_system_nm,
+        Employee_No: policy.employee_no,
+        Quotation_Dt: policy.quotation_dt,
+        IsPayment: policy.is_payment,
+        Policy_Tenure: policy.policy_tenure,
+        FamilyType_Cd: policy.familytype_cd,
+        Cal_Type: policy.cal_type,
+        Business_Type: policy.business_type,
+        Subsidiary_Cd: policy.subsidiary_cd
+    }
+
+   let MemObj = {
+      Member: [
+        {
+          Insured_Cd: '1',
+          Title: 'Master',
+          First_Nm: 'Member1',
+          Middle_Nm: 'Member1m',
+          Last_Nm: 'Member1l',
+          Gender: 'M',
+          Dob: '2023-05-25T00:00:00',
+          Relation_Cd: 'R001',
+          MaritalStatus: 'Remarried',
+          Height: '179',
+          Weight: '70',
+          MemberproductComponents: [
+            {
+              Product_Cd: 'IFM1',
+              Scheme_Cd: 'IFM1000001',
+              MemberQuestionDetails: [],
+              CoversDetails: [
+                {
+                  Cover_Cd: '1100001',
+                  Sum_Insured: '40000000.0',
+                  installment_Order: 1,
+                  installment_Date: '2023-05-22T02:30:00+08:00',
+                  installment_Alert_Date: '2023-05-22T02:30:00+08:00',
+                  tax_Rate_Vat: 0.2,
+                  tax_Rate_Ext: 0.25,
+                  premium: 0,
+                  excess_Premium: 0,
+                  discount_Premium: 0,
+                  tax_Amt_Vat: 0,
+                  tax_Amt_Ext: 0,
+                  total_Amt: 0
+                },
+                {
+                  Cover_Cd: '1100002',
+                  Sum_Insured: '250000.0',
+                  installment_Order: 1,
+                  installment_Date: '2023-05-22T02:30:00+08:00',
+                  installment_Alert_Date: '2023-05-22T02:30:00+08:00',
+                  tax_Rate_Vat: 0.2,
+                  tax_Rate_Ext: 0.25,
+                  premium: 47418,
+                  excess_Premium: 0,
+                  discount_Premium: 0,
+                  tax_Amt_Vat: 94.836,
+                  tax_Amt_Ext: 118.545,
+                  total_Amt: 47418
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
 
 
     const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);

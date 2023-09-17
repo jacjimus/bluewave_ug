@@ -27,6 +27,7 @@ db.products = require('./Product')(sequelize, DataTypes)
 db.logs = require('./Log')(sequelize, DataTypes)
 db.transactions = require('./Transaction')(sequelize, DataTypes)
 db.installments = require('./Installment')(sequelize, DataTypes)
+db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
@@ -174,8 +175,20 @@ db.users.findAll().then((user:any) => {
  
 // }
 
+// delete users with user_id a1a3721d-18f8-4fd9-baca-0c1de553d182 and 5c7ae55c-76bf-43b7-979e-5fc16bfaab43
+// db.users.destroy({
+//     where: {
+//       user_id: '5c7ae55c-76bf-43b7-979e-5fc16bfaab43'
+//     }
+//   }).then((user:any) => {
+//     console.log("DELETED USER: ", user)
+
+//   }).catch((err:any) => {
+//     console.log(err)
+//   })
 
 
+//DE
 
 
 

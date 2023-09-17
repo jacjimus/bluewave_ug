@@ -140,6 +140,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             }
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
+            let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate() - 3);
             //today day of month
             let day = date.getDate();
             let countryCode = 'UGA'
@@ -158,8 +159,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
                     premium: 120000,
                     installment_order: 1,
-                    installment_date: new Date(),
-                    installment_alert_date: new Date(),
+                    installment_date: nextDeduction,
+                    installment_alert_date: installment_alert_date,
                     tax_rate_vat: '0.2',
                     tax_rate_ext: '0.25',
                     sum_insured: '1500000',
@@ -217,7 +218,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             }
             let date = new Date();
             let day = date.getDate();
-            let nextDeduction = new Date(date.getFullYear() + 1, date.getMonth(), day)
+            let installment_alert_date = new Date(date.getFullYear() + 1, date.getMonth(), day -3)
             let countryCode = 'UGA'
             let currencyCode = 'UGX';
 
@@ -236,7 +237,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     premium: 120000,
                     installment_order: 0,
                     installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                    installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                    installment_alert_date: installment_alert_date,
                     tax_rate_vat: '0.2',
                     tax_rate_ext: '0.25',
                     sum_insured: '1500000',
@@ -443,7 +444,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     premium: 167000,
                     installment_order: 0,
                     installment_date:new Date(date.getFullYear() + 1, date.getMonth(), day),
-                    installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                    installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day-3),
                     tax_rate_vat: '0.2',
                     tax_rate_ext: '0.25',
                     sum_insured: '3000000',

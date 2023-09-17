@@ -7,7 +7,7 @@ dotenv.config();
 const POLICY_ISSUANCE_URL = process.env.POLICY_ISSUANCE_URL
 const POLICY_ISSUANCE_TOKEN_URL = process.env.POLICY_ISSUANCE_TOKEN_URL
 
-async function token() {
+async function aar_token() {
     console.log("policyIssuance  token I WASS CALLED")
     try {
         let token: any;
@@ -63,7 +63,7 @@ async function PolicyIssuance(ClientCreation: any, PolicyCreationRequest: any, M
             "ReceiptObj": ReceiptObj
         };
 
-        const access_token = await token();
+        const access_token = await aar_token();
         const headers = {
             'Content-Type': 'application/json',
             'Accept': '*/*',

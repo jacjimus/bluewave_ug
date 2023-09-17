@@ -189,11 +189,11 @@ const signup = async (req: any, res: any) => {
     //   return res.status(409).json({code: 200, message: "National ID already exists" });
     // }
     if (phoneNumberExists && phoneNumberExists.length > 0) {
-      return res.status(409).json({code: 409, message: "Phone number already exists" });
+      return res.status(409).json({code: 409, message: "Sorry, Phone number already exists" });
     }
 
     if (user && user.length > 0) {
-      return res.status(409).json({code: 409, message: "User already exists" });
+      return res.status(409).json({code: 409, message: "Sorry, Customer already exists" });
     }
 
     console.log("USER DATA", userData);
@@ -229,9 +229,8 @@ const signup = async (req: any, res: any) => {
         .json({
           result: {
             code: 200,
-            message: "User login successfully",
-            token: token,
-            user: newUser,
+            message: "Customer registered successfully",
+            token: token
           },
         });
     }
@@ -416,9 +415,8 @@ const login = async (req: any, res: any) => {
           .json({
             result: {
               code: 201,
-              message: "User login successfully",
+              message: "Customer login successfully",
               token: token,
-              user: user,
             },
           });
       }
@@ -559,7 +557,7 @@ const getUsers = async (req: any, res: any) => {
       user: req.params.user_id,
       partner_id: req.query.partner_id,
   });
-    return res.status(404).json({ code: 404,message: "No users found" });
+    return res.status(404).json({ code: 404,message: "Sorry, No Customer found" });
   } catch (error) {
     console.log("ERROR", error);
     return res
@@ -627,7 +625,7 @@ const getUser = async (req: any, res: any) => {
 
     return res
       .status(200)
-      .json({ result: {code: 200, message: "User fetched successfully", item: user } });
+      .json({ result: {code: 200, message: "Customer fetched successfully", item: user } });
   } catch (error) {
     console.log("ERROR", error);
     return res
@@ -695,7 +693,7 @@ const updateUser = async (req: any, res: any) => {
 
     //check if user exists
     if (!user || user.length === 0) {
-      return res.status(404).json({ message: "No user found" });
+      return res.status(404).json({ message: "No Customer found" });
     }
 
     const data = {
@@ -762,7 +760,7 @@ const deleteUser = async (req: any, res) => {
     //send users details
     return res
       .status(201)
-      .json({ result: {code: 201, message: "User deleted successfully" } });
+      .json({ result: {code: 201, message: "Customer deleted successfully" } });
   } catch (error) {
     console.log("ERROR", error);
     return res.status(409).send("Details are not correct");
@@ -819,6 +817,45 @@ const getPartner = async (req: any, res: any) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/v1/users/partners:
+ *   get:
+ *     tags:
+ *       - Partner
+ *     description: List Partners
+ *     operationId: getAllPartners
+ *     summary: Get All Partners
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+const listPartners = async (req: any, res: any) => {
+  try {
+
+    let partner: any = await Partner.findAll();
+    console.log(partner);
+
+    if (!partner || partner.length === 0) {
+      return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
+    }
+    return res
+      .status(200)
+      .json({
+        result: {code: 200, message: "All partners fetched successfully", items: partner },
+      });
+  } catch (error) {
+    console.log("ERROR", error);
+    return res
+      .status(500)
+      .json({ code: 500,message: "Internal server error", error: error });
+  }
+};
+
 //partner switch
 /**
  * @swagger
@@ -857,7 +894,7 @@ const partnerSwitch = async (req: any, res: any) => {
     });
     console.log("PARTNER", partner);
     if (!partner || partner.length === 0) {
-      return res.status(404).json({ item: 0, message: "No partner found" });
+      return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
     }
     //update the partner id
     let updatedUser = await User.update(
@@ -996,7 +1033,7 @@ const bulkUserRegistration = async (req: any, res: any) => {
 
     return res
       .status(200)
-      .json({code: 200, message: "Users created successfully", items: createdUsers });
+      .json({code: 200, message: "Customers created successfully", items: createdUsers });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -1048,7 +1085,7 @@ async function adminSignup( req: any, res: any){
   }
   let user: any = await User.findAll({ where: { email: email } });
   if (user && user.length > 0) {
-    return res.status(409).json({code: 409, message: "Sorry, User already exists with the same email" });
+    return res.status(409).json({code: 409, message: "Sorry, Customer already exists with the same email" });
   }
 
   // Logic for admin signup goes here
@@ -1084,4 +1121,5 @@ adminSignup,
   partnerRegistration,
   partnerSwitch,
   bulkUserRegistration,
+  listPartners
 };
