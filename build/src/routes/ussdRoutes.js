@@ -223,7 +223,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
         if (req.method === "POST") {
             // Handle POST request logic here
             console.log(req.body);
-            const { id, status_code, message, airtel_money_id } = req.body.transaction;
+            const { id, status_code, message, airtel_money_id } = req.body.transaction || req.body;
             const transaction = yield findTransactionById(id);
             if (!transaction) {
                 console.log("Transaction not found");
@@ -337,7 +337,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
         else if (req.method === "GET") {
             // Handle GET request logic here
             console.log(req.body);
-            const { id, status_code, message, airtel_money_id } = req.body.transaction;
+            const { id, status_code, message, airtel_money_id } = req.body.transaction || req.body;
             const transaction = yield findTransactionById(id);
             if (!transaction) {
                 console.log("Transaction not found");

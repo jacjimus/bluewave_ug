@@ -258,7 +258,7 @@ router.all("/callback", async (req: any, res: any) => {
     if (req.method === "POST") {
       // Handle POST request logic here
       console.log(req.body);
-      const { id, status_code, message, airtel_money_id } = req.body.transaction;
+      const { id, status_code, message, airtel_money_id } = req.body.transaction || req.body;
 
       const transaction = await findTransactionById(id);
 
@@ -404,7 +404,7 @@ router.all("/callback", async (req: any, res: any) => {
       // Handle GET request logic here
 
       console.log(req.body);
-      const { id, status_code, message, airtel_money_id } =req.body.transaction;
+      const { id, status_code, message, airtel_money_id } =req.body.transaction || req.body;
 
       const transaction = await findTransactionById(id);
 
