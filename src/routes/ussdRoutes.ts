@@ -245,11 +245,20 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
 // Callback endpoint
 router.all("/callback", async (req: any, res: any) => {
   console.log("CALLBACK REQUEST", req.body);
+
+  // {
+  //   "transaction": {
+  //     "id": "BBZMiscxy",
+  //     "message": "Paid UGX 5,000 to TECHNOLOGIES LIMITED Charge UGX 140, Trans ID MP210603.1234.L06941.",
+  //     "status_code": "TS",
+  //     "airtel_money_id": "MP210603.1234.L06941"
+  //   }
+  // }
   try {
     if (req.method === "POST") {
       // Handle POST request logic here
       console.log(req.body);
-      const { id, status_code, message, airtel_money_id } = req.body;
+      const { id, status_code, message, airtel_money_id } = req.body.transaction;
 
       const transaction = await findTransactionById(id);
 
@@ -395,7 +404,7 @@ router.all("/callback", async (req: any, res: any) => {
       // Handle GET request logic here
 
       console.log(req.body);
-      const { id, status_code, message, airtel_money_id } = req.body;
+      const { id, status_code, message, airtel_money_id } =req.body.transaction;
 
       const transaction = await findTransactionById(id);
 
