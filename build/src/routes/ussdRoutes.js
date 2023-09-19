@@ -210,7 +210,7 @@ const updateUserPolicyStatus = (policy, transactionAmount, installment_order) =>
 // });
 // Callback endpoint
 router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("CALLBACK REQUEST", req.method);
+    console.log("CALLBACK REQUEST", req.body);
     try {
         if (req.method === "POST") {
             // Handle POST request logic here

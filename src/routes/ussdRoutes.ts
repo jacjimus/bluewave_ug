@@ -244,7 +244,7 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
 
 // Callback endpoint
 router.all("/callback", async (req: any, res: any) => {
-  console.log("CALLBACK REQUEST", req.method);
+  console.log("CALLBACK REQUEST", req.body);
   try {
     if (req.method === "POST") {
       // Handle POST request logic here
