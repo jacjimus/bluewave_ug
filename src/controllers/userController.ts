@@ -365,7 +365,7 @@ const login = async (req: any, res: any) => {
     const { email, password } = req.body;
     if (!email || !password) {
       return res
-        .status(400)
+        .status(400)  
         .json({ code: 400,message: "Please provide an email and password" });
     }
 
