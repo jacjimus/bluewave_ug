@@ -34,7 +34,7 @@ async function getAuthToken() {
   }
 }
 
-async function createTransaction(user_id: any, partner_id:any, policy_id: any, transactionId: any, amount: any) {
+async function createTransaction(user_id: any, partner_id: any, policy_id: any, transactionId: any, amount: any) {
   try {
     console.log('TRANSACTION ID', transactionId, 'AMOUNT', amount, 'USER ID', user_id, 'POLICY ID', policy_id, 'PARTNER ID', partner_id);
     const transaction = await Transaction.create({
@@ -54,10 +54,10 @@ async function createTransaction(user_id: any, partner_id:any, policy_id: any, t
   }
 }
 
-async function airtelMoney(user_id:any, partner_id: number, policy_id: any, phoneNumber: any, amount: number, reference: any) {
+async function airtelMoney(user_id: any, partner_id: number, policy_id: any, phoneNumber: any, amount: number, reference: any) {
   const status = {
     code: 200,
-    result:"",
+    result: "",
     message: 'Payment successfully initiated'
   };
 
@@ -92,14 +92,14 @@ async function airtelMoney(user_id:any, partner_id: number, policy_id: any, phon
     console.log('RESPONCE AIRTEL MONEY', response.data);
 
     if (response.data.status.code == '200') {
-      const  transaction = response.data.data.transaction;
+      const transaction = response.data.data.transaction;
       console.log('TRANSACTION', transaction);
       await createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
-      
-      status.result=response.data.status
+
+      status.result = response.data.status
       return status;
     } else {
-        status.code = 500;
+      status.code = 500;
       throw new Error('Transaction failed');
     }
   } catch (error) {
@@ -110,7 +110,13 @@ async function airtelMoney(user_id:any, partner_id: number, policy_id: any, phon
   }
 }
 
-async function initiateConsent(product: any) {
+async function initiateConsent(product: any, start_date: any, end_date: any, phoneNumber: any, amount: any, premium: any) {
+  console.log('PRODUCT',product, 'START DATE', start_date, 'END DATE', end_date, 'PHONE NUMBER', phoneNumber, 'AMOUNT', amount, 'PREMIUM', premium);
+  const status = {
+    code: 200,
+    result: "",
+    message: 'Payment successfully initiated'
+  };
   const token = await getAuthToken();
   const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/consent`;
   const authToken = `Bearer ${token}`;
@@ -124,15 +130,15 @@ async function initiateConsent(product: any) {
 
   const requestBody = {
     payer: {
-      msisdn: '685466727',
+      msisdn: phoneNumber || '685466727',
       wallet_types: ['NORMAL', 'BIZ'],
     },
     txn: {
-      amount: '1000',
-      total_amount: '12000',
+      amount: amount || '1000',
+      total_amount: premium || '12000',
       total_number_of_payments: '12',
-      start_date: '2023-04-30',
-      end_date: '2024-04-31',
+      start_date: start_date || '2023-04-30',
+      end_date: end_date || '2024-04-31',
       frequency: 'MONTHLY',
     },
   };
@@ -141,6 +147,12 @@ async function initiateConsent(product: any) {
     const response = await axios.post(apiUrl, requestBody, { headers });
     console.log('Response:', response.data);
     // Handle the response data here
+    if (response.data.status.code === '200') {
+      const consentDetails = response.data.status;
+      console.log('CONSENT DETAILS', consentDetails);
+      status.result = consentDetails;
+      return status;
+    }
   } catch (error) {
     console.error('Error:', error.message);
     // Handle any errors here
@@ -164,6 +176,7 @@ async function getConsentDetails(consentId: any) {
   try {
     const response = await axios.get(apiUrl, { headers });
     console.log('Response:', response.data);
+    return response.data;
     // Handle the response data here
   } catch (error) {
     console.error('Error:', error.message);
@@ -203,9 +216,9 @@ async function stopConsent(consentId: any) {
 //stopConsent('CON1679916462568');
 
 
-async function makePeriodicPayment(consentNumber: any, transactionId: any, amount: any) {
+async function makePeriodicPayment(consentNumber: any, transactionId: any, amount: any, product: any) {
   const token = await getAuthToken();
-  const apiUrl = 'https://openapiuat.airtel.africa/pc/{product}/v1/payment';
+  const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/payment`;
   const authToken = `Bearer ${token}`;
 
   const headers = {
@@ -240,9 +253,9 @@ async function makePeriodicPayment(consentNumber: any, transactionId: any, amoun
 //makePeriodicPayment('CON1679991960033', 'RAKESH-pinless-155', 1000);
 
 
-async function transactionEnquiry(transactionId) {
+async function transactionEnquiry(transactionId: any, product: any) {
   const token = await getAuthToken();
-  const apiUrl = `https://openapiuat.airtel.africa/pc/{product}/v1/payment/${transactionId}`;
+  const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/payment/${transactionId}`;
   const authToken = `Bearer ${token}`;
 
   const headers = {
@@ -264,9 +277,9 @@ async function transactionEnquiry(transactionId) {
 // Call the function to perform a transaction enquiry with the desired transaction ID
 //transactionEnquiry('RAKESH-pinless-8');
 
-async function initiateRefund(transactionId) {
+async function initiateRefund(transactionId: any, product: any) {
   const token = await getAuthToken();
-  const apiUrl = 'https://openapiuat.airtel.africa/pc/{product}/v1/refund';
+  const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/refund`;
   const authToken = `Bearer ${token}`;
 
   const headers = {
@@ -325,7 +338,7 @@ async function sendCallbackToPartner() {
 //sendCallbackToPartner();
 
 
-async function initiateRecoveryPayment() {
+async function initiateRecoveryPayment(consentNumber: any, transactionId: any, amount: any) {
   const token = await getAuthToken();
   const apiUrl = 'https://openapiuat.airtel.africa/recovery/v1/payment';
   const accessToken = token;
@@ -338,13 +351,13 @@ async function initiateRecoveryPayment() {
   };
 
   const requestData = {
-    consent_number: 'CON1679991960033',
+    consent_number: consentNumber || 'CON1679991960033',
     payer: {
       wallet_type: 'NORMAL',
     },
     transaction: {
-      id: 'RAKESH-pinless-recovery-6',
-      amount: '3000',
+      id: transactionId || 'RAKESH-pinless-recovery-6',
+      amount: amount.toString() || '3000',
     },
   };
 
@@ -361,9 +374,9 @@ async function initiateRecoveryPayment() {
 // Call the function to initiate the recovery payment
 //initiateRecoveryPayment();
 
-async function inquireRecoveryTransaction() {
+async function inquireRecoveryTransaction(transactionId: any ) {
   const token = await getAuthToken();
-  const apiUrl = 'https://openapiuat.airtel.africa/recovery/v1/payment/RAKESH-pinless-8';
+  const apiUrl = `https://openapiuat.airtel.africa/recovery/v1/payment/${transactionId}`;
   const accessToken = token;
 
   const headers = {
@@ -385,7 +398,7 @@ async function inquireRecoveryTransaction() {
 // Call the function to inquire about the recovery transaction
 //inquireRecoveryTransaction();
 
-async function refundRecoveryTransaction() {
+async function refundRecoveryTransaction(transactionId: any) {
   const token = await getAuthToken();
   const apiUrl = 'https://openapiuat.airtel.africa/recovery/v1/refund';
   const accessToken = token;
@@ -399,7 +412,7 @@ async function refundRecoveryTransaction() {
 
   const requestData = {
     transaction: {
-      id: 'RAKESH-pinless-8',
+      id: transactionId || 'RAKESH-pinless-8',
     },
   };
 
@@ -418,4 +431,16 @@ async function refundRecoveryTransaction() {
 
 
 
-export default airtelMoney;
+export {
+  airtelMoney,
+  initiateConsent,
+  getConsentDetails,
+  stopConsent,
+  makePeriodicPayment,
+  transactionEnquiry,
+  initiateRefund,
+  sendCallbackToPartner,
+  initiateRecoveryPayment,
+  inquireRecoveryTransaction,
+  refundRecoveryTransaction
+};

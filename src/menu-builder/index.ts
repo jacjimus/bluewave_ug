@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 
 import getAirtelUser from "../services/getAirtelUser";
+import { initiateConsent } from "../services/payment";
 
 import { startMenu } from "./menus/startMenu";
 import { displayInsuranceMenu } from "./menus/displayInsuranceMenu";
@@ -127,6 +128,56 @@ const generatedHash = generateHash(hashData);
       displayFaqsMenu(menu);
       //===================TERMS AND CONDITIONS===================
       termsAndConditions(menu, args);
+
+       //===============CONFIRMATION=================
+
+    menu.state('confirmation', {
+      run: async () => {
+          try {
+              const { user_id, phone_number, partner_id, membership_id } = await getUser(args.phoneNumber);
+
+              const newPolicy = await Policy.findOne({
+                  where: {
+                      user_id
+                  }
+              });
+
+              console.log("============ NewPolicy =============", newPolicy)
+              if (newPolicy) {
+                  const policy_deduction_amount = newPolicy.policy_deduction_amount;
+                  const day = newPolicy.policy_deduction_day;
+                  const amount = policy_deduction_amount;
+                  const reference = membership_id
+                  const policy_id = newPolicy.policy_id;
+                  let period = 'monthly'
+
+                  if (newPolicy.installment_order === 0) {
+                      period = 'yearly'
+                  }
+
+
+                  console.log(user_id, partner_id, policy_id, phone_number, amount, reference)
+
+                  //let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
+                  let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)
+
+                 console.log("PAYMENT STATUS", paymentStatus)
+                  if (paymentStatus.code === 200) {
+                      menu.end(`Congratulations! You are now covered. 
+                      To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
+                  } else {
+                      menu.end(`Sorry, your payment was not successful. 
+                      \n0. Back \n00. Main Menu`);
+                  }
+              } else {
+                  menu.end('You do not have an active policy.');
+              }
+          } catch (error) {
+              console.error('Confirmation Error:', error);
+              menu.end('An error occurred. Please try again later.');
+          }
+      }
+  });
 
       menu.state("chooseHospital", {
         run: () => {

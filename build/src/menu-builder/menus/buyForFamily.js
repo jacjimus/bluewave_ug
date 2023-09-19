@@ -8,12 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForFamily = void 0;
-const payment_1 = __importDefault(require("../../services/payment"));
 const uuid_1 = require("uuid");
 function buyForFamily(menu, args, db) {
     const Policy = db.policies;
@@ -799,49 +795,46 @@ function buyForFamily(menu, args, db) {
         }
     });
     //===============CONFIRMATION=================
-    menu.state('confirmation', {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { user_id, phone_number, partner_id, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
-                const policy = yield Policy.findAll({
-                    where: {
-                        user_id
-                    }
-                });
-                //latest policy
-                let newPolicy = policy[policy.length - 1];
-                console.log("============ NewPolicy =============", newPolicy);
-                if (newPolicy) {
-                    const policy_deduction_amount = newPolicy.policy_deduction_amount;
-                    const day = newPolicy.policy_deduction_day;
-                    const amount = policy_deduction_amount;
-                    const reference = membership_id;
-                    const policy_id = newPolicy.policy_id;
-                    let period = 'monthly'; // Default period
-                    if (newPolicy.installment_order === 0) {
-                        period = 'yearly';
-                    }
-                    console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
-                    let paymentStatus = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, amount, reference);
-                    console.log(paymentStatus);
-                    if (paymentStatus.code === 200) {
-                        menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
-                    }
-                    else {
-                        menu.end(`Sorry, your payment was not successful. 
-                        \n0. Back \n00. Main Menu`);
-                    }
-                }
-                else {
-                    menu.end('You do not have an active policy.');
-                }
-            }
-            catch (error) {
-                console.error('Confirmation Error:', error);
-                menu.end('An error occurred. Please try again later.');
-            }
-        })
-    });
+    // menu.state('confirmation', {
+    //     run: async () => {
+    //         try {
+    //             const { user_id, phone_number, partner_id, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
+    //             const policy = await Policy.findAll({
+    //                 where: {
+    //                     user_id
+    //                 }
+    //             });
+    //             //latest policy
+    //             let newPolicy = policy[policy.length - 1];
+    //             console.log("============ NewPolicy =============", newPolicy)
+    //             if (newPolicy) {
+    //                 const policy_deduction_amount = newPolicy.policy_deduction_amount;
+    //                 const day = newPolicy.policy_deduction_day;
+    //                 const amount = policy_deduction_amount;
+    //                 const reference = membership_id
+    //                 const policy_id = newPolicy.policy_id;
+    //                 let period = 'monthly'; // Default period
+    //                 if (newPolicy.installment_order === 0) {
+    //                     period = 'yearly';
+    //                 }
+    //                 console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
+    //                 let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
+    //                 console.log(paymentStatus);
+    //                 if (paymentStatus.code === 200) {
+    //                     menu.end(`Congratulations! You are now covered. 
+    //                     To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
+    //                 } else {
+    //                     menu.end(`Sorry, your payment was not successful. 
+    //                     \n0. Back \n00. Main Menu`);
+    //                 }
+    //             } else {
+    //                 menu.end('You do not have an active policy.');
+    //             }
+    //         } catch (error) {
+    //             console.error('Confirmation Error:', error);
+    //             menu.end('An error occurred. Please try again later.');
+    //         }
+    //     }
+    // });
 }
 exports.buyForFamily = buyForFamily;

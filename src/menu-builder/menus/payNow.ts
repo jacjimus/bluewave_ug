@@ -1,4 +1,4 @@
-import airtelMoney from '../../services/payment';
+import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 
 export function payNow(menu: any, args: any, db: any): void {
@@ -13,7 +13,7 @@ export function payNow(menu: any, args: any, db: any): void {
       },
     });
   };
-  
+
   const findPendingPolicyByUser = async (user) => {
     return await Policy.findOne({
       where: {
@@ -22,26 +22,26 @@ export function payNow(menu: any, args: any, db: any): void {
       },
     });
   };
-  
+
   menu.state('payNow', {
     run: async () => {
       const user = await findUserByPhoneNumber(args.phoneNumber);
-  
+
       if (!user) {
         menu.end('User not found');
         return;
       }
-  
+
       const policy = await findPendingPolicyByUser(user);
-  
+
       if (!policy) {
         menu.end('You have no pending policies');
         return;
       }
-  
+
       const outstandingPremiumMessage = `Your outstanding premium is UGX ${policy.policy_pending_premium}`;
       const enterPinMessage = 'Enter PIN to Pay Now\n0. Back\n00. Main Menu';
-  
+
       menu.con(`${outstandingPremiumMessage}\n${enterPinMessage}`);
     },
     next: {
@@ -50,29 +50,29 @@ export function payNow(menu: any, args: any, db: any): void {
       '00': 'insurance',
     },
   });
-  
+
   menu.state('payNowPin', {
     run: async () => {
       const pin = parseInt(menu.val);
-  
+
       if (isNaN(pin)) {
         menu.end('Invalid PIN');
         return;
       }
-  
+
       const user = await findUserByPhoneNumber(args.phoneNumber);
       const selectedPolicy = await findPendingPolicyByUser(user);
-  
+
       if (!selectedPolicy) {
         menu.end('You have no pending policies');
         return;
       }
-  
+
       const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount } = user;
       const reference = user.membership_id;
-  
+
       const payment = await airtelMoney(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
-  
+
       if (payment.code === 200) {
         const message = `Paid UGX ${policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on day ${selectedPolicy.policy_next_deduction_date} of ${selectedPolicy.policy_next_deduction_month}`;
         menu.end(message);
@@ -81,7 +81,7 @@ export function payNow(menu: any, args: any, db: any): void {
       }
     },
   });
-  
+
 
 
   menu.state('renewPolicy', {
@@ -134,9 +134,9 @@ export function payNow(menu: any, args: any, db: any): void {
           }
 
           policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n`
-            // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-            // `   Remaining: UGX ${policy.sum_insured}\n` +
-            // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+          // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+          // `   Remaining: UGX ${policy.sum_insured}\n` +
+          // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
         }
 
         menu.con(`Choose policy to pay for
@@ -180,8 +180,8 @@ export function payNow(menu: any, args: any, db: any): void {
 
         if (selectedPolicy.policy_status === 'paid') {
           console.log('Policy already paid for');
-          console.log('Policy',selectedPolicy, selectedPolicy.policy_paid_amount, selectedPolicy.premium, selectedPolicy.policy_paid_amount == selectedPolicy.premium);
-          
+          console.log('Policy', selectedPolicy, selectedPolicy.policy_paid_amount, selectedPolicy.premium, selectedPolicy.policy_paid_amount == selectedPolicy.premium);
+
           if (selectedPolicy.policy_paid_amount == selectedPolicy.premium) {
             menu.end(`Your ${selectedPolicy.policy_type.toUpperCase()} cover is already paid for`);
           }

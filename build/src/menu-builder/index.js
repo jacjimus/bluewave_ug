@@ -18,6 +18,7 @@ const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
 const uuid_1 = require("uuid");
 const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
+const payment_1 = require("../services/payment");
 const displayMedicalCoverMenu_1 = require("./menus/displayMedicalCoverMenu");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
 const displayAccount_1 = require("./menus/displayAccount");
@@ -120,6 +121,50 @@ function default_1(args, db) {
             (0, faqs_1.displayFaqsMenu)(menu);
             //===================TERMS AND CONDITIONS===================
             (0, termsAndConditions_1.termsAndConditions)(menu, args);
+            //===============CONFIRMATION=================
+            menu.state('confirmation', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        const { user_id, phone_number, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                        const newPolicy = yield Policy.findOne({
+                            where: {
+                                user_id
+                            }
+                        });
+                        console.log("============ NewPolicy =============", newPolicy);
+                        if (newPolicy) {
+                            const policy_deduction_amount = newPolicy.policy_deduction_amount;
+                            const day = newPolicy.policy_deduction_day;
+                            const amount = policy_deduction_amount;
+                            const reference = membership_id;
+                            const policy_id = newPolicy.policy_id;
+                            let period = 'monthly';
+                            if (newPolicy.installment_order === 0) {
+                                period = 'yearly';
+                            }
+                            console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
+                            //let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
+                            let paymentStatus = yield (0, payment_1.initiateConsent)(newPolicy.policy_type, newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount, newPolicy.premium);
+                            console.log("PAYMENT STATUS", paymentStatus);
+                            if (paymentStatus.code === 200) {
+                                menu.end(`Congratulations! You are now covered. 
+                      To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
+                            }
+                            else {
+                                menu.end(`Sorry, your payment was not successful. 
+                      \n0. Back \n00. Main Menu`);
+                            }
+                        }
+                        else {
+                            menu.end('You do not have an active policy.');
+                        }
+                    }
+                    catch (error) {
+                        console.error('Confirmation Error:', error);
+                        menu.end('An error occurred. Please try again later.');
+                    }
+                })
+            });
             menu.state("chooseHospital", {
                 run: () => {
                     const districts = [

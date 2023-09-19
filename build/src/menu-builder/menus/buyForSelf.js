@@ -8,12 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForSelf = void 0;
-const payment_1 = __importDefault(require("../../services/payment"));
 const uuid_1 = require("uuid");
 function buyForSelf(menu, args, db) {
     const User = db.users;
@@ -589,48 +585,6 @@ function buyForSelf(menu, args, db) {
             '0': 'account',
             '00': 'insurance'
         }
-    });
-    //===============CONFIRMATION=================
-    menu.state('confirmation', {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { user_id, phone_number, partner_id, membership_id } = yield getUser(args.phoneNumber);
-                const newPolicy = yield Policy.findOne({
-                    where: {
-                        user_id
-                    }
-                });
-                console.log("============ NewPolicy =============", newPolicy);
-                if (newPolicy) {
-                    const policy_deduction_amount = newPolicy.policy_deduction_amount;
-                    const day = newPolicy.policy_deduction_day;
-                    const amount = policy_deduction_amount;
-                    const reference = membership_id;
-                    const policy_id = newPolicy.policy_id;
-                    let period = 'monthly';
-                    if (newPolicy.installment_order === 0) {
-                        period = 'yearly';
-                    }
-                    console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
-                    let paymentStatus = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, amount, reference);
-                    if (paymentStatus.code === 200) {
-                        menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
-                    }
-                    else {
-                        menu.end(`Sorry, your payment was not successful. 
-                        \n0. Back \n00. Main Menu`);
-                    }
-                }
-                else {
-                    menu.end('You do not have an active policy.');
-                }
-            }
-            catch (error) {
-                console.error('Confirmation Error:', error);
-                menu.end('An error occurred. Please try again later.');
-            }
-        })
     });
 }
 exports.buyForSelf = buyForSelf;

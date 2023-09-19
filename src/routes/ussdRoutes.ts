@@ -4,6 +4,7 @@ import ussdKenMenuBuilder from "../menu-ken-builder";
 import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
+import { initiateConsent } from "../services/payment"
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -244,7 +245,7 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
 
 // Callback endpoint
 router.all("/callback", async (req: any, res: any) => {
-  console.log("CALLBACK REQUEST", req);
+  console.log("CALLBACK REQUEST", req.body);
 
   // {
   //   "transaction": {
@@ -257,8 +258,7 @@ router.all("/callback", async (req: any, res: any) => {
   try {
     if (req.method === "POST") {
       // Handle POST request logic here
-      console.log(req.body);
-      const { id, status_code, message, airtel_money_id } = req.body.transaction || req.body;
+      const { id, status_code, message, airtel_money_id } = req.body.transaction
 
       const transaction = await findTransactionById(id);
 
@@ -381,6 +381,7 @@ router.all("/callback", async (req: any, res: any) => {
           });
   
           await updateUserPolicyStatus(policy, parseInt(transaction.amount),installment_order );
+          //await initiateConsent(policyType,policy.policy_start_date, policy_end_date, user.phone_number, policy.policy_deduction_amount , policy.premium)
         }
         res.status(200).json({ message: "Payment record created successfully" });
       } else {
@@ -404,7 +405,7 @@ router.all("/callback", async (req: any, res: any) => {
       // Handle GET request logic here
 
       console.log(req.body);
-      const { id, status_code, message, airtel_money_id } =req.body.transaction || req.body;
+      const { id, status_code, message, airtel_money_id } =req.body.transaction
 
       const transaction = await findTransactionById(id);
 

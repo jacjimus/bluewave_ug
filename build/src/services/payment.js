@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.refundRecoveryTransaction = exports.inquireRecoveryTransaction = exports.initiateRecoveryPayment = exports.sendCallbackToPartner = exports.initiateRefund = exports.transactionEnquiry = exports.makePeriodicPayment = exports.stopConsent = exports.getConsentDetails = exports.initiateConsent = exports.airtelMoney = void 0;
 const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
 const db_1 = require("../models/db");
@@ -117,8 +118,15 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
         }
     });
 }
-function initiateConsent(product) {
+exports.airtelMoney = airtelMoney;
+function initiateConsent(product, start_date, end_date, phoneNumber, amount, premium) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('PRODUCT', product, 'START DATE', start_date, 'END DATE', end_date, 'PHONE NUMBER', phoneNumber, 'AMOUNT', amount, 'PREMIUM', premium);
+        const status = {
+            code: 200,
+            result: "",
+            message: 'Payment successfully initiated'
+        };
         const token = yield getAuthToken();
         const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/consent`;
         const authToken = `Bearer ${token}`;
@@ -130,15 +138,15 @@ function initiateConsent(product) {
         };
         const requestBody = {
             payer: {
-                msisdn: '685466727',
+                msisdn: phoneNumber || '685466727',
                 wallet_types: ['NORMAL', 'BIZ'],
             },
             txn: {
-                amount: '1000',
-                total_amount: '12000',
+                amount: amount || '1000',
+                total_amount: premium || '12000',
                 total_number_of_payments: '12',
-                start_date: '2023-04-30',
-                end_date: '2024-04-31',
+                start_date: start_date || '2023-04-30',
+                end_date: end_date || '2024-04-31',
                 frequency: 'MONTHLY',
             },
         };
@@ -146,6 +154,12 @@ function initiateConsent(product) {
             const response = yield axios_1.default.post(apiUrl, requestBody, { headers });
             console.log('Response:', response.data);
             // Handle the response data here
+            if (response.data.status.code === '200') {
+                const consentDetails = response.data.status;
+                console.log('CONSENT DETAILS', consentDetails);
+                status.result = consentDetails;
+                return status;
+            }
         }
         catch (error) {
             console.error('Error:', error.message);
@@ -153,6 +167,7 @@ function initiateConsent(product) {
         }
     });
 }
+exports.initiateConsent = initiateConsent;
 // Call the function to initiate the consent
 //initiateConsent('product');
 function getConsentDetails(consentId) {
@@ -168,6 +183,7 @@ function getConsentDetails(consentId) {
         try {
             const response = yield axios_1.default.get(apiUrl, { headers });
             console.log('Response:', response.data);
+            return response.data;
             // Handle the response data here
         }
         catch (error) {
@@ -176,6 +192,7 @@ function getConsentDetails(consentId) {
         }
     });
 }
+exports.getConsentDetails = getConsentDetails;
 // Call the function to get consent details
 //getConsentDetails('CON1679991960033');
 function stopConsent(consentId) {
@@ -200,12 +217,13 @@ function stopConsent(consentId) {
         }
     });
 }
+exports.stopConsent = stopConsent;
 // Call the function to stop the consent with the desired consent ID
 //stopConsent('CON1679916462568');
-function makePeriodicPayment(consentNumber, transactionId, amount) {
+function makePeriodicPayment(consentNumber, transactionId, amount, product) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield getAuthToken();
-        const apiUrl = 'https://openapiuat.airtel.africa/pc/{product}/v1/payment';
+        const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/payment`;
         const authToken = `Bearer ${token}`;
         const headers = {
             'x-country': 'UG',
@@ -234,12 +252,13 @@ function makePeriodicPayment(consentNumber, transactionId, amount) {
         }
     });
 }
+exports.makePeriodicPayment = makePeriodicPayment;
 // Call the function to make a periodic payment with the desired parameters
 //makePeriodicPayment('CON1679991960033', 'RAKESH-pinless-155', 1000);
-function transactionEnquiry(transactionId) {
+function transactionEnquiry(transactionId, product) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield getAuthToken();
-        const apiUrl = `https://openapiuat.airtel.africa/pc/{product}/v1/payment/${transactionId}`;
+        const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/payment/${transactionId}`;
         const authToken = `Bearer ${token}`;
         const headers = {
             'x-country': 'UG',
@@ -257,12 +276,13 @@ function transactionEnquiry(transactionId) {
         }
     });
 }
+exports.transactionEnquiry = transactionEnquiry;
 // Call the function to perform a transaction enquiry with the desired transaction ID
 //transactionEnquiry('RAKESH-pinless-8');
-function initiateRefund(transactionId) {
+function initiateRefund(transactionId, product) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield getAuthToken();
-        const apiUrl = 'https://openapiuat.airtel.africa/pc/{product}/v1/refund';
+        const apiUrl = `https://openapiuat.airtel.africa/pc/${product}/v1/refund`;
         const authToken = `Bearer ${token}`;
         const headers = {
             'x-country': 'UG',
@@ -286,6 +306,7 @@ function initiateRefund(transactionId) {
         }
     });
 }
+exports.initiateRefund = initiateRefund;
 // Call the function to initiate a refund for the specified transaction ID
 //initiateRefund('RAKESH-pinless-8');
 function sendCallbackToPartner() {
@@ -313,9 +334,10 @@ function sendCallbackToPartner() {
         }
     });
 }
+exports.sendCallbackToPartner = sendCallbackToPartner;
 // Call the function to send the callback to the partner
 //sendCallbackToPartner();
-function initiateRecoveryPayment() {
+function initiateRecoveryPayment(consentNumber, transactionId, amount) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield getAuthToken();
         const apiUrl = 'https://openapiuat.airtel.africa/recovery/v1/payment';
@@ -327,13 +349,13 @@ function initiateRecoveryPayment() {
             'Content-Type': 'application/json',
         };
         const requestData = {
-            consent_number: 'CON1679991960033',
+            consent_number: consentNumber || 'CON1679991960033',
             payer: {
                 wallet_type: 'NORMAL',
             },
             transaction: {
-                id: 'RAKESH-pinless-recovery-6',
-                amount: '3000',
+                id: transactionId || 'RAKESH-pinless-recovery-6',
+                amount: amount.toString() || '3000',
             },
         };
         try {
@@ -347,12 +369,13 @@ function initiateRecoveryPayment() {
         }
     });
 }
+exports.initiateRecoveryPayment = initiateRecoveryPayment;
 // Call the function to initiate the recovery payment
 //initiateRecoveryPayment();
-function inquireRecoveryTransaction() {
+function inquireRecoveryTransaction(transactionId) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield getAuthToken();
-        const apiUrl = 'https://openapiuat.airtel.africa/recovery/v1/payment/RAKESH-pinless-8';
+        const apiUrl = `https://openapiuat.airtel.africa/recovery/v1/payment/${transactionId}`;
         const accessToken = token;
         const headers = {
             'x-country': 'UG',
@@ -370,9 +393,10 @@ function inquireRecoveryTransaction() {
         }
     });
 }
+exports.inquireRecoveryTransaction = inquireRecoveryTransaction;
 // Call the function to inquire about the recovery transaction
 //inquireRecoveryTransaction();
-function refundRecoveryTransaction() {
+function refundRecoveryTransaction(transactionId) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = yield getAuthToken();
         const apiUrl = 'https://openapiuat.airtel.africa/recovery/v1/refund';
@@ -385,7 +409,7 @@ function refundRecoveryTransaction() {
         };
         const requestData = {
             transaction: {
-                id: 'RAKESH-pinless-8',
+                id: transactionId || 'RAKESH-pinless-8',
             },
         };
         try {
@@ -399,6 +423,4 @@ function refundRecoveryTransaction() {
         }
     });
 }
-// Call the function to refund the recovery transaction
-//refundRecoveryTransaction();
-exports.default = airtelMoney;
+exports.refundRecoveryTransaction = refundRecoveryTransaction;

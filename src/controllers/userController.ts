@@ -417,6 +417,16 @@ const login = async (req: any, res: any) => {
               code: 201,
               message: "Customer login successfully",
               token: token,
+              user: {
+                user_id: user.user_id,
+                full_name: user.name,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                phone_number: user.phone_number,
+                partner_id: user.partner_id,
+                is_active: user.is_active,
+              }
             },
           });
       }

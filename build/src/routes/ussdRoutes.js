@@ -210,7 +210,7 @@ const updateUserPolicyStatus = (policy, transactionAmount, installment_order) =>
 // });
 // Callback endpoint
 router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("CALLBACK REQUEST", req);
+    console.log("CALLBACK REQUEST", req.body);
     // {
     //   "transaction": {
     //     "id": "BBZMiscxy",
@@ -222,8 +222,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         if (req.method === "POST") {
             // Handle POST request logic here
-            console.log(req.body);
-            const { id, status_code, message, airtel_money_id } = req.body.transaction || req.body;
+            const { id, status_code, message, airtel_money_id } = req.body.transaction;
             const transaction = yield findTransactionById(id);
             if (!transaction) {
                 console.log("Transaction not found");
@@ -316,6 +315,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                         country_code: policy.country_code,
                     });
                     yield updateUserPolicyStatus(policy, parseInt(transaction.amount), installment_order);
+                    //await initiateConsent(policyType,policy.policy_start_date, policy_end_date, user.phone_number, policy.policy_deduction_amount , policy.premium)
                 }
                 res.status(200).json({ message: "Payment record created successfully" });
             }
@@ -337,7 +337,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
         else if (req.method === "GET") {
             // Handle GET request logic here
             console.log(req.body);
-            const { id, status_code, message, airtel_money_id } = req.body.transaction || req.body;
+            const { id, status_code, message, airtel_money_id } = req.body.transaction;
             const transaction = yield findTransactionById(id);
             if (!transaction) {
                 console.log("Transaction not found");

@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
-const payment_1 = __importDefault(require("../services/payment"));
+const payment_1 = require("../services/payment");
 const uuid_1 = require("uuid");
 const crypto_1 = __importDefault(require("crypto"));
 require("dotenv").config();
@@ -426,7 +426,7 @@ function handleUssd(args, db) {
                             const uuid = (0, uuid_1.v4)();
                             const reference = policy.policy_type + policy_id + user_id + uuid;
                             // Call the airtelMoney function and handle payment status
-                            const paymentStatus = yield (0, payment_1.default)(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
+                            const paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
                             if (paymentStatus.code === 200) {
                                 menu.end(`Congratulations, you are now covered.\n` +
                                     `To stay covered KES ${policy_deduction_amount} will be deducted on day ${day} of every month`);

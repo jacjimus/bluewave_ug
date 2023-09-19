@@ -2,7 +2,7 @@ import { RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-builder";
-import airtelMoney from "../services/payment";
+import { airtelMoney } from "../services/payment";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 
@@ -327,13 +327,13 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           let deduction_day = Number(menu.val);
           const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
-          
+
           let date = new Date();
           let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
           //today day of month
           let day = date.getDate();
-          let countryCode =  "KEN";
-          let currencyCode =  "KES";
+          let countryCode = "KEN";
+          let currencyCode = "KES";
           let policy = {
             policy_type: "bronze",
             beneficiary: "self",
@@ -398,8 +398,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           try {
             let user_pin = Number(menu.val);
             const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            if ( user_pin !== pin && user_pin !== membership_id ) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
+            if (user_pin !== pin && user_pin !== membership_id) {
+              menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
             const date = new Date();
             const day = date.getDate();
@@ -408,8 +408,8 @@ export default function handleUssd(args: RequestBody, db: any) {
               date.getMonth(),
               day
             );
-            let countryCode =  "KEN";
-            let currencyCode =  "KES";
+            let countryCode = "KEN";
+            let currencyCode = "KES";
 
             const policy = {
               policy_type: "bronze",
@@ -492,7 +492,7 @@ export default function handleUssd(args: RequestBody, db: any) {
                 policy_deduction_amount,
                 reference,
               );
-             
+
               if (paymentStatus.code === 200) {
                 menu.end(
                   `Congratulations, you are now covered.\n` +
@@ -1514,8 +1514,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           );
           const { user_id, partner_id } = await getUser(args.phoneNumber);
 
-          let countryCode =  "KEN";
-          let currencyCode =  "KES";
+          let countryCode = "KEN";
+          let currencyCode = "KES";
 
           //save policy details
           let policy = {
@@ -1591,8 +1591,8 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             1
           );
-          let countryCode =  "KEN";
-          let currencyCode =  "KES";
+          let countryCode = "KEN";
+          let currencyCode = "KES";
 
           const policy = {
             policy_type: "bronze",
@@ -1746,8 +1746,8 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             1
           );
-          let countryCode =  "KEN";
-          let currencyCode =  "KES";
+          let countryCode = "KEN";
+          let currencyCode = "KES";
 
           const policy = {
             policy_type: "bronze",
@@ -1943,8 +1943,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           let spouse = menu.val;
           console.log("SPOUSE NAME 1", spouse);
           const { user_id, partner_id } = await getUser(args.phoneNumber);
-          let countryCode =  "KEN";
-          let currencyCode =  "KES";
+          let countryCode = "KEN";
+          let currencyCode = "KES";
           const policy = {
             policy_type: "bronze",
             beneficiary: "selfSpouse2Child",
