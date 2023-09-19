@@ -210,7 +210,7 @@ const updateUserPolicyStatus = (policy, transactionAmount, installment_order) =>
 // });
 // Callback endpoint
 router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("CALLBACK REQUEST", req.body);
+    console.log("CALLBACK REQUEST", req);
     // {
     //   "transaction": {
     //     "id": "BBZMiscxy",
