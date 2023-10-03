@@ -119,6 +119,11 @@ const SessionModel = db.sessions;
  *         required: false
  *         schema:
  *           type: string
+ *       - name: phone_number
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
  *       - name: page
  *         in: query
  *         required: false
@@ -139,6 +144,7 @@ const SessionModel = db.sessions;
     try {
       const partner_id = req.query.partner_id;
       const user_id = req.query.user_id;
+      const phone_number = req.query.phone_number;
       
       // Retrieve page and limit from query parameters
       const page = parseInt(req.query.page) || 1;
@@ -148,7 +154,7 @@ const SessionModel = db.sessions;
       const offset = (page - 1) * limit;
       
       // Fetch sessions from the database with pagination
-      const { sessions, totalSessionsCount } = await fetchSessionsFromDatabase(partner_id, user_id, offset, limit);
+      const { sessions, totalSessionsCount } = await fetchSessionsFromDatabase(partner_id, user_id,phone_number, offset, limit);
       
       // Return pagination information along with sessions
       res.status(200).json({
@@ -169,15 +175,29 @@ const SessionModel = db.sessions;
     }
   };
   
-  const fetchSessionsFromDatabase = async (partner_id: any, user_id: string, offset: number, limit: number) => {
+  const fetchSessionsFromDatabase = async (partner_id: any, user_id: string, phone_number: any, offset: number, limit: number) => {
     // Your database fetching logic with offset and limit goes here
     let whereCondition: any = {
       partner_id: partner_id
     };
   
-    if (user_id) {
+    if (user_id && !phone_number) {
       whereCondition.user_id = user_id;
     }
+
+    if(phone_number && !user_id){
+      whereCondition.phone_number = phone_number;
+    }
+ 
+
+    if(phone_number && user_id){
+      whereCondition = {
+        partner_id: partner_id,
+        user_id: user_id,
+        phone_number: phone_number
+      };
+    }
+
   
     // Example query using Sequelize
     let sessions = await SessionModel.findAll({

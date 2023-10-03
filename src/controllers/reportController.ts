@@ -1219,12 +1219,21 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
       },
     ];
 
+    const partnerData = await Partner.findOne({
+      where: {
+        partner_id: req.query.partner_id,
+      },
+    });
+
+
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
       total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+      countryCode: partnerData.country_code,
+      currencyCode: partnerData.currency_code,
     };
 
     // Send the results as a response
@@ -1325,12 +1334,20 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
       },
     ];
 
+    const partnerData = await Partner.findOne({
+      where: {
+        partner_id: req.query.partner_id,
+      },
+    });
+
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
       total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+      countryCode: partnerData.country_code,
+      currencyCode: partnerData.currency_code,
     };
 
     // Send the results as a response
@@ -1460,12 +1477,21 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
       },
     ];
 
+    const partnerData = await Partner.findOne({
+      where: {
+        partner_id: req.query.partner_id,
+      },
+    });
+
+
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
       total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+      countryCode: partnerData.country_code,
+      currencyCode: partnerData.currency_code,
     };
 
     // Send the results as a response

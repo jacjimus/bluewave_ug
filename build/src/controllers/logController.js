@@ -118,6 +118,11 @@ const fetchLogsFromDatabase = (partner_id, user_id, offset, limit) => __awaiter(
 *         required: false
 *         schema:
 *           type: string
+*       - name: phone_number
+*         in: query
+*         required: false
+*         schema:
+*           type: string
 *       - name: page
 *         in: query
 *         required: false
@@ -138,13 +143,14 @@ const getSessions = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const partner_id = req.query.partner_id;
         const user_id = req.query.user_id;
+        const phone_number = req.query.phone_number;
         // Retrieve page and limit from query parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10; // Default limit is 10
         // Calculate offset based on current page and limit
         const offset = (page - 1) * limit;
         // Fetch sessions from the database with pagination
-        const { sessions, totalSessionsCount } = yield fetchSessionsFromDatabase(partner_id, user_id, offset, limit);
+        const { sessions, totalSessionsCount } = yield fetchSessionsFromDatabase(partner_id, user_id, phone_number, offset, limit);
         // Return pagination information along with sessions
         res.status(200).json({
             message: 'Information fetched successfully',
@@ -164,13 +170,23 @@ const getSessions = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         });
     }
 });
-const fetchSessionsFromDatabase = (partner_id, user_id, offset, limit) => __awaiter(void 0, void 0, void 0, function* () {
+const fetchSessionsFromDatabase = (partner_id, user_id, phone_number, offset, limit) => __awaiter(void 0, void 0, void 0, function* () {
     // Your database fetching logic with offset and limit goes here
     let whereCondition = {
         partner_id: partner_id
     };
-    if (user_id) {
+    if (user_id && !phone_number) {
         whereCondition.user_id = user_id;
+    }
+    if (phone_number && !user_id) {
+        whereCondition.phone_number = phone_number;
+    }
+    if (phone_number && user_id) {
+        whereCondition = {
+            partner_id: partner_id,
+            user_id: user_id,
+            phone_number: phone_number
+        };
     }
     // Example query using Sequelize
     let sessions = yield SessionModel.findAll({

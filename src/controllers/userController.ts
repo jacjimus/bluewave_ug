@@ -394,7 +394,12 @@ const login = async (req: any, res: any) => {
           }
         );
 
-      
+        const partnerData = await Partner.findOne({
+          where: {
+            partner_id: user.partner_id,
+          },
+        });
+    
 
         //go ahead and generate a cookie for the user
         res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
@@ -427,6 +432,8 @@ const login = async (req: any, res: any) => {
                 partner_id: user.partner_id,
                 is_active: user.is_active,
                 is_verified: user.is_verified,
+                countryCode: partnerData.country_code,
+                currencyCode: partnerData.currency_code,
               }
             },
           });

@@ -301,6 +301,11 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 let token = jwt.sign({ user_id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
                     expiresIn: 1 * 24 * 60 * 60 * 1000,
                 });
+                const partnerData = yield Partner.findOne({
+                    where: {
+                        partner_id: user.partner_id,
+                    },
+                });
                 //go ahead and generate a cookie for the user
                 res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
                 console.log(token);
@@ -331,6 +336,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                             partner_id: user.partner_id,
                             is_active: user.is_active,
                             is_verified: user.is_verified,
+                            countryCode: partnerData.country_code,
+                            currencyCode: partnerData.currency_code,
                         }
                     },
                 });

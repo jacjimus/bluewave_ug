@@ -1008,12 +1008,19 @@ const getAggregatedDailyPolicySalesReport = (req, res) => __awaiter(void 0, void
                 backgroundColor: '#e40102',
             },
         ];
+        const partnerData = yield Partner.findOne({
+            where: {
+                partner_id: req.query.partner_id,
+            },
+        });
         const data = {
             labels: labels,
             datasets: datasets,
             total_policies: results.length,
             total_customers: results.length,
             total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+            countryCode: partnerData.country_code,
+            currencyCode: partnerData.currency_code,
         };
         // Send the results as a response
         res.status(200).json({ data });
@@ -1107,12 +1114,19 @@ const getAggregatedAnnuallyPolicySalesReport = (req, res) => __awaiter(void 0, v
                 backgroundColor: '#e40102',
             },
         ];
+        const partnerData = yield Partner.findOne({
+            where: {
+                partner_id: req.query.partner_id,
+            },
+        });
         const data = {
             labels: labels,
             datasets: datasets,
             total_policies: results.length,
             total_customers: results.length,
             total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+            countryCode: partnerData.country_code,
+            currencyCode: partnerData.currency_code,
         };
         // Send the results as a response
         res.status(200).json({ data });
@@ -1236,12 +1250,19 @@ const getAggregatedMonthlySalesReport = (req, res) => __awaiter(void 0, void 0, 
                 backgroundColor: '#e40102',
             },
         ];
+        const partnerData = yield Partner.findOne({
+            where: {
+                partner_id: req.query.partner_id,
+            },
+        });
         const data = {
             labels: labels,
             datasets: datasets,
             total_policies: results.length,
             total_customers: results.length,
             total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+            countryCode: partnerData.country_code,
+            currencyCode: partnerData.currency_code,
         };
         // Send the results as a response
         res.status(200).json({ data });
