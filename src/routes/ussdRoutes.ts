@@ -5,7 +5,7 @@ import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
-import { registerPrincipal } from "../services/aar"
+import { registerPrincipal, updatePremium } from "../services/aar"
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -48,7 +48,7 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
   policy.policy_status = "paid";
   policy.policy_paid_date = new Date();
 
-  console.log("POLICY START", policy);
+  // console.log("POLICY START", policy);
 
   if (policy.policy_paid_amount === null) {
     policy.policy_paid_amount = 0;
@@ -71,7 +71,7 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
           policy_id: policy.policy_id,
         },
     });
-    console.log("INSTALLMENT", installment);
+    // console.log("INSTALLMENT", installment);
     
     //REDUCE AMOUNT FROM INSTALLMENT 
     const installmentAmount = installment.reduce((acc:any, installment: any) => {
@@ -83,9 +83,9 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
     policy.policy_paid_amount = installmentAmount; 
     policy.policy_pending_premium = parseInt(policy.premium) - installmentAmount;
 
-    console.log("INSTALLMENT AMOUNT", installmentAmount, policy.policy_pending_premium, policy.policy_paid_amount, policy.premium); 
+    // console.log("INSTALLMENT AMOUNT", installmentAmount, policy.policy_pending_premium, policy.policy_paid_amount, policy.premium); 
     
-    console.log("POLICY END", policy);
+    // console.log("POLICY END", policy);
   
     await policy.save();
   
@@ -102,14 +102,14 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
 
 // Callback endpoint
 router.all("/callback", async (req: any, res: any) => {
-  console.log("CALLBACK REQUEST", req.body);
+  // console.log("CALLBACK REQUEST", req.body);
 
   try {
 
     let callbackReceived = false;
 
     // Handle the callback logic
-    console.log("CALLBACK REQUEST", req.body);
+    // console.log("CALLBACK REQUEST", req.body);
   
     if (req.method === "POST") {
       // Handle POST request logic here
@@ -170,7 +170,7 @@ router.all("/callback", async (req: any, res: any) => {
         policy.policy_next_deduction_date
       );
   
-      console.log("POLICY", policy_end_date, policy_next_deduction_date);
+      // console.log("POLICY", policy_end_date, policy_next_deduction_date);
   
       const to = user.phone_number;
   
@@ -183,20 +183,28 @@ router.all("/callback", async (req: any, res: any) => {
   
       // Count characters in the message
       const messageLength = paymentMessage.length;
-      console.log("MESSAGE LENGTH", messageLength, paymentMessage);
+      // console.log("MESSAGE LENGTH", messageLength, paymentMessage);
   
       if (status_code == "TS") {
         
         // Send SMS to user
         await sendSMS(to, paymentMessage);
+        //user.arr_member_number == null || user.arr_member_number == ""
 
-        if(user.arr_member_number == null || user.arr_member_number == ""){
+      //  if(true){
 
        const registerAARUser = await registerPrincipal(user, policy,beneficiary, airtel_money_id)
+       if(registerAARUser.member_no !== null){
+       const updatePremiumData = await updatePremium(registerAARUser, policy)
+       console.log("AAR UPDATE PEMIUM", updatePremiumData);
+
+       }
+
+       //AAR USER { Error: 'Member with same name and dob already exists!', code: 608 }
        
        console.log("AAR USER", registerAARUser);
        
-      }
+     // }
         await Payment.create({
           payment_amount: transaction.amount,
           payment_type: "airtel money payment",
@@ -211,12 +219,12 @@ router.all("/callback", async (req: any, res: any) => {
   
         console.log("Payment record created successfully");
   
-        console.log(
-          " =========== INSTALLMENT ========",
-          policy.policy_paid_amount !== parseInt(policy.premium),
-          policy.policy_paid_amount,
-          policy.premium
-        );
+        // console.log(
+        //   " =========== INSTALLMENT ========",
+        //   policy.policy_paid_amount !== parseInt(policy.premium),
+        //   policy.policy_paid_amount,
+        //   policy.premium
+        // );
         if (policy.installment_order > 0) {
           // plus one month to today's date
           let date = new Date();
@@ -330,7 +338,7 @@ router.all("/callback", async (req: any, res: any) => {
         policy.policy_next_deduction_date
       );
   
-      console.log("POLICY", policy_end_date, policy_next_deduction_date);
+      // console.log("POLICY", policy_end_date, policy_next_deduction_date);
   
       const to = user.phone_number;
   
@@ -343,20 +351,23 @@ router.all("/callback", async (req: any, res: any) => {
   
       // Count characters in the message
       const messageLength = paymentMessage.length;
-      console.log("MESSAGE LENGTH", messageLength, paymentMessage);
+      // console.log("MESSAGE LENGTH", messageLength, paymentMessage);
   
       if (status_code == "TS") {
         
         // Send SMS to user
        await sendSMS(to, paymentMessage);
 
-       if(user.arr_member_number == null || user.arr_member_number == ""){
+       //if(user.arr_member_number == null || user.arr_member_number == ""){
 
         const registerAARUser = await registerPrincipal(user, policy,beneficiary, airtel_money_id)
+        const updatePremiumData = await updatePremium(registerAARUser, policy)
+        console.log("AAR UPDATE PEMIUM", updatePremiumData);
+ 
         
         console.log("AAR USER", registerAARUser);
         
-       }
+     //  }
         await Payment.create({
           payment_amount: transaction.amount,
           payment_type: "airtel money payment",
@@ -371,12 +382,12 @@ router.all("/callback", async (req: any, res: any) => {
   
         console.log("Payment record created successfully");
   
-        console.log(
-          " =========== INSTALLMENT ========",
-          policy.policy_paid_amount !== parseInt(policy.premium),
-          policy.policy_paid_amount,
-          policy.premium
-        );
+        // console.log(
+        //   " =========== INSTALLMENT ========",
+        //   policy.policy_paid_amount !== parseInt(policy.premium),
+        //   policy.policy_paid_amount,
+        //   policy.premium
+        // );
         if (policy.installment_order > 0) {
           // plus one month to today's date
           let date = new Date();

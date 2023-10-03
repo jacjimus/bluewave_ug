@@ -277,6 +277,7 @@ if(user){
           claim_description: `Admission of Claim: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
           claim_type: 'Dwalingo medical cover claim',
           claim_amount: sum_insured,
+        
         });
 
         if (claim) {

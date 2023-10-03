@@ -11,13 +11,6 @@ export function buyForFamily(menu: any, args: any, db: any): void {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
 
-    async function getUser(phoneNumber: any) {
-        return await User.findOne({
-            where: {
-                phone_number: phoneNumber
-            }
-        })
-    }
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
         return await User.findOne({
@@ -35,6 +28,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             },
         });
     };
+
+   const  findAllPolicyByUser = async (user_id: any) => {
+        return await Policy.findAll({
+            where: {
+                user_id: user_id,
+            },
+        });
+    }
 
     //============  BUY FOR FAMILY ===================
 
@@ -75,14 +76,10 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     menu.state('buyForFamily.self', {
         run: async () => {
             let { first_name, last_name, phone_number } = await findUserByPhoneNumber(args.phoneNumber);
-            console.log("USER", phone_number)
-
-            //capitalize first letter of name
+        
             first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
 
-            const full_name = first_name + " " + last_name
-            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
+            menu.con(`Hospital cover for ${first_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
                     PAY
                     1. Monthly UGX 10,000
                     2. Yearly UGX 120,000 
@@ -108,9 +105,6 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
             const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
 
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
-
             //save policy details
             let policy = {
                 policy_d: uuidv4(),
@@ -125,30 +119,25 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 premium: 120000,
                 policy_pending_premium: 10000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
                 user_id: user_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             }
 
             let newPolicy = await Policy.create(policy);
             console.log("NEW POLICY FAMILY SELF", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
 
             console.log("NUMBER OF POLICIES", numberOfPolicies)
@@ -192,12 +181,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 policy_next_deduction_date: nextDeduction,
                 premium: 120000,
                 policy_pending_premium: 120000,
-                installment_order: 0,
+                installment_order: 1,
+                installment_type: 2,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -209,14 +200,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             let newPolicy = await Policy.create(policy);
             console.log("NEW POLICY FAMILY SELF", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
 
             console.log("NUMBER OF POLICIES", numberOfPolicies)
@@ -261,12 +245,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             //split name into first name and last name
             let names = spouse.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
 
 
             let beneficiary = {
                 beneficiary_id: uuidv4(),
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 full_name: spouse,
                 relationship: 'spouse',
@@ -319,11 +305,13 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 premium: 240000,
                 policy_pending_premium: 20000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -336,14 +324,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let newPolicy = await Policy.create(policy)
             console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy)
 
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id)
             let numberOfPolicies = allPolicy.length;
 
             console.log("NUMBER OF POLICIES", numberOfPolicies)
@@ -385,12 +366,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 policy_deduction_amount: 240000,
                 premium: 240000,
                 policy_pending_premium: 240000,
-                installment_order: 0,
+                installment_order: 1,
+                installment_type: 2,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -403,14 +386,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let newPolicy = await Policy.create(policy)
             console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy)
 
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id)
             let numberOfPolicies = allPolicy.length;
 
             console.log("NUMBER OF POLICIES", numberOfPolicies)
@@ -456,12 +432,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let spouse = menu.val;
             let names = spouse.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
 
 
             let beneficiary = {
                 beneficiary_id: uuidv4(),
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 full_name: spouse,
                 relationship: 'spouse',
@@ -487,7 +465,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
     menu.state('buyForFamily.selfSpouse1Child.child', {
         run: async () => {
-            let { user_id, first_name, last_name, phone_number } = await findUserByPhoneNumber(args.phoneNumber);
+            let { user_id, first_name, last_name,name, phone_number } = await findUserByPhoneNumber(args.phoneNumber);
 
             const child = menu.val;
 
@@ -509,11 +487,9 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
 
             //capitalize first letter of name
-            first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
-
-            const full_name = first_name + " " + last_name
-            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
+          first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
+            
+            menu.con(`Hospital cover for ${first_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
                     PAY
                     1. Monthly UGX 30,000
                     2. Yearly UGX 360,000 
@@ -552,11 +528,13 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 premium: 360000,
                 policy_pending_premium: 30000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 installment_alert_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -568,14 +546,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             let newPolicy = await Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
 
@@ -605,13 +576,15 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
                 let names = childName.split(" ");
                 let ben_first_name = names[0];
-                let ben_last_name = names[1];
+                let ben_middle_name = names[1];
+                let ben_last_name = names[2] || names[1];
 
                 let beneficiary = {
                     beneficiary_id: uuidv4(),
                     full_name: childName,
                     relationship: 'child',
                     first_name: ben_first_name,
+                    middle_name: ben_middle_name,
                     last_name: ben_last_name,
                     user_id: user_id
                 }
@@ -663,12 +636,14 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 policy_deduction_amount: 360000,
                 premium: 360000,
                 policy_pending_premium: 360000,
-                installment_order: 0,
+                installment_order: 1,
+                installment_type: 2,
                 installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 installment_alert_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -680,14 +655,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             let newPolicy = await Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id)
             let numberOfPolicies = allPolicy.length;
 
             console.log("NUMBER OF POLICIES", numberOfPolicies)
@@ -717,13 +685,15 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
                 let names = childName.split(" ");
                 let ben_first_name = names[0];
-                let ben_last_name = names[1];
+                let ben_middle_name = names[1];
+                let ben_last_name = names[2] || names[1];
 
                 let beneficiary = {
                     beneficiary_id: uuidv4(),
                     full_name: childName,
                     relationship: 'child',
                     first_name: ben_first_name,
+                    middle_name: ben_middle_name,
                     last_name: ben_last_name,
                     user_id: user_id
                 }
@@ -775,10 +745,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     menu.state('buyForFamily.selfSpouse2Child.spouse', {
         run: async () => {
             let spouse = menu.val;
-            console.log("SPOUSE NAME 1", spouse)
             const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
+        
             const policy = {
                 policy_d: uuidv4(),
                 policy_type: 'FAMILY',
@@ -792,31 +760,26 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                 premium: 40000,
                 policy_pending_premium: 40000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 installment_alert_date: new Date(new Date().getFullYear() + 1, new Date().getMonth() + 1, new Date().getDate()),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
                 user_id: user_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             }
 
             let newPolicy = await Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy)
 
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
+            const allPolicy = await findAllPolicyByUser(user_id)
             let numberOfPolicies = allPolicy.length;
 
             console.log("NUMBER OF POLICIES", numberOfPolicies)
@@ -838,7 +801,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let newBeneficiary = await Beneficiary.create(beneficiary);
             console.log("new beneficiary 1", newBeneficiary)
 
-            menu.con('\nEnter Child 1 name' +
+            menu.con('\nEnter your first Child full name' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -864,13 +827,15 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             let names = childName.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
 
             let beneficiary = {
                 beneficiary_id: uuidv4(),
                 full_name: childName,
                 relationship: 'child',
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 user_id: user_id
             }
@@ -878,7 +843,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             let newBeneficiary = await Beneficiary.create(beneficiary);
             console.log("new beneficiary 3", newBeneficiary)
 
-            menu.con('\n Enter Child 2 name' +
+            menu.con('\n Enter Second Child s full name' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -899,13 +864,15 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
             let names = childName.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
 
             let beneficiary = {
                 beneficiary_id: uuidv4(),
                 full_name: childName,
                 relationship: 'child',
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 user_id: user_id
             }
@@ -966,8 +933,6 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
         }
     });
-
-
 
 
 }

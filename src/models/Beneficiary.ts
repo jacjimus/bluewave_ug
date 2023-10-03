@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
 
         },
+        middle_name: {
+            type: DataTypes.STRING,
+
+        },
         last_name: {
             type: DataTypes.STRING,
 

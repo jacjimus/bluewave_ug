@@ -175,14 +175,14 @@ export function myAccount(menu: any, args: any, db: any) {
 
 
 
-  menu.state("addBeneficiaryName", {
-    run: async () => {
-      menu.con("Enter full name of  beneficiary");
-    },
-    next: {
-      "*[a-zA-Z]+": "updateBeneficiaryName",
-    },
-  });
+  // menu.state("addBeneficiaryName", {
+  //   run: async () => {
+  //     menu.con("Enter full name of  beneficiary");
+  //   },
+  //   next: {
+  //     "*[a-zA-Z]+": "updateBeneficiaryName",
+  //   },
+  // });
 
   //list beneficiaries
   menu.state("listBeneficiaries", {
@@ -530,9 +530,9 @@ export function myAccount(menu: any, args: any, db: any) {
   //my insurance policy
   menu.state("myInsurancePolicy", {
     run: async () => {
-      const bronzeLastExpenseBenefit = "UGX 1,000,000";
-      const silverLastExpenseBenefit = "UGX 1,500,000";
-      const goldLastExpenseBenefit = "UGX 2,000,000";
+      // const bronzeLastExpenseBenefit = "UGX 1,000,000";
+      // const silverLastExpenseBenefit = "UGX 1,500,000";
+      // const goldLastExpenseBenefit = "UGX 2,000,000";
 
       const user = await User.findOne({
         where: {
@@ -570,15 +570,7 @@ export function myAccount(menu: any, args: any, db: any) {
 
       for (let i = 0; i < policies.length; i++) {
         let policy = policies[i];
-        let benefit: any;
-
-        if (policy.policy_type == "AIRTEL_MINI") {
-          benefit = bronzeLastExpenseBenefit;
-        } else if (policy.policy_type == "AIRTEL_MIDI") {
-          benefit = silverLastExpenseBenefit;
-        } else if (policy.policy_type == "AIRTEL_MAXI") {
-          benefit = goldLastExpenseBenefit;
-        }
+      
 
 //         Bronze cover ACTIVE up to DD/MM/YYYY
 // Inpatient limit L: UGX 3,000,000. Balance remaining UGX 2,300,000 
@@ -598,9 +590,8 @@ export function myAccount(menu: any, args: any, db: any) {
           }. ${policy.policy_type.toUpperCase()} ACTIVE to ${
             policy.policy_end_date
           }\n` +
-          `   Inpatient limit: UGX ${policy.sum_insured}\n` 
-          // \n` +
-          // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+          `   Inpatient limit: UGX ${policy.sum_insured} 
+              Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n`;
       }
 
       menu.end(`My Insurance Policies:\n\n${policyInfo}`);

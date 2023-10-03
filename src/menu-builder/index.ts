@@ -47,8 +47,8 @@ export default function (args: RequestBody, db: any) {
     }
     
 
-    const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-    console.log("USER KYC", userKyc)
+    // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+    // console.log("USER KYC", userKyc)
 
     async function getUser(phoneNumber: any) {
       return await User.findOne({
@@ -139,11 +139,14 @@ const generatedHash = generateHash(hashData);
           try {
               const { user_id, phone_number, partner_id, membership_id } = await getUser(args.phoneNumber);
 
-              const newPolicy = await Policy.findOne({
+              let  newPolicy = await Policy.findAll({
                   where: {
                       user_id
                   }
               });
+
+              // latest policy
+              newPolicy = newPolicy[newPolicy.length - 1];
 
               console.log("============ NewPolicy =============", newPolicy)
               if (newPolicy) {
@@ -154,7 +157,7 @@ const generatedHash = generateHash(hashData);
                   const policy_id = newPolicy.policy_id;
                   let period = 'monthly'
 
-                  if (newPolicy.installment_order === 0) {
+                  if (newPolicy.installment_order === 2) {
                       period = 'yearly'
                   }
 

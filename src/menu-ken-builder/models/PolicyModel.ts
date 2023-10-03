@@ -25,6 +25,7 @@ const policySchema = new Schema({
     policy_next_deduction_date: { type: Date, required: true },
     policy_deduction_day: { type: Number, required: true },
     installment_order: { type: Number, required: true  },
+    installment_type: { type: Number, required: true },
     installment_date: { type: Date },
     installment_alert_date: { type: Date },
     tax_rate_vat: { type: Number },
