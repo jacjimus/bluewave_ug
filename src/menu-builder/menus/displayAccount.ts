@@ -28,7 +28,7 @@ if(user){
     '\n6. Choose Hopital' +
     '\n7. Terms & Conditions' +
     '\n8. FAQs' +
-    '\n0. UPDATE PROFIKLE' +
+    '\n0. UPDATE PROFILE' +
     '\n00.Main Menu'
   )
 
@@ -126,9 +126,9 @@ if(user){
 
       menu.con('Buy for others ' +
 
-        '\n1. Bronze  – UGX 10,000' +
-        '\n2. Silver – UGX 14,000' +
-        '\n3. Gold – UGX 18,000' +
+        '\n1. AIRTEL_MINI – UGX 10,000' +
+        '\n2. AIRTEL_MIDI – UGX 14,000' +
+        '\n3. AIRTEL_MAXI– UGX 18,000' +
         '\n0.Back' +
         '\n00.Main Menu'
       )
@@ -158,6 +158,7 @@ if(user){
       let policies = await Policy.findAll({
         where: {
           user_id: user?.user_id,
+          policy_status: 'paid' 
         },
       });
 
@@ -179,11 +180,11 @@ if(user){
         let policy = policies[i];
         let benefit: any;
 
-        if (policy.policy_type == 'bronze') {
+        if (policy.policy_type == 'AIRTEL_MINI') {
           benefit = bronzeLastExpenseBenefit;
-        } else if (policy.policy_type == 'silver') {
+        } else if (policy.policy_type == 'AIRTEL_MIDI') {
           benefit = silverLastExpenseBenefit;
-        } else if (policy.policy_type == 'gold') {
+        } else if (policy.policy_type == 'AIRTEL_MAXI') {
           benefit = goldLastExpenseBenefit;
         }
 
@@ -274,7 +275,7 @@ if(user){
           claim_status: 'pending',
           partner_id: user.partner_id,
           claim_description: `Admission of Claim: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
-          claim_type: 'medical claim',
+          claim_type: 'Dwalingo medical cover claim',
           claim_amount: sum_insured,
         });
 
@@ -282,7 +283,7 @@ if(user){
           const goldAndSilverMessage = `Your medical details have been confirmed. You are covered for Inpatient benefit of UGX 10,000,000`;
           const bronzeMessage = `Your medical details have been confirmed. You are covered for Inpatient cash of UGX 4,500 per night payable from the second night`;
 
-          const message = policy_type.toLowerCase() === 'bronze' ? bronzeMessage : goldAndSilverMessage;
+          const message = policy_type.toLowerCase() === 'AIRTEL_MINI' ? bronzeMessage : goldAndSilverMessage;
 
           await sendSMS(phoneNumber, message);
 

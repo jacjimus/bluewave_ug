@@ -572,11 +572,11 @@ export function myAccount(menu: any, args: any, db: any) {
         let policy = policies[i];
         let benefit: any;
 
-        if (policy.policy_type == "bronze") {
+        if (policy.policy_type == "AIRTEL_MINI") {
           benefit = bronzeLastExpenseBenefit;
-        } else if (policy.policy_type == "silver") {
+        } else if (policy.policy_type == "AIRTEL_MIDI") {
           benefit = silverLastExpenseBenefit;
-        } else if (policy.policy_type == "gold") {
+        } else if (policy.policy_type == "AIRTEL_MAXI") {
           benefit = goldLastExpenseBenefit;
         }
 

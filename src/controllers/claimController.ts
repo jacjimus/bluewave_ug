@@ -471,7 +471,7 @@ const createClaim = async (req: any, res: any) => {
         // Check if user has the policy
         const userPolicy = await Policy.findOne({
             where: {
-                policy_idid: policy_id,
+                policy_id: policy_id,
                 user_id: user_id,
             }
         });

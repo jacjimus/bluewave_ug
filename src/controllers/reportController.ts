@@ -152,8 +152,15 @@ const getPolicySummary = async (req: any, res: any) => {
     //   user: req?.user_id,
     //   partner_id: req?.partner_id,
     // });
+    const partnerCountry = await Partner.findOne({  
+      where: {
+        partner_id: partner_id,
+      },
+    });
     return res.status(200).json({
       result: {
+        code: 200,
+        countryCode: partnerCountry.country_code,
         items: summary,
       },
     });
@@ -297,8 +304,16 @@ const getClaimSummary = async (req: any, res: any) => {
     //   partner_id: req?.partner_id,
     // });
 
+    const partnerCountry = await Partner.findOne({  
+      where: {
+        partner_id: partner_id,
+      },
+    });
+
     return res.status(200).json({
       result: {
+        code: 200,
+        countryCode: partnerCountry.country_code,
         items: summary,
       },
     });
@@ -403,8 +418,16 @@ const getAllReportSummary = async (req: any, res: any) => {
       startDate = new Date(0); // A distant past date (or you can set it to your default start date)
       endDate = new Date(); // Current date
     }
+    
+    const partnerCountry = await Partner.findOne({
+      where: {
+        partner_id: partner_id,
+      },
+    });
+
 
     const summary = {
+      countryCode: partnerCountry.country_code,
       user: {
         total_users: 0,
         total_users_active: 0,
@@ -826,7 +849,19 @@ const getDailyPolicySalesReport = async (req, res) => {
     //   partner_id: req?.partner_id,
     // });
 
-    res.status(200).json(report);
+    const partnerCountry = await Partner.findOne({  
+      where: {
+        partner_id: partner_id,
+      },
+    });
+
+    res.status(200).json({
+      result: {
+        code: 200,
+        countryCode: partnerCountry.country_code,
+        items: report,
+      },
+    });
   } catch (error) {
     console.error("Error fetching sales report:", error);
     res.status(500).json({ error: "Internal server error" });

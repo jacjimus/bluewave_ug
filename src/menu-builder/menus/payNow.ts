@@ -69,9 +69,9 @@ export function payNow(menu: any, args: any, db: any): void {
       }
 
       const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount } = user;
-      const reference = user.membership_id;
+     
 
-      const payment = await airtelMoney(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, reference);
+      const payment = await airtelMoney(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, user.membership_id, "KE", "KES");
 
       if (payment.code === 200) {
         const message = `Paid UGX ${policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on day ${selectedPolicy.policy_next_deduction_date} of ${selectedPolicy.policy_next_deduction_month}`;
@@ -202,7 +202,7 @@ export function payNow(menu: any, args: any, db: any): void {
         const amount = selectedPolicy.policy_deduction_amount;
         const reference = user.membership_id;
 
-        const payment: any = await airtelMoney(userId, partner_id, policy_id, phoneNumber, amount, reference);
+        const payment: any = await airtelMoney(userId, partner_id, policy_id, phoneNumber, amount, reference, "UG", "UGX");
 
         if (payment.code === 200) {
           const message = `Your request for ${selectedPolicy.policy_type.toUpperCase()} ${selectedPolicy.beneficiary.toUpperCase()}, UGX ${selectedPolicy.premium} has been received and will be processed shortly. Please enter your Airtel Money PIN when asked.`;

@@ -124,7 +124,11 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.INTEGER,
             default: 0
 
-        }
+        },
+        arr_member_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
        
     }, { timestamps: true },)
 

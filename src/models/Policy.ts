@@ -40,8 +40,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         policy_type: {
             type: DataTypes.STRING,
-            allowNull: false
-
+            allowNull: false,
+            enum: ["AIRTEL_MINI", "AIRTEL_MIDI", "AIRTEL_MAXI", "FAMILY"]
         },
         policy_end_date: {
             type: DataTypes.DATE,

@@ -6,7 +6,7 @@ import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 
 import getAirtelUser from "../services/getAirtelUser";
-import { initiateConsent } from "../services/payment";
+import { initiateConsent, airtelMoney } from "../services/payment";
 
 import { startMenu } from "./menus/startMenu";
 import { displayInsuranceMenu } from "./menus/displayInsuranceMenu";
@@ -18,6 +18,7 @@ import { displayFaqsMenu } from "./menus/faqs";
 import { buyForFamily } from "./menus/buyForFamily";
 import { myAccount } from "./menus/myAccount";
 import { payNow } from "./menus/payNow";
+import {registerPrincipal} from "../services/aar";
 
 
 
@@ -37,7 +38,7 @@ export default function (args: RequestBody, db: any) {
       args.phoneNumber = args.phoneNumber.substring(1);
     }
 
-    console.log(args.phoneNumber)
+    console.log("USER PHONE NUMBER",args.phoneNumber)
     let userPhoneNumber = args.phoneNumber;
     //if args.phoneNumber is 12 digit remove the first three country code
     if (args.phoneNumber.length == 12) {
@@ -57,12 +58,14 @@ export default function (args: RequestBody, db: any) {
       });
     }
 
+    
     // Retrieve user using provided phone number
     const user = await getUser(userPhoneNumber);
-
+    
     if (!user) {
       throw new Error("User not found");
     }
+  
 
     // Function to generate a SHA-256 hash
     const generateHash = (data) => {
@@ -145,9 +148,9 @@ const generatedHash = generateHash(hashData);
               console.log("============ NewPolicy =============", newPolicy)
               if (newPolicy) {
                   const policy_deduction_amount = newPolicy.policy_deduction_amount;
-                  const day = newPolicy.policy_deduction_day;
+          
                   const amount = policy_deduction_amount;
-                  const reference = membership_id
+        
                   const policy_id = newPolicy.policy_id;
                   let period = 'monthly'
 
@@ -156,10 +159,10 @@ const generatedHash = generateHash(hashData);
                   }
 
 
-                  console.log(user_id, partner_id, policy_id, phone_number, amount, reference)
+                  console.log(user_id, partner_id, policy_id, phone_number, amount, membership_id)
 
-                  //let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
-                  let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)
+                  let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, membership_id, "UG", "UGX");
+                  //let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)
 
                  console.log("PAYMENT STATUS", paymentStatus)
                   if (paymentStatus.code === 200) {

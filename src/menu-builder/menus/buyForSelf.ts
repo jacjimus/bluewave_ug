@@ -30,7 +30,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         });
     };
 
-    const findPendingPolicyByUser = async (user: any) => {
+    const findPaidPolicyByUser = async (user: any) => {
         return await Policy.findOne({
             where: {
                 user_id: user?.user_id,
@@ -43,16 +43,16 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         run: async () => {
 
             const user = await findUserByPhoneNumber(args.phoneNumber);
-            const policy = await findPendingPolicyByUser(user);
+            const policy = await findPaidPolicyByUser(user);
 
             if (policy) {
                 menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
                 return;
             }
             menu.con('Buy for self ' +
-                '\n1. Bronze  – UGX 10,000' +
-                '\n2. Silver – UGX 14,000' +
-                '\n3. Gold – UGX 18,000' +
+                '\n1. Airtel MINI  – UGX 10,000' +
+                '\n2. Airtel MIDI – UGX 14,000' +
+                '\n3. Airtel MAXI – UGX 18,000' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -147,7 +147,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let currencyCode = 'UGX';
             let policy = {
                 policy_d: uuidv4(),
-                policy_type: 'bronze',
+                policy_type: "AIRTEL_MINI",
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -175,7 +175,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let newPolicy = await Policy.create(policy);
 
             console.log(newPolicy)
-            console.log("NEW POLICY BRONZE SELF", newPolicy)
+            console.log("NEW POLICY AIRTEL_MINI SELF", newPolicy)
             const allPolicy = await Policy.findAll(
                 {
                     where: {
@@ -191,7 +191,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
 
 
-            const message = `PAID UGX 10,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `
+            const message = `PAID UGX 10,000 to AAR UGANDA for AIRTEL_MINI Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `
 
 
             menu.con(`Confirm, Deduct 10,000, Next deduction will be on ${nextDeduction} 
@@ -219,13 +219,11 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let date = new Date();
             let day = date.getDate();
             let installment_alert_date = new Date(date.getFullYear() + 1, date.getMonth(), day - 3)
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
 
             //save policy details
             let policy = {
                 policy_d: uuidv4(),
-                policy_type: 'bronze',
+                policy_type: 'AIRTEL_MINI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -245,14 +243,14 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 120000,
             }
 
             let newPolicy = await Policy.create(policy);
             console.log(newPolicy)
-            console.log("NEW POLICY BRONZE SELF", newPolicy)
+            console.log("NEW POLICY AIRTEL_MINI SELF", newPolicy)
 
             const allPolicy = await Policy.findAll(
                 {
@@ -350,12 +348,11 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             let day = date.getDate();
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
+    
             //save policy details
             let policy = {
                 policy_d: uuidv4(),
-                policy_type: 'silver',
+                policy_type: 'AIRTEL_MIDI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -375,8 +372,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 14000,
             }
 
@@ -427,12 +424,11 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
             //today day of month
             let day = date.getDate();
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
+        
             //save policy details
             let policy = {
                 policy_d: uuidv4(),
-                policy_type: 'silver',
+                policy_type: 'AIRTEL_MIDI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -452,8 +448,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 167000,
             }
 
@@ -540,12 +536,11 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             //today day of month
             let day = date.getDate();
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
+       
 
             let policy = {
                 policy_d: uuidv4(),
-                policy_type: 'gold',
+                policy_type: 'AIRTEL_MAXI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -565,8 +560,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 18000,
             }
 
@@ -622,12 +617,11 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             //today day of month
             let day = date.getDate();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
+           
             //save policy details
             let policy = {
                 policy_d: uuidv4(),
-                policy_type: 'gold',
+                policy_type: 'AIRTEL_MAXI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -647,13 +641,13 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 208000,
             }
 
             let newPolicy = await Policy.create(policy);
-            console.log("NEW POLICY GOLD SELF", newPolicy)
+            console.log("NEW POLICY AIRTEL_MAXI SELF", newPolicy)
 
             const allPolicy = await Policy.findAll(
                 {

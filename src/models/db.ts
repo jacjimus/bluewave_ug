@@ -6,9 +6,9 @@ const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@bluewave-
 
 //checking if connection is done
 sequelize.authenticate().then(() => {
-    console.log(`Database connected to Airtel`)
+  console.log(`Database connected to Airtel`)
 }).catch((err) => {
-    console.log(err)
+  console.log(err)
 })
 
 export const db: any = {}
@@ -47,7 +47,7 @@ db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 //     // }
 //   }).then((policy:any) => {
 //     console.log("POLICY: ", policy)
- 
+
 //   }).catch((err:any) => {
 //     console.log(err)
 //   })
@@ -58,69 +58,67 @@ db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 //     // }
 //   }).then((transaction:any) => {
 //     console.log("TRANSACTIONS: ", transaction)
- 
+
 //   }).catch((err:any) => {
 //     console.log(err)
 //   })
 
 //update users table column number_of_policies with the number of policies a user has
-db.users.findAll().then((user:any) => {
-    console.log("USER: ", user)
+db.users.findAll().then((user: any) => {
+  user.forEach((user: any) => {
+    db.policies.findAll({
+      where: {
+        user_id: user.user_id
+      }
+    }).then((policy: any) => {
 
-    user.forEach((user:any) => {
-        db.policies.findAll({
-            where: {
-              user_id: user.user_id
-            }
-          }).then((policy:any) => {
-            console.log("POLICY: ", policy)
-            db.users.update(
-                { number_of_policies: policy.length },
-                { where: { user_id: user.user_id } }
-            )
-          }).catch((err:any) => {
-            console.log(err)
-          })
+      db.users.update(
+        { number_of_policies: policy.length },
+        { where: { user_id: user.user_id } }
+      )
+    }).catch((err: any) => {
+      console.log(err)
     })
-
-  }).catch((err:any) => {
-    console.log(err)
   })
 
-  //update installment_order for policies with multiple installments
-  db.policies.findAll().then((policy:any) => {
-    console.log("POLICY: ", policy)
-   policy.forEach((policy:any) => {
+}).catch((err: any) => {
+  console.log(err)
+})
+
+//update installment_order for policies with multiple installments
+db.policies.findAll().then((policy: any) => {
+  policy.forEach((policy: any) => {
     db.installments.findAll({
-        where: {
-          policy_id: policy.policy_id
-        }
-      }).then((installment:any) => {
-        console.log("INSTALLMENT: ", installment)
-        let installmentOrder = 0
-        installment.forEach((installment:any) => {
-            installmentOrder += 1
-            db.policies.update(
-                { installment_order: installmentOrder },
-                { where: { policy_id: policy.policy_id }
-               }
-            )
+      where: {
+        policy_id: policy.policy_id,
+       
+      }
+    }).then((installment: any) => {
+      let installmentOrder = 0
+      installment.forEach((installment: any) => {
+        installmentOrder += 1
+        db.policies.update(
+          { installment_order: installmentOrder },
+          {
+            where: { policy_id: policy.policy_id,  policy_status: 'paid' }
+          }
+        )
 
-        })
-      }).catch((err:any) => {
-        console.log(err)
       })
-   })
-  }).catch((err:any) => {
-    console.log(err)
+    }).catch((err: any) => {
+      console.log(err)
+    })
   })
+}).catch((err: any) => {
+  console.log(err)
+})
 
 
 
 
 
 
-  //update pending premium for policies
+//update pending premium for policies
 //   db.policies.findAll().then((policy:any) => {
 //     console.log("POLICY: ", policy)
 //    policy.forEach((policy:any) => {
@@ -172,7 +170,7 @@ db.users.findAll().then((user:any) => {
 //     currency_code: selectedPolicy.currency_code,
 //     country_code: selectedPolicy.country_code,
 //   });
- 
+
 // }
 
 // delete users with user_id a1a3721d-18f8-4fd9-baca-0c1de553d182 and 5c7ae55c-76bf-43b7-979e-5fc16bfaab43
@@ -188,16 +186,15 @@ db.users.findAll().then((user:any) => {
 //   })
 
 
-//DE
 
 
 
 
 //syncing the model
 sequelize.sync().then(() => {
-    console.log(`Database & tables created!`)
+  console.log(`Database & tables created! time: ${new Date()}`)
 }).catch((err) => {
-    console.log(err)
+  console.log(err)
 })
 
 

@@ -5,6 +5,7 @@ import UssdMenu from "ussd-builder";
 import { airtelMoney } from "../services/payment";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
+import getAirtelUser from "../services/getAirtelUser";
 
 require("dotenv").config();
 
@@ -30,6 +31,19 @@ export default function handleUssd(args: RequestBody, db: any) {
         args.phoneNumber = args.phoneNumber.substring(1);
       }
 
+
+      console.log(args.phoneNumber)
+      let userPhoneNumber = args.phoneNumber;
+      //if args.phoneNumber is 12 digit remove the first three country code
+      if (args.phoneNumber.length == 12) {
+        userPhoneNumber = args.phoneNumber.substring(3);
+        args.phoneNumber = userPhoneNumber;
+      }
+
+
+      const userKyc = await getAirtelUser(userPhoneNumber, "KE", "KES", 1)
+      // console.log("USER KYC KENYA ", userKyc)
+
       async function getUser(phoneNumber: any) {
         return await User.findOne({
           where: {
@@ -39,11 +53,13 @@ export default function handleUssd(args: RequestBody, db: any) {
       }
 
       // Retrieve user using provided phone number
-      const user = await getUser(args.phoneNumber);
+      const user = await getUser(userPhoneNumber);
+      // console.log("USER KENYA: ", user);
 
       if (!user) {
         throw new Error("User not found");
       }
+
       // Function to generate a SHA-256 hash
       const generateHash = (data: any) => {
         const hash = crypto.createHash('sha256');
@@ -82,7 +98,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       if (!session) {
         // Create new session
         session = await Session.create(buildInput);
-        console.log("New Session:", session);
+        //console.log("New Session:", session);
       } else {
         // Update existing session
         await Session.update(buildInput, {
@@ -90,57 +106,58 @@ export default function handleUssd(args: RequestBody, db: any) {
             sid: buildInput.sid,
           },
         });
-        console.log("Updated Session:", session);
+        //console.log("Updated Session:", session);
       }
       // ===============SET START MENU STATES============
       // Set the start state for the menu
+      // menu.startState({
+      //   run: async () => {
+      //     menu.con(
+      //       "Welcome. Choose option:" +
+      //       "\n1. Send Money" +
+      //       "\n2. Airtime/Bundles" +
+      //       "\n3. Withdraw Cash" +
+      //       "\n4. Pay Bill" +
+      //       "\n5. Payments" +
+      //       "\n6. School Fees" +
+      //       "\n7. Financial Services" +
+      //       "\n8. Wewole" +
+      //       "\n9. AirtelMoney Pay" +
+      //       "\n10. My account" +
+      //       "\n11. BiZ Wallet"
+      //     );
+      //   },
+      //   next: {
+      //     "7": "insurance",
+      //   },
+      // });
+
+      // menu.state("insurance", {
+      //   run: () => {
+      //     menu.con(
+      //       "Financial Services" +
+      //       "\n1. Banks" +
+      //       "\n2. Group Collections" +
+      //       "\n3. M-SACCO" +
+      //       "\n4. ATM Withdraw" +
+      //       "\n5. NSSF Savings" +
+      //       "\n6. Insurance" +
+      //       "\n7. Yassako Loans" +
+      //       "\n8. SACCO" +
+      //       "\n9. AirtelMoney MasterCard" +
+      //       "\n10. Loans" +
+      //       "\n11. Savings" +
+      //       "\nn  Next"
+      //     );
+      //   },
+      //   next: {
+      //     "6": "medical_cover",
+      //   },
+      // });
+
+
       menu.startState({
         run: async () => {
-          menu.con(
-            "Welcome. Choose option:" +
-            "\n1. Send Money" +
-            "\n2. Airtime/Bundles" +
-            "\n3. Withdraw Cash" +
-            "\n4. Pay Bill" +
-            "\n5. Payments" +
-            "\n6. School Fees" +
-            "\n7. Financial Services" +
-            "\n8. Wewole" +
-            "\n9. AirtelMoney Pay" +
-            "\n10. My account" +
-            "\n11. BiZ Wallet"
-          );
-        },
-        next: {
-          "7": "insurance",
-        },
-      });
-
-      menu.state("insurance", {
-        run: () => {
-          menu.con(
-            "Financial Services" +
-            "\n1. Banks" +
-            "\n2. Group Collections" +
-            "\n3. M-SACCO" +
-            "\n4. ATM Withdraw" +
-            "\n5. NSSF Savings" +
-            "\n6. Insurance" +
-            "\n7. Yassako Loans" +
-            "\n8. SACCO" +
-            "\n9. AirtelMoney MasterCard" +
-            "\n10. Loans" +
-            "\n11. Savings" +
-            "\nn  Next"
-          );
-        },
-        next: {
-          "6": "medical_cover",
-        },
-      });
-
-      menu.state("medical_cover", {
-        run: () => {
           menu.con(
             "Insurance " +
             "\n1. Medical cover" +
@@ -154,32 +171,49 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
-      menu.state("account", {
-        run: () => {
-          menu.con(
-            "Medical cover " +
-            "\n1. Buy for self" +
-            "\n2. Buy (family)" +
-            "\n3. Buy (others)" +
-            "\n4. Admission Claim" +
-            "\n5. My Account" +
-            "\n6. Choose Hopital" +
-            "\n7. Terms & Conditions" +
-            "\n8. FAQs" +
-            "\n0.Back" +
-            "\n00.Main Menu"
-          );
+      menu.state('account', {
+        run: async () => {
+          const user = await db.users.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+              gender: {
+                [db.Sequelize.Op.ne]: null,
+              },
+            },
+          });
+
+          console.log(" ============== USER ================ ", user);
+          if (user) {
+            menu.con('Medical cover ' +
+              '\n1. Buy for self' +
+              '\n2. Buy for family' +
+              '\n3. Buy for others' +
+              '\n4. Admission Claim' +
+              '\n5. My Account' +
+              '\n6. Choose Hopital' +
+              '\n7. Terms & Conditions' +
+              '\n8. FAQs' +
+              '\n00.Main Menu'
+            )
+
+          } else {
+            menu.con('Medical cover ' +
+              '\n0. Update profile(KYC)')
+
+          }
         },
         next: {
-          "1": "buyForSelf",
-          "2": "buyForFamily",
-          "3": "buyForOthers",
-          "4": "makeClaim",
-          "5": "myAccount",
-          "6": "chooseHospital",
-          "7": "termsAndConditions",
-          "8": "faqs",
-        },
+          '1': 'buyForSelf',
+          '2': 'buyForFamily',
+          '3': 'buyForOthers',
+          '4': 'makeClaim',
+          '5': 'myAccount',
+          '6': 'chooseHospital',
+          '7': 'termsAndConditions',
+          '8': 'faqs',
+          '0': 'updateProfile',
+          '00': 'insurance',
+        }
       });
       //=================BUY FOR SELF=================
 
@@ -202,18 +236,25 @@ export default function handleUssd(args: RequestBody, db: any) {
           "00": "insurance",
         },
       });
+
+      // TO BE DONE
       menu.state("buyForSelf.bronze", {
         run: async () => {
           try {
-            const user = await User.findOne({ phone_number: args.phoneNumber });
-            const product = await Policy.findOne({ where: { partner_id: 1 } });
+            let { name } = await getUser(args.phoneNumber);
+            console.log("USER NAME: ", name);
+            const policy = await Policy.findOne({ where: { partner_id: 1 } });
+            console.log("POLICY: ", policy);
+            // if (policy) {
+            //   menu.con("You already have a policy. \n 0. Back \n 00. Main Menu");
 
-            const first_name = capitalizeFirstLetter(user.first_name);
-            const last_name = capitalizeFirstLetter(user.last_name);
-            const full_name = `${first_name} ${last_name}`;
-            const phone_number = user.phone_number;
+            // }
 
-            menu.con(`Hospital cover for ${full_name}, ${phone_number} Kes 1M a year 
+
+            const full_name = name.toUpperCase();
+
+
+            menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} KES 1M a year 
                           PAY
                           1. KES 300 deducted monthly
                           2. KES 3,292 yearly
@@ -221,6 +262,76 @@ export default function handleUssd(args: RequestBody, db: any) {
                           00. Main Menu`);
           } catch (error) {
             console.error("Error in buyForSelf.bronze:", error);
+            menu.con("An error occurred. Please try again later.");
+          }
+        },
+        next: {
+          "1": "buyForSelf.bronze.pay",
+          "2": "buyForSelf.bronze.pay.yearly",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+      menu.state("buyForSelf.silver", {
+        run: async () => {
+          try {
+            let { name } = await getUser(args.phoneNumber);
+            console.log("USER NAME: ", name);
+            const policy = await Policy.findOne({ where: { partner_id: 1 } });
+            console.log("POLICY: ", policy);
+            // if (policy) {
+            //   menu.con("You already have a policy. \n 0. Back \n 00. Main Menu");
+
+            // }
+
+
+            const full_name = name.toUpperCase();
+
+
+            menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} KES 3M a year 
+                          PAY
+                          1. KES 650 deducted monthly
+                          2. KES 7,142 yearly
+                          0. Back
+                          00. Main Menu`);
+          } catch (error) {
+            console.error("Error in buyForSelf.silver:", error);
+            menu.con("An error occurred. Please try again later.");
+          }
+        },
+        next: {
+          "1": "buyForSelf.silver.pay",
+          "2": "buyForSelf.silver.pay.yearly",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+      menu.state("buyForSelf.gold", {
+        run: async () => {
+          try {
+            let { name } = await getUser(args.phoneNumber);
+            console.log("USER NAME: ", name);
+            const policy = await Policy.findOne({ where: { partner_id: 1 } });
+            console.log("POLICY: ", policy);
+            // if (policy) {
+            //   menu.con("You already have a policy. \n 0. Back \n 00. Main Menu");
+
+            // }
+
+
+            const full_name = name.toUpperCase();
+
+
+            menu.con(`Hospital cover for ${full_name}, ${args.phoneNumber} KES 5M a year 
+                          PAY
+                          1. KES 14,000 deducted monthly
+                          2. KES 154,000 yearly
+                          0. Back
+                          00. Main Menu`);
+          } catch (error) {
+            console.error("Error in buyForSelf.gold:", error);
             menu.con("An error occurred. Please try again later.");
           }
         },
@@ -249,6 +360,41 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
+      menu.state("buyForSelf.silver.pay", {
+        run: () => {
+          menu.con(
+            "Pay KES 650 deducted monthly." +
+            "\nTerms&Conditions - www.airtel.com" +
+            '\nEnter PIN or Membership ID to Agree and Pay' +
+            "\n0.Back" +
+            "\n00.Main Menu"
+          );
+        },
+        next: {
+          "*\\d+": "buyForSelf.silver.pin",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+
+      menu.state("buyForSelf.gold.pay", {
+        run: () => {
+          menu.con(
+            "Pay KES 14,000 deducted monthly." +
+            "\nTerms&Conditions - www.airtel.com" +
+            '\nEnter PIN or Membership ID to Agree and Pay' +
+            "\n0.Back" +
+            "\n00.Main Menu"
+          );
+        },
+        next: {
+          "*\\d+": "buyForSelf.gold.pin",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
       menu.state("buyForSelf.bronze.pay.yearly", {
         run: () => {
           menu.con(
@@ -271,12 +417,8 @@ export default function handleUssd(args: RequestBody, db: any) {
           // use menu.val to access user input value
           let user_pin = Number(menu.val);
           const { pin, membership_id } = await getUser(args.phoneNumber);
-          console.log("USER PIN", user_pin, "PIN", pin);
           // check if pin is correct
-          if (
-            user_pin !== 1234 ||
-            user_pin == pin ||
-            membership_id == user_pin
+          if (user_pin == pin || membership_id == user_pin
           ) {
             menu.con(
               "SCHEDULE" +
@@ -291,6 +433,58 @@ export default function handleUssd(args: RequestBody, db: any) {
 
         next: {
           "*\\d+": "buyForSelf.bronze.confirm",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+      menu.state("buyForSelf.silver.pin", {
+        run: async () => {
+          // use menu.val to access user input value
+          let user_pin = Number(menu.val);
+          const { pin, membership_id } = await getUser(args.phoneNumber);
+          // check if pin is correct
+          if (user_pin == pin || membership_id == user_pin
+          ) {
+            menu.con(
+              "SCHEDULE" +
+              "\n Enter day of month to deduct KES 650 premium monthly (e.g. 1, 2, 3…31)" +
+              "\n0.Back" +
+              "\n00.Main Menu"
+            );
+          } else {
+            menu.con("PIN incorrect. Try again");
+          }
+        },
+
+        next: {
+          "*\\d+": "buyForSelf.silver.confirm",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+      menu.state("buyForSelf.gold.pin", {
+        run: async () => {
+          // use menu.val to access user input value
+          let user_pin = Number(menu.val);
+          const { pin, membership_id } = await getUser(args.phoneNumber);
+          // check if pin is correct
+          if (user_pin == pin || membership_id == user_pin
+          ) {
+            menu.con(
+              "SCHEDULE" +
+              "\n Enter day of month to deduct KES 14,000 premium monthly (e.g. 1, 2, 3…31)" +
+              "\n0.Back" +
+              "\n00.Main Menu"
+            );
+          } else {
+            menu.con("PIN incorrect. Try again");
+          }
+        },
+
+        next: {
+          "*\\d+": "buyForSelf.gold.confirm",
           "0": "account",
           "00": "insurance",
         },
@@ -323,18 +517,76 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
+      menu.state("buyForSelf.silver.yearly.pin", {
+        run: async () => {
+          let user_pin = Number(menu.val);
+          const { pin, membership_id } = await getUser(args.phoneNumber);
+          if (
+            user_pin !== 1234 ||
+            user_pin == pin ||
+            membership_id == user_pin
+          ) {
+            menu.con(
+              "SCHEDULE" +
+              "\n Enter day of month to deduct KES 7,152 premium yearly (e.g. 1, 2, 3…31)" +
+              "\n0.Back" +
+              "\n00.Main Menu"
+            );
+          } else {
+            menu.con("PIN incorrect. Try again");
+          }
+        },
+
+        next: {
+          "*\\d+": "buyForSelf.silver.yearly.confirm",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+
+      menu.state("buyForSelf.gold.yearly.pin", {
+        run: async () => {
+          let user_pin = Number(menu.val);
+          const { pin, membership_id } = await getUser(args.phoneNumber);
+          if (
+            user_pin !== 1234 ||
+            user_pin == pin ||
+            membership_id == user_pin
+          ) {
+            menu.con(
+              "SCHEDULE" +
+              "\n Enter day of month to deduct KES 154,000 premium yearly (e.g. 1, 2, 3…31)" +
+              "\n0.Back" +
+              "\n00.Main Menu"
+            );
+          } else {
+            menu.con("PIN incorrect. Try again");
+          }
+        },
+
+        next: {
+          "*\\d+": "buyForSelf.gold.yearly.confirm",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+
+
       menu.state("buyForSelf.bronze.confirm", {
         run: async () => {
           let deduction_day = Number(menu.val);
           const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
 
           let date = new Date();
-          let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
+          let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
+          console.log("NEXT DEDUCTION", nextDeduction);
           //today day of month
           let day = date.getDate();
-          let countryCode = "KEN";
-          let currencyCode = "KES";
+
           let policy = {
+            policy_id: uuidv4(),
             policy_type: "bronze",
             beneficiary: "self",
             policy_status: "pending",
@@ -348,7 +600,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             policy_deduction_amount: 300,
             policy_next_deduction_date: nextDeduction,
             user_id: user_id,
-            product_id: 2,
+            product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
             premium: 300,
             installment_order: 1,
             installment_date: new Date(),
@@ -359,8 +611,8 @@ export default function handleUssd(args: RequestBody, db: any) {
             excess_premium: "0",
             discount_premium: "0",
             partner_id: partner_id,
-            country_code: countryCode,
-            currency_code: currencyCode,
+            country_code: "KEN",
+            currency_code: "KES",
           };
 
           let newPolicy = await Policy.create(policy);
@@ -393,6 +645,150 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
+
+      menu.state("buyForSelf.silver.confirm", {
+        run: async () => {
+          let deduction_day = Number(menu.val);
+          const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
+
+          let date = new Date();
+          let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
+          console.log("NEXT DEDUCTION", nextDeduction);
+          //today day of month
+          let day = date.getDate();
+
+          let policy = {
+            policy_id: uuidv4(),
+            policy_type: "silver",
+            beneficiary: "self",
+            policy_status: "pending",
+            policy_start_date: new Date(),
+            policy_end_date: new Date(
+              date.getFullYear() + 1,
+              date.getMonth(),
+              day
+            ),
+            policy_deduction_day: day * 1,
+            policy_deduction_amount: 650,
+            policy_next_deduction_date: nextDeduction,
+            user_id: user_id,
+            product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
+            premium: 650,
+            installment_order: 1,
+            installment_date: new Date(),
+            installment_alert_date: new Date(),
+            tax_rate_vat: "0.2",
+            tax_rate_ext: "0.25",
+            sum_insured: "300000",
+            excess_premium: "0",
+            discount_premium: "0",
+            partner_id: partner_id,
+            country_code: "KEN",
+            currency_code: "KES",
+          };
+
+          let newPolicy = await Policy.create(policy);
+
+          console.log(newPolicy);
+          console.log("NEW POLICY BRONZE SELF", newPolicy);
+
+          //SEND SMS TO USER
+          //  '+2547xxxxxxxx';
+          //const to = args.phoneNumber + "".replace('+', '');
+          const to = "254" + args.phoneNumber.substring(1);
+
+          const message = `PAID KES 650 to AAR KENYA for SILVER Cover Cover Charge KES 0. Bal KES 300. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `;
+
+          //send SMS
+          //const sms = await sendSMS(to, message);
+
+          menu.con(
+            "Confirm \n" +
+            ` Deduct KES 650, Next deduction will be on ${nextDeduction} 
+         1.Confirm 
+         0.Back 
+         00.Main Menu`
+          );
+        },
+        next: {
+          "1": "confirmation",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+
+      menu.state("buyForSelf.gold.confirm", {
+        run: async () => {
+          let deduction_day = Number(menu.val);
+          const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
+
+          let date = new Date();
+          let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
+          console.log("NEXT DEDUCTION", nextDeduction);
+          //today day of month
+          let day = date.getDate();
+
+          let policy = {
+            policy_id: uuidv4(),
+            policy_type: "gold",
+            beneficiary: "self",
+            policy_status: "pending",
+            policy_start_date: new Date(),
+            policy_end_date: new Date(
+              date.getFullYear() + 1,
+              date.getMonth(),
+              day
+            ),
+            policy_deduction_day: day * 1,
+            policy_deduction_amount: 14000,
+            policy_next_deduction_date: nextDeduction,
+            user_id: user_id,
+            product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
+            premium: 14000,
+            installment_order: 1,
+            installment_date: new Date(),
+            installment_alert_date: new Date(),
+            tax_rate_vat: "0.2",
+            tax_rate_ext: "0.25",
+            sum_insured: "300000",
+            excess_premium: "0",
+            discount_premium: "0",
+            partner_id: partner_id,
+            country_code: "KEN",
+            currency_code: "KES",
+          };
+
+          let newPolicy = await Policy.create(policy);
+
+          console.log(newPolicy);
+          console.log("NEW POLICY BRONZE SELF", newPolicy);
+
+          //SEND SMS TO USER
+          //  '+2547xxxxxxxx';
+          //const to = args.phoneNumber + "".replace('+', '');
+          const to = "254" + args.phoneNumber.substring(1);
+
+          const message = `PAID KES 140000 to AAR KENYA for GOLD Cover Cover Charge KES 0. Bal KES 300. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `;
+
+          //send SMS
+          //const sms = await sendSMS(to, message);
+
+          menu.con(
+            "Confirm \n" +
+            ` Deduct KES 14,000, Next deduction will be on ${nextDeduction} 
+         1.Confirm 
+         0.Back 
+         00.Main Menu`
+          );
+        },
+        next: {
+          "1": "confirmation",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
       menu.state("buyForSelf.bronze.yearly.confirm", {
         run: async () => {
           try {
@@ -408,10 +804,9 @@ export default function handleUssd(args: RequestBody, db: any) {
               date.getMonth(),
               day
             );
-            let countryCode = "KEN";
-            let currencyCode = "KES";
 
             const policy = {
+              policy_id: uuidv4(),
               policy_type: "bronze",
               beneficiary: "self",
               policy_status: "pending",
@@ -420,7 +815,7 @@ export default function handleUssd(args: RequestBody, db: any) {
               policy_deduction_day: day,
               policy_deduction_amount: 3292,
               policy_next_deduction_date: nextDeduction,
-              product_id: 2,
+              product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
               premium: 3292,
               installment_order: 1,
               installment_date: nextDeduction,
@@ -432,8 +827,8 @@ export default function handleUssd(args: RequestBody, db: any) {
               discount_premium: "0",
               user_id: user_id,
               partner_id: partner_id,
-              country_code: countryCode,
-              currency_code: currencyCode,
+              country_code: "KEN",
+              currency_code: "KES",
             };
 
             const newPolicy = await Policy.create(policy);
@@ -462,27 +857,157 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
+
+      menu.state("buyForSelf.silver.yearly.confirm", {
+        run: async () => {
+          try {
+            let user_pin = Number(menu.val);
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if (user_pin !== pin && user_pin !== membership_id) {
+              menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
+            }
+            const date = new Date();
+            const day = date.getDate();
+            const nextDeduction = new Date(
+              date.getFullYear() + 1,
+              date.getMonth(),
+              day
+            );
+
+            const policy = {
+              policy_id: uuidv4(),
+              policy_type: "silver",
+              beneficiary: "self",
+              policy_status: "pending",
+              policy_start_date: new Date(),
+              policy_end_date: nextDeduction,
+              policy_deduction_day: day,
+              policy_deduction_amount: 7142,
+              policy_next_deduction_date: nextDeduction,
+              product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
+              premium: 7142,
+              installment_order: 0,
+              installment_date: nextDeduction,
+              installment_alert_date: nextDeduction,
+              tax_rate_vat: "0.2",
+              tax_rate_ext: "0.25",
+              sum_insured: "300000",
+              excess_premium: "0",
+              discount_premium: "0",
+              user_id: user_id,
+              partner_id: partner_id,
+              country_code: "KEN",
+              currency_code: "KES",
+            };
+
+            const newPolicy = await Policy.create(policy);
+
+            const to = args.phoneNumber.replace("+", "");
+            const message = `PAID KES 7142 to AAR KENYA for  Silver Cover. Cover Charge KES 0. Bal KES 3,294. TID: 715XXXXXXXX. 
+    Date: ${new Date().toLocaleDateString()}.`;
+
+            // Send SMS to user
+            // const sms = await sendSMS(to, message);
+
+            menu.con(
+              `Confirm\nDeduct KES 7,412, Next deduction will be on ${policy.policy_end_date}\n` +
+              "\n1.Confirm\n" +
+              "\n0.Back\n00.Main Menu"
+            );
+          } catch (error) {
+            console.error("Error in buyForSelf.silver.yearly.confirm:", error);
+            menu.con("An error occurred. Please try again later.");
+          }
+        },
+        next: {
+          "1": "confirmation",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
+
+      menu.state("buyForSelf.gold.yearly.confirm", {
+        run: async () => {
+          try {
+            let user_pin = Number(menu.val);
+            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            if (user_pin !== pin && user_pin !== membership_id) {
+              menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
+            }
+            const date = new Date();
+            const day = date.getDate();
+            const nextDeduction = new Date(
+              date.getFullYear() + 1,
+              date.getMonth(),
+              day
+            );
+
+            const policy = {
+              policy_id: uuidv4(),
+              policy_type: "gold",
+              beneficiary: "self",
+              policy_status: "pending",
+              policy_start_date: new Date(),
+              policy_end_date: nextDeduction,
+              policy_deduction_day: day,
+              policy_deduction_amount: 154000,
+              policy_next_deduction_date: nextDeduction,
+              product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
+              premium: 154000,
+              installment_order: 0,
+              installment_date: nextDeduction,
+              installment_alert_date: nextDeduction,
+              tax_rate_vat: "0.2",
+              tax_rate_ext: "0.25",
+              sum_insured: "300000",
+              excess_premium: "0",
+              discount_premium: "0",
+              user_id: user_id,
+              partner_id: partner_id,
+              country_code: "KEN",
+              currency_code: "KES",
+            };
+
+            const newPolicy = await Policy.create(policy);
+
+            const to = args.phoneNumber.replace("+", "");
+            const message = `PAID KES 154,000 to AAR KENYA for  Silver Cover. Cover Charge KES 0. Bal KES 3,294. TID: 715XXXXXXXX. 
+    Date: ${new Date().toLocaleDateString()}.`;
+
+            // Send SMS to user
+            // const sms = await sendSMS(to, message);
+
+            menu.con(
+              `Confirm\nDeduct KES 154,0000, Next deduction will be on ${policy.policy_end_date}\n` +
+              "\n1.Confirm\n" +
+              "\n0.Back\n00.Main Menu"
+            );
+          } catch (error) {
+            console.error("Error in buyForSelf.silver.yearly.confirm:", error);
+            menu.con("An error occurred. Please try again later.");
+          }
+        },
+        next: {
+          "1": "confirmation",
+          "0": "account",
+          "00": "insurance",
+        },
+      });
       //===============CONFIRMATION=================
 
       menu.state("confirmation", {
         run: async () => {
           try {
-            const { user_id, phone_number, partner_id } = await getUser(
+            const { user_id, phone_number, partner_id, membership_id } = await getUser(
               args.phoneNumber
             );
-            const policy = await Policy.findOne({
+            const { policy_id, policy_deduction_day, policy_deduction_amount } = await Policy.findOne({
               where: {
                 user_id: user_id,
               },
             });
 
-            if (policy) {
-              const policy_deduction_amount = policy.policy_deduction_amount;
-              const day = policy.policy_deduction_day;
-              const policy_id = policy.id;
-              const uuid = uuidv4();
-              const reference = policy.policy_type + policy_id + user_id + uuid;
-
+            if (policy_id) {
               // Call the airtelMoney function and handle payment status
               const paymentStatus = await airtelMoney(
                 user_id,
@@ -490,13 +1015,15 @@ export default function handleUssd(args: RequestBody, db: any) {
                 policy_id,
                 phone_number,
                 policy_deduction_amount,
-                reference,
+                membership_id,
+                "KE",
+                "KES"
               );
 
               if (paymentStatus.code === 200) {
                 menu.end(
                   `Congratulations, you are now covered.\n` +
-                  `To stay covered KES ${policy_deduction_amount} will be deducted on day ${day} of every month`
+                  `To stay covered KES ${policy_deduction_amount} will be deducted on day ${policy_deduction_day} of every month`
                 );
               } else {
                 menu.end(
@@ -519,17 +1046,58 @@ export default function handleUssd(args: RequestBody, db: any) {
       //ask for phone number and name of person to buy for
       menu.state("buyForOthers", {
         run: async () => {
-          menu.con("Enter full name or phone number of person to buy for");
+          menu.con("Enter full name of person to buy for");
         },
         next: {
-          "*[a-zA-Z]+": "buyForOthersOptions",
+          "*[a-zA-Z]+": "buyForOthersOptionsPhoneNumber",
+        },
+      });
+
+      menu.state("buyForOthersOptionsPhoneNumber", {
+        run: async () => {
+
+          const user = await getUser(args.phoneNumber);
+
+          let updateBeneficiary = await Beneficiary.create({
+            beneficiary_id: uuidv4(),
+            user_id: user.user_id,
+            relationship: "other",
+            full_name: menu.val,
+            first_name: menu.val.split(" ")[0],
+            last_name: menu.val.split(" ")[1],
+          });
+
+
+          menu.con("Enter phone number of person to buy for");
+        },
+        next: {
+          "*[0-9]": "buyForOthersOptions",
         },
       });
 
       menu.state("buyForOthersOptions", {
         run: async () => {
-          const name = menu.val;
-          console.log("NAME:", name);
+          const phoneNumber = menu.val;
+
+
+          // save beneficiary phone number to user
+          const user = await getUser(args.phoneNumber);
+
+          let updateBeneficiary = await Beneficiary.update(
+            {
+              phone_number: phoneNumber,
+            },
+            {
+              where: {
+                user_id: user.user_id,
+                relationship: "other",
+              },
+            }
+          );
+
+          console.log("updateBeneficiary", updateBeneficiary);
+
+
 
           try {
             const user = await User.findOne({
@@ -538,23 +1106,17 @@ export default function handleUssd(args: RequestBody, db: any) {
               },
             });
 
-            if (user) {
-              // Update user's name
-              user.name = name;
-              await user.save();
 
-              menu.con(
-                "Buy for others" +
-                "\n1. Bronze – KES 300" +
-                "\n2. Silver – KES 650" +
-                "\n3. Gold – KES 14,000" +
-                "\n0. Back" +
-                "\n00. Main Menu"
-              );
-            } else {
-              console.log("User not found");
-              menu.con("User not found. Please try again.");
-            }
+
+            menu.con(
+              "Buy for others" +
+              "\n1. Bronze – KES 300" +
+              "\n2. Silver – KES 650" +
+              "\n3. Gold – KES 14,000" +
+              "\n0. Back" +
+              "\n00. Main Menu"
+            );
+
           } catch (error) {
             console.error("Error:", error);
             menu.con("An error occurred. Please try again.");
@@ -591,7 +1153,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "3": "myInsurancePolicy",
           "4": "updateProfile",
           "5": "cancelPolicy",
-          "6": "myHospitalOption",
+          "6": "myHospital",
           "0": "account",
           "00": "insurance",
         },
@@ -676,12 +1238,12 @@ export default function handleUssd(args: RequestBody, db: any) {
           console.log("USER DOB UPDATE: ", user);
 
           menu.con(`Your profile has been updated successfully
-          0. Back
+          1. Buy cover
           00. Main Menu
            `);
         },
         next: {
-          "0": "myAccount",
+          "1": "account",
           "00": "insurance",
         },
       });
@@ -1092,356 +1654,622 @@ export default function handleUssd(args: RequestBody, db: any) {
 
       //==================CHOOSE HOSPITAL===================
 
-      menu.state("chooseHospital", {
+      // Define hospital data based on regions
+      const hospitalsData = {
+        nairobi: [
+          {
+            "REGION": "BURUBURU\/EASTLEIGH",
+            "PROVIDER": "Bliss GVS Healthcare - Buruburu",
+            "LOCATION": "ACK Saint James Church, Buru Buru ",
+            "CONTACTS": "0712 768806",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "City Point Group of Hospitals",
+            "LOCATION": "Eastleigh",
+            "CONTACTS": "0755 818868",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Ngara Comprehensive Health services Ltd",
+            "LOCATION": "Ngara, Off Park Rd, Mogira Rd",
+            "CONTACTS": "0722 528022",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Mother & Child Hospital",
+            "LOCATION": "First Avenue, Eastleigh",
+            "CONTACTS": "0722 570363",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "CBD",
+            "PROVIDER": "Bliss GVS Healthcare - Haile Selassie",
+            "LOCATION": "Along Haile Selasie Road, next to Barclays Bank, Behind Nakumatt Haile Sellasie ",
+            "CONTACTS": "0712 849650",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - College House",
+            "LOCATION": "College House, Koinange Street ",
+            "CONTACTS": "0722 994768",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Penda Medical Centre Kimathi Street (CBD)",
+            "LOCATION": "Ground Floor, Old Mutual Building, Kimathi Street, Opposite The Stanley Hotel",
+            "CONTACTS": "0772 905756 or 0722 674189",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Moi Avenue",
+            "LOCATION": "Stanbank House Along Moi Avenue ",
+            "CONTACTS": "0765 000050",
+            "SPECIALITY": "OP"
+          },
+          // Add more hospitals for Nairobi region
+        ],
+        eastern: [
+          {
+            "REGION": "EMBU",
+            "PROVIDER": "Bliss GVS Healthcare - Embu",
+            "LOCATION": "Tujenge Plaza, Embu Town",
+            "CONTACTS": 780100074,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Embu Childrens Hospital (Tenri) Town clinic",
+            "LOCATION": "Embu Kiritiri\/Kiambere Rd",
+            "CONTACTS": "0722-891560",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Embu Children Clinic, Tenri. Majimbo",
+            "LOCATION": "Majimbo near cerals board. Off Embu-Kiritiri road",
+            "CONTACTS": "0723 386706",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Imara Hospital",
+            "LOCATION": "Rwika Stage, Embu",
+            "CONTACTS": "0790 726339",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Imara Medi Plus Centre",
+            "LOCATION": "Njue Plaza, 2nd Flr, Kenyatta Avenue. Embu Town",
+            "CONTACTS": "0722 353250 or 0780 353250",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "County Medical Centre Embu Ltd",
+            "LOCATION": "Majengo, along Nairobi Embu Highway",
+            "CONTACTS": "0712 275242 or 0705 351441",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "ISIOLO",
+            "PROVIDER": "St. John Paul II Avi Matercare Hospital",
+            "LOCATION": "Airport Road, Opp. Isiolo International Airport, Isiolo",
+            "CONTACTS": "0708 296492",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Isiolo Medical Centre",
+            "LOCATION": "Behind Bomen Hotel, Opp post office, Isiolo",
+            "CONTACTS": "0729 536775 or 0722 678401",
+            "SPECIALITY": "OP"
+          },
+          // Add more hospitals for Eastern region
+        ],
+        central: [
+          {
+            "REGION": "KIAMBU\/GITHUNGURI",
+            "PROVIDER": "AIC Kijabe Hospital",
+            "LOCATION": "Kijabe Road, Kijabe, Nairobi - Nakuru Highway",
+            "CONTACTS": "020-3246500 or 0712 504056 or 0789 721756 or 0787 145122",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Kiambu",
+            "LOCATION": "Ground Floor Telkom Building, Opp Kiambu Level 4 Hospital",
+            "CONTACTS": 780328415,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Kiambu Medical Centre",
+            "LOCATION": "Kiambu Town, Biashara Street, Opp. Kiambu District Hospital",
+            "CONTACTS": "020-2019515 or 0722-311890   ",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Ivory Health Solutions",
+            "LOCATION": "Githunguri town centre",
+            "CONTACTS": "0796 769819",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "THIKA",
+            "PROVIDER": "Bliss GVS Healthcare - Thika",
+            "LOCATION": "KRA Building, Thika Town",
+            "CONTACTS": 780100925,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Thika Nursing Homes Ltd",
+            "LOCATION": "Next to Section 9 Estate, Thika",
+            "CONTACTS": "0728 929256",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Mary Help of the Sick",
+            "LOCATION": "Thika",
+            "CONTACTS": "TBA",
+            "SPECIALITY": "IP, OP"
+          },
+        ],
+
+        centralrift: [
+          {
+            "REGION": "NAKURU",
+            "PROVIDER": "Optimum Current Health Care Limited",
+            "LOCATION": "Tamoh Plaza, 1st Flr, Kijabe Row & Section 58 Kinuthia Mbugua Road, Nakuru",
+            "CONTACTS": "0724 265848 or 0726 245848",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "The Nakuru Specialist Hospital",
+            "LOCATION": "Lanet area, nextto DOD, along Nakuru-Nairobi Highway",
+            "CONTACTS": "0700 907000",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "FHOK - Family Care Medical Centre Nakuru",
+            "LOCATION": "Junction of Oginga\/Market rd",
+            "CONTACTS": "0717 590806",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Medicross - Nakuru MC",
+            "LOCATION": "George Morara Road, next to CMC Motors",
+            "CONTACTS": "0717 118737",
+            "SPECIALITY": "OP"
+          },
+          {
+            "REGION": "NAIVASHA\/GILGIL",
+            "PROVIDER": "Bliss GVS Healthcare - Naivasha",
+            "LOCATION": "Maryland Building, Mbariakanui Road, next to Kenya Power Office",
+            "CONTACTS": 780100036,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Flamingo Medical Centre- Naivasha",
+            "LOCATION": "Moi South Lake Road, Kingfisher Farm, Naivasha",
+            "CONTACTS": "0722 204831",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Ndonyo Healthcare - Naivasha",
+            "LOCATION": "0719 342059 or 0777 394203",
+            "CONTACTS": "0719 342059 or 0777 394203",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "St Marys Hospital, Gilgil",
+            "LOCATION": "Gilgil",
+            "CONTACTS": "TBA",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Mt. Longonot Medical Services Ltd",
+            "LOCATION": "0708-372858 or 050-2021196",
+            "CONTACTS": "Kenyatta Avenue, opposite Milimani Primary School, Naivasha",
+            "SPECIALITY": "IP, OP"
+          },
+          // Add more hospitals for Embakasi region
+        ],
+        northrift: [
+          {
+            "REGION": "MARSABIT",
+            "PROVIDER": "Beehive Medical Services (Dr. Wolde Jama)",
+            "LOCATION": "Beehive Building, Shauri Yako Road, Marsabit",
+            "CONTACTS": "0718 277212 or 0721 107107",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "ISMC Services Hospital",
+            "LOCATION": "Marsabit, the Road opposite the District Hospital",
+            "CONTACTS": "020 2631525 or 0718 135110",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "MANDERA",
+            "PROVIDER": "Mandera West Nursing Home",
+            "LOCATION": "Off Isiolo-Mandera Road, Mandera West",
+            "CONTACTS": "0720 756788",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "NORTH RIFT"
+          },
+          {
+            "PROVIDER": "Meswo Medical Services",
+            "LOCATION": "Nandi Hills ",
+            "CONTACTS": "TBA",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "NANDI",
+            "PROVIDER": "Bliss GVS Healthcare - Kapsabet",
+            "LOCATION": "Safari Hotel Building, Kapsabet Town",
+            "CONTACTS": 780100912,
+            "SPECIALITY": "OP"
+          },
+          {
+            "REGION": "ELGEYO MARAKWET",
+            "PROVIDER": "AIC Kapsowar Mission Hospital",
+            "LOCATION": "Elgeyo Marakwet",
+            "CONTACTS": "0788 149983",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Iten",
+            "LOCATION": "Mango House Iten Next to Equity Bank",
+            "CONTACTS": 780622637,
+            "SPECIALITY": "OP"
+          },
+          {
+            "REGION": "TRANS NZOIA\/BUSIA",
+            "PROVIDER": "Crystal Cottage Hospital and Medical Clinic Ltd",
+            "LOCATION": "Kitale",
+            "CONTACTS": "0779 727050 or 0777 761460",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Kitale",
+            "LOCATION": "Mega City Mall - Kitale Town",
+            "CONTACTS": 780622129,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "PESI Medical Centre",
+            "LOCATION": "Kisumu - Busia Road, opposite Baptist Church, Busia Town",
+            "CONTACTS": "0729 610404 or 0721 244511",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Bacasavi (Counselling & Wellness Services) Hospital",
+            "LOCATION": "Kitale",
+            "CONTACTS": "TBA",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Busia",
+            "LOCATION": "Opposite, Busia Police Station main highway and Behind Family Bank, Busia",
+            "CONTACTS": 780622634,
+            "SPECIALITY": "OP"
+          },
+          {
+            "REGION": "LODWAR\/KAKUMA",
+            "PROVIDER": "Lodwar County Referral Hospital",
+            "LOCATION": "Lodwar",
+            "CONTACTS": "0758 722023",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Lodwar Hills Hospital",
+            "LOCATION": "Nawoitorong Road Near Office of the Governo, Lodwar, 3Km from town",
+            "CONTACTS": "0798 933332 or 0779333325",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Loima Medical Clinic ",
+            "LOCATION": "Njiwa Traders Building, Salama Road, Lodwar Township",
+            "CONTACTS": "020 8023266 or 0721 916255 ",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Kakuma",
+            "LOCATION": "Opposite KCB bank,kakuma",
+            "CONTACTS": 780100157,
+            "SPECIALITY": "OP"
+          },
+        ],
+        southrift: [
+          {
+            "REGION": "KERICHO",
+            "PROVIDER": "Siloam Hospital - Kipkelion Branch",
+            "LOCATION": "Kipkelion Town, Directly opp Agricultural Finance Corporation Office - Next to Kipkelion Police Station.",
+            "CONTACTS": "0757 700750 or 0729 692010",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Siloam Hospital - Main",
+            "LOCATION": "Next to District Hospital, Kericho",
+            "CONTACTS": "0728 881121 or 0729-692010",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Greenview Nursing Home",
+            "LOCATION": "Kericho, along James Finlay inlet Road, close to Kericho Tea Boys",
+            "CONTACTS": "0745 315600 or 0777 315600",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Southrift Hospital Limited",
+            "LOCATION": "Kericho Sotik road",
+            "CONTACTS": "0780 888880 or 0110 142711",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "St. Leonard’s Hospital Ltd",
+            "LOCATION": "Nyagacho Estate, Kipchimchim - Matabo Road, Kericho",
+            "CONTACTS": "0722 770667",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Kericho",
+            "LOCATION": "Greenspan Square Mall on Nakuru-Bomet Road",
+            "CONTACTS": 780100929,
+            "SPECIALITY": "OP"
+          },
+          {
+            "REGION": "NAROK",
+            "PROVIDER": "Medicatia Hospital",
+            "LOCATION": "Narok- Njoro Road Narok",
+            "CONTACTS": "0746 869867",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Narok Cottage Hospital",
+            "LOCATION": "Narok Town, the road opposite Narok Post Office",
+            "CONTACTS": "0739-368605",
+            "SPECIALITY": "IP, OP"
+          },
+        ],
+
+        coast: [
+          {
+            "REGION": "MOMBASA  ",
+            "PROVIDER": "Tudor Health Care - Bamburi",
+            "LOCATION": "Next to Fisheries, bamburi",
+            "CONTACTS": "0731 532104",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Tudor Health Care - Magongo",
+            "LOCATION": "Next to Hakika Estate ",
+            "CONTACTS": "0739 097493",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Tudor Health Care - Main",
+            "LOCATION": "Ishara Avenue, Tudor next to KAG Church",
+            "CONTACTS": "0735 436727 or 0723 272683",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Tudor Health Care - Mikindani",
+            "LOCATION": "Behind White Castle Hotel",
+            "CONTACTS": "0735 769596",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Tudor Health Care - Kengeleni",
+            "LOCATION": "Kengeleni Complex",
+            "CONTACTS": "0738 826917",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Tudor Health Care - Likoni",
+            "LOCATION": "Rafiki Bank Building",
+            "CONTACTS": "0739 363820",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "City Health Hospital -Mombasa",
+            "LOCATION": "Nkurumah Road, Mombasa",
+            "CONTACTS": "0741 095581",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Mikindani Hospital",
+            "LOCATION": "Mikindani, Jomvu",
+            "CONTACTS": "0759 777777",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Ganjoni Hospital - Mombasa",
+            "LOCATION": "Liwatoni Rd, Off Bishop Makarios Rd, Ganjoni",
+            "CONTACTS": "0797 088865",
+            "SPECIALITY": "IP, OP"
+          },
+        ],
+        nyanza: [
+          {
+            "REGION": "HOMABAY",
+            "PROVIDER": "Bliss GVS Healthcare - Homabay",
+            "LOCATION": "Next to Mwalimu National Sacco, Rongo- Homa Bay Road (Main highway), Homa Bay Town",
+            "CONTACTS": 786412303,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Tudor Healthcare - Mbita",
+            "LOCATION": "Mbita, near ICIPE",
+            "CONTACTS": "0723 272683",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Tudor Healthcare - Sindo",
+            "LOCATION": "Sindo Business Centre",
+            "CONTACTS": "0723 272683",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "REGION": "KISUMU",
+            "PROVIDER": "Bliss GVS Healthcare - Kisumu (Al Imran)",
+            "LOCATION": "Almiran Plaza",
+            "CONTACTS": 786412426,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Bliss GVS Healthcare - Kisumu (Mega)",
+            "LOCATION": "Nakumatt Mega Mall",
+            "CONTACTS": 780622615,
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Maxcure Hospitals Limited",
+            "LOCATION": "Mega City Mall, Nairobi highway ,Kisumu",
+            "CONTACTS": "0114 333 333 ",
+            "SPECIALITY": "IP,OP"
+          },
+          {
+            "PROVIDER": "St Jairus Hospital -Kisumu",
+            "LOCATION": "Kisumu",
+            "CONTACTS": "0716 258129",
+            "SPECIALITY": "IP, OP"
+          },
+          {
+            "PROVIDER": "Port Florence Community Hospital - Main",
+            "LOCATION": "Kisumu - Busia Road, Otonglo",
+            "CONTACTS": "0720 091232",
+            "SPECIALITY": "IP,OP"
+          },
+          {
+            "PROVIDER": "Port Florence Community Hospital - ACK",
+            "LOCATION": "CBD, behind Central Police, Kisumu",
+            "CONTACTS": "721 091232",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Port Florence Community Hospital - Mega",
+            "LOCATION": "Mega Plaza, Kisumu",
+            "CONTACTS": "722 091232",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Africa Inuka Hospital Ltd - Kisumu",
+            "LOCATION": "Mahavir Mall, along Odera street, Kisumu",
+            "CONTACTS": "0716 173299",
+            "SPECIALITY": "OP"
+          },
+          {
+            "PROVIDER": "Africa Inuka Hospital Ltd - Milimani",
+            "LOCATION": "Amrit Nivas Building,Milimani along Awuor - Oieno Road",
+            "CONTACTS": "0768 784498",
+            "SPECIALITY": "IP,OP"
+          },
+        ]
+
+    
+
+      };
+
+
+
+    menu.state("chooseHospital", {
         run: () => {
-          menu.con("Welcome to Hospital Finder!\nPlease enter your Country:");
-        },
-        next: {
-          "*": "selectCountry",
-        },
-      });
-
-      menu.state("selectCountry", {
-        run: () => {
-          const district = menu.val.toLowerCase(); // Convert district name to lowercase
-
-          const hospitalCounties = {
-            "Nairobi County": [
-              "Kenyatta National Hospital - Nairobi",
-              "Nairobi Hospital - Nairobi",
-              "Aga Khan University Hospital - Nairobi",
-              "Mater Hospital - Nairobi",
-              "MP Shah Hospital - Nairobi",
-            ],
-            "Mombasa County": [
-              "Coast General Hospital - Mombasa",
-              "Pandya Memorial Hospital - Mombasa",
-              "Aga Khan Hospital - Mombasa",
-            ],
-            "Kisumu County": [
-              "Jaramogi Oginga Odinga Teaching and Referral Hospital - Kisumu",
-              "Aga Khan Hospital - Kisumu",
-              "Avenue Healthcare Kisumu",
-              "Milimani Maternity Hospital - Kisumu",
-            ],
-            "Nakuru County": [
-              "Nakuru Level 5 Hospital - Nakuru",
-              "Coptic Hospital - Nakuru",
-              "Mercy Mission Hospital - Nakuru",
-              "St. Mary's Mission Hospital - Nakuru",
-            ],
-            "Eldoret County": [
-              "Moi Teaching and Referral Hospital - Eldoret",
-              "Eldoret Hospital - Eldoret",
-              "Mediheal Hospital - Eldoret",
-              "St. Luke's Hospital - Eldoret",
-            ],
-            "Kisii County": [
-              "Kisii Teaching and Referral Hospital - Kisii",
-              "Christa Marianne Hospital - Kisii",
-              "Getembe Hospital - Kisii",
-            ],
-            "Nyeri County": [
-              "Nyeri County Referral Hospital - Nyeri",
-              "Outspan Hospital - Nyeri",
-              "Consolata Mathari Mission Hospital - Nyeri",
-            ],
-            "Machakos County": [
-              "Machakos Level 5 Hospital - Machakos",
-              "Shalom Community Hospital - Machakos",
-              "PCEA Kikima Hospital - Machakos",
-            ],
-            "Kakamega County": [
-              "Kakamega County General Hospital - Kakamega",
-              "St. Elizabeth Lwak Girls' High School Hospital - Kakamega",
-              "Shihuli Dispensary - Kakamega",
-            ],
-            "Nandi County": [
-              "Kapsabet County Referral Hospital - Nandi",
-              "Tenwek Hospital - Nandi",
-              "Kabianga Hospital - Nandi",
-            ],
-          };
-
-          const matchingRegions = Object.keys(hospitalCounties).filter(
-            (region) =>
-              region.toLowerCase().startsWith(district.substring(0, 2))
+          menu.con(`Welcome to My USSD Hospital Finder!
+          Please select your region:
+          1. Nairobi
+          2. Eastern
+          3. Central
+          4. Central Rift
+          5. North Rift
+          6. South Rift
+          7. Coast
+          8. Nyanza`
           );
-
-          if (matchingRegions.length > 0) {
-            let message = "Select a hospital region:\n";
-            matchingRegions.forEach((region, index) => {
-              message += `${index + 1}. ${region}\n`;
-            });
-            message += "0. Back";
-
-            menu.con(message);
-          } else {
-            menu.con(
-              "No hospital regions found with the given prefix. Please try a different prefix:"
-            );
-          }
-        },
-        next: {
-          "*\\d+": "selectHospital",
-          "0": "chooseHospital",
-        },
-      });
-
-      menu.state("chooseCounties", {
-        run: () => {
-          const counties = [];
-
-          let message = "Select a County:\n";
-          counties.forEach((county, index) => {
-            message += `${index + 1}. ${county}\n`;
-          });
-          message += "0. Back";
-
-          menu.con(message);
         },
         next: {
           "*\\d+": "selectRegion",
-          "0": "chooseHospital",
         },
       });
 
-      menu.state("selectHospital", {
-        run: () => {
-          const hospitalIndex = parseInt(menu.val) - 1;
+// Define the state to select a region
+menu.state('selectRegion', {
+  run: () => {
+      const selectedRegion = menu.val;
 
-          let district = menu.val;
-          console.log("district", district, hospitalIndex);
-          const hospitalCounties = {
-            "Nairobi County": [
-              "Kenyatta National Hospital - Nairobi",
-              "Nairobi Hospital - Nairobi",
-              "Aga Khan University Hospital - Nairobi",
-              "Mater Hospital - Nairobi",
-              "MP Shah Hospital - Nairobi",
-            ],
-            "Mombasa County": [
-              "Coast General Hospital - Mombasa",
-              "Pandya Memorial Hospital - Mombasa",
-              "Aga Khan Hospital - Mombasa",
-            ],
-            "Kisumu County": [
-              "Jaramogi Oginga Odinga Teaching and Referral Hospital - Kisumu",
-              "Aga Khan Hospital - Kisumu",
-              "Avenue Healthcare Kisumu",
-              "Milimani Maternity Hospital - Kisumu",
-            ],
-            "Nakuru County": [
-              "Nakuru Level 5 Hospital - Nakuru",
-              "Coptic Hospital - Nakuru",
-              "Mercy Mission Hospital - Nakuru",
-              "St. Mary's Mission Hospital - Nakuru",
-            ],
-            "Eldoret County": [
-              "Moi Teaching and Referral Hospital - Eldoret",
-              "Eldoret Hospital - Eldoret",
-              "Mediheal Hospital - Eldoret",
-              "St. Luke's Hospital - Eldoret",
-            ],
-            "Kisii County": [
-              "Kisii Teaching and Referral Hospital - Kisii",
-              "Christa Marianne Hospital - Kisii",
-              "Getembe Hospital - Kisii",
-            ],
-            "Nyeri County": [
-              "Nyeri County Referral Hospital - Nyeri",
-              "Outspan Hospital - Nyeri",
-              "Consolata Mathari Mission Hospital - Nyeri",
-            ],
-            "Machakos County": [
-              "Machakos Level 5 Hospital - Machakos",
-              "Shalom Community Hospital - Machakos",
-              "PCEA Kikima Hospital - Machakos",
-            ],
-            "Kakamega County": [
-              "Kakamega County General Hospital - Kakamega",
-              "St. Elizabeth Lwak Girls' High School Hospital - Kakamega",
-              "Shihuli Dispensary - Kakamega",
-            ],
-            "Nandi County": [
-              "Kapsabet County Referral Hospital - Nandi",
-              "Tenwek Hospital - Nandi",
-              "Kabianga Hospital - Nandi",
-            ],
-          };
+      let region ={
+        "1": "nairobi",
+        "2": "eastern",
+        "3": "central",
+        "4": "centralrift",
+        "5": "northrift",
+        "6": "southrift",
+        "7": "coast",
+        "8": "nyanza",
+      }
+      let theRegion = region[selectedRegion];
+      const hospitalsInRegion = hospitalsData[theRegion];
+      console.log('hospitalsInRegion', hospitalsInRegion);
+      if (hospitalsInRegion) {
+          menu.con(`Please search for hospital e.g. Nairobi Hospital`);
+      } else {
+          menu.end(`Invalid region selected.`);
+      }
+  },
+  next: {
+      '*': 'selectHospital'
+  }
+});
 
-          district = Object.keys(hospitalCounties)[hospitalIndex];
-          const hospitals = hospitalCounties[district];
-          console.log("hospitals", hospitals);
+// Define the state to select a hospital
+menu.state('selectHospital', {
+  run: async () => {
+      const selectedHospital = menu.val;
+      console.log('selectedHospital', selectedHospital);
+      console.log(menu.args.text)
+      //get the secondlast input
+      const secondLastInput = menu.args.text.split('*')[menu.args.text.split('*').length - 2];
+      console.log('secondLastInput', secondLastInput);
+      //get the region
+      const region ={
+        "1": "nairobi",
+        "2": "eastern",
+        "3": "central",
+        "4": "centralrift",
+        "5": "northrift",
+        "6": "southrift",
+        "7": "coast",
+        "8": "nyanza",
+      }
 
-          if (hospitals) {
-            let message = "Select a hospital:\n";
-            hospitals.forEach((hospital, index) => {
-              message += `${index + 1}. ${hospital}\n`;
-            });
-            message += "0. Back";
+      let theRegion = region[secondLastInput];
+      console.log('theRegion', theRegion);
+      const hospitalsInRegion = hospitalsData[theRegion];
+      console.log('hospitalsInRegion', hospitalsInRegion);
+      const selectedHospitalDetails = hospitalsInRegion.filter(hospital => hospital.PROVIDER.toLowerCase().includes(selectedHospital.toLowerCase()));
 
-            menu.con(message);
-          } else {
-            menu.con(
-              "No hospitals found in the selected district. Please try a different district:"
-            );
-          }
-        },
-        next: {
-          "*\\d+": "hospitalDetails",
-          "0": "selectRegion",
-        },
+      const newUserHospital = await db.user_hospitals.create({
+        user_hospital_id: uuidv4(),
+        user_id: user?.user_id,
+        hospital_name: selectedHospitalDetails[0].PROVIDER,
+        hospital_address: selectedHospitalDetails[0].LOCATION,
+       // hospital_contact_person: contactPerson,
+       hospital_phone_number: selectedHospitalDetails[0].CONTACTS,
+        hospital_contact_person_phone_number: selectedHospitalDetails[0].CONTACTS
       });
+      console.log(newUserHospital)
+
+      if (selectedHospitalDetails.length > 0) {
+          menu.con(`Hospital Information:\nProvider: ${selectedHospitalDetails[0].PROVIDER}\nLocation: ${selectedHospitalDetails[0].LOCATION}\nContacts: ${selectedHospitalDetails[0].CONTACTS}\nSpeciality: ${selectedHospitalDetails[0].SPECIALITY}`);
+          menu.end(`Press 0 to go back to the main menu.`);
+      } else {
+          menu.end(`No hospital found with the given name. Please try a different name.`);
+      }
+  }
+});
+
+
+
 
       // ================== HOSPITAL DETAILS ===================
+    
+
       menu.state("hospitalDetails", {
-        run: async () => {
-          const hospitalIndex = parseInt(menu.val) - 1;
-
-          let county = menu.val;
-          console.log("county", county, hospitalIndex);
-          const hospitalCounties = {
-            "Nairobi County": [
-              "Kenyatta National Hospital - Nairobi",
-              "Nairobi Hospital - Nairobi",
-              "Aga Khan University Hospital - Nairobi",
-              "Mater Hospital - Nairobi",
-              "MP Shah Hospital - Nairobi",
-            ],
-            "Mombasa County": [
-              "Coast General Hospital - Mombasa",
-              "Pandya Memorial Hospital - Mombasa",
-              "Aga Khan Hospital - Mombasa",
-            ],
-            "Kisumu County": [
-              "Jaramogi Oginga Odinga Teaching and Referral Hospital - Kisumu",
-              "Aga Khan Hospital - Kisumu",
-              "Avenue Healthcare Kisumu",
-              "Milimani Maternity Hospital - Kisumu",
-            ],
-            "Nakuru County": [
-              "Nakuru Level 5 Hospital - Nakuru",
-              "Coptic Hospital - Nakuru",
-              "Mercy Mission Hospital - Nakuru",
-              "St. Mary's Mission Hospital - Nakuru",
-            ],
-            "Eldoret County": [
-              "Moi Teaching and Referral Hospital - Eldoret",
-              "Eldoret Hospital - Eldoret",
-              "Mediheal Hospital - Eldoret",
-              "St. Luke's Hospital - Eldoret",
-            ],
-            "Kisii County": [
-              "Kisii Teaching and Referral Hospital - Kisii",
-              "Christa Marianne Hospital - Kisii",
-              "Getembe Hospital - Kisii",
-            ],
-            "Nyeri County": [
-              "Nyeri County Referral Hospital - Nyeri",
-              "Outspan Hospital - Nyeri",
-              "Consolata Mathari Mission Hospital - Nyeri",
-            ],
-            "Machakos County": [
-              "Machakos Level 5 Hospital - Machakos",
-              "Shalom Community Hospital - Machakos",
-              "PCEA Kikima Hospital - Machakos",
-            ],
-            "Kakamega County": [
-              "Kakamega County General Hospital - Kakamega",
-              "St. Elizabeth Lwak Girls' High School Hospital - Kakamega",
-              "Shihuli Dispensary - Kakamega",
-            ],
-            "Nandi County": [
-              "Kapsabet County Referral Hospital - Nandi",
-              "Tenwek Hospital - Nandi",
-              "Kabianga Hospital - Nandi",
-            ],
-          };
-
-          county = Object.keys(hospitalCounties)[hospitalIndex];
-          const hospitals = hospitalCounties[county];
-          console.log("hospitals", hospitals);
-
-          if (hospitals) {
-            const hospitalDetails = {
-              "Kenyatta National Hospital - Nairobi": {
-                address: "P.O Box 20723-00202, Nairobi, Kenya",
-                contact: "+254-20-2726300/9, knhadmin@knh.or.ke",
-              },
-              "Nairobi Hospital - Nairobi": {
-                address: "Argwings Kodhek Road, Nairobi, Kenya",
-                contact: "+254-20-2845000/2846000, customercare@nbihosp.org",
-              },
-              "Aga Khan University Hospital - Nairobi": {
-                address: "3rd Parklands Avenue, Nairobi, Kenya",
-                contact: "+254-20-3662000/3750000, akunairobi@aku.edu",
-              },
-              "Mater Hospital - Nairobi": {
-                address: "Dunga Road South B, Nairobi, Kenya",
-                contact: "+254-20-6531199/6533132, info@materkenya.com",
-              },
-              "MP Shah Hospital - Nairobi": {
-                address: "P.O Box 21613-00200, Nairobi, Kenya",
-                contact: "+254-20-4291000, info@mpshahhosp.org",
-              },
-              "Coast General Hospital - Mombasa": {
-                address: "Mama Ngina Drive, Mombasa, Kenya",
-                contact: "+254-41-2312000, info@coastgeneralhospital.co.ke",
-              },
-              "Pandya Memorial Hospital - Mombasa": {
-                address: "Mama Ngina Drive, Mombasa, Kenya",
-                contact: "+254-41-2313383/2312956, info@pandyahospital.com",
-              },
-              "Aga Khan Hospital - Mombasa": {
-                address: "P.O Box 83013-80100, Mombasa, Kenya",
-                contact: "+254-41-2227710/2227712, akhm@akhst.org",
-              },
-              // More hospitals and their details can be added here
-            };
-
-            const selectedHospital = hospitals[hospitalIndex];
-            console.log("selectedHospital", selectedHospital);
-            const details = hospitalDetails[selectedHospital];
-            console.log("details", details);
-
-            if (details) {
-              let user = await User.findOne({
-                where: {
-                  phone_number: args.phoneNumber,
-                },
-              });
-
-              let updatePolicy = await Policy.update(
-                {
-                  hospital_details: {
-                    hospital_name: selectedHospital,
-                    hospital_address: details.address,
-                    hospital_contact: details.contact,
-                  },
-                },
-                {
-                  where: {
-                    user_id: user?.id,
-                  },
-                }
-              );
-
-              console.log("updatePolicy", updatePolicy);
-
-              menu.end(
-                `Hospital: ${selectedHospital}\nAddress: ${details.address}\nContact: ${details.contact}`
-              );
-            } else {
-              menu.end(`Hospital details not found.`);
-            }
-          } else {
-            menu.end(`Invalid hospital selection.`);
-          }
-        },
-      });
-
-      menu.state("myHospitalOption", {
         run: async () => {
           //ask if they want to change hospital or see details
           menu.con(`1. See Details
@@ -1466,13 +2294,11 @@ export default function handleUssd(args: RequestBody, db: any) {
             },
           });
 
-          let policy = await Policy.findOne({
+          const hospitalDetails = await db.user_hospitals.findOne({
             where: {
-              user_id: user?.id,
+              user_id: user?.user_id,
             },
           });
-
-          const hospitalDetails = policy.hospital_details;
           console.log("hospitalDetails", hospitalDetails);
           menu.end(
             `Hospital: ${hospitalDetails.hospital_name}\nAddress: ${hospitalDetails.hospital_address}\nContact: ${hospitalDetails.hospital_contact}`
@@ -1481,89 +2307,77 @@ export default function handleUssd(args: RequestBody, db: any) {
       });
 
       //=================BUY FOR FAMILY=================
+
+
+      // menu.state("buyForFamily", {
+      //   run: () => {
+      //     menu.con(
+      //       "Buy for family " +
+      //       "\n1. Self + Spouse – KES 1,040" +
+      //       "\n2. Self + Spouse + 1 Child - KES 1,300" +
+      //       "\n3. Self + Spouse + 2 children – KES 1,456" +
+      //       "\n4. Self + Spouse + 3 children – KES 1,612" +
+      //       "\n5. Self + Spouse + 4 children – KES 1,768" +
+      //       "\n6. Self + Spouse + 5 children – KES 1,924" +
+      //       "\n0.Back" +
+      //       "\n00.Main Menu"
+      //     );
+      //   },
+      //   next: {
+      //     "1": "buyForFamily.selfSpouse",
+      //     "2": "buyForFamily.selfSpouse1Child",
+      //     "3": "buyForFamily.selfSpouse2Children",
+      //     "4": "buyForFamily.selfSpouse3Children",
+      //     "5": "buyForFamily.selfSpouse4Children",
+      //     "6": "buyForFamily.selfSpouse5Children",
+      //     "0": "insurance",
+      //     "00": "insurance",
+      //   },
+      // });
+
+      // First Screen
       menu.state("buyForFamily", {
         run: () => {
           menu.con(
             "Buy for family " +
-            "\n1. Self  – KES 650" +
-            "\n2. Self + Spouse – KES 1,040" +
-            "\n3. Self + Spouse + 1 Child - KES 1,300" +
-            "\n4. Self + Spouse + 2 children – KES 1,456" +
+            "\n1. Self + Spouse – KES 1,040" +
+            "\n2. Self + Spouse + 1 Child - KES 1,300" +
+            "\n3. Self + Spouse + 2 children – KES 1,456" +
+            "\n0. More" +
+            "\n00.Main Menu"
+          );
+        },
+        next: {
+          "1": "buyForFamily.selfSpouse",
+          "2": "buyForFamily.selfSpouse1Child",
+          "3": "buyForFamily.selfSpouse2Children",
+          "0": "buyForFamilyScreen2", // Go to the next screen for additional options
+          "00": "insurance",
+        },
+      });
+
+      // Second Screen (Add more options after the third option)
+      menu.state("buyForFamilyScreen2", {
+        run: () => {
+          menu.con(
+            "Buy for family " +
+            "\n1. Self + Spouse + 3 children – KES 1,612" +
+            "\n2. Self + Spouse + 4 children – KES 1,768" +
+            "\n3. Self + Spouse + 5 children – KES 1,924" +
             "\n0.Back" +
             "\n00.Main Menu"
           );
         },
         next: {
-          "1": "buyForFamily.self",
-          "2": "buyForFamily.selfSpouse",
-          "3": "buyForFamily.selfSpouse1Child",
-          "4": "buyForFamily.selfSpouse2Children",
-        },
-      });
-
-      //buy for family self confirm
-      menu.state("buyForFamily.self", {
-        run: async () => {
-          // use menu.val to access user input value
-          let day: any = Number(menu.val);
-          let date = new Date();
-          let nextDeduction = new Date(
-            date.getFullYear(),
-            date.getMonth() + 1,
-            day
-          );
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
-
-          let countryCode = "KEN";
-          let currencyCode = "KES";
-
-          //save policy details
-          let policy = {
-            policy_type: "bronze",
-            beneficiary: "self",
-            policy_status: "pending",
-            policy_start_date: new Date(),
-            policy_end_date: new Date(
-              date.getFullYear() + 1,
-              date.getMonth(),
-              day
-            ),
-            policy_deduction_day: day * 1,
-            policy_deduction_amount: 650,
-            policy_next_deduction_date: nextDeduction,
-            premium: 650,
-            installment_order: 1,
-            installment_date: nextDeduction,
-            installment_alert_date: nextDeduction,
-            tax_rate_vat: "0.2",
-            tax_rate_ext: "0.25",
-            sum_insured: "300000",
-            excess_premium: "0",
-            discount_premium: "0",
-            partner_id: partner_id,
-            user_id: user_id,
-            country_code: countryCode,
-            currency_code: currencyCode,
-            product_id: 2,
-          };
-
-          let newPolicy = await Policy.create(policy);
-          console.log("NEW POLICY FAMILY SELF", newPolicy);
-
-          menu.con(
-            "Confirm \n" +
-            ` Deduct KES ${policy.premium}, Next deduction will be on ${nextDeduction} \n` +
-            "\n1.Confirm \n" +
-            "\n0.Back " +
-            " 00.Main Menu"
-          );
-        },
-        next: {
-          "1": "confirmation",
-          "0": "account",
+          "4": "buyForFamily.selfSpouse3Children",
+          "5": "buyForFamily.selfSpouse4Children",
+          "6": "buyForFamily.selfSpouse5Children",
+          "0": "buyForFamily",
           "00": "insurance",
         },
       });
+
+    
 
       //=============BUY FOR FAMILY SELF SPOUSE================
 
@@ -1591,10 +2405,9 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             1
           );
-          let countryCode = "KEN";
-          let currencyCode = "KES";
 
           const policy = {
+            policy_id: uuidv4(),
             policy_type: "bronze",
             beneficiary: "selfSpouse",
             policy_status: "pending",
@@ -1605,6 +2418,9 @@ export default function handleUssd(args: RequestBody, db: any) {
               date.getDate()
             ),
             policy_deduction_amount: 1040,
+            policy_deduction_day: date.getDate(),
+            policy_next_deduction_date: nextDeduction,
+            policy_pending_preminum: 1040,
             premium: 1040,
             installment_order: 1,
             installment_date: nextDeduction,
@@ -1616,9 +2432,9 @@ export default function handleUssd(args: RequestBody, db: any) {
             discount_premium: "0",
             partner_id: partner_id,
             user_id: user_id,
-            country_code: countryCode,
-            currency_code: currencyCode,
-            product_id: 2,
+            country_code: "KEN",
+            currency_code: "KES",
+            product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
           };
 
           let newPolicy = await Policy.create(policy).catch((err) =>
@@ -1635,42 +2451,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
           let newBeneficiary = await Beneficiary.create(beneficiary);
           console.log("new beneficiary 1", newBeneficiary);
-
-          menu.con(
-            "\n Enter Spouse National ID" + "\n0.Back" + "\n00.Main Menu"
-          );
-        },
-        next: {
-          "*\\d+": "buyForFamily.selfSpouse.spouse.id",
-          "0": "buyForFamily",
-          "00": "insurance",
-        },
-      });
-      //buyForFamily.selfSpouse.spouse.id
-      menu.state("buyForFamily.selfSpouse.spouse.id", {
-        run: async () => {
-          let id_number = menu.val;
-          console.log("National id 2", id_number);
-          const { user_id } = await getUser(args.phoneNumber);
-
-          //update beneficiary national id
-          let beneficiary = await Beneficiary.findOne({
-            where: {
-              user_id: user_id,
-            },
-          });
-          console.log("new beneficiary 2", beneficiary);
-
-          if (beneficiary) {
-            beneficiary.national_id = id_number;
-            beneficiary.save().catch((err) => console.log(err));
-          } else {
-            menu.con(
-              "No beneficiary found. \n" + "\n0.Back " + " 00.Main Menu"
-            );
-          }
-
-          menu.con(
+     menu.con(
             "\nEnter day of the month you want to deduct premium" +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -1682,6 +2463,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "00": "insurance",
         },
       });
+ 
 
       //buyForFamily.selfSpouse.confirm
       menu.state("buyForFamily.selfSpouse.confirm", {
@@ -1697,9 +2479,10 @@ export default function handleUssd(args: RequestBody, db: any) {
           let policy = await Policy.findOne({
             where: {
               user_id: user_id,
+              partner_id: partner_id,
             },
           });
-          console.log("policy", policy);
+          console.log("==== FAMILY selfSpouse ======", policy);
 
           if (policy) {
             policy.policy_deduction_day = day;
@@ -1746,10 +2529,10 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             1
           );
-          let countryCode = "KEN";
-          let currencyCode = "KES";
+
 
           const policy = {
+            policy_id: uuidv4(),
             policy_type: "bronze",
             beneficiary: "selfSpouse1Child",
             policy_status: "pending",
@@ -1762,6 +2545,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             policy_deduction_amount: 1300,
             policy_deduction_day: 1,
             policy_next_deduction_date: nextDeduction,
+            policy_pending_preminum: 1300,
             premium: 1300,
             installment_order: 1,
             installment_date: new Date(
@@ -1781,9 +2565,9 @@ export default function handleUssd(args: RequestBody, db: any) {
             discount_premium: "0",
             partner_id: partner_id,
             user_id: user_id,
-            country_code: countryCode,
-            currency_code: currencyCode,
-            product_id: 2,
+            country_code: "KEN",
+            currency_code: "KES",
+            product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
           };
 
           let newPolicy = await Policy.create(policy).catch((err) =>
@@ -1800,65 +2584,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
           let newBeneficiary = await Beneficiary.create(beneficiary);
           console.log("new beneficiary 1", newBeneficiary);
-
-          menu.con("\n Enter Spouse ID" + "\n0.Back" + "\n00.Main Menu");
-        },
-        next: {
-          "*\\d+": "buyForFamily.selfSpouse1Child.spouse.id",
-          "0": "buyForFamily",
-          "00": "insurance",
-        },
-      });
-
-      //buy for family selfSpouse1Child spouse id
-      menu.state("buyForFamily.selfSpouse1Child.spouse.id", {
-        run: async () => {
-          let id_number = menu.val;
-          console.log("National id 2", id_number);
-          const { user_id } = await getUser(args.phoneNumber);
-          let beneficiary = await Beneficiary.findOne({
-            where: {
-              user_id: user_id,
-            },
-          });
-          console.log("new beneficiary 2", beneficiary);
-
-          if (beneficiary) {
-            beneficiary.national_id = id_number;
-            beneficiary.save().catch((err) => console.log(err));
-          } else {
-            menu.con(
-              "No beneficiary found. \n" + "\n0.Back " + " 00.Main Menu"
-            );
-          }
-
-          menu.con("\nEnter Child s name" + "\n0.Back" + "\n00.Main Menu");
-        },
-        next: {
-          "*[a-zA-Z]+": "buyForFamily.selfSpouse1Child.child1",
-          "0": "buyForFamily",
-          "00": "insurance",
-        },
-      });
-
-      //buy for family selfSpouse1Child child1
-      menu.state("buyForFamily.selfSpouse1Child.child1", {
-        run: async () => {
-          let child1 = menu.val;
-          console.log("CHILD NAME 3", child1);
-          const { user_id } = await getUser(args.phoneNumber);
-
-          let beneficiary = {
-            beneficiary_id: uuidv4(),
-            full_name: child1,
-            relationship: "child",
-            user_id: user_id,
-          };
-
-          let newBeneficiary = await Beneficiary.create(beneficiary);
-          console.log("new beneficiary 3", newBeneficiary);
-
-          menu.con(
+       menu.con(
             "\nEnter day of the month you want to deduct premium" +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -1871,23 +2597,11 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
+    
+
       //buy for family selfSpouse1Child confirm
       menu.state("buyForFamily.selfSpouse1Child.confirm", {
         run: async () => {
-          let child1 = menu.val;
-          console.log("CHILD NAME 3", child1);
-          const { user_id } = await getUser(args.phoneNumber);
-
-          let beneficiary = {
-            beneficiary_id: uuidv4(),
-            full_name: child1,
-            relationship: "child",
-            user_id: user_id,
-          };
-
-          let newBeneficiary = await Beneficiary.create(beneficiary);
-          console.log("new beneficiary 3", newBeneficiary);
-
           const day: any = Number(menu.val);
           const date = new Date();
           const nextDeduction = new Date(
@@ -1895,24 +2609,19 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             day
           );
-
-          let policy = await Policy.findAll({
+          const { user_id, partner_id } = await getUser(args.phoneNumber);
+          let policy = await Policy.findOne({
             where: {
               user_id: user_id,
+              partner_id: partner_id,
             },
           });
-          policy = policy[policy.length - 1];
-          console.log("policy", policy);
+          console.log("==== FAMILY selfSpouse1Child ======", policy);
 
-          if (policy) {
-            policy.policy_deduction_day = day;
-            policy.policy_next_deduction_date = nextDeduction;
-            policy.save();
-          }
 
           menu.con(
             "Confirm \n" +
-            ` Deduct KES ${policy.premium}, Next deduction will be on  ${nextDeduction} \n` +
+            ` Deduct KES 1,300, Next deduction will be on  ${nextDeduction} \n` +
             "\n1.Confirm \n" +
             "\n0.Back " +
             " 00.Main Menu"
@@ -1943,9 +2652,9 @@ export default function handleUssd(args: RequestBody, db: any) {
           let spouse = menu.val;
           console.log("SPOUSE NAME 1", spouse);
           const { user_id, partner_id } = await getUser(args.phoneNumber);
-          let countryCode = "KEN";
-          let currencyCode = "KES";
+
           const policy = {
+            policy_id: uuidv4(),
             policy_type: "bronze",
             beneficiary: "selfSpouse2Child",
             policy_status: "pending",
@@ -1956,6 +2665,7 @@ export default function handleUssd(args: RequestBody, db: any) {
               new Date().getDate()
             ),
             policy_deduction_amount: 1456,
+            policy_pending_preminum: 1456,
             policy_deduction_day: 1,
             policy_next_deduction_date: new Date(
               new Date().getFullYear(),
@@ -1981,9 +2691,9 @@ export default function handleUssd(args: RequestBody, db: any) {
             discount_premium: "0",
             partner_id: partner_id,
             user_id: user_id,
-            country_code: countryCode,
-            currency_code: currencyCode,
-            product_id: 2,
+            country_code: "KEN",
+            currency_code: "KES",
+            product_id: 'e18424e6-5316-4f12-9826-302c866b380d',
           };
 
           let newPolicy = await Policy.create(policy);
@@ -1999,90 +2709,48 @@ export default function handleUssd(args: RequestBody, db: any) {
           let newBeneficiary = await Beneficiary.create(beneficiary);
           console.log("new beneficiary 1", newBeneficiary);
 
-          menu.con("\n Enter Spouse ID" + "\n0.Back" + "\n00.Main Menu");
+          menu.con(
+            "\nEnter day of the month you want to deduct premium" +
+            "\n0.Back" +
+            "\n00.Main Menu"
+          );
         },
         next: {
-          "*\\d+": "buyForFamily.selfSpouse2Child.spouse.id",
-          "0": "buyForFamily",
-          "00": "insurance",
-        },
-      });
-
-      //buy for family selfSpouse2Child spouse id
-      menu.state("buyForFamily.selfSpouse2Child.spouse.id", {
-        run: async () => {
-          // use menu.val to access user input value
-          let id_number = menu.val;
-          console.log(" spouse National id 2", id_number);
-          //save spouse id to db users collection
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
-
-          //update beneficiary national id
-          let beneficiary = await Beneficiary.findOne({
-            where: {
-              user_id: user_id,
-            },
-          });
-          console.log("new beneficiary 2", beneficiary);
-
-          if (beneficiary) {
-            beneficiary.national_id = id_number;
-            beneficiary.save();
-          }
-          menu.con("\nEnter Child 1 name" + "\n0.Back" + "\n00.Main Menu");
-        },
-        next: {
-          "*[a-zA-Z]+": "buyForFamily.selfSpouse2Child.child1.name",
-          "0": "buyForFamily",
-          "00": "insurance",
-        },
-      });
-
-      //buyForFamily.selfSpouse2Children child1 name
-      menu.state("buyForFamily.selfSpouse2Child.child1.name", {
-        run: async () => {
-          // use menu.val to access user input value
-          let child1 = menu.val;
-          console.log("child1 3 NAME", child1);
-          //save child1 name to db users collection
-          const { user_id } = await getUser(args.phoneNumber);
-
-          //create beneficiary
-          let beneficiary = {
-            beneficiary_id: uuidv4(),
-            full_name: child1,
-            relationship: "child1",
-            user_id: user_id,
-          };
-
-          let newBeneficiary = await Beneficiary.create(beneficiary);
-
-          console.log("new beneficiary 3", newBeneficiary);
-
-          menu.con("\n Enter Child 2 name" + "\n0.Back" + "\n00.Main Menu");
-        },
-        next: {
-          "*[a-zA-Z]+": "buyForFamily.selfSpouse2Child.child2.name",
+          "*\\d+": "buyForFamily.selfSpouse2Child.confirm",
           "0": "buyForFamily",
           "00": "insurance",
         },
       });
 
       //buyForFamily.selfSpouse2Children child2
-      menu.state("buyForFamily.selfSpouse2Child.child2.name", {
+      menu.state("buyForFamily.selfSpouse2Child.confirm", {
         run: async () => {
           try {
-            const child2 = menu.val;
-            const { user_id } = await getUser(args.phoneNumber);
+        
+       const day: any = Number(menu.val);
+          const date = new Date();
+          const nextDeduction = new Date(
+            date.getFullYear(),
+            date.getMonth() + 1,
+            day
+          );
 
-            const beneficiary = {
-              beneficiary_id: uuidv4(),
-              full_name: child2,
-              relationship: "child2",
-              user_id: user_id,
-            };
+          const { user_id, partner_id, premium } = await getUser(
+            args.phoneNumber
+          );
 
-            const newBeneficiary = await Beneficiary.create(beneficiary);
+          let policy = await Policy.update(
+            {
+              policy_deduction_day: day,
+              policy_next_deduction_date: nextDeduction,
+            },
+            {
+              where: {
+                user_id: user_id,
+                partner_id: partner_id,
+              },
+            }
+          );
 
             menu.con(`Pay KES 1,456 deducted monthly.
                     Terms&Conditions - www.airtel.com
