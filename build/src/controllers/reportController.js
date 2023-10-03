@@ -137,8 +137,16 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
         //   user: req?.user_id,
         //   partner_id: req?.partner_id,
         // });
+        const partnerCountry = yield Partner.findOne({
+            where: {
+                partner_id: partner_id,
+            },
+        });
         return res.status(200).json({
             result: {
+                code: 200,
+                countryCode: partnerCountry.country_code,
+                currencyCode: partnerCountry.currency_code,
                 items: summary,
             },
         });
@@ -262,8 +270,16 @@ const getClaimSummary = (req, res) => __awaiter(void 0, void 0, void 0, function
         //   user: req?.user_id,
         //   partner_id: req?.partner_id,
         // });
+        const partnerCountry = yield Partner.findOne({
+            where: {
+                partner_id: partner_id,
+            },
+        });
         return res.status(200).json({
             result: {
+                code: 200,
+                countryCode: partnerCountry.country_code,
+                currencyCode: partnerCountry.currency_code,
                 items: summary,
             },
         });
@@ -348,7 +364,14 @@ const getAllReportSummary = (req, res) => __awaiter(void 0, void 0, void 0, func
             startDate = new Date(0); // A distant past date (or you can set it to your default start date)
             endDate = new Date(); // Current date
         }
+        const partnerCountry = yield Partner.findOne({
+            where: {
+                partner_id: partner_id,
+            },
+        });
         const summary = {
+            countryCode: partnerCountry.country_code,
+            currencyCode: partnerCountry.currency_code,
             user: {
                 total_users: 0,
                 total_users_active: 0,
@@ -675,7 +698,19 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
         //   user: req?.user_id,
         //   partner_id: req?.partner_id,
         // });
-        res.status(200).json(report);
+        const partnerCountry = yield Partner.findOne({
+            where: {
+                partner_id: partner_id,
+            },
+        });
+        res.status(200).json({
+            result: {
+                code: 200,
+                countryCode: partnerCountry.country_code,
+                currencyCode: partnerCountry.currency_code,
+                items: report,
+            },
+        });
     }
     catch (error) {
         console.error("Error fetching sales report:", error);

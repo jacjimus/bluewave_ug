@@ -40,7 +40,7 @@ function displayAccount(menu, args, db) {
                     '\n6. Choose Hopital' +
                     '\n7. Terms & Conditions' +
                     '\n8. FAQs' +
-                    '\n0. UPDATE PROFIKLE' +
+                    '\n0. UPDATE PROFILE' +
                     '\n00.Main Menu');
             }
             else {
@@ -117,9 +117,9 @@ function displayAccount(menu, args, db) {
                 phone_number: beneficiary_phone_number,
             });
             menu.con('Buy for others ' +
-                '\n1. Bronze  – UGX 10,000' +
-                '\n2. Silver – UGX 14,000' +
-                '\n3. Gold – UGX 18,000' +
+                '\n1. AIRTEL_MINI – UGX 10,000' +
+                '\n2. AIRTEL_MIDI – UGX 14,000' +
+                '\n3. AIRTEL_MAXI– UGX 18,000' +
                 '\n0.Back' +
                 '\n00.Main Menu');
         }),
@@ -145,6 +145,7 @@ function displayAccount(menu, args, db) {
             let policies = yield Policy.findAll({
                 where: {
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    policy_status: 'paid'
                 },
             });
             console.log("POLICIES: ", policies);
@@ -159,13 +160,13 @@ function displayAccount(menu, args, db) {
             for (let i = 0; i < policies.length; i++) {
                 let policy = policies[i];
                 let benefit;
-                if (policy.policy_type == 'bronze') {
+                if (policy.policy_type == 'AIRTEL_MINI') {
                     benefit = bronzeLastExpenseBenefit;
                 }
-                else if (policy.policy_type == 'silver') {
+                else if (policy.policy_type == 'AIRTEL_MIDI') {
                     benefit = silverLastExpenseBenefit;
                 }
-                else if (policy.policy_type == 'gold') {
+                else if (policy.policy_type == 'AIRTEL_MAXI') {
                     benefit = goldLastExpenseBenefit;
                 }
                 policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
@@ -232,13 +233,13 @@ function displayAccount(menu, args, db) {
                     claim_status: 'pending',
                     partner_id: user.partner_id,
                     claim_description: `Admission of Claim: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
-                    claim_type: 'medical claim',
+                    claim_type: 'Dwalingo medical cover claim',
                     claim_amount: sum_insured,
                 });
                 if (claim) {
                     const goldAndSilverMessage = `Your medical details have been confirmed. You are covered for Inpatient benefit of UGX 10,000,000`;
                     const bronzeMessage = `Your medical details have been confirmed. You are covered for Inpatient cash of UGX 4,500 per night payable from the second night`;
-                    const message = policy_type.toLowerCase() === 'bronze' ? bronzeMessage : goldAndSilverMessage;
+                    const message = policy_type.toLowerCase() === 'AIRTEL_MINI' ? bronzeMessage : goldAndSilverMessage;
                     yield (0, sendSMS_1.default)(phoneNumber, message);
                     menu.end(`Admission Claim - CLAIM ID: ${claim.claim_number},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`);
                 }

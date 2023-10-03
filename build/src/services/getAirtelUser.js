@@ -17,19 +17,18 @@ const auth_1 = __importDefault(require("./auth"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const db_1 = require("../models/db");
 const uuid_1 = require("uuid");
-require('dotenv').config();
-const sendSMS_1 = __importDefault(require("./sendSMS"));
+require("dotenv").config();
 const User = db_1.db.users;
 function getAirtelUser(phoneNumber, country, currency, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const token = yield (0, auth_1.default)();
+            const token = yield (0, auth_1.default)(partner_id);
             const headers = {
-                'Accept': '*/*',
-                'X-Country': country,
-                'X-Currency': currency,
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                Accept: "*/*",
+                "X-Country": country,
+                "X-Currency": currency,
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             };
             const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
             const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
@@ -42,8 +41,8 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                 const userExists = yield User.findOne({
                     where: {
                         phone_number: userData.msisdn,
-                        partner_id: partner_id
-                    }
+                        partner_id: partner_id,
+                    },
                 });
                 if (userExists) {
                     console.log("User exists");
@@ -71,7 +70,7 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                     name: `${userData.first_name} ${userData.last_name}`,
                     first_name: userData.first_name,
                     last_name: userData.last_name,
-                    nationality: "UGANDA",
+                    nationality: partner_id == 1 ? "KENYA" : "UGANDA",
                     phone_number: userData.msisdn,
                     password: yield bcrypt_1.default.hash(`${userData.first_name}${userData.last_name}`, 10),
                     createdAt: new Date(),
@@ -82,8 +81,8 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                     partner_id: partner_id,
                 });
                 // WELCOME SMS
-                const message = `Dear ${user.first_name}, welcome to Bluewave Insurance. Your membership ID is ${user.membership_id} and PIN is ${user.pin}. Dial *185*4*4# to access your account.`;
-                yield (0, sendSMS_1.default)(user.phone_number, message);
+                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Your membership ID is ${user.membership_id} and PIN is ${user.pin}. Dial *185*4*4# to access your account.`;
+                // await sendSMS(user.phone_number, message);
                 console.log("USER FOR AIRTEL API", user);
                 return user;
             }

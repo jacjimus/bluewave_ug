@@ -34,7 +34,7 @@ function buyForSelf(menu, args, db) {
             },
         });
     });
-    const findPendingPolicyByUser = (user) => __awaiter(this, void 0, void 0, function* () {
+    const findPaidPolicyByUser = (user) => __awaiter(this, void 0, void 0, function* () {
         return yield Policy.findOne({
             where: {
                 user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -45,15 +45,15 @@ function buyForSelf(menu, args, db) {
     menu.state('buyForSelf', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const user = yield findUserByPhoneNumber(args.phoneNumber);
-            const policy = yield findPendingPolicyByUser(user);
+            const policy = yield findPaidPolicyByUser(user);
             if (policy) {
                 menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
                 return;
             }
             menu.con('Buy for self ' +
-                '\n1. Bronze  – UGX 10,000' +
-                '\n2. Silver – UGX 14,000' +
-                '\n3. Gold – UGX 18,000' +
+                '\n1. Airtel MINI  – UGX 10,000' +
+                '\n2. Airtel MIDI – UGX 14,000' +
+                '\n3. Airtel MAXI – UGX 18,000' +
                 '\n0.Back' +
                 '\n00.Main Menu');
         }),
@@ -136,7 +136,7 @@ function buyForSelf(menu, args, db) {
             let currencyCode = 'UGX';
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'bronze',
+                policy_type: "AIRTEL_MINI",
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -162,7 +162,7 @@ function buyForSelf(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log(newPolicy);
-            console.log("NEW POLICY BRONZE SELF", newPolicy);
+            console.log("NEW POLICY AIRTEL_MINI SELF", newPolicy);
             const allPolicy = yield Policy.findAll({
                 where: {
                     user_id: user_id
@@ -171,7 +171,7 @@ function buyForSelf(menu, args, db) {
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-            const message = `PAID UGX 10,000 to AAR UGANDA for Bronze Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `;
+            const message = `PAID UGX 10,000 to AAR UGANDA for AIRTEL_MINI Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `;
             menu.con(`Confirm, Deduct 10,000, Next deduction will be on ${nextDeduction} 
              1.Confirm 
              0.Back 
@@ -193,12 +193,10 @@ function buyForSelf(menu, args, db) {
             let date = new Date();
             let day = date.getDate();
             let installment_alert_date = new Date(date.getFullYear() + 1, date.getMonth(), day - 3);
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'bronze',
+                policy_type: 'AIRTEL_MINI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -218,13 +216,13 @@ function buyForSelf(menu, args, db) {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 120000,
             };
             let newPolicy = yield Policy.create(policy);
             console.log(newPolicy);
-            console.log("NEW POLICY BRONZE SELF", newPolicy);
+            console.log("NEW POLICY AIRTEL_MINI SELF", newPolicy);
             const allPolicy = yield Policy.findAll({
                 where: {
                     user_id: user_id
@@ -303,12 +301,10 @@ function buyForSelf(menu, args, db) {
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             let day = date.getDate();
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'silver',
+                policy_type: 'AIRTEL_MIDI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -328,8 +324,8 @@ function buyForSelf(menu, args, db) {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 14000,
             };
             console.log("POLICY: ", policy);
@@ -365,12 +361,10 @@ function buyForSelf(menu, args, db) {
             let date = new Date();
             //today day of month
             let day = date.getDate();
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'silver',
+                policy_type: 'AIRTEL_MIDI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -390,8 +384,8 @@ function buyForSelf(menu, args, db) {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 167000,
             };
             let newPolicy = yield Policy.create(policy);
@@ -462,11 +456,9 @@ function buyForSelf(menu, args, db) {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
             //today day of month
             let day = date.getDate();
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'gold',
+                policy_type: 'AIRTEL_MAXI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -486,8 +478,8 @@ function buyForSelf(menu, args, db) {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 18000,
             };
             let newPolicy = yield Policy.create(policy);
@@ -536,12 +528,10 @@ function buyForSelf(menu, args, db) {
             //today day of month
             let day = date.getDate();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'gold',
+                policy_type: 'AIRTEL_MAXI',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -561,12 +551,12 @@ function buyForSelf(menu, args, db) {
                 discount_premium: '0',
                 user_id: user_id,
                 partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 policy_pending_premium: 208000,
             };
             let newPolicy = yield Policy.create(policy);
-            console.log("NEW POLICY GOLD SELF", newPolicy);
+            console.log("NEW POLICY AIRTEL_MAXI SELF", newPolicy);
             const allPolicy = yield Policy.findAll({
                 where: {
                     user_id: user_id

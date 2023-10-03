@@ -14,33 +14,50 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 require('dotenv').config();
-function authToken() {
+function authToken(partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let token;
-            const inputBody = {
-                "client_id": process.env.AIRTEL_CLIENT_ID,
-                "client_secret": process.env.AIRTEL_CLIENT_SECRET,
-                "grant_type": "client_credentials"
-            };
+            let inputBody;
+            switch (partner_id) {
+                case 1:
+                    inputBody = {
+                        client_id: process.env.AIRTEL_KEN_CLIENT_ID,
+                        client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
+                        grant_type: 'client_credentials',
+                    };
+                    break;
+                case 2:
+                    inputBody = {
+                        client_id: process.env.AIRTEL_UGX_CLIENT_ID,
+                        client_secret: process.env.AIRTEL_UGX_CLIENT_SECRET,
+                        grant_type: 'client_credentials',
+                    };
+                    break;
+                default:
+                    inputBody = {
+                        client_id: process.env.AIRTEL_CLIENT_ID,
+                        client_secret: process.env.AIRTEL_CLIENT_SECRET,
+                        grant_type: 'client_credentials',
+                    };
+            }
             const headers = {
                 'Content-Type': 'application/json',
-                'Accept': '*/*'
+                Accept: '*/*',
             };
             const AUTH_TOKEN_URL = process.env.AIRTEL_AUTH_TOKEN_URL;
-            yield axios_1.default.post(AUTH_TOKEN_URL, inputBody, { headers })
-                .then(response => {
-                console.log(response.data);
-                token = response.data.access_token;
-            })
-                .catch(error => {
-                console.error(error);
-            });
-            return token;
+            const response = yield axios_1.default.post(AUTH_TOKEN_URL, inputBody, { headers });
+            if (response.status === 200) {
+                const token = response.data.access_token;
+                return token;
+            }
+            else {
+                console.error('Failed to retrieve the access token:', response.status, response.statusText);
+                throw new Error('Failed to retrieve the access token');
+            }
         }
         catch (error) {
-            console.log(error);
-            throw new Error(error);
+            console.error('An error occurred:', error.message);
+            throw error;
         }
     });
 }

@@ -39,7 +39,7 @@ function default_1(args, db) {
             if (args.phoneNumber.charAt(0) == "+") {
                 args.phoneNumber = args.phoneNumber.substring(1);
             }
-            console.log(args.phoneNumber);
+            console.log("USER PHONE NUMBER", args.phoneNumber);
             let userPhoneNumber = args.phoneNumber;
             //if args.phoneNumber is 12 digit remove the first three country code
             if (args.phoneNumber.length == 12) {
@@ -134,17 +134,15 @@ function default_1(args, db) {
                         console.log("============ NewPolicy =============", newPolicy);
                         if (newPolicy) {
                             const policy_deduction_amount = newPolicy.policy_deduction_amount;
-                            const day = newPolicy.policy_deduction_day;
                             const amount = policy_deduction_amount;
-                            const reference = membership_id;
                             const policy_id = newPolicy.policy_id;
                             let period = 'monthly';
                             if (newPolicy.installment_order === 0) {
                                 period = 'yearly';
                             }
-                            console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
-                            //let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
-                            let paymentStatus = yield (0, payment_1.initiateConsent)(newPolicy.policy_type, newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount, newPolicy.premium);
+                            console.log(user_id, partner_id, policy_id, phone_number, amount, membership_id);
+                            let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, amount, membership_id, "UG", "UGX");
+                            //let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)
                             console.log("PAYMENT STATUS", paymentStatus);
                             if (paymentStatus.code === 200) {
                                 menu.end(`Congratulations! You are now covered. 

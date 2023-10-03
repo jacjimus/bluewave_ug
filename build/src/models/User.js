@@ -121,7 +121,11 @@ module.exports = (sequelize, DataTypes) => {
         number_of_policies: {
             type: DataTypes.INTEGER,
             default: 0
-        }
+        },
+        arr_member_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, { timestamps: true });
     return User;
 };

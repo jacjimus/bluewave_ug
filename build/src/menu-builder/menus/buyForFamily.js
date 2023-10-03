@@ -103,7 +103,7 @@ function buyForFamily(menu, args, db) {
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'family',
+                policy_type: 'FAMILY',
                 beneficiary: 'self',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -159,7 +159,7 @@ function buyForFamily(menu, args, db) {
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'family',
+                policy_type: 'FAMILY',
                 beneficiary: 'familySelf',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -262,7 +262,7 @@ function buyForFamily(menu, args, db) {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
             const policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'family',
+                policy_type: 'FAMILY',
                 beneficiary: 'selfSpouse',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -317,7 +317,7 @@ function buyForFamily(menu, args, db) {
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
             const policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'family',
+                policy_type: 'FAMILY',
                 beneficiary: 'selfSpouse',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -447,7 +447,7 @@ function buyForFamily(menu, args, db) {
             let day = date.getDate();
             const policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'bronze',
+                policy_type: 'FAMILY',
                 beneficiary: 'selfSpouse1Child',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -645,7 +645,7 @@ function buyForFamily(menu, args, db) {
             let currencyCode = 'UGX';
             const policy = {
                 policy_d: (0, uuid_1.v4)(),
-                policy_type: 'bronze',
+                policy_type: 'FAMILY',
                 beneficiary: 'selfSpouse2Child',
                 policy_status: 'pending',
                 policy_start_date: new Date(),
@@ -794,47 +794,5 @@ function buyForFamily(menu, args, db) {
             '00': 'insurance'
         }
     });
-    //===============CONFIRMATION=================
-    // menu.state('confirmation', {
-    //     run: async () => {
-    //         try {
-    //             const { user_id, phone_number, partner_id, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
-    //             const policy = await Policy.findAll({
-    //                 where: {
-    //                     user_id
-    //                 }
-    //             });
-    //             //latest policy
-    //             let newPolicy = policy[policy.length - 1];
-    //             console.log("============ NewPolicy =============", newPolicy)
-    //             if (newPolicy) {
-    //                 const policy_deduction_amount = newPolicy.policy_deduction_amount;
-    //                 const day = newPolicy.policy_deduction_day;
-    //                 const amount = policy_deduction_amount;
-    //                 const reference = membership_id
-    //                 const policy_id = newPolicy.policy_id;
-    //                 let period = 'monthly'; // Default period
-    //                 if (newPolicy.installment_order === 0) {
-    //                     period = 'yearly';
-    //                 }
-    //                 console.log(user_id, partner_id, policy_id, phone_number, amount, reference);
-    //                 let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, amount, reference);
-    //                 console.log(paymentStatus);
-    //                 if (paymentStatus.code === 200) {
-    //                     menu.end(`Congratulations! You are now covered. 
-    //                     To stay covered, UGX ${policy_deduction_amount} will be payable every ${period}`);
-    //                 } else {
-    //                     menu.end(`Sorry, your payment was not successful. 
-    //                     \n0. Back \n00. Main Menu`);
-    //                 }
-    //             } else {
-    //                 menu.end('You do not have an active policy.');
-    //             }
-    //         } catch (error) {
-    //             console.error('Confirmation Error:', error);
-    //             menu.end('An error occurred. Please try again later.');
-    //         }
-    //     }
-    // });
 }
 exports.buyForFamily = buyForFamily;

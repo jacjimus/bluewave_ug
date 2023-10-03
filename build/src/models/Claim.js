@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = (sequelize, DataTypes) => {
     const Claim = sequelize.define("claim", {
         claim_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             autoIncrement: true,
             primaryKey: true,
         },

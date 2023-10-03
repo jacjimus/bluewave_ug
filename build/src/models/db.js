@@ -54,14 +54,12 @@ exports.db.user_hospitals = require('./UserHospital')(sequelize, DataTypes);
 //   })
 //update users table column number_of_policies with the number of policies a user has
 exports.db.users.findAll().then((user) => {
-    console.log("USER: ", user);
     user.forEach((user) => {
         exports.db.policies.findAll({
             where: {
                 user_id: user.user_id
             }
         }).then((policy) => {
-            console.log("POLICY: ", policy);
             exports.db.users.update({ number_of_policies: policy.length }, { where: { user_id: user.user_id } });
         }).catch((err) => {
             console.log(err);
@@ -72,18 +70,17 @@ exports.db.users.findAll().then((user) => {
 });
 //update installment_order for policies with multiple installments
 exports.db.policies.findAll().then((policy) => {
-    console.log("POLICY: ", policy);
     policy.forEach((policy) => {
         exports.db.installments.findAll({
             where: {
-                policy_id: policy.policy_id
+                policy_id: policy.policy_id,
             }
         }).then((installment) => {
-            console.log("INSTALLMENT: ", installment);
             let installmentOrder = 0;
             installment.forEach((installment) => {
                 installmentOrder += 1;
-                exports.db.policies.update({ installment_order: installmentOrder }, { where: { policy_id: policy.policy_id }
+                exports.db.policies.update({ installment_order: installmentOrder }, {
+                    where: { policy_id: policy.policy_id, policy_status: 'paid' }
                 });
             });
         }).catch((err) => {
@@ -153,10 +150,9 @@ exports.db.policies.findAll().then((policy) => {
 //   }).catch((err:any) => {
 //     console.log(err)
 //   })
-//DE
 //syncing the model
 sequelize.sync().then(() => {
-    console.log(`Database & tables created!`);
+    console.log(`Database & tables created! time: ${new Date()}`);
 }).catch((err) => {
     console.log(err);
 });

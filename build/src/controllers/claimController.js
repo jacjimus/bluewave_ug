@@ -451,7 +451,7 @@ const createClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // Check if user has the policy
         const userPolicy = yield Policy.findOne({
             where: {
-                policy_idid: policy_id,
+                policy_id: policy_id,
                 user_id: user_id,
             }
         });

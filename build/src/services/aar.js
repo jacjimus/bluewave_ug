@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.fetchMemberStatusData = exports.updateMember = exports.renewMember = exports.registerDependant = exports.registerPrincipal = void 0;
 const axios_1 = __importDefault(require("axios"));
 function arr_uganda_login() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -21,8 +22,8 @@ function arr_uganda_login() {
                 maxBodyLength: Infinity,
                 url: 'http://airtelapi.aar-insurance.ug:82/api/auth/login',
                 data: {
-                    "username": 'weerinde',
-                    "password": '#$weer!nde$',
+                    "username": 'airtel',
+                    "password": '#$a!rtel$',
                 }
             };
             const response = yield axios_1.default.request(config);
@@ -52,8 +53,59 @@ function refreshToken() {
         }
     });
 }
-function registerPrincipal(data) {
+// {
+//   "surname": "mary",
+//   "first_name": "wairimu",
+//   "other_names": "ms",
+//   "gender": "1",
+//   "dob": "1989-01-01",
+//   "pri_dep": "24",
+//   "family_title": "24",
+//   "tel_no": "253701010101",
+//   "email": "marydoe@gmail.com",
+//   "next_of_kin": {
+//       "surname": "jean",
+//       "first_name": "mary",
+//       "other_names": "doe",
+//       "tel_no": "0799999999"
+//   },
+//   "member_status": "1",
+//   "health_option": "63",
+//   "health_plan": "AIRTEL_MIDI",
+//   "policy_start_date": "2022-09-28",
+//   "policy_end_date": "2023-09-27",
+//   "unique_profile_id": "123455"
+// }
+function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log("USER", user);
+        console.log("POLICY", policy);
+        console.log("BENEFICIARY", beneficiary);
+        console.log("AIRTEL MONEY ID", airtel_money_id);
+        const userData = {
+            surname: user.last_name,
+            first_name: user.first_name,
+            other_names: user.middle_name,
+            gender: user.gender == 'M' ? "1" : "2",
+            dob: user.dob,
+            pri_dep: 24,
+            family_title: user.title == "Mr" ? "24" : "25",
+            tel_no: `256${user.phone_number}`,
+            email: user.email || "",
+            next_of_kin: {
+                surname: user.last_name,
+                first_name: user.first_name,
+                other_names: user.middle_name || "",
+                tel_no: user.phone_number,
+            },
+            member_status: "1",
+            health_option: "63",
+            health_plan: policy.policy_type,
+            policy_start_date: policy.policy_start_date,
+            policy_end_date: policy.policy_end_date,
+            unique_profile_id: user.membership_id,
+            money_transaction_id: airtel_money_id,
+        };
         try {
             const config = {
                 method: 'post',
@@ -63,10 +115,14 @@ function registerPrincipal(data) {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                     'Content-Type': 'application/json',
                 },
-                data,
+                data: userData,
             };
             const response = yield axios_1.default.request(config);
             console.log(JSON.stringify(response.data));
+            if (response.data.code == 200) {
+                user.update({ status: "active", arr_member_number: response.data.data.member_no });
+                user.save();
+            }
             return response.data;
         }
         catch (error) {
@@ -74,6 +130,7 @@ function registerPrincipal(data) {
         }
     });
 }
+exports.registerPrincipal = registerPrincipal;
 // Example usage:
 const registrationMembData = {
     surname: "james",
@@ -96,7 +153,6 @@ const registrationMembData = {
     health_plan: "BRONZE10",
     policy_start_date: "2000-02-22",
     policy_end_date: "2000-02-01",
-    premium: "345.60",
     unique_profile_id: "2000",
     money_transaction_id: "2000222",
 };
@@ -121,6 +177,7 @@ function registerDependant(data) {
         }
     });
 }
+exports.registerDependant = registerDependant;
 // Example usage:
 const registrationDepData = {
     member_no: "UG152302-00",
@@ -168,6 +225,7 @@ function renewMember(data) {
         }
     });
 }
+exports.renewMember = renewMember;
 // Example usage:
 const renewalData = {
     member_no: "UG152301-01",
@@ -199,6 +257,7 @@ function updateMember(data) {
         }
     });
 }
+exports.updateMember = updateMember;
 // Example usage:
 const updateData = {
     member_no: "UG1523090-00",
@@ -239,9 +298,9 @@ function fetchMemberStatusData(data) {
         }
     });
 }
+exports.fetchMemberStatusData = fetchMemberStatusData;
 // Example usage:
 const statusData = {
     member_no: "UG152302-00",
     unique_profile_id: "2000",
 };
-//fetchMemberStatusData(statusData);

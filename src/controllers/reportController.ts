@@ -161,6 +161,7 @@ const getPolicySummary = async (req: any, res: any) => {
       result: {
         code: 200,
         countryCode: partnerCountry.country_code,
+        currencyCode: partnerCountry.currency_code,
         items: summary,
       },
     });
@@ -314,6 +315,7 @@ const getClaimSummary = async (req: any, res: any) => {
       result: {
         code: 200,
         countryCode: partnerCountry.country_code,
+        currencyCode: partnerCountry.currency_code,
         items: summary,
       },
     });
@@ -428,6 +430,7 @@ const getAllReportSummary = async (req: any, res: any) => {
 
     const summary = {
       countryCode: partnerCountry.country_code,
+      currencyCode: partnerCountry.currency_code,
       user: {
         total_users: 0,
         total_users_active: 0,
@@ -859,6 +862,7 @@ const getDailyPolicySalesReport = async (req, res) => {
       result: {
         code: 200,
         countryCode: partnerCountry.country_code,
+        currencyCode: partnerCountry.currency_code,
         items: report,
       },
     });
