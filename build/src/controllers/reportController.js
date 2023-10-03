@@ -889,6 +889,7 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
         { header: "Tax Rate EXT", key: "tax_rate_ext", width: 20 },
         { header: "Premium", key: "premium", width: 20 },
         { header: "Sum Insured", key: "sum_insured", width: 20 },
+        { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
         { header: "Excess Premium", key: "excess_premium", width: 20 },
         { header: "Discount Premium", key: "discount_premium", width: 20 },
         { header: "Hospital Details", key: "hospital_details", width: 20 },
@@ -920,6 +921,7 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             tax_rate_ext: policy.tax_rate_ext,
             premium: policy.premium,
             sum_insured: policy.sum_insured,
+            last_expense_insured: policy.last_expense_insured,
             excess_premium: policy.excess_premium,
             discount_premium: policy.discount_premium,
             hospital_details: policy.hospital_details,
@@ -1009,6 +1011,9 @@ const getAggregatedDailyPolicySalesReport = (req, res) => __awaiter(void 0, void
         const data = {
             labels: labels,
             datasets: datasets,
+            total_policies: results.length,
+            total_customers: results.length,
+            total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
         };
         // Send the results as a response
         res.status(200).json({ data });
@@ -1105,6 +1110,9 @@ const getAggregatedAnnuallyPolicySalesReport = (req, res) => __awaiter(void 0, v
         const data = {
             labels: labels,
             datasets: datasets,
+            total_policies: results.length,
+            total_customers: results.length,
+            total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
         };
         // Send the results as a response
         res.status(200).json({ data });
@@ -1231,6 +1239,9 @@ const getAggregatedMonthlySalesReport = (req, res) => __awaiter(void 0, void 0, 
         const data = {
             labels: labels,
             datasets: datasets,
+            total_policies: results.length,
+            total_customers: results.length,
+            total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
         };
         // Send the results as a response
         res.status(200).json({ data });

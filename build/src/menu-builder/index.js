@@ -17,7 +17,6 @@ const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
 const uuid_1 = require("uuid");
-const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
 const payment_1 = require("../services/payment");
 const displayMedicalCoverMenu_1 = require("./menus/displayMedicalCoverMenu");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
@@ -46,8 +45,8 @@ function default_1(args, db) {
                 userPhoneNumber = args.phoneNumber.substring(3);
                 args.phoneNumber = userPhoneNumber;
             }
-            const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "UG", "UGX", 2);
-            console.log("USER KYC", userKyc);
+            // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+            // console.log("USER KYC", userKyc)
             function getUser(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return yield User.findOne({
@@ -126,18 +125,20 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         const { user_id, phone_number, partner_id, membership_id } = yield getUser(args.phoneNumber);
-                        const newPolicy = yield Policy.findOne({
+                        let newPolicy = yield Policy.findAll({
                             where: {
                                 user_id
                             }
                         });
+                        // latest policy
+                        newPolicy = newPolicy[newPolicy.length - 1];
                         console.log("============ NewPolicy =============", newPolicy);
                         if (newPolicy) {
                             const policy_deduction_amount = newPolicy.policy_deduction_amount;
                             const amount = policy_deduction_amount;
                             const policy_id = newPolicy.policy_id;
                             let period = 'monthly';
-                            if (newPolicy.installment_order === 0) {
+                            if (newPolicy.installment_order === 2) {
                                 period = 'yearly';
                             }
                             console.log(user_id, partner_id, policy_id, phone_number, amount, membership_id);

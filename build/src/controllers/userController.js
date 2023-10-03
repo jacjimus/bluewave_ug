@@ -330,6 +330,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                             phone_number: user.phone_number,
                             partner_id: user.partner_id,
                             is_active: user.is_active,
+                            is_verified: user.is_verified,
                         }
                     },
                 });

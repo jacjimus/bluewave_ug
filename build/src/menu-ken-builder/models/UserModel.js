@@ -42,7 +42,7 @@ const userSchema = new mongoose_1.Schema({
     password: { type: String },
     national_id: { type: String },
     role: { type: String, default: "user" },
-    is_active: { type: Boolean, default: true },
+    is_active: { type: Boolean, default: false },
     is_verified: { type: Boolean, default: false },
     pin: { type: Number },
     partner_id: { type: Number, required: true },

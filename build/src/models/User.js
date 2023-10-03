@@ -95,7 +95,7 @@ module.exports = (sequelize, DataTypes) => {
         is_active: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
-            default: true
+            default: false
         },
         is_verified: {
             type: DataTypes.BOOLEAN,

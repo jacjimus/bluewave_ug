@@ -60,6 +60,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true
         },
+        installment_type: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
         installment_date: {
             type: DataTypes.DATE,
             allowNull: true
@@ -81,6 +85,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         sum_insured: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+        last_expense_insured: {
             type: DataTypes.NUMBER,
             allowNull: true
         },

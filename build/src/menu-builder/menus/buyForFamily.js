@@ -18,15 +18,6 @@ function buyForFamily(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    function getUser(phoneNumber) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield User.findOne({
-                where: {
-                    phone_number: phoneNumber
-                }
-            });
-        });
-    }
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {
@@ -39,6 +30,13 @@ function buyForFamily(menu, args, db) {
             where: {
                 user_id: user === null || user === void 0 ? void 0 : user.user_id,
                 policy_status: 'paid',
+            },
+        });
+    });
+    const findAllPolicyByUser = (user_id) => __awaiter(this, void 0, void 0, function* () {
+        return yield Policy.findAll({
+            where: {
+                user_id: user_id,
             },
         });
     });
@@ -71,12 +69,8 @@ function buyForFamily(menu, args, db) {
     menu.state('buyForFamily.self', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let { first_name, last_name, phone_number } = yield findUserByPhoneNumber(args.phoneNumber);
-            console.log("USER", phone_number);
-            //capitalize first letter of name
             first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
-            const full_name = first_name + " " + last_name;
-            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
+            menu.con(`Hospital cover for ${first_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
                     PAY
                     1. Monthly UGX 10,000
                     2. Yearly UGX 120,000 
@@ -98,8 +92,6 @@ function buyForFamily(menu, args, db) {
             let date = new Date();
             let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
             const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             //save policy details
             let policy = {
                 policy_d: (0, uuid_1.v4)(),
@@ -114,26 +106,24 @@ function buyForFamily(menu, args, db) {
                 premium: 120000,
                 policy_pending_premium: 10000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
                 user_id: user_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELF", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
@@ -169,12 +159,14 @@ function buyForFamily(menu, args, db) {
                 policy_next_deduction_date: nextDeduction,
                 premium: 120000,
                 policy_pending_premium: 120000,
-                installment_order: 0,
+                installment_order: 1,
+                installment_type: 2,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -185,11 +177,7 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELF", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
@@ -224,10 +212,12 @@ function buyForFamily(menu, args, db) {
             //split name into first name and last name
             let names = spouse.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 full_name: spouse,
                 relationship: 'spouse',
@@ -273,11 +263,13 @@ function buyForFamily(menu, args, db) {
                 premium: 240000,
                 policy_pending_premium: 20000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -288,11 +280,7 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
@@ -327,12 +315,14 @@ function buyForFamily(menu, args, db) {
                 policy_deduction_amount: 240000,
                 premium: 240000,
                 policy_pending_premium: 240000,
-                installment_order: 0,
+                installment_order: 1,
+                installment_type: 2,
                 installment_date: nextDeduction,
                 installment_alert_date: nextDeduction,
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -343,11 +333,7 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
@@ -381,10 +367,12 @@ function buyForFamily(menu, args, db) {
             let spouse = menu.val;
             let names = spouse.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 full_name: spouse,
                 relationship: 'spouse',
@@ -405,7 +393,7 @@ function buyForFamily(menu, args, db) {
     });
     menu.state('buyForFamily.selfSpouse1Child.child', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            let { user_id, first_name, last_name, phone_number } = yield findUserByPhoneNumber(args.phoneNumber);
+            let { user_id, first_name, last_name, name, phone_number } = yield findUserByPhoneNumber(args.phoneNumber);
             const child = menu.val;
             let names = child.split(" ");
             let ben_first_name = names[0];
@@ -422,9 +410,7 @@ function buyForFamily(menu, args, db) {
             console.log("new beneficiary selfSpouse1Child child", newBeneficiary);
             //capitalize first letter of name
             first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
-            const full_name = first_name + " " + last_name;
-            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
+            menu.con(`Hospital cover for ${first_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
                     PAY
                     1. Monthly UGX 30,000
                     2. Yearly UGX 360,000 
@@ -458,11 +444,13 @@ function buyForFamily(menu, args, db) {
                 premium: 360000,
                 policy_pending_premium: 30000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 installment_alert_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -473,11 +461,7 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
             menu.con('\nEnter Child s name' +
@@ -499,12 +483,14 @@ function buyForFamily(menu, args, db) {
                 const { user_id } = yield findUserByPhoneNumber(args.phoneNumber);
                 let names = childName.split(" ");
                 let ben_first_name = names[0];
-                let ben_last_name = names[1];
+                let ben_middle_name = names[1];
+                let ben_last_name = names[2] || names[1];
                 let beneficiary = {
                     beneficiary_id: (0, uuid_1.v4)(),
                     full_name: childName,
                     relationship: 'child',
                     first_name: ben_first_name,
+                    middle_name: ben_middle_name,
                     last_name: ben_last_name,
                     user_id: user_id
                 };
@@ -549,12 +535,14 @@ function buyForFamily(menu, args, db) {
                 policy_deduction_amount: 360000,
                 premium: 360000,
                 policy_pending_premium: 360000,
-                installment_order: 0,
+                installment_order: 1,
+                installment_type: 2,
                 installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 installment_alert_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
@@ -565,11 +553,7 @@ function buyForFamily(menu, args, db) {
             };
             let newPolicy = yield Policy.create(policy).catch(err => console.log(err));
             console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
@@ -591,12 +575,14 @@ function buyForFamily(menu, args, db) {
                 const { user_id } = yield findUserByPhoneNumber(args.phoneNumber);
                 let names = childName.split(" ");
                 let ben_first_name = names[0];
-                let ben_last_name = names[1];
+                let ben_middle_name = names[1];
+                let ben_last_name = names[2] || names[1];
                 let beneficiary = {
                     beneficiary_id: (0, uuid_1.v4)(),
                     full_name: childName,
                     relationship: 'child',
                     first_name: ben_first_name,
+                    middle_name: ben_middle_name,
                     last_name: ben_last_name,
                     user_id: user_id
                 };
@@ -639,10 +625,7 @@ function buyForFamily(menu, args, db) {
     menu.state('buyForFamily.selfSpouse2Child.spouse', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let spouse = menu.val;
-            console.log("SPOUSE NAME 1", spouse);
             const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
-            let countryCode = 'UGA';
-            let currencyCode = 'UGX';
             const policy = {
                 policy_d: (0, uuid_1.v4)(),
                 policy_type: 'FAMILY',
@@ -656,26 +639,24 @@ function buyForFamily(menu, args, db) {
                 premium: 40000,
                 policy_pending_premium: 40000,
                 installment_order: 1,
+                installment_type: 1,
                 installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
                 installment_alert_date: new Date(new Date().getFullYear() + 1, new Date().getMonth() + 1, new Date().getDate()),
                 tax_rate_vat: '0.2',
                 tax_rate_ext: '0.25',
                 sum_insured: '1500000',
+                last_expense_insured: '1000000',
                 excess_premium: '0',
                 discount_premium: '0',
                 partner_id: partner_id,
                 user_id: user_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
+                country_code: "UGA",
+                currency_code: "UGX",
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             };
             let newPolicy = yield Policy.create(policy);
             console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy);
-            const allPolicy = yield Policy.findAll({
-                where: {
-                    user_id: user_id
-                }
-            });
+            const allPolicy = yield findAllPolicyByUser(user_id);
             let numberOfPolicies = allPolicy.length;
             console.log("NUMBER OF POLICIES", numberOfPolicies);
             yield User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
@@ -692,7 +673,7 @@ function buyForFamily(menu, args, db) {
             };
             let newBeneficiary = yield Beneficiary.create(beneficiary);
             console.log("new beneficiary 1", newBeneficiary);
-            menu.con('\nEnter Child 1 name' +
+            menu.con('\nEnter your first Child full name' +
                 '\n0.Back' +
                 '\n00.Main Menu');
         }),
@@ -711,18 +692,20 @@ function buyForFamily(menu, args, db) {
             const { user_id } = yield findUserByPhoneNumber(args.phoneNumber);
             let names = childName.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
                 full_name: childName,
                 relationship: 'child',
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 user_id: user_id
             };
             let newBeneficiary = yield Beneficiary.create(beneficiary);
             console.log("new beneficiary 3", newBeneficiary);
-            menu.con('\n Enter Child 2 name' +
+            menu.con('\n Enter Second Child s full name' +
                 '\n0.Back' +
                 '\n00.Main Menu');
         }),
@@ -740,12 +723,14 @@ function buyForFamily(menu, args, db) {
             const { user_id } = yield findUserByPhoneNumber(args.phoneNumber);
             let names = childName.split(" ");
             let ben_first_name = names[0];
-            let ben_last_name = names[1];
+            let ben_middle_name = names[1];
+            let ben_last_name = names[2] || names[1];
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
                 full_name: childName,
                 relationship: 'child',
                 first_name: ben_first_name,
+                middle_name: ben_middle_name,
                 last_name: ben_last_name,
                 user_id: user_id
             };

@@ -162,14 +162,14 @@ function myAccount(menu, args, db) {
             "00": "insurance",
         },
     });
-    menu.state("addBeneficiaryName", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con("Enter full name of  beneficiary");
-        }),
-        next: {
-            "*[a-zA-Z]+": "updateBeneficiaryName",
-        },
-    });
+    // menu.state("addBeneficiaryName", {
+    //   run: async () => {
+    //     menu.con("Enter full name of  beneficiary");
+    //   },
+    //   next: {
+    //     "*[a-zA-Z]+": "updateBeneficiaryName",
+    //   },
+    // });
     //list beneficiaries
     menu.state("listBeneficiaries", {
         run: () => __awaiter(this, void 0, void 0, function* () {
@@ -470,9 +470,9 @@ function myAccount(menu, args, db) {
     //my insurance policy
     menu.state("myInsurancePolicy", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const bronzeLastExpenseBenefit = "UGX 1,000,000";
-            const silverLastExpenseBenefit = "UGX 1,500,000";
-            const goldLastExpenseBenefit = "UGX 2,000,000";
+            // const bronzeLastExpenseBenefit = "UGX 1,000,000";
+            // const silverLastExpenseBenefit = "UGX 1,500,000";
+            // const goldLastExpenseBenefit = "UGX 2,000,000";
             const user = yield User.findOne({
                 where: {
                     phone_number: args.phoneNumber,
@@ -500,16 +500,6 @@ function myAccount(menu, args, db) {
             let policyInfo = "";
             for (let i = 0; i < policies.length; i++) {
                 let policy = policies[i];
-                let benefit;
-                if (policy.policy_type == "AIRTEL_MINI") {
-                    benefit = bronzeLastExpenseBenefit;
-                }
-                else if (policy.policy_type == "AIRTEL_MIDI") {
-                    benefit = silverLastExpenseBenefit;
-                }
-                else if (policy.policy_type == "AIRTEL_MAXI") {
-                    benefit = goldLastExpenseBenefit;
-                }
                 //         Bronze cover ACTIVE up to DD/MM/YYYY
                 // Inpatient limit L: UGX 3,000,000. Balance remaining UGX 2,300,000 
                 //format date to dd/mm/yyyy
@@ -522,9 +512,8 @@ function myAccount(menu, args, db) {
                 policy.policy_end_date = formatDate(policy.policy_end_date);
                 policyInfo +=
                     `${i + 1}. ${policy.policy_type.toUpperCase()} ACTIVE to ${policy.policy_end_date}\n` +
-                        `   Inpatient limit: UGX ${policy.sum_insured}\n`;
-                // \n` +
-                // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
+                        `   Inpatient limit: UGX ${policy.sum_insured} 
+              Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n`;
             }
             menu.end(`My Insurance Policies:\n\n${policyInfo}`);
         }),
