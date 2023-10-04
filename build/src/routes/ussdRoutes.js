@@ -52,6 +52,7 @@ const findTransactionById = (transactionId) => __awaiter(void 0, void 0, void 0,
 const updateUserPolicyStatus = (policy, amount, installment_order, installment_type) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type);
     let date = new Date();
+    amount = parseInt(amount);
     let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
     policy.policy_status = "paid";
     policy.policy_paid_date = new Date();

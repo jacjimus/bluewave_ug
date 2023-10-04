@@ -28,6 +28,7 @@ const myAccount_1 = require("./menus/myAccount");
 const payNow_1 = require("./menus/payNow");
 const chooseHospital_1 = require("./menus/chooseHospital");
 const buyForOthers_1 = require("./menus/buyForOthers");
+const makeClaim_1 = require("./menus/makeClaim");
 require("dotenv").config();
 let menu = new ussd_builder_1.default();
 function default_1(args, db) {
@@ -117,6 +118,8 @@ function default_1(args, db) {
             (0, buyForOthers_1.buyForOthers)(menu, args, db);
             //================MY ACCOUNT===================
             (0, myAccount_1.myAccount)(menu, args, db);
+            //================== MAKE CLAIM ===================
+            (0, makeClaim_1.makeClaim)(menu, args, db);
             //==================PAY NOW===================
             (0, payNow_1.payNow)(menu, args, db);
             //==================FAQS===================

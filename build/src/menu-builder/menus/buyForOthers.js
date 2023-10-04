@@ -50,18 +50,42 @@ function buyForOthers(menu, args, db) {
             //     return;
             // }
             menu.con('Buy for others ' +
-                '\n1. M' +
-                '\n2. M+1' +
-                '\n3. M+2' +
-                '\n4. M+3' +
-                '\n5. M+4' +
-                '\n6. M+5' +
-                '\n7. M+6' +
+                '\n1. Other +Spouse or Child' +
+                '\n2. Other + Spouse + 1 Child' +
+                '\n3. Other + Spouse + 2 Children' +
+                '\n01 Next' +
                 '\n0.Back' +
                 '\n00.Main Menu');
         }),
         next: {
-            '*\\d+': 'buyForOthers.member',
+            '1': 'buyForOthers.member',
+            '2': 'buyForOthers.member',
+            '3': 'buyForOthers.member',
+            '01': 'buyForOthers.next',
+            '0': 'account',
+        }
+    });
+    menu.state('buyForOthers.next', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const policy = yield findPaidPolicyByUser(user);
+            // if (policy) {
+            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
+            //     return;
+            // }
+            menu.con('Buy for others ' +
+                '\n4. Other + Spouse + 3 Child' +
+                '\n5. Other + Spouse + 4 Child' +
+                '\n6. Other + Spouse + 5 Children' +
+                '\n0.Back' +
+                '\n00.Main Menu');
+        }),
+        next: {
+            '4': 'buyForOthers.member',
+            '5': 'buyForOthers.member',
+            '6': 'buyForOthers.member',
+            '0': 'account',
+            '00': 'insurance',
         }
     });
     menu.state('buyForOthers.member', {
@@ -114,7 +138,7 @@ function buyForOthers(menu, args, db) {
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             });
             yield User.update({ cover_type: coverType }, { where: { phone_number: args.phoneNumber } });
-            menu.con('Enter Name of Other');
+            menu.con('Enter at least Name of spouse or 1 child');
         }),
         next: {
             '*[a-zA-Z]+': 'buyForOthersPhoneNumber',
@@ -133,10 +157,10 @@ function buyForOthers(menu, args, db) {
                 last_name: name.split(" ")[2] || name.split(" ")[1],
             });
             console.log("NEW BENEFICIARY", newBeneficiary);
-            menu.con('Enter ID of Other');
+            menu.con('Enter Phone number for Other');
         }),
         next: {
-            '*\\d+': 'buyForFamily.selfSpouseId',
+            '*\\d+': 'buyForFamily.selfSpousePhoneNumber',
         }
     });
 }
