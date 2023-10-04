@@ -101,7 +101,7 @@ interface PrincipalRegistration {
 //   },
 //   "member_status": "1",
 //   "health_option": "63",
-//   "health_plan": "AIRTEL_MIDI",
+//   "health_plan": "MIDI",
 //   "policy_start_date": "2022-09-28",
 //   "policy_end_date": "2023-09-27",
 //   "unique_profile_id": "123455"
@@ -249,7 +249,7 @@ async function updatePremium(data: any, policy: any) {
 // const requestData = {
 //   "member_no": "UG152306-00",
 //   "unique_profile_id": "123455",
-//   "health_plan": "AIRTEL_MIDI",
+//   "health_plan": "MIDI",
 //   "health_option": "63",
 //   "premium": 20000,
 //   "premium_type": "2",

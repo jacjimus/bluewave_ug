@@ -29,18 +29,17 @@ export function buyForFamily(menu: any, args: any, db: any): void {
         });
     };
 
-   const  findAllPolicyByUser = async (user_id: any) => {
-        return await Policy.findAll({
-            where: {
-                user_id: user_id,
-            },
-        });
-    }
+const findPolicyByUser = async (user_id: any) => {
+    return await Policy.findOne({
+        where: {
+            user_id: user_id,
+        },
+    });
+}
 
     //============  BUY FOR FAMILY ===================
 
-    //Buy for family
-    menu.state('buyForFamily', {
+     menu.state('buyForFamily', {
         run: async () => {
             const user = await findUserByPhoneNumber(args.phoneNumber);
             const policy = await findPaidPolicyByUser(user);
@@ -51,181 +50,83 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             }
 
             menu.con('Buy for family ' +
-                '\n1. Self  – UGX 10,000' +
-                '\n2. Self + Spouse – UGX 20,000' +
-                '\n3. Self + Spouse + 1 Child - UGX 30,000' +
-                '\n4. Self + Spouse + 2 children – UGX 40,000' +
+                '\n1. M+1' +
+                '\n2. M+2' +
+                '\n3. M+3' +
+                '\n4. M+4' +
+                '\n5. M+5' +
+                '\n6. M+6' +
                 '\n0.Back' +
-                '\n00.Main Menu'
+                 '\n00.Main Menu'
             )
 
         },
         next: {
-            '1': 'buyForFamily.self',
-            '2': 'buyForFamily.selfSpouse',
-            '3': 'buyForFamily.selfSpouse1Child',
-            '4': 'buyForFamily.selfSpouse2Children',
+            '*\\d+': 'buyForFamily.selfSpouseCover',
+
+
         }
     });
 
 
-
-
-    //================BUY FOR FAMILY SELF=================
-
-    menu.state('buyForFamily.self', {
+    menu.state('buyForFamily.selfSpouseCover', {
         run: async () => {
-            let { first_name, last_name, phone_number } = await findUserByPhoneNumber(args.phoneNumber);
-        
-            first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
+            const member_number = menu.val;
+            console.log("MEMBER NUMBER", member_number)
+            await User.update({ total_member_number: member_number }, { where: { phone_number: args.phoneNumber } });
 
-            menu.con(`Hospital cover for ${first_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
-                    PAY
-                    1. Monthly UGX 10,000
-                    2. Yearly UGX 120,000 
+
+            menu.con(`
+                    1. Mini – UGX 20,000
+                    2. Midi – UGX 28,000
+                    3. Biggie – UGX 35,000
                     0. Back
                     00. Main Menu`);
         },
         next: {
-            '1': 'buyForFamily.self.pay',
-            '2': 'buyForFamily.self.pay.yearly',
+            '*\\d+': 'buyForFamily.selfSpouseCoverType',
             '0': 'account',
             '00': 'insurance'
         }
     });
+    
 
-
-
-    //buy for family self confirm
-    menu.state('buyForFamily.self.pay', {
+    menu.state('buyForFamily.selfSpouseCoverType', {
         run: async () => {
-            // use menu.val to access user input value
-            let day: any = Number(menu.val);
+         let coverType = menu.val;
+            console.log("COVER TYPE", coverType)
+         let { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
             let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
+            let day = date.getDate();
 
-            //save policy details
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'FAMILY',
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 10000,
-                policy_next_deduction_date: nextDeduction,
-                premium: 120000,
-                policy_pending_premium: 10000,
-                installment_order: 1,
-                installment_type: 1,
-                installment_date: nextDeduction,
-                installment_alert_date: nextDeduction,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
+            if(coverType == 1){
+                coverType = 'MINI';
+            }else if(coverType == 2){
+                coverType = 'MIDI';
+            }else if(coverType == 3){
+                coverType = 'BIGGIE';
             }
 
-            let newPolicy = await Policy.create(policy);
-            console.log("NEW POLICY FAMILY SELF", newPolicy)
-            const allPolicy = await findAllPolicyByUser(user_id);
-            let numberOfPolicies = allPolicy.length;
+         await Policy.create({
+            user_id: user_id,
+            policy_id: uuidv4(),
+            policy_type:  coverType,
+            beneficiary:  'FAMILY',
+            policy_status: 'pending',
+            policy_start_date: new Date(),
+            policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+            policy_deduction_day: day * 1,
+            partner_id: partner_id,
+            country_code: "UGA",
+            currency_code: "UGX",
+            product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
 
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+         })
+          
 
+         await User.update({ cover_type: coverType }, { where: { phone_number: args.phoneNumber } });
 
-
-            menu.con('Confirm \n' +
-                ` Deduct UGX 10,000 , Next deduction will be on ${nextDeduction} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-    //buy for family self 
-    menu.state('buyForFamily.self.pay.yearly', {
-        run: async () => {
-            // use menu.val to access user input value
-            let day: any = Number(menu.val);
-            let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-            //save policy details
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'FAMILY',
-                beneficiary: 'familySelf',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 120000,
-                policy_next_deduction_date: nextDeduction,
-                premium: 120000,
-                policy_pending_premium: 120000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: nextDeduction,
-                installment_alert_date: nextDeduction,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-            }
-
-            let newPolicy = await Policy.create(policy);
-            console.log("NEW POLICY FAMILY SELF", newPolicy)
-            const allPolicy = await findAllPolicyByUser(user_id);
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-            menu.con('Confirm \n' +
-                ` Deduct UGX 120,000 , Next deduction will be on ${nextDeduction} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-    //=============BUY FOR FAMILY SELF SPOUSE================
-
-    menu.state('buyForFamily.selfSpouse', {
-        run: () => {
-            menu.con('\nEnter Spouse name' +
+            menu.con('\nEnter Name of Spouse ' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
@@ -237,702 +138,255 @@ export function buyForFamily(menu: any, args: any, db: any): void {
         }
     });
 
-
     menu.state('buyForFamily.selfSpouseName', {
-        run: async () => {
-            let { user_id, first_name, last_name, phone_number } = await findUserByPhoneNumber(args.phoneNumber);
+        run: async() => {
             let spouse = menu.val;
-            //split name into first name and last name
-            let names = spouse.split(" ");
-            let ben_first_name = names[0];
-            let ben_middle_name = names[1];
-            let ben_last_name = names[2] || names[1];
+            console.log("SPOUSE NAME", spouse)
 
-
+            let { user_id, } = await findUserByPhoneNumber(args.phoneNumber);
+           
             let beneficiary = {
                 beneficiary_id: uuidv4(),
-                first_name: ben_first_name,
-                middle_name: ben_middle_name,
-                last_name: ben_last_name,
                 full_name: spouse,
-                relationship: 'spouse',
+                first_name:  spouse.split(" ")[0],
+                middle_name: spouse.split(" ")[1],
+                last_name:  spouse.split(" ")[2] ||  spouse.split(" ")[1],
+                relationship: 'SPOUSE',
+                member_number: "M+1",
                 user_id: user_id
             }
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
             console.log("new beneficiary selfSpouse", newBeneficiary)
-
-            first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
-
-            const full_name = first_name + " " + last_name
-            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
-                    PAY
-                    1. Monthly UGX 20,000
-                    2. Yearly UGX 240,000 
-                    0. Back
-                    00. Main Menu`);
+            menu.con('\nEnter ID of Spouse ' +
+                    '\n0.Back' +
+                    '\n00.Main Menu'
+            )
         },
         next: {
-            '1': 'buyForFamily.selfSpouse.pay',
-            '2': 'buyForFamily.selfSpouse.pay.yearly',
-            '0': 'account',
+            '*\\d+': 'buyForFamily.selfSpouseId',
+            '0': 'buyForFamily',
             '00': 'insurance'
         }
     });
+
+
+   
 
 
 
     //buyForFamily.selfSpouse.spouse
-    menu.state('buyForFamily.selfSpouse.pay', {
+    menu.state('buyForFamily.selfSpouseId', {
         run: async () => {
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-            let date = new Date();
-            // the day today
-            let day = date.getDate();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+            const spouseId = menu.val;
+            console.log("SPOUSE ID", spouseId)
+            const { user_id, partner_id, phone_number, first_name, last_name } = await findUserByPhoneNumber(args.phoneNumber);
+            await Beneficiary.update({ national_id: spouseId }, { where: { user_id: user_id, member_number: "M+1" } });
 
-            const policy = {
-                policy_d: uuidv4(),
-                policy_type: 'FAMILY',
-                beneficiary: 'selfSpouse',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
-                policy_next_deduction_date: nextDeduction,
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 20000,
-                premium: 240000,
-                policy_pending_premium: 20000,
-                installment_order: 1,
-                installment_type: 1,
-                installment_date: nextDeduction,
-                installment_alert_date: nextDeduction,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-            }
+            const {policy_type } = await findPolicyByUser(user_id);
+              let sum_insured: string, premium: number = 0, yearly_premium: number = 0;
 
-            let newPolicy = await Policy.create(policy)
-            console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy)
+                    if(policy_type == 'MINI'){
+                        sum_insured = "1.5M"
+                        premium = 20000;
+                        yearly_premium = 240000;
 
-            const allPolicy = await findAllPolicyByUser(user_id)
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                    }else if(policy_type == 'MIDI'){
+                        sum_insured = "3M"
+                        premium = 28000;
+                        yearly_premium = 336000;
+                    }
+                    else if(policy_type == 'BIGGIE'){
+                        sum_insured = "5M"
+                        premium = 35000;
+                        yearly_premium = 420000;
+                    }
 
 
-            menu.con('Confirm \n' +
-                ` Deduct UGX 20,000, Next deduction will be on ${nextDeduction} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-
-    });
-
-    //buyForFamily.selfSpouse.pay.yearly
-    menu.state('buyForFamily.selfSpouse.pay.yearly', {
-        run: async () => {
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-            let date = new Date();
-            // the day today
-            let day = date.getDate();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-
-            const policy = {
-                policy_d: uuidv4(),
-                policy_type: 'FAMILY',
-                beneficiary: 'selfSpouse',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
-                policy_next_deduction_date: nextDeduction,
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 240000,
-                premium: 240000,
-                policy_pending_premium: 240000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: nextDeduction,
-                installment_alert_date: nextDeduction,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-            }
-
-            let newPolicy = await Policy.create(policy)
-            console.log("NEW POLICY FAMILY SELFSPOUSE", newPolicy)
-
-            const allPolicy = await findAllPolicyByUser(user_id)
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-
-            menu.con('Confirm \n' +
-                ` Deduct UGX 240,000, Next deduction will be on ${nextDeduction} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-
-    });
-
-
-
-
-    //=============BUY FOR FAMILY SELF SPOUSE 1 CHILD================
-    menu.state('buyForFamily.selfSpouse1Child', {
-        run: () => {
-            menu.con('\nEnter your Spouse name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse1Child.spouse',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-    });
-
-    menu.state('buyForFamily.selfSpouse1Child.spouse', {
-        run: async () => {
-            let { user_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-            let spouse = menu.val;
-            let names = spouse.split(" ");
-            let ben_first_name = names[0];
-            let ben_middle_name = names[1];
-            let ben_last_name = names[2] || names[1];
-
-
-            let beneficiary = {
-                beneficiary_id: uuidv4(),
-                first_name: ben_first_name,
-                middle_name: ben_middle_name,
-                last_name: ben_last_name,
-                full_name: spouse,
-                relationship: 'spouse',
-                user_id: user_id
-            }
-
-            let newBeneficiary = await Beneficiary.create(beneficiary);
-            console.log("new beneficiary selfSpouse1Child spouse", newBeneficiary)
-
-            menu.con('\nEnter your Child s name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse1Child.child',
-            '2': 'buyForFamily.selfSpouse1Child.pay.yearly',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-    menu.state('buyForFamily.selfSpouse1Child.child', {
-        run: async () => {
-            let { user_id, first_name, last_name,name, phone_number } = await findUserByPhoneNumber(args.phoneNumber);
-
-            const child = menu.val;
-
-            let names = child.split(" ");
-            let ben_first_name = names[0];
-            let ben_last_name = names[1];
-
-            let beneficiary = {
-                beneficiary_id: uuidv4(),
-                full_name: child,
-                relationship: 'child',
-                first_name: ben_first_name,
-                last_name: ben_last_name,
-                user_id: user_id
-            }
-
-            let newBeneficiary = await Beneficiary.create(beneficiary);
-            console.log("new beneficiary selfSpouse1Child child", newBeneficiary)
-
-
-            //capitalize first letter of name
-          first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
+            menu.con(`Inpatient Family cover for ${phone_number} ${first_name} ${last_name} UGX ${sum_insured} each a year
+                  PAY
+                  1-UGX ${premium} payable monthly
+                  2-UGX ${yearly_premium} yearly
+                  0.Back
+                  00.Main Menu`);
             
-            menu.con(`Hospital cover for ${first_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
-                    PAY
-                    1. Monthly UGX 30,000
-                    2. Yearly UGX 360,000 
-                    0. Back
-                    00. Main Menu`);
         },
         next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse1Child.pay',
-            '2': 'buyForFamily.selfSpouse1Child.pay.yearly',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-
-
-    //buy for family selfSpouse1Child spouse
-    menu.state('buyForFamily.selfSpouse1Child.pay', {
-        run: async () => {
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-            let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-            let day = date.getDate();
-
-            const policy = {
-                policy_d: uuidv4(),
-                policy_type: 'FAMILY',
-                beneficiary: 'selfSpouse1Child',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
-                policy_next_deduction_date: nextDeduction,
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 30000,
-                premium: 360000,
-                policy_pending_premium: 30000,
-                installment_order: 1,
-                installment_type: 1,
-                installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-                installment_alert_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-            }
-
-            let newPolicy = await Policy.create(policy).catch(err => console.log(err));
-            console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy)
-            const allPolicy = await findAllPolicyByUser(user_id);
-            let numberOfPolicies = allPolicy.length;
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-            menu.con('\nEnter Child s name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse1Child.confirm',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-    });
-
-
-
-
-    //buyForFamily.selfSpouse1Child.confirm
-    menu.state('buyForFamily.selfSpouse1Child.confirm', {
-        run: async () => {
-            try {
-                const childName = menu.val;
-                console.log("CHILD NAME", childName);
-
-                const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-                let names = childName.split(" ");
-                let ben_first_name = names[0];
-                let ben_middle_name = names[1];
-                let ben_last_name = names[2] || names[1];
-
-                let beneficiary = {
-                    beneficiary_id: uuidv4(),
-                    full_name: childName,
-                    relationship: 'child',
-                    first_name: ben_first_name,
-                    middle_name: ben_middle_name,
-                    last_name: ben_last_name,
-                    user_id: user_id
-                }
-
-                const newBeneficiary = await Beneficiary.create(beneficiary);
-                console.log("New Beneficiary", newBeneficiary);
-
-                const selectedDay = new Date().getDate();
-                const date = new Date();
-                const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, selectedDay);
-
-
-                menu.con('Confirm \n' +
-                    ` Deduct UGX 30,000, Next deduction will be on ${nextDeduction} \n` +
-                    '\n1. Confirm \n' +
-                    '\n0. Back\n' +
-                    '00. Main Menu'
-                );
-            } catch (error) {
-                console.error('Error:', error);
-                menu.end('An error occurred while processing the confirmation');
-            }
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'buyForFamily',
-            '00': 'insurance',
-        },
-    });
-
-    menu.state('buyForFamily.selfSpouse1Child.pay.yearly', {
-        run: async () => {
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-            //save spouse name to db users collection
-            let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-            let day = date.getDate();
-
-            const policy = {
-                policy_d: uuidv4(),
-                policy_type: 'family',
-                beneficiary: 'selfSpouse1Child',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
-                policy_next_deduction_date: nextDeduction,
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 360000,
-                premium: 360000,
-                policy_pending_premium: 360000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-                installment_alert_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-            }
-
-            let newPolicy = await Policy.create(policy).catch(err => console.log(err));
-            console.log("NEW POLICY FAMILY SELFSPOUSE1CHILD", newPolicy)
-            const allPolicy = await findAllPolicyByUser(user_id)
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-
-            menu.con('\nEnter your Child s name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse1Child.yearly.confirm',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-    });
-
-
-    menu.state('buyForFamily.selfSpouse1Child.yearly.confirm', {
-        run: async () => {
-            try {
-                const childName = menu.val;
-                console.log("CHILD NAME", childName);
-
-                const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-                let names = childName.split(" ");
-                let ben_first_name = names[0];
-                let ben_middle_name = names[1];
-                let ben_last_name = names[2] || names[1];
-
-                let beneficiary = {
-                    beneficiary_id: uuidv4(),
-                    full_name: childName,
-                    relationship: 'child',
-                    first_name: ben_first_name,
-                    middle_name: ben_middle_name,
-                    last_name: ben_last_name,
-                    user_id: user_id
-                }
-
-
-                const newBeneficiary = await Beneficiary.create(beneficiary);
-                console.log("New Beneficiary", newBeneficiary);
-
-                const selectedDay = new Date().getDate();
-                const date = new Date();
-                const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, selectedDay);
-
-
-                menu.con('Confirm \n' +
-                    ` Deduct UGX 360,000, Next deduction will be on ${nextDeduction} \n` +
-                    '\n1. Confirm \n' +
-                    '\n0. Back\n' +
-                    '00. Main Menu'
-                );
-            } catch (error) {
-                console.error('Error:', error);
-                menu.end('An error occurred while processing the confirmation');
-            }
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'buyForFamily',
-            '00': 'insurance',
-        },
-    });
-
-
-    //===========BUY FOR FAMILY SELF SPOUSE 2 CHILDREN==================
-    menu.state('buyForFamily.selfSpouse2Children', {
-        run: async () => {
-            menu.con('\nEnter Spouse name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse2Child.spouse',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-    });
-
-    //buyForFamily.selfSpouse2Children spouse
-    menu.state('buyForFamily.selfSpouse2Child.spouse', {
-        run: async () => {
-            let spouse = menu.val;
-            const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
-        
-            const policy = {
-                policy_d: uuidv4(),
-                policy_type: 'FAMILY',
-                beneficiary: 'selfSpouse2Child',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate()),
-                policy_deduction_amount: 40000,
-                policy_deduction_day: new Date().getDate() * 1,
-                policy_next_deduction_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-                premium: 40000,
-                policy_pending_premium: 40000,
-                installment_order: 1,
-                installment_type: 1,
-                installment_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-                installment_alert_date: new Date(new Date().getFullYear() + 1, new Date().getMonth() + 1, new Date().getDate()),
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                user_id: user_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-            }
-
-            let newPolicy = await Policy.create(policy);
-            console.log("NEW POLICY FAMILY SELFSPOUSE2CHILD", newPolicy)
-
-            const allPolicy = await findAllPolicyByUser(user_id)
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-            let names = spouse.split(" ");
-            let ben_first_name = names[0];
-            let ben_last_name = names[1];
-
-            let beneficiary = {
-                beneficiary_id: uuidv4(),
-                full_name: spouse,
-                relationship: 'spouse',
-                first_name: ben_first_name,
-                last_name: ben_last_name,
-                user_id: user_id
-            }
-
-            let newBeneficiary = await Beneficiary.create(beneficiary);
-            console.log("new beneficiary 1", newBeneficiary)
-
-            menu.con('\nEnter your first Child full name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse2Child.child1.name',
+            '*\\d+': 'buyForFamilyPin',
             '0': 'buyForFamily',
             '00': 'insurance'
         }
 
-    });
-
-
-
-    //buyForFamily.selfSpouse2Children child1 name
-    menu.state('buyForFamily.selfSpouse2Child.child1.name', {
-        run: async () => {
-            let childName = menu.val;
-            console.log("child1 3 NAME", childName)
-            //save child1 name to db users collection
-            const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-            let names = childName.split(" ");
-            let ben_first_name = names[0];
-            let ben_middle_name = names[1];
-            let ben_last_name = names[2] || names[1];
-
-            let beneficiary = {
-                beneficiary_id: uuidv4(),
-                full_name: childName,
-                relationship: 'child',
-                first_name: ben_first_name,
-                middle_name: ben_middle_name,
-                last_name: ben_last_name,
-                user_id: user_id
-            }
-
-            let newBeneficiary = await Beneficiary.create(beneficiary);
-            console.log("new beneficiary 3", newBeneficiary)
-
-            menu.con('\n Enter Second Child s full name' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*[a-zA-Z]+': 'buyForFamily.selfSpouse2Child.child2.name',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-    });
-
-    //buyForFamily.selfSpouse2Children child2
-    menu.state('buyForFamily.selfSpouse2Child.child2.name', {
-        run: async () => {
-            let childName = menu.val;
-            //save child2 name to db users collection
-            const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
-
-            let names = childName.split(" ");
-            let ben_first_name = names[0];
-            let ben_middle_name = names[1];
-            let ben_last_name = names[2] || names[1];
-
-            let beneficiary = {
-                beneficiary_id: uuidv4(),
-                full_name: childName,
-                relationship: 'child',
-                first_name: ben_first_name,
-                middle_name: ben_middle_name,
-                last_name: ben_last_name,
-                user_id: user_id
-            }
-
-            let newBeneficiary = await Beneficiary.create(beneficiary);
-            console.log("new beneficiary 4", newBeneficiary)
-
-            menu.con(`Pay UGX 40000 deducted monthly.
-                    Terms&Conditions - www.airtel.com
-                    '\nEnter PIN or Membership ID to Agree and Pay' +
-                    n0.Back
-                    00.Main Menu`
-            )
-        },
-        next: {
-            '*\\d+': 'buyForFamily.selfSpouse2Child.pin',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
-    });
-
-    //buyForFamily.selfSpouse2Children pin
-    menu.state('buyForFamily.selfSpouse2Child.pin', {
-        run: () => {
-
-            let premium = 40000;
-            menu.con(`Pay UGX ${premium} deducted monthly.
-                            Terms&Conditions - www.airtel.com
-                            '\nEnter PIN or Membership ID to Agree and Pay' +
-                            n0.Back
-                            00.Main Menu`
-            )
-
-        },
-        next: {
-            '*\\d+': 'buyForFamilySChedule',
-            '0': 'buyForFamily',
-            '00': 'insurance'
-        }
     });
 
 
     menu.state('buyForFamilyPin', {
-        run: () => {
-            console.log("buyForFamilyPin")
+        run: async () => {
+            const paymentOption = Number(menu.val);
+            console.log("PAYMENT OPTION", paymentOption)
 
-            menu.con(`Pay UGX 40,000 deducted monthly.
+            const { user_id } = await findUserByPhoneNumber(args.phoneNumber);
+
+            const {policy_type, policy_id} = await findPolicyByUser(user_id);
+
+            console.log("POLICY TYPE", policy_type)
+
+            if(policy_id == null){
+                menu.end('Sorry, you have no policy to buy for family');
+            }
+           let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly'
+            if(policy_type == 'MINI'){
+                period = 'yearly'
+                installment_type = 1;
+                sum_insured = 1500000;
+                premium = 240000;
+                if(paymentOption == 1){
+                    period = 'monthly'
+                    premium = 20000;
+                    installment_type = 2;
+                }
+
+            }else if(policy_type == 'MIDI'){
+                period = 'yearly'
+                installment_type = 1;
+                sum_insured = 3000000;
+                premium = 336000;
+                if(paymentOption == 1){
+                    period = 'monthly'
+                    premium = 28000;
+                installment_type = 2;
+
+                }
+               
+            }
+            else if(policy_type == 'BIGGIE'){
+                period = 'yearly'
+                installment_type = 1;
+                sum_insured = 5000000;
+                premium = 420000;
+                
+                if(paymentOption == 1){
+                    period = 'monthly'
+                    premium = 35000;
+                installment_type = 2;
+
+                }
+            }
+
+            menu.con(`Pay UGX ${premium} payable ${period}.
                     Terms&Conditions - www.airtel.com
-                    '\nEnter PIN or Membership ID to Agree and Pay' +
+                    Enter PIN to Agree and Pay 
                     n0.Back
                     00.Main Menu`
             )
         },
         next: {
-            '*\\d+': 'confirmation',
+            '*\\d+': 'family.confirmation',
             '0': 'buyForFamily',
             '00': 'insurance'
 
         }
     });
+
+
+    //buyForFamily.selfSpouse.pay.yearly
+    menu.state('family.confirmation', {
+        run: async () => {
+            try {
+
+                const userPin = Number(menu.val)
+                console.log("USER PIN", userPin)
+                const selected = args.text;
+                console.log("SELECTED TEXT", selected)
+
+                const input = selected.trim();
+                const digits = input.split("*").map((digit) => parseInt(digit, 10));
+      
+                let paymentOption = Number(digits[digits.length - 2]);
+                console.log("PAYMENT OPTION", paymentOption)
+
+                const { user_id, phone_number, partner_id, membership_id, pin} = await findUserByPhoneNumber(args.phoneNumber);
+
+                if( userPin != pin && userPin != membership_id ){
+                    menu.end('Invalid PIN');
+                }
+
+                const {policy_type, policy_id} = await findPolicyByUser(user_id);
+
+                if(policy_id == null){
+                    menu.end('Sorry, you have no policy to buy for family');
+                }
+               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly'
+               if(policy_type == 'MINI'){
+                    period = 'yearly'
+                    installment_type = 1;
+                    sum_insured = 1500000;
+                    premium = 240000;
+                    if(paymentOption == 1){
+                        period = 'monthly'
+                        premium = 20000;
+                        installment_type = 2;
+                    }
+
+                }else if(policy_type == 'MIDI'){
+                    period = 'yearly'
+                    installment_type = 1;
+                    sum_insured = 3000000;
+                    premium = 336000;
+                   
+                    if(paymentOption == 1){
+                        period = 'monthly'
+                        premium = 28000;
+                    installment_type = 2;
+
+                    }
+                }
+                else if(policy_type == 'BIGGIE'){
+                    period = 'yearly'
+                    installment_type = 1;
+                    sum_insured = 5000000;
+                    premium = 420000;
+                    if(paymentOption == 1){
+                        period = 'monthly'
+                        premium = 35000;
+                    installment_type = 2;
+
+                    }
+                    
+                }
+
+                await Policy.update({ 
+                     policy_deduction_amount: premium,
+                     policy_pending_premium: premium,
+                     sum_insured: sum_insured,
+                     premium: premium,
+                     installment_type: installment_type,
+                     installment_order: 1,
+                    }, { where: { user_id: user_id } });
+
+    
+  
+                    let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
+                    //let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)
+  
+                   console.log("PAYMENT STATUS", paymentStatus)
+                    if (paymentStatus.code === 200) {
+                        menu.end(`Congratulations! You are now covered. 
+                        To stay covered, UGX ${premium} will be payable every ${period}`);
+                    } else {
+                        menu.end(`Sorry, your payment was not successful. 
+                        \n0. Back \n00. Main Menu`);
+                    }
+               
+            } catch (error) {
+                console.error('Confirmation Error:', error);
+                menu.end('An error occurred. Please try again later.');
+            }
+        }
+
+    });
+
+
 
 
 }

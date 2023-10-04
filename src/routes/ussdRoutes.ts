@@ -11,6 +11,7 @@ const Transaction = db.transactions;
 const Payment = db.payments;
 const Policy = db.policies;
 const Users = db.users;
+const Beneficiary = db.beneficiaries;
 
 const router = express.Router();
 
@@ -26,6 +27,9 @@ const handleUSSDRequest = async (req: any, res: any, menuBuilder: any) => {
 };
 
 router.post("/uga", async (req: any, res: any) => {
+
+ 
+
   await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
 });
 
@@ -41,54 +45,32 @@ const findTransactionById = async (transactionId) => {
   });
 };
 
-const updateUserPolicyStatus = async (policy, transactionAmount, installment_order) => {
-    let date = new Date();
+const updateUserPolicyStatus = async (policy, amount, installment_order, installment_type) => {
+  console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type)
+  let date = new Date();
 
-    let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
+  let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
   policy.policy_status = "paid";
   policy.policy_paid_date = new Date();
 
-  // console.log("POLICY START", policy);
-
-  if (policy.policy_paid_amount === null) {
-    policy.policy_paid_amount = 0;
+  if (installment_order == 12) {
+    policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
   }
 
-  if (parseFloat(policy.policy_paid_amount) < parseInt(policy.premium ) && parseInt(policy.policy_pending_premium) > 0) {
-    policy.policy_next_deduction_date = installment_alert_date
-    policy.installment_date = installment_alert_date
-    policy.installment_alert_date = installment_alert_date
-    policy.installment_order = installment_order
-  } else {
-    policy.policy_paid_amount = parseInt(policy.premium);
-    policy.policy_pending_premium = 0;
+  if (installment_type == 2) {
+    policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
+    policy.installment_order = installment_order;
+    policy.installment_alert_date = installment_alert_date;
   }
 
+  policy.policy_paid_amount += amount;
+  policy.policy_pending_premium -= amount;
 
-  
-  let installment = await db.installments.findAll({
-      where: {
-          policy_id: policy.policy_id,
-        },
-    });
-    // console.log("INSTALLMENT", installment);
-    
-    //REDUCE AMOUNT FROM INSTALLMENT 
-    const installmentAmount = installment.reduce((acc:any, installment: any) => {
-        return acc + parseInt(installment.installment_deduction_amount);
-    }
-    , 0);
+  console.log("UPDATE STATUS WAS CALLED", policy)
+  await policy.save();
 
-    
-    policy.policy_paid_amount = installmentAmount; 
-    policy.policy_pending_premium = parseInt(policy.premium) - installmentAmount;
+  return policy;
 
-    // console.log("INSTALLMENT AMOUNT", installmentAmount, policy.policy_pending_premium, policy.policy_paid_amount, policy.premium); 
-    
-    // console.log("POLICY END", policy);
-  
-    await policy.save();
-  
 };
 // {
 //   "transaction": {
@@ -100,151 +82,79 @@ const updateUserPolicyStatus = async (policy, transactionAmount, installment_ord
 // }
 
 
-// Callback endpoint
-router.all("/callback", async (req: any, res: any) => {
-  // console.log("CALLBACK REQUEST", req.body);
-
+// POST and GET request handler
+router.all("/callback", async (req, res) => {
   try {
+    if (req.method === "POST" || req.method === "GET") {
+      const { transaction } = req.body;
+      const { id, status_code, message, airtel_money_id } = transaction;
 
-    let callbackReceived = false;
+      const transactionData = await findTransactionById(id);
 
-    // Handle the callback logic
-    // console.log("CALLBACK REQUEST", req.body);
-  
-    if (req.method === "POST") {
-      // Handle POST request logic here
-      const { id, status_code, message, airtel_money_id } = req.body.transaction
-
-      const transaction = await findTransactionById(id);
-
-      if (!transaction) {
+      if (!transactionData) {
         console.log("Transaction not found");
         return res.status(404).json({ message: "Transaction not found" });
       }
-  
-      // Update the transaction status
-      await transaction.update({
+
+      await transactionData.update({
         status: "paid",
       });
-  
-      const policy_id = transaction.policy_id;
-      const user_id = transaction.user_id;
-  
-      const user = await Users.findOne({
-        where: {
-          user_id: user_id,
-        },
-      });
-  
-      const policy = await Policy.findOne({
-        where: {
-          policy_id: policy_id,
-        },
-      });
-  
+
+      const { policy_id, user_id, amount, partner_id } = transactionData;
+
+      const user = await Users.findOne({ where: { user_id } });
+      const policy = await Policy.findOne({ where: { policy_id } });
+
       if (!policy) {
         console.log("Policy not found");
         return res.status(404).json({ message: "Policy not found" });
       }
-      //update policy status
 
-      const beneficiary = await db.beneficiaries.findOne({
-        where: {
-          user_id: user_id,
-        },
-      });
-  
-      let dollarUSLocale = Intl.NumberFormat("en-US");
-      let premium = dollarUSLocale.format(policy.policy_deduction_amount);
-      // Format date to dd/mm/yyyy
-      let formatDate = (date) => {
-        const dd = String(date.getDate()).padStart(2, "0");
-        const mm = String(date.getMonth() + 1).padStart(2, "0");
-        const yyyy = date.getFullYear();
-        return `${dd}/${mm}/${yyyy}`;
-      };
-  
-      // Assuming policy.policy_end_date and policy.policy_next_deduction_date are Date objects
-      let policy_end_date = formatDate(policy.policy_end_date);
-      let policy_next_deduction_date = formatDate(
-        policy.policy_next_deduction_date
-      );
-  
-      // console.log("POLICY", policy_end_date, policy_next_deduction_date);
-  
+      const beneficiary = await Beneficiary.findOne({ where: { user_id } });
       const to = user.phone_number;
-  
       const policyType = policy.policy_type.toUpperCase();
-      //`Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL.
-      // Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
-  
-      //Medical cover SMS 1: BOUGHT Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient cover 10,000  Go to My Account to ADD details
       const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
-  
-      // Count characters in the message
-      const messageLength = paymentMessage.length;
-      // console.log("MESSAGE LENGTH", messageLength, paymentMessage);
-  
-      if (status_code == "TS") {
-        
-        // Send SMS to user
+
+      if (status_code === "TS") {
         await sendSMS(to, paymentMessage);
-        //user.arr_member_number == null || user.arr_member_number == ""
+        let registerAARUser:any, updatePremiumData:any, updatedPolicy:any, installment:any;
+        if (!user.arr_member_number) {
+           registerAARUser = await registerPrincipal(user, policy, beneficiary, airtel_money_id);
+          if (registerAARUser.member_no !== null) {
+            console.log("AAR USER", registerAARUser);
+             updatePremiumData = await updatePremium(registerAARUser, policy);
+            console.log("AAR UPDATE PREMIUM", updatePremiumData);
+          }
+        }
 
-      //  if(true){
-
-       const registerAARUser = await registerPrincipal(user, policy,beneficiary, airtel_money_id)
-       if(registerAARUser.member_no !== null){
-       const updatePremiumData = await updatePremium(registerAARUser, policy)
-       console.log("AAR UPDATE PEMIUM", updatePremiumData);
-
-       }
-
-       //AAR USER { Error: 'Member with same name and dob already exists!', code: 608 }
-       
-       console.log("AAR USER", registerAARUser);
-       
-     // }
-        await Payment.create({
-          payment_amount: transaction.amount,
-          payment_type: "airtel money payment",
-          user_id: transaction.user_id,
-          policy_id: transaction.policy_id,
+      const payment = await Payment.create({
+          payment_amount: amount,
+          payment_type: "airtel money stk push",
+          user_id,
+          policy_id,
           payment_status: "paid",
           payment_description: message,
           payment_date: new Date(),
           payment_metadata: req.body,
-          partner_id: transaction.partner_id,
+          partner_id,
         });
-  
+
         console.log("Payment record created successfully");
-  
-        // console.log(
-        //   " =========== INSTALLMENT ========",
-        //   policy.policy_paid_amount !== parseInt(policy.premium),
-        //   policy.policy_paid_amount,
-        //   policy.premium
-        // );
-        if (policy.installment_order > 0) {
-          // plus one month to today's date
-          let date = new Date();
-  
-          let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
-              
-          let installment_order = await db.installments.count({
-            where: {
-              policy_id: policy.policy_id,
-            },
-          });
-          installment_order = installment_order + 1;
-  
-          // create installment
-          await db.installments.create({
+
+        if (policy.installment_order > 0 && policy.installment_order < 12 && policy.installment_type == 2) {
+          console.log("INSTALLMENT ORDER", policy.installment_order, policy.installment_type);
+          const date = new Date();
+          const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
+
+          let installment_order = await db.installments.count({ where: { policy_id } });
+          installment_order++;
+
+          installment =await db.installments.create({
             installment_id: uuidv4(),
-            policy_id: policy.policy_id,
-            installment_order: installment_order,
+            policy_id,
+            installment_order,
             installment_date: new Date(),
-            installment_alert_date: installment_alert_date,
+            installment_alert_date,
             tax_rate_vat: policy.tax_rate_vat,
             tax_rate_ext: policy.tax_rate_ext,
             installment_deduction_amount: policy.policy_deduction_amount,
@@ -255,198 +165,44 @@ router.all("/callback", async (req: any, res: any) => {
             currency_code: policy.currency_code,
             country_code: policy.country_code,
           });
-  
-          await updateUserPolicyStatus(policy, parseInt(transaction.amount),installment_order );
-          //await initiateConsent(policyType,policy.policy_start_date, policy_end_date, user.phone_number, policy.policy_deduction_amount , policy.premium)
+
         }
-        res.status(200).json({ message: "Payment record created successfully" });
+        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
+       
+        console.log("=== PAYMENT ===",payment)
+        console.log("=== TRANSACTION === ",transactionData)
+        console.log("=== UPDATED POLICY ===",updatedPolicy)
+        console.log("=== INSTALLMENT ===",installment)
+        console.log("=== REGISTERED AAR USER ===",registerAARUser)
+        console.log("=== UPDATED PREMIUM DATA ===",updatePremiumData)
+
+
+        return res.status(200).json({ 
+          code: 200,
+          message: "Payment record created successfully" });
       } else {
         await Payment.create({
-          payment_amount: transaction.amount,
+          payment_amount: amount,
           payment_type: "airtel money payment",
-          user_id: transaction.user_id,
-          policy_id: transaction.policy_id,
-          payment_status: "failed",
-          payment_description: message,
-          payment_date: new Date(),
-          payment_metadata: req.body,
-        });
-  
-        console.log("Payment record created successfully");
-        res.status(200).json({code: 200, message: "POST request handled successfully" });
-        
-      }
-
-    } else if (req.method === "GET") {
-      // Handle GET request logic here
-
-      console.log(req.body);
-      const { id, status_code, message, airtel_money_id } =req.body.transaction
-
-      const transaction = await findTransactionById(id);
-
-      if (!transaction) {
-        console.log("Transaction not found");
-        return res.status(404).json({ message: "Transaction not found" });
-      }
-  
-      // Update the transaction status
-      await transaction.update({
-        status: "paid",
-      });
-  
-      const policy_id = transaction.policy_id;
-      const user_id = transaction.user_id;
-  
-      const user = await Users.findOne({
-        where: {
-          user_id: user_id,
-        },
-      });
-  
-      const policy = await Policy.findOne({
-        where: {
-          policy_id: policy_id,
-        },
-      });
-  
-      if (!policy) {
-        console.log("Policy not found");
-        return res.status(404).json({ message: "Policy not found" });
-      }
-      //update policy status
-
-      const beneficiary = await db.beneficiaries.findOne({
-        where: {
-          user_id: user_id,
-        },
-      });
-  
-      let dollarUSLocale = Intl.NumberFormat("en-US");
-      let premium = dollarUSLocale.format(policy.policy_deduction_amount);
-      // Format date to dd/mm/yyyy
-      let formatDate = (date) => {
-        const dd = String(date.getDate()).padStart(2, "0");
-        const mm = String(date.getMonth() + 1).padStart(2, "0");
-        const yyyy = date.getFullYear();
-        return `${dd}/${mm}/${yyyy}`;
-      };
-  
-      // Assuming policy.policy_end_date and policy.policy_next_deduction_date are Date objects
-      let policy_end_date = formatDate(policy.policy_end_date);
-      let policy_next_deduction_date = formatDate(
-        policy.policy_next_deduction_date
-      );
-  
-      // console.log("POLICY", policy_end_date, policy_next_deduction_date);
-  
-      const to = user.phone_number;
-  
-      const policyType = policy.policy_type.toUpperCase();
-      //`Your monthly auto premium payment of UGX ${premium} for ${policyType} Medical cover was SUCCESSFUL.
-      // Cover was extended till ${policy_end_date}. Next payment is on ${policy_next_deduction_date}.`;
-  
-      //Medical cover SMS 1: BOUGHT Medical cover for 07XXXXXXXX [FIRST NAME] [LAST NAME]. Inpatient cover 10,000  Go to My Account to ADD details
-      const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
-  
-      // Count characters in the message
-      const messageLength = paymentMessage.length;
-      // console.log("MESSAGE LENGTH", messageLength, paymentMessage);
-  
-      if (status_code == "TS") {
-        
-        // Send SMS to user
-       await sendSMS(to, paymentMessage);
-
-       //if(user.arr_member_number == null || user.arr_member_number == ""){
-
-        const registerAARUser = await registerPrincipal(user, policy,beneficiary, airtel_money_id)
-        const updatePremiumData = await updatePremium(registerAARUser, policy)
-        console.log("AAR UPDATE PEMIUM", updatePremiumData);
- 
-        
-        console.log("AAR USER", registerAARUser);
-        
-     //  }
-        await Payment.create({
-          payment_amount: transaction.amount,
-          payment_type: "airtel money payment",
-          user_id: transaction.user_id,
-          policy_id: transaction.policy_id,
-          payment_status: "paid",
-          payment_description: message,
-          payment_date: new Date(),
-          payment_metadata: req.body,
-          partner_id: transaction.partner_id,
-        });
-  
-        console.log("Payment record created successfully");
-  
-        // console.log(
-        //   " =========== INSTALLMENT ========",
-        //   policy.policy_paid_amount !== parseInt(policy.premium),
-        //   policy.policy_paid_amount,
-        //   policy.premium
-        // );
-        if (policy.installment_order > 0) {
-          // plus one month to today's date
-          let date = new Date();
-  
-          let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
-              
-          let installment_order = await db.installments.count({
-            where: {
-              policy_id: policy.policy_id,
-            },
-          });
-          installment_order = installment_order + 1;
-  
-          // create installment
-          await db.installments.create({
-            installment_id: uuidv4(),
-            policy_id: policy.policy_id,
-            installment_order: installment_order,
-            installment_date: new Date(),
-            installment_alert_date: installment_alert_date,
-            tax_rate_vat: policy.tax_rate_vat,
-            tax_rate_ext: policy.tax_rate_ext,
-            installment_deduction_amount: policy.policy_deduction_amount,
-            premium: policy.premium,
-            sum_insured: policy.sum_insured,
-            excess_premium: policy.excess_premium,
-            discount_premium: policy.discount_premium,
-            currency_code: policy.currency_code,
-            country_code: policy.country_code,
-          });
-  
-          await updateUserPolicyStatus(policy, parseInt(transaction.amount),installment_order );
-        }
-        res.status(200).json({ message: "Payment record created successfully" });
-      } else {
-        await Payment.create({
-          payment_amount: transaction.amount,
-          payment_type: "airtel money payment",
-          user_id: transaction.user_id,
-          policy_id: transaction.policy_id,
+          user_id,
+          policy_id,
           payment_status: "failed",
           payment_description: message,
           payment_date: new Date(),
           payment_metadata: req.body,
         });
 
-        // await sendSMS(to, message);
-      res.status(200).send("GET request handled successfully");
+        console.log("Payment  for failed record created");
+        return res.status(200).json({ code: 200, message: "POST/GET request handled successfully" });
       }
     } else {
-      // Handle other HTTP methods (PUT, DELETE, etc.) or return an error
-      res.status(405).send("Method Not Allowed");
+      return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
+    return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
+
 
 module.exports = router;

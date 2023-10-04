@@ -54,6 +54,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: "pending"
         },
+        member_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
 
 
 

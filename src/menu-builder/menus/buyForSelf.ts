@@ -15,13 +15,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
     console.log("ARGS PHONE NUMBER", args.phoneNumber)
 
-    async function getUser(phoneNumber: any) {
-        return await User.findOne({
-            where: {
-                phone_number: phoneNumber
-            }
-        })
-    }
+
     const findUserByPhoneNumber = async (phoneNumber: any) => {
         return await User.findOne({
             where: {
@@ -39,6 +33,16 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         });
     };
 
+    const findPolicyByUser = async (user_id: any) => {
+        return await Policy.findOne({
+            where: {
+                user_id: user_id,
+            },
+        });
+    }
+
+    
+
     menu.state('buyForSelf', {
         run: async () => {
 
@@ -50,647 +54,233 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 return;
             }
             menu.con('Buy for self ' +
-                '\n1. Airtel MINI  – UGX 10,000' +
-                '\n2. Airtel MIDI – UGX 14,000' +
-                '\n3. Airtel MAXI – UGX 18,000' +
+                '\n1. Mini  – UGX 10,000' +
+                '\n2. Midi– UGX 14,000' +
+                '\n3. Biggie – UGX 18,000' +
                 '\n0.Back' +
                 '\n00.Main Menu'
             )
 
         },
         next: {
-            '1': 'buyForSelf.bronze',
-            '2': 'buyForSelf.silver',
-            '3': 'buyForSelf.gold',
+            '*\\d+': 'buyForSelf.coverType',
+
             '0': 'account',
             '00': 'insurance',
         }
     });
-    //}
-
-
-    //================= BUY FOR SELF BRONZE =================
-    menu.state('buyForSelf.bronze', {
+    menu.state('buyForSelf.coverType', {
         run: async () => {
-            let { first_name, last_name, phone_number } = await getUser(args.phoneNumber);
-            console.log("USER", phone_number)
+            let coverType = menu.val;
 
-            //capitalize first letter of name
-            first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
+            const { user_id, phone_number, first_name, last_name, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
+            const date = new Date();
+            const day = date.getDate();
+            let sum_insured: any, premium: any, yearly_premium: any;
+            if (coverType == 1) {
+                coverType = 'MINI';
+                sum_insured = "1.5M"
+                premium = "10,000"
+                yearly_premium = "120,000"
 
-            const full_name = first_name + " " + last_name
-            menu.con(`Hospital cover for ${full_name}, ${phone_number}, Sum Insured UGX 1,500,000 a year 
+            } else if (coverType == 2) {
+                coverType = 'MIDI';
+                sum_insured = "3M"
+                premium = "14,000"
+                yearly_premium = "167,000"
+            } else if (coverType == 3) {
+                coverType = 'BIGGIE';
+                sum_insured = "5M"
+                premium = "18,000"
+                yearly_premium = "208,000"
+            }
+
+            await Policy.create({
+                user_id: user_id,
+                policy_id: uuidv4(),
+                policy_type: coverType,
+                beneficiary: 'SELF',
+                policy_status: 'pending',
+                policy_start_date: new Date(),
+                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
+                policy_deduction_day: day * 1,
+                partner_id: partner_id,
+                country_code: "UGA",
+                currency_code: "UGX",
+                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
+
+            })
+
+
+            menu.con(`Inpatient cover for ${phone_number}, ${first_name}, ${last_name} UGX ${sum_insured} a year 
                     PAY
-                    1. Monthly UGX 10,000
-                    2. Yearly UGX 120,000 
-                    0. Back
-                    00. Main Menu`);
+                    1. UGX ${premium} payable monthly
+                    2. UGX ${yearly_premium}  yearly
+                    
+                    0. Back 00. Main Menu`);
         },
         next: {
-            '1': 'buyForSelf.bronze.pay',
-            '2': 'buyForSelf.bronze.pay.yearly',
+            '*\\d+': 'buyForSelf.paymentOption',
             '0': 'account',
             '00': 'insurance'
         }
     });
 
-    menu.state('buyForSelf.bronze.pay', {
-        run: () => {
-            menu.con('Pay UGX 10,000  deducted monthly.' +
-                '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN or Membership ID to Agree and Pay' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*\\d+': 'buyForSelf.bronze.confirm',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-    menu.state('buyForSelf.bronze.pay.yearly', {
-        run: () => {
-            menu.con('Pay UGX 120,000 deducted yearly.' +
-                '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN or Membership ID to Agree and Pay' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*\\d+': 'buyForSelf.bronze.yearly.confirm',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-    menu.state('buyForSelf.bronze.confirm', {
+    menu.state('buyForSelf.paymentOption', {
         run: async () => {
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            console.log("user_pin", user_pin)
-            console.log("pin", pin)
-            console.log("membership_id", membership_id)
-            if (user_pin !== pin && user_pin !== membership_id) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
-            }
-            let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-            let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate() - 3);
-            //today day of month
-            let day = date.getDate();
-            let countryCode = 'UGA'
-            let currencyCode = 'UGX';
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: "AIRTEL_MINI",
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 10000,
-                policy_next_deduction_date: nextDeduction,
-                user_id: user_id,
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 120000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: nextDeduction,
-                installment_alert_date: installment_alert_date,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                partner_id: partner_id,
-                country_code: countryCode,
-                currency_code: currencyCode,
-                policy_pending_premium: 10000,
-            }
+            const paymentOption = menu.val
+            const { user_id } = await findUserByPhoneNumber(args.phoneNumber)
+            const { policy_type } = await findPolicyByUser(user_id)
+            let sum_insured: number, premium: number = 0, period: string, installment_type:number
 
-            let newPolicy = await Policy.create(policy);
 
-            console.log(newPolicy)
-            console.log("NEW POLICY AIRTEL_MINI SELF", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
+            if(policy_type == 'MINI'){
+                period = 'yearly'
+                installment_type = 1;
+                sum_insured = 1500000;
+                premium = 120000;
+                if(paymentOption == 1){
+                    period = 'monthly'
+                    premium = 10000;
+                    installment_type = 2;
                 }
 
-            );
-            let numberOfPolicies = allPolicy.length;
+            }else if(policy_type == 'MIDI'){
+                period = 'yearly'
+                installment_type = 1;
+                sum_insured = 3000000
+                premium = 167000
+                if(paymentOption == 1){
+                    period = 'monthly'
+                    premium = 14000;
+                    installment_type = 2;
 
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                }
+               
+            }
+            else if(policy_type == 'BIGGIE'){
+                period = 'yearly'
+                installment_type = 1;
+                sum_insured = 5000000;
+                premium = 208000;
+                
+                if(paymentOption == 1){
+                    period = 'monthly'
+                    premium = 18000;
+                     installment_type = 2;
 
-
-
-            const message = `PAID UGX 10,000 to AAR UGANDA for AIRTEL_MINI Cover Cover Charge UGX 0. Bal UGX 10,000. TID: 715XXXXXXXX. Date: ${new Date().toLocaleDateString()}. `
-
-
-            menu.con(`Confirm, Deduct 10,000, Next deduction will be on ${nextDeduction} 
-             1.Confirm 
-             0.Back 
-             00.Main Menu`
-            );
-
+                }
+            }
+            menu.con(`Pay UGX ${premium} payable ${period}.
+            Terms&Conditions - www.airtel.com
+            Enter PIN to Agree and Pay 
+            n0.Back
+            00.Main Menu`
+    )
         },
         next: {
-            '1': 'confirmation',
+            '*\\d+': 'buyForSelf.confirm',
             '0': 'account',
             '00': 'insurance'
-
         }
     });
 
-    menu.state('buyForSelf.bronze.yearly.confirm', {
+
+    menu.state('buyForSelf.confirm', {
         run: async () => {
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            if (user_pin !== pin && user_pin !== membership_id) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
-            }
-            let date = new Date();
-            let day = date.getDate();
-            let installment_alert_date = new Date(date.getFullYear() + 1, date.getMonth(), day - 3)
+            try {
 
-            //save policy details
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'AIRTEL_MINI',
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 120000,
-                policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 120000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                installment_alert_date: installment_alert_date,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '1500000',
-                last_expense_insured: '1000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                user_id: user_id,
-                partner_id: partner_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                policy_pending_premium: 120000,
-            }
+                const userPin = Number(menu.val)
+                console.log("USER PIN", userPin)
+                const selected = args.text;
+                console.log("SELECTED TEXT", selected)
 
-            let newPolicy = await Policy.create(policy);
-            console.log(newPolicy)
-            console.log("NEW POLICY AIRTEL_MINI SELF", newPolicy)
+                const input = selected.trim();
+                const digits = input.split("*").map((digit) => parseInt(digit, 10));
+      
+                let paymentOption = Number(digits[digits.length - 2]);
+                console.log("PAYMENT OPTION", paymentOption)
 
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
+                const { user_id, phone_number, partner_id, membership_id, pin} = await findUserByPhoneNumber(args.phoneNumber);
+
+                if( userPin != pin && userPin != membership_id ){
+                    menu.end('Invalid PIN');
                 }
 
-            );
-            let numberOfPolicies = allPolicy.length;
+                const {policy_type, policy_id} = await findPolicyByUser(user_id);
 
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
+                if(policy_id == null){
+                    menu.end('Sorry, you have no policy to buy for self');
+                }
+               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly'
+               if(policy_type == 'MINI'){
+                    period = 'yearly'
+                    installment_type = 1;
+                    sum_insured = 1500000;
+                    premium = 120000;
+                    if(paymentOption == 1){
+                        period = 'monthly'
+                        premium = 10000;
+                        installment_type = 2;
+                    }
 
+                }else if(policy_type == 'MIDI'){
+                    period = 'yearly'
+                    installment_type = 1;
+                    sum_insured = 3000000;
+                    premium = 167000;
+                   
+                    if(paymentOption == 1){
+                        period = 'monthly'
+                        premium = 14000;
+                    installment_type = 2;
 
+                    }
+                }
+                else if(policy_type == 'BIGGIE'){
+                    period = 'yearly'
+                    installment_type = 1;
+                    sum_insured = 5000000;
+                    premium = 208000;
+                    if(paymentOption == 1){
+                        period = 'monthly'
+                        premium = 18000;
+                        installment_type = 2;
 
+                    }
+                    
+                }
 
-            menu.con('Confirm \n' +
-                ` Deduct UGX 120,0000, Next deduction will be on ${policy.policy_end_date} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
+                await Policy.update({ 
+                     policy_deduction_amount: premium,
+                     policy_pending_premium: premium,
+                     sum_insured: sum_insured,
+                     premium: premium,
+                     installment_type: installment_type,
+                     installment_order: 1,
+                    }, { where: { user_id: user_id } });
 
-
-    //================= BUY FOR SELF SILVER =================
-    menu.state('buyForSelf.silver', {
-        run: async () => {
-            let { first_name, last_name, phone_number } = await getUser(args.phoneNumber);
-            first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
-            let full_name = first_name + " " + last_name;
-            menu.con(`Hospital cover for ${full_name}, ${phone_number} UGX 3,000,00 a year 
-                    PAY' +
-                    1. UGX 14,000 deducted monthly 
-                    2. UGX 167,000 yearly
-                    0.Back
-                    00.Main Menu`
-            )
-        },
-        next: {
-            '1': 'buyForSelf.silver.pay',
-            '2': 'buyForSelf.silver.yearly.pay',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-    menu.state('buyForSelf.silver.pay', {
-        run: () => {
-            menu.con('Pay UGX 14,000 deducted monthly.' +
-                '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN or Membership ID to Agree and Pay' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*\\d+': 'buyForSelf.silver.confirm',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-    menu.state('buyForSelf.silver.yearly.pay', {
-        run: () => {
-            menu.con('Pay UGX 167,000 deducted yearly.' +
-                '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN or Membership ID to Agree and Pay' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*\\d+': 'buyForSelf.silver.yearly.confirm',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-
-    menu.state('buyForSelf.silver.confirm', {
-        run: async () => {
-
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            if (user_pin !== pin && user_pin !== membership_id) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
-            }
-            let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-            let day = date.getDate();
     
-            //save policy details
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'AIRTEL_MIDI',
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 14000,
-                policy_next_deduction_date: nextDeduction,
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 167000,
-                installment_order: 1,
-                installment_type: 1,
-                installment_date: nextDeduction,
-                installment_alert_date: nextDeduction,
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '3000000',
-                last_expense_insured: '1500000',
-                excess_premium: '0',
-                discount_premium: '0',
-                user_id: user_id,
-                partner_id: partner_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                policy_pending_premium: 14000,
-            }
-
-
-            console.log("POLICY: ", policy)
-
-            let newPolicy = await Policy.create(policy);
-            console.log(newPolicy)
-            console.log("NEW POLICY SILVER SELF", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
+  
+                    let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
+  
+                   console.log("PAYMENT STATUS", paymentStatus)
+                    if (paymentStatus.code === 200) {
+                        menu.end(`Congratulations! You are now covered. 
+                        To stay covered, UGX ${premium} will be payable every ${period}`);
+                    } else {
+                        menu.end(`Sorry, your payment was not successful. 
+                        \n0. Back \n00. Main Menu`);
                     }
-                }
-
-            );
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-
-
-            menu.con('Confirm \n' +
-
-                ` Deduct UGX 14,000, Next deduction will be on ${nextDeduction} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-    menu.state('buyForSelf.silver.yearly.confirm', {
-        run: async () => {
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            if (user_pin !== pin && user_pin !== membership_id) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
+               
+            } catch (error) {
+                console.error('Confirmation Error:', error);
+                menu.end('An error occurred. Please try again later.');
             }
-            let date = new Date();
-
-            //today day of month
-            let day = date.getDate();
-        
-            //save policy details
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'AIRTEL_MIDI',
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 167000,
-                policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 167000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day - 3),
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '3000000',
-                last_expense_insured: '1500000',
-                excess_premium: '0',
-                discount_premium: '0',
-                user_id: user_id,
-                partner_id: partner_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                policy_pending_premium: 167000,
-            }
-
-            let newPolicy = await Policy.create(policy);
-            console.log(newPolicy)
-            console.log("NEW POLICY SILVER SELF", newPolicy)
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-
-            menu.con('Confirm \n' +
-                ` Deduct UGX 167,000  Next deduction will be on ${policy.policy_end_date} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-
         }
+
     });
 
 
-    //================= BUY FOR SELF GOLD =================
-
-    menu.state('buyForSelf.gold', {
-        run: async () => {
-            let { first_name, last_name, phone_number } = await getUser(args.phoneNumber);
-            first_name = first_name.charAt(0).toUpperCase() + first_name.slice(1);
-            last_name = last_name.charAt(0).toUpperCase() + last_name.slice(1);
-            let full_name = first_name + ' ' + last_name;
-            menu.con(`Hospital cover for ${full_name}, ${phone_number} UGX 5,000,000 a year 
-                        PAY
-                        1. UGX 18,000 deducted monthly 
-                        2. UGX 208,000 yearly
-                        0.Back
-                        00.Main Menu`
-            )
-        },
-        next: {
-            '1': 'buyForSelf.gold.pay',
-            '2': 'buyForSelf.gold.yearly.pay',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-    menu.state('buyForSelf.gold.pay', {
-        run: () => {
-            menu.con('Pay UGX 18,000  deducted monthly.' +
-                '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN or Membership ID to Agree and Pay' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*\\d+': 'buyForSelf.gold.confirm',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-
-    menu.state('buyForSelf.gold.confirm', {
-        run: async () => {
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            if (user_pin !== pin && user_pin !== membership_id) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
-            }
-            let date = new Date();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-            //today day of month
-            let day = date.getDate();
-       
-
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'AIRTEL_MAXI',
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 18000,
-                policy_next_deduction_date: nextDeduction,
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 208000,
-                installment_order: 1,
-                installment_type: 1,
-                installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '5000000',
-                last_expense_insured: '2000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                user_id: user_id,
-                partner_id: partner_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                policy_pending_premium: 18000,
-            }
-
-            let newPolicy = await Policy.create(policy);
-            console.log(newPolicy)
-            console.log("NEW POLICY GOLD SELF", newPolicy)
-
-            const user = await User.findOne({ where: { user_id: user_id } });
-            console.log("USER", user)
-            let numberOfPolicies = user.number_of_policies;
-            numberOfPolicies = numberOfPolicies + 1;
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-            console.log("USER UPDATED", user)
-
-            menu.con('Confirm \n' +
-                ` Deduct UGX 18,000, Next deduction will be on ${nextDeduction} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-    menu.state('buyForSelf.gold.yearly.pay', {
-        run: () => {
-            menu.con('Pay UGX 208,000 deducted yearly.' +
-                '\nTerms&Conditions - www.airtel.com' +
-                '\nEnter PIN or Membership ID to Agree and Pay' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
-        },
-        next: {
-            '*\\d+': 'buyForSelf.gold.yearly.confirm',
-            '0': 'account',
-            '00': 'insurance'
-        }
-    });
-
-    menu.state('buyForSelf.gold.yearly.confirm', {
-        run: async () => {
-            let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
-            if (user_pin !== pin && user_pin !== membership_id) {
-                menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
-            }
-            let date = new Date();
-            //today day of month
-            let day = date.getDate();
-            let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1);
-           
-            //save policy details
-            let policy = {
-                policy_d: uuidv4(),
-                policy_type: 'AIRTEL_MAXI',
-                beneficiary: 'self',
-                policy_status: 'pending',
-                policy_start_date: new Date(),
-                policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                policy_deduction_day: day * 1,
-                policy_deduction_amount: 208000,
-                policy_next_deduction_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
-                premium: 208000,
-                installment_order: 1,
-                installment_type: 2,
-                installment_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                installment_alert_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                tax_rate_vat: '0.2',
-                tax_rate_ext: '0.25',
-                sum_insured: '50000000',
-                last_expense_insured: '2000000',
-                excess_premium: '0',
-                discount_premium: '0',
-                user_id: user_id,
-                partner_id: partner_id,
-                country_code: "UGA",
-                currency_code: "UGX",
-                policy_pending_premium: 208000,
-            }
-
-            let newPolicy = await Policy.create(policy);
-            console.log("NEW POLICY AIRTEL_MAXI SELF", newPolicy)
-
-            const allPolicy = await Policy.findAll(
-                {
-                    where: {
-                        user_id: user_id
-                    }
-                }
-
-            );
-            let numberOfPolicies = allPolicy.length;
-
-            console.log("NUMBER OF POLICIES", numberOfPolicies)
-            await User.update({ number_of_policies: numberOfPolicies }, { where: { user_id: user_id } });
-
-
-            menu.con('Confirm \n' +
-                ` Deduct UGX 208,000 Next deduction will be on ${policy.policy_end_date} \n` +
-                '\n1.Confirm \n' +
-                '\n0.Back ' + ' 00.Main Menu'
-            );
-        },
-        next: {
-            '1': 'confirmation',
-            '0': 'account',
-            '00': 'insurance'
-
-        }
-    });
-
-
-
-   
 
 }

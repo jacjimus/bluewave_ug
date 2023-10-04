@@ -18,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         user_id: {
             type: DataTypes.UUID,
-
             allowNull: false
         },
         partner_id: {
@@ -31,34 +30,34 @@ module.exports = (sequelize, DataTypes) => {
         },
         policy_status: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
 
         },
         beneficiary: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
         policy_type: {
             type: DataTypes.STRING,
             allowNull: false,
-            enum: ["AIRTEL_MINI", "AIRTEL_MIDI", "AIRTEL_MAXI", "FAMILY"]
+            enum: ["MINI", "MIDI", "BIGGIE", "FAMILY"]
         },
         policy_end_date: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: true
 
         },
         policy_deduction_amount: {
             type: DataTypes.NUMBER,
-            allowNull: false
+            allowNull: true
         },
         policy_next_deduction_date: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: true
         },
         policy_deduction_day: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         installment_order: {
             type: DataTypes.INTEGER,

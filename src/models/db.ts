@@ -64,54 +64,54 @@ db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 //   })
 
 //update users table column number_of_policies with the number of policies a user has
-db.users.findAll().then((user: any) => {
-  user.forEach((user: any) => {
-    db.policies.findAll({
-      where: {
-        user_id: user.user_id
-      }
-    }).then((policy: any) => {
+// db.users.findAll().then((user: any) => {
+//   user.forEach((user: any) => {
+//     db.policies.findAll({
+//       where: {
+//         user_id: user.user_id
+//       }
+//     }).then((policy: any) => {
 
-      db.users.update(
-        { number_of_policies: policy.length },
-        { where: { user_id: user.user_id } }
-      )
-    }).catch((err: any) => {
-      console.log(err)
-    })
-  })
+//       db.users.update(
+//         { number_of_policies: policy.length },
+//         { where: { user_id: user.user_id } }
+//       )
+//     }).catch((err: any) => {
+//       console.log(err)
+//     })
+//   })
 
-}).catch((err: any) => {
-  console.log(err)
-})
+// }).catch((err: any) => {
+//   console.log(err)
+// })
 
 //update installment_order for policies with multiple installments
-db.policies.findAll().then((policy: any) => {
-  policy.forEach((policy: any) => {
-    db.installments.findAll({
-      where: {
-        policy_id: policy.policy_id,
+// db.policies.findAll().then((policy: any) => {
+//   policy.forEach((policy: any) => {
+//     db.installments.findAll({
+//       where: {
+//         policy_id: policy.policy_id,
        
-      }
-    }).then((installment: any) => {
-      let installmentOrder = 0
-      installment.forEach((installment: any) => {
-        installmentOrder += 1
-        db.policies.update(
-          { installment_order: installmentOrder },
-          {
-            where: { policy_id: policy.policy_id,  policy_status: 'paid' }
-          }
-        )
+//       }
+//     }).then((installment: any) => {
+//       let installmentOrder = 0
+//       installment.forEach((installment: any) => {
+//         installmentOrder += 1
+//         db.policies.update(
+//           { installment_order: installmentOrder },
+//           {
+//             where: { policy_id: policy.policy_id,  policy_status: 'paid' }
+//           }
+//         )
 
-      })
-    }).catch((err: any) => {
-      console.log(err)
-    })
-  })
-}).catch((err: any) => {
-  console.log(err)
-})
+//       })
+//     }).catch((err: any) => {
+//       console.log(err)
+//     })
+//   })
+// }).catch((err: any) => {
+//   console.log(err)
+// })
 
 
 
@@ -191,11 +191,11 @@ db.policies.findAll().then((policy: any) => {
 
 
 //syncing the model
-sequelize.sync().then(() => {
-  console.log(`Database & tables created! time: ${new Date()}`)
-}).catch((err) => {
-  console.log(err)
-})
+// sequelize.sync().then(() => {
+//   console.log(`Database & tables created! time: ${new Date()}`)
+// }).catch((err) => {
+//   console.log(err)
+// })
 
 
 //exporting the module
