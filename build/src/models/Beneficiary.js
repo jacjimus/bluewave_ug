@@ -47,6 +47,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: "pending"
         },
+        member_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     });
     Beneficiary.belongsTo(sequelize.models.user, {
         foreignKey: "user_id",

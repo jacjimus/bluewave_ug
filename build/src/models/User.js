@@ -126,6 +126,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        total_member_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, { timestamps: true });
     return User;
 };

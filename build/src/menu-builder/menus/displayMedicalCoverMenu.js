@@ -15,7 +15,7 @@ function displayMedicalCoverMenu(menu, args, db) {
         run: () => __awaiter(this, void 0, void 0, function* () {
             // Check if the user exists
             menu.con('Insurance ' +
-                '\n1. Medical cover' +
+                '\n1. Ddwaliro Care' +
                 '\n2. Auto Insurance' +
                 '\n0. Back' +
                 '\n00. Main Menu');
