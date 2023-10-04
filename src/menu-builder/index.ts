@@ -16,6 +16,7 @@ import { myAccount } from "./menus/myAccount";
 import { payNow } from "./menus/payNow";
 import { chooseHospital } from "./menus/chooseHospital";
 import { buyForOthers } from "./menus/buyForOthers";
+import { makeClaim } from "./menus/makeClaim";
 
 import getAirtelUser from "../services/getAirtelUser";
 
@@ -126,6 +127,9 @@ export default function (args: RequestBody, db: any) {
 
       //================MY ACCOUNT===================
       myAccount(menu, args, db);
+
+      //================== MAKE CLAIM ===================
+      makeClaim(menu, args, db);
 
       //==================PAY NOW===================
       payNow(menu, args, db);

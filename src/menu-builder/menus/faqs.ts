@@ -1,111 +1,173 @@
 export function displayFaqsMenu(menu: any): void {
-  menu.state('faqs', {
+  menu.state("faqs", {
     run: async () => {
-      menu.con('FAQs ' +
-        '\n1. Eligibility' +
-        '\n2. Bronze cover' +
-        '\n3. Silver Cover' +
-        '\n4. Gold cover' +
-        '\n5. Auto-renew' +
-        '\n6. Waiting period' +
-        '\n7. When to make claim' +
-        '\n8. Claim Payment' +
-        '\n9. Change Name' +
-        '\n0.Back' +
-        '\n00.Main Menu'
-      )
+      menu.con(
+        "FAQs " +
+          "\n1. Eligibility" +
+          "\n2. Mini cover" +
+          "\n3. Midi Cover" +
+          "\n4. Biggie cover" +
+          "\n5. Waiting period" +
+          '\n6. Waiting period meaning' +
+          "\n7. When to make claim" +
+          "\n8. Claim Payment" +
+          '\n9. Renewal' +
+          "\n99. Insured Name" +
+          "\n0.Back" +
+          "\n00.Main Menu"
+      );
     },
     next: {
-      '1': 'eligibility',
-      '2': 'bronzeCover',
-      '3': 'silverCover',
-      '4': 'goldCover',
-      '5': 'autoRenew',
-      '6': 'waitingPeriod',
-      '7': 'whenToMakeClaim',
-      '8': 'claimPayment',
-      '9': 'changeName',
-    }
-  });
-
-
-  
-  menu.state('eligibility', {
-    run: async () => {
-      menu.end('Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy' +
-        '\nTs&Cs apply'
-      )
+      "1": "eligibility",
+      "2": "miniCover",
+      "3": "midiCover",
+      "4": "biggieCover",
+      "5": "waitingPeriod",
+      "6": "waitingPeriodMeaning",
+      "7": "whenToMakeClaim",
+      "8": "claimPayment",
+      "9": "renewal",
+      "99": "insuredName",
     },
   });
 
-  
-  menu.state('bronzeCover', {
+  menu.state("eligibility", {
     run: async () => {
-      menu.end('Get Free Cover for Bronze Hospitalization cover for 30 nights / year ' +
-        '\nPays UGX 4,500 per night from 2nd night. Payout for ICU is UGX 9,000 for max 10 nights' +
-        '\nTs&Cs apply'
-      )
+      menu.con(
+        "Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy" +
+          "\nTs&Cs apply" +
+          
+          "\n0.Back"
+      );
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-  menu.state('silverCover', {
+  menu.state("miniCover", {
     run: async () => {
-      menu.end('Outpatient limit of UGX 3,000,000' +
-        '\nCan cover up to 6 dependents' +
-        '\nTs&Cs apply'
-      )
+      menu.con(` 
+      Inpatient Cover with 1.5M Inpatient and 1M Funeral Limits per covered person.
+      Ts&Cs apply
+
+      0.Back`);
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-
-  menu.state('goldCover', {
+  menu.state("midiCover", {
     run: async () => {
-      menu.end('Outpatient limit of Kes 5,000,000' +
-        '\nCan cover up to 6 dependents' +
-        '\nTs&Cs apply'
-      )
+      menu.con(`
+       Inpatient limit of UGX 3M and Funeral Limit of UGX 1.5M per covered person
+       Can cover up to 6 dependents
+       Ts&Cs apply
+
+      0.Back`);
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-  menu.state('autoRenew', {
+  menu.state("biggieCover", {
     run: async () => {
-      menu.end('To stay covered, the premium amount will be deducted automatically from your Airtel Money account on the selected day per month' +
-        '\nTs&Cs apply'
-      )
+      menu.con(`
+      Inpatient limit of UGX 5,000,000 and Funeral benefit of UGX 2,000,000 per covered person.
+      Can cover up to 6 dependents
+      Ts&Cs apply
+
+      0.Back
+      `);
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-  menu.state('waitingPeriod', {
+  menu.state("renewal", {
     run: async () => {
-      menu.end('This means the days before benefits become fully active. For the first 30 DAYS, only hospitalizations due to ACCIDENT will be covered. ' +
-        '\n10 month waiting period for pre-existing conditions.' +
-        '\nTs&Cs apply'
-      )
+      menu.con(
+       `Premiums are either paid monthly or on annual basis. Premium due notices will be send to you via SMS on your Airtel Line.
+
+        0.Back`
+      );
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-  menu.state('whenToMakeClaim', {
+  menu.state("waitingPeriodMeaning", {
     run: async () => {
-      menu.end('Make Hospital claim when you spend MORE THAN 1 NIGHT in the hospital. ' +
-        '\nA' +
-        '\nTs&Cs apply'
-      )
+      menu.con(
+        `This refers to a specified period during which you are not eligible for coverage of certain benefits or services.
+         Ts&Cs apply
+
+         0.Back`
+      );
+    },
+    next: {
+      "0": "faqs",
+    },
+  });
+ 
+menu.state("waitingPeriod", {
+  run: async () => {
+    menu.con(
+      ` 1. No waiting period on Accident cases
+        2. (30)-day waiting period on illness hospitalization
+        3. 6-months waiting period on chronic illness hospitalizations
+        
+        0.Back`
+    );
+  },
+  next: {
+    "0": "faqs",
+  },
+});
+
+
+  menu.state("whenToMakeClaim", {
+    run: async () => {
+      menu.con(
+       `Claims will be paid directly to the hospital
+       Ts&Cs apply
+
+       0.Back`
+      );
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-  menu.state('claimPayment', {
+  menu.state("claimPayment", {
     run: async () => {
-      menu.end('Claims will be paid to customer’s Airtel  wallet (Bronze) or to the hospital for Silver and Gold' +
-        '\nTs&Cs apply'
-      )
+      menu.con(
+        `Death claims will be paid directly to the next of Kin.
+        Inpatient Claims within the cover limit will be directly to the hopsital after discharge 
+
+        0.Back`
+      );
+    },
+    next: {
+      "0": "faqs",
     },
   });
 
-  menu.state('changeName', {
+  menu.state("insuredName", {
     run: async () => {
-      menu.end('Policy will cover person whose name SIM is registered in. To change, visit Airtel Service Center with your National ID to Register this SIM Card in your name' +
-        '\nTs&Cs apply'
-      )
+      menu.con(
+        `The insured is the Person who is registerd on the Airtel Money SIM, their chosen dependents or the persons who the Subscriber has purchased cover for.
+
+        0.Back`
+      );
+    },
+    next: {
+      "0": "faqs",
     },
   });
 }

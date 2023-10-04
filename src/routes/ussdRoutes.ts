@@ -49,6 +49,8 @@ const updateUserPolicyStatus = async (policy, amount, installment_order, install
   console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type)
   let date = new Date();
 
+  amount = parseInt(amount);
+
   let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
   policy.policy_status = "paid";
   policy.policy_paid_date = new Date();
@@ -113,6 +115,7 @@ router.all("/callback", async (req, res) => {
       const beneficiary = await Beneficiary.findOne({ where: { user_id } });
       const to = user.phone_number;
       const policyType = policy.policy_type.toUpperCase();
+      
       const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
 
       if (status_code === "TS") {
