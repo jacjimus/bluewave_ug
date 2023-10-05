@@ -24,7 +24,7 @@ export function displayAccount(menu: any, args: any, db: any): void {
           '\n3. Buy (others)' +
           '\n4. Make Claim' +
           '\n5. My Policy' +
-          '\n6. Choose Hopital' +
+          '\n6. View Hopital' +
           '\n7. Terms & Conditions' +
           '\n8. FAQs' +
           '\n00.Main Menu'

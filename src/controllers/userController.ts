@@ -395,7 +395,7 @@ const login = async (req: any, res: any) => {
       //generate token with the user's id and the secretKey in the env file
       if (isSame) {
         let token = jwt.sign(
-          { user_id: user.user_id, role: user.role, partner_id: user.partner_id },
+          { user_id: user.user_id, role: user.role, partner_id: user.partner_id, partner_name: partner.partner_name },
           process.env.JWT_SECRET || "apple123",
           {
             expiresIn: 1 * 24 * 60 * 60 * 1000,
