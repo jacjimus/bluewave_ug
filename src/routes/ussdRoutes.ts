@@ -5,7 +5,7 @@ import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
-import { registerPrincipal, updatePremium } from "../services/aar"
+import { registerPrincipal, updatePremium , fetchMemberStatusData} from "../services/aar"
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -122,12 +122,20 @@ router.all("/callback", async (req, res) => {
         await sendSMS(to, paymentMessage);
         let registerAARUser:any, updatePremiumData:any, updatedPolicy:any, installment:any;
         if (!user.arr_member_number) {
-           registerAARUser = await registerPrincipal(user, policy, beneficiary, airtel_money_id);
-          if (registerAARUser.member_no !== null) {
-            console.log("AAR USER", registerAARUser);
-             updatePremiumData = await updatePremium(registerAARUser, policy);
-            console.log("AAR UPDATE PREMIUM", updatePremiumData);
+          registerAARUser = await registerPrincipal(user, policy, beneficiary, airtel_money_id);
+          console.log("AAR USER", registerAARUser);
+          if (registerAARUser.code == 200) {
+                 user.arr_member_number = registerAARUser.member_no;
+               await  user.save();
+            updatePremiumData = await updatePremium(user, policy, airtel_money_id);
+           console.log("AAR UPDATE PREMIUM", updatePremiumData);
           }
+         
+        }
+        if (user.arr_member_number) {
+          const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number , unique_profile_id: user.membership_id + ""});
+          console.log("MEMBER STATUS", memberStatus);
+          policy.arr_policy_number = memberStatus.policy_no;
         }
 
       const payment = await Payment.create({

@@ -1,4 +1,5 @@
 import sendSMS from "../../services/sendSMS";
+import {registerDependant,fetchMemberStatusData } from "../../services/aar";
 
 export function myAccount(menu: any, args: any, db: any) {
   const User = db.users;
@@ -174,16 +175,6 @@ export function myAccount(menu: any, args: any, db: any) {
   });
 
 
-
-  // menu.state("addBeneficiaryName", {
-  //   run: async () => {
-  //     menu.con("Enter full name of  beneficiary");
-  //   },
-  //   next: {
-  //     "*[a-zA-Z]+": "updateBeneficiaryName",
-  //   },
-  // });
-
   //list beneficiaries
   menu.state("listBeneficiaries", {
     run: async () => {
@@ -275,6 +266,7 @@ export function myAccount(menu: any, args: any, db: any) {
       let names = myBeneficiary.full_name.split(" ");
       let first_name = names[0];
       let last_name = names[1];
+      let middle_names = names[2] || names[1];
 
  console.log("GENDER", digits[digits.length - 1] )
       if (myBeneficiary) {
@@ -284,6 +276,7 @@ export function myAccount(menu: any, args: any, db: any) {
         myBeneficiary.age = thisYear - date.getFullYear();
         myBeneficiary.first_name = first_name;
         myBeneficiary.last_name = last_name;
+        myBeneficiary.middle_names = middle_names;
         myBeneficiary.gender = digits[digits.length - 1] == 1 ? "M" : "F";
         myBeneficiary.save();
 
@@ -388,23 +381,68 @@ export function myAccount(menu: any, args: any, db: any) {
         return;
       }
 
+      console.log("ben_first_phone", ben_first_phone);
+      
       let user = await User.findOne({
         where: {
           phone_number: args.phoneNumber,
         },
       });
 
-      console.log("ben_first_phone", ben_first_phone);
-      const beneficiary = await Beneficiary.update(
-        {
-          phone_number: ben_first_phone,
+      console.log("USER: ", user)
+      
+      const policy = await Policy.findOne({
+        where: {
+          user_id: user?.user_id,
+          beneficiary:  'FAMILY',
         },
-        {
-          where: {
-           user_id: user?.user_id,
-          },
-        }
-      );
+      });
+
+      console.log("POLICY: ", policy);
+      
+    
+
+      let beneficiary = await Beneficiary.findOne({
+        where: {
+          user_id: user?.user_id,
+        },
+      });
+
+      beneficiary.phone_number = ben_first_phone;
+
+      await beneficiary.save();
+
+      console.log("beneficiary", beneficiary);
+
+      let arr_member =  await fetchMemberStatusData({ member_no: user.arr_member_number , unique_profile_id: user.membership_id + ""});
+      console.log("arr_member", arr_member);
+      if(arr_member.code == 200){
+        await registerDependant({
+              member_no: user.arr_member_number,
+              surname: beneficiary.last_name,
+              first_name: beneficiary.first_name,
+              other_names: beneficiary.middle_name || "",
+              gender: beneficiary.gender == "M" ? "1" : "2",
+              dob: beneficiary.dob,
+              email: "dependant@bluewave.insure",
+              pri_dep: "25",
+              family_title: "4",
+              tel_no: beneficiary.phone_number,
+              next_of_kin: {
+                surname: "",
+                first_name: "",
+                other_names: "",
+                tel_no: "",
+              },
+              member_status: "2",
+              health_option: "63",
+              health_plan: "AIRTEL_" + policy?.policy_type,
+              policy_start_date: policy.policy_start_date,
+              policy_end_date: policy.policy_end_date,
+              unique_profile_id: user.membership_id + "-04",
+            }
+        );
+          }
 
       menu.con(`Your beneficiary profile has been updated successfully
             0. Back

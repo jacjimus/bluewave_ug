@@ -302,8 +302,6 @@ const findPolicyByUser = async (user_id: any) => {
                     period = 'monthly'
                     premium = 20000;
                     installment_type = 2;
-                   
-                    
                 }
 
             }else if(policy_type == 'MIDI'){
@@ -317,8 +315,6 @@ const findPolicyByUser = async (user_id: any) => {
                     premium = 28000;
                 installment_type = 2;
                 
-                
-
                 }
                
             }
@@ -334,9 +330,6 @@ const findPolicyByUser = async (user_id: any) => {
                     premium = 35000;
                 installment_type = 2;
                 
-                
-
-
                 }
             }
 

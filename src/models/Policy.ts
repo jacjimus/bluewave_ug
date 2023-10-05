@@ -128,7 +128,11 @@ module.exports = (sequelize, DataTypes) => {
         policy_pending_premium: {
             type: DataTypes.NUMBER,
             allowNull: true
-        }
+        },
+        arr_policy_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     },
 
         { timestamps: true },)

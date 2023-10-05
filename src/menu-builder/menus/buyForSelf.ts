@@ -49,10 +49,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             const user = await findUserByPhoneNumber(args.phoneNumber);
             const policy = await findPaidPolicyByUser(user);
 
-            if (policy) {
-                menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
-                return;
-            }
+            // if (policy) {
+            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
+            //     return;
+            // }
             menu.con('Buy for self ' +
                 '\n1. Mini – UGX 10,000' +
                 '\n2. Midi - UGX 14,000' +
@@ -212,12 +212,13 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 if(policy_id == null){
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly'
+               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly',last_expense_insured: number = 0;
                if(policy_type == 'MINI'){
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 1500000;
                     premium = 120000;
+                    last_expense_insured = 500000;
                     if(paymentOption == 1){
                         period = 'monthly'
                         premium = 10000;
@@ -229,6 +230,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     installment_type = 1;
                     sum_insured = 3000000;
                     premium = 167000;
+                    last_expense_insured = 1000000;
                    
                     if(paymentOption == 1){
                         period = 'monthly'
@@ -242,6 +244,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     installment_type = 1;
                     sum_insured = 5000000;
                     premium = 208000;
+                    last_expense_insured = 2000000;
                     if(paymentOption == 1){
                         period = 'monthly'
                         premium = 18000;
@@ -258,6 +261,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                      premium: premium,
                      installment_type: installment_type,
                      installment_order: 1,
+                        last_expense_insured: last_expense_insured,
                     }, { where: { user_id: user_id } });
 
     

@@ -19,6 +19,9 @@ async function arr_uganda_login() {
       }
     };
 
+    console.log("CONFIG", config);
+
+
     const response = await axios.request(config);
     console.log(JSON.stringify(response.data));
     return response.data.token;
@@ -114,16 +117,16 @@ async function registerPrincipal(user: any, policy: any, beneficiary: any, airte
   // console.log("POLICY", policy);
   // console.log("BENEFICIARY", beneficiary);
   // console.log("AIRTEL MONEY ID", airtel_money_id);
-  const userData = {
-    surname: user.last_name + "test8",
-    first_name: user.first_name + "test8",
-    other_names: user.middle_name || "N/A",
+  const userData: PrincipalRegistration = {
+    surname: user.last_name + "test9",
+    first_name: user.first_name + "test9",
+    other_names: user.middle_name + "test9",
     gender: user.gender == 'M' ? "1" : "2",
     dob: user.dob,
-    pri_dep: 24,
-    family_title: user.title == "Mr" ? "24" : "24",
-    tel_no: `256${user.phone_number}8`,
-    email: user.email || "admin+8@bluewave.insure",
+    pri_dep: "24",
+    family_title: "24",
+    tel_no: `256${user.phone_number}`,
+    email: user.email || "admin@bluewave.insure",
     next_of_kin: {
       surname: user.last_name,
       first_name: user.first_name,
@@ -132,10 +135,10 @@ async function registerPrincipal(user: any, policy: any, beneficiary: any, airte
     },
     member_status: "1",
     health_option: "63",
-    health_plan: policy.policy_type,
+    health_plan: "AIRTEL_" + policy.policy_type,
     policy_start_date: policy.policy_start_date,
     policy_end_date: policy.policy_end_date,
-    unique_profile_id: user.membership_id + '' + "8",
+    unique_profile_id: user.membership_id + '',
     money_transaction_id: airtel_money_id,
 
   }
@@ -193,28 +196,40 @@ const registrationMembData: PrincipalRegistration = {
 //registerPrincipal(registrationMembData);
 
 
-async function updatePremium(data: any, policy: any) {
+interface requestPremiumData {
+  member_no: string;
+  unique_profile_id: string;
+  health_plan: string;
+  health_option: string;
+  premium: number;
+  premium_type: number;
+  premium_installment: number;
+  main_benefit_limit: number;
+  last_expense_limit: number;
+  money_transaction_id: string;
+}
+
+
+async function updatePremium(data: any, policy: any, airtel_money_id: any) {
 
   try {
-
-
     console.log("i was called update premium");
-    console.log("DATA", data, policy);
+    console.log("updatePremium DATA", data, policy);
 
-    const main_benefit_limit = policy.installment_type == 2 ? policy.sum_insured : policy.sum_insured / 12;
-    const last_expense_limit = policy.installment_type == 2 ? policy.last_expense_insured : policy.last_expense_insured / 12;
+    const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / 12;
+    const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / 12;
 
-    const requestData = {
-      member_no: data.member_no,
-      unique_profile_id: data.unique_profile_id,
-      health_plan: policy.policy_type,
+    const requestData: requestPremiumData = {
+      member_no: data.arr_member_number,
+      unique_profile_id: data.membership_id+"",
+      health_plan: "AIRTEL_" + policy.policy_type,
       health_option: "63",
       premium: policy.policy_deduction_amount,
       premium_type: policy.installment_type,
       premium_installment: policy.installment_order,
       main_benefit_limit: main_benefit_limit,
       last_expense_limit: last_expense_limit,
-      money_transaction_id: data.money_transaction_id,
+      money_transaction_id: airtel_money_id
     };
 
     const config = {
@@ -284,25 +299,28 @@ interface DependantRegistration {
   health_plan: string;
   policy_start_date: string;
   policy_end_date: string;
-  premium: string;
   unique_profile_id: string;
 }
+
 
 async function registerDependant(data: DependantRegistration): Promise<void> {
   try {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/weerinde/v1/protected/register_dependant',
+      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_dependant',
       headers: {
-        'Authorization': 'Bearer Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTY5NDI1NzY4NSwidXNlciI6W3siZnVsbF9uYW1lcyI6IndlZXJpbmRlIn1dfQ.JVXCW8AGL8sGQicqI-0mvUSaXAeu57iZw0_9RhSap9cFj8T8gxYwJxoocIb_uMEC3x-5mKzVGCkcASzzlHY0aYQU3jTYx2BhrSeuAFufSwAlHs9Jkg-d6O1G-GSY546yEarrV6XHBNY6ZO8OJ0Dl6OXd5_aerxp8JaY7FwsHgZ8aKg72frg-Fvj9TbHJj_1YuLNSizPufC00UjObc5h8U_UqEX7xEsmwhQL-zutrn9c9GdSr490EzkvyKbGDt0ShACaKlAIO30J13g5EvaOsaLA3tPjl8tOKcNLNZsbPXm9jEkCOEre3BtW0WJjsO9Z-Uwc_rKvtyTKJm04_WMr5ew',
+        'Authorization': 'Bearer ' + await arr_uganda_login(),
         'Content-Type': 'application/json',
       },
       data,
     };
 
+    console.log("CONFIG", config)
+
     const response = await axios.request(config);
     console.log(JSON.stringify(response.data));
+    return response.data;
   } catch (error) {
     console.error(error);
   }
@@ -331,7 +349,6 @@ async function registerDependant(data: DependantRegistration): Promise<void> {
 //   health_plan: "bronze10",
 //   policy_start_date: "2000-02-22",
 //   policy_end_date: "2000-02-01",
-//   premium: "345.60",
 //   unique_profile_id: "9999999",
 // };
 
@@ -345,22 +362,22 @@ interface MemberRenewalData {
   health_plan: string;
   policy_start_date: string;
   policy_end_date: string;
-  premium: string;
-  money_transaction_id: string;
 }
+
 
 async function renewMember(data: MemberRenewalData): Promise<void> {
   try {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/weerinde/v1/protected/renew_member',
+      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/renew_member',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
         'Content-Type': 'application/json',
       },
       data,
     };
+    console.log("CONFIG", config);
 
     const response = await axios.request(config);
     console.log(JSON.stringify(response.data));
@@ -377,8 +394,6 @@ const renewalData: MemberRenewalData = {
   health_plan: "bronze10",
   policy_start_date: "2023-08-21",
   policy_end_date: "2024-08-22",
-  premium: "6500000.00",
-  money_transaction_id: "werwerffwww44",
 };
 
 //renewMember(renewalData);
@@ -401,7 +416,6 @@ interface MemberUpdateData {
   email: string;
   next_of_kin: NextOfKin;
   member_status: string;
-  premium: string;
   reason_for_member_status: string;
 }
 
@@ -410,12 +424,14 @@ async function updateMember(data: MemberUpdateData): Promise<void> {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/weerinde/v1/protected/update_member',
+      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_member',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
       },
       data,
     };
+
+    console.log("CONFIG", config);
 
     const response = await axios.request(config);
     console.log(JSON.stringify(response.data));
@@ -441,7 +457,6 @@ async function updateMember(data: MemberUpdateData): Promise<void> {
 //     tel_no: "0833333",
 //   },
 //   member_status: "1",
-//   premium: "700000",
 //   reason_for_member_status: "member is valid",
 // };
 
@@ -454,20 +469,24 @@ interface MemberStatusData {
   unique_profile_id: string;
 }
 
-async function fetchMemberStatusData(data: MemberStatusData): Promise<void> {
+async function fetchMemberStatusData({member_no, unique_profile_id}){
   try {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/weerinde/v1/protected/member_status_data',
+      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/member_status_data',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
       },
-      data,
+      data: {
+        member_no,
+        unique_profile_id
+      }
     };
-
+console.log("CONFIG", config)
     const response = await axios.request(config);
     console.log(JSON.stringify(response.data));
+    return response.data;
   } catch (error) {
     console.error(error);
   }
