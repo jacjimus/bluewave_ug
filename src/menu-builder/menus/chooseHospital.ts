@@ -1815,7 +1815,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
 
       menu.state("myHospital", {
         run: async () => {
-            try {
+          
 
                 let user = await findUserByPhoneNumber(args.phoneNumber);
         
@@ -1826,7 +1826,9 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                 });
 
                   if(!hospitalDetails){
-                      menu.end("Sorry, you have not selected a hospital yet.");
+                      menu.end(`Sorry, you have not selected a hospital yet.
+                      \nPlease select a hospital first.
+                      \n1. Select Hospital`);
                   }
 
                 console.log("hospitalDetails", hospitalDetails);
@@ -1834,12 +1836,21 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
     
                 const { hospital_name, hospital_address, hospital_contact_person, hospital_contact } = hospitalDetails;
                 const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
-    
+       const message = `Congratulations, you have selected ${hospital_name} as your preferred Inpatient Hospital. Below are the Hospital details:
+                        Hospital Name: ${hospital_name}
+                        Contact Number: ${hospital_contact}
+                        Location: ${hospital_address}
+                        Contact Person: ${hospital_contact_person}
+                        `;
+
+                        await sendSMS(args.phoneNumber, message);
+       
                 menu.end(hospitalInfo);
-            } catch (error) {
-                console.error('myHospital Error:', error);
-                menu.end('An error occurred. Please try again later.');
-            }
+          
+        },
+        next: {
+          "1": "chooseHospital",
+          "00": "insurance",
         },
     });
     
