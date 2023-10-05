@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.myAccount = void 0;
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
+const aar_1 = require("../../services/aar");
 function myAccount(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
@@ -162,14 +163,6 @@ function myAccount(menu, args, db) {
             "00": "insurance",
         },
     });
-    // menu.state("addBeneficiaryName", {
-    //   run: async () => {
-    //     menu.con("Enter full name of  beneficiary");
-    //   },
-    //   next: {
-    //     "*[a-zA-Z]+": "updateBeneficiaryName",
-    //   },
-    // });
     //list beneficiaries
     menu.state("listBeneficiaries", {
         run: () => __awaiter(this, void 0, void 0, function* () {
@@ -249,6 +242,7 @@ function myAccount(menu, args, db) {
             let names = myBeneficiary.full_name.split(" ");
             let first_name = names[0];
             let last_name = names[1];
+            let middle_names = names[2] || names[1];
             console.log("GENDER", digits[digits.length - 1]);
             if (myBeneficiary) {
                 // Update the beneficiary's information
@@ -257,6 +251,7 @@ function myAccount(menu, args, db) {
                 myBeneficiary.age = thisYear - date.getFullYear();
                 myBeneficiary.first_name = first_name;
                 myBeneficiary.last_name = last_name;
+                myBeneficiary.middle_names = middle_names;
                 myBeneficiary.gender = digits[digits.length - 1] == 1 ? "M" : "F";
                 myBeneficiary.save();
             }
@@ -348,19 +343,56 @@ function myAccount(menu, args, db) {
                 menu.end("Invalid phone number");
                 return;
             }
+            console.log("ben_first_phone", ben_first_phone);
             let user = yield User.findOne({
                 where: {
                     phone_number: args.phoneNumber,
                 },
             });
-            console.log("ben_first_phone", ben_first_phone);
-            const beneficiary = yield Beneficiary.update({
-                phone_number: ben_first_phone,
-            }, {
+            console.log("USER: ", user);
+            const policy = yield Policy.findOne({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    beneficiary: 'FAMILY',
+                },
+            });
+            console.log("POLICY: ", policy);
+            let beneficiary = yield Beneficiary.findOne({
                 where: {
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
                 },
             });
+            beneficiary.phone_number = ben_first_phone;
+            yield beneficiary.save();
+            console.log("beneficiary", beneficiary);
+            let arr_member = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+            console.log("arr_member", arr_member);
+            if (arr_member.code == 200) {
+                yield (0, aar_1.registerDependant)({
+                    member_no: user.arr_member_number,
+                    surname: beneficiary.last_name,
+                    first_name: beneficiary.first_name,
+                    other_names: beneficiary.middle_name || "",
+                    gender: beneficiary.gender == "M" ? "1" : "2",
+                    dob: beneficiary.dob,
+                    email: "dependant@bluewave.insure",
+                    pri_dep: "25",
+                    family_title: "4",
+                    tel_no: beneficiary.phone_number,
+                    next_of_kin: {
+                        surname: "",
+                        first_name: "",
+                        other_names: "",
+                        tel_no: "",
+                    },
+                    member_status: "2",
+                    health_option: "63",
+                    health_plan: "AIRTEL_" + (policy === null || policy === void 0 ? void 0 : policy.policy_type),
+                    policy_start_date: policy.policy_start_date,
+                    policy_end_date: policy.policy_end_date,
+                    unique_profile_id: user.membership_id + "-04",
+                });
+            }
             menu.con(`Your beneficiary profile has been updated successfully
             0. Back
             00. Main Menu

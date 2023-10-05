@@ -15,11 +15,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         hospital_name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
         hospital_address: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
         hospital_phone_number: {
             type: DataTypes.STRING,
@@ -34,6 +34,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         hospital_contact_person_phone_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        hospital_region: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        hospital_district: {
             type: DataTypes.STRING,
             allowNull: true
         },

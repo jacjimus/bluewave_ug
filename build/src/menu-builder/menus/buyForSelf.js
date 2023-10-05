@@ -45,10 +45,10 @@ function buyForSelf(menu, args, db) {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const user = yield findUserByPhoneNumber(args.phoneNumber);
             const policy = yield findPaidPolicyByUser(user);
-            if (policy) {
-                menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
-                return;
-            }
+            // if (policy) {
+            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
+            //     return;
+            // }
             menu.con('Buy for self ' +
                 '\n1. Mini – UGX 10,000' +
                 '\n2. Midi - UGX 14,000' +
@@ -184,12 +184,13 @@ function buyForSelf(menu, args, db) {
                 if (policy_id == null) {
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-                let sum_insured, premium = 0, installment_type = 0, period = 'monthly';
+                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0;
                 if (policy_type == 'MINI') {
                     period = 'yearly';
                     installment_type = 1;
                     sum_insured = 1500000;
                     premium = 120000;
+                    last_expense_insured = 500000;
                     if (paymentOption == 1) {
                         period = 'monthly';
                         premium = 10000;
@@ -201,6 +202,7 @@ function buyForSelf(menu, args, db) {
                     installment_type = 1;
                     sum_insured = 3000000;
                     premium = 167000;
+                    last_expense_insured = 1000000;
                     if (paymentOption == 1) {
                         period = 'monthly';
                         premium = 14000;
@@ -212,6 +214,7 @@ function buyForSelf(menu, args, db) {
                     installment_type = 1;
                     sum_insured = 5000000;
                     premium = 208000;
+                    last_expense_insured = 2000000;
                     if (paymentOption == 1) {
                         period = 'monthly';
                         premium = 18000;
@@ -225,6 +228,7 @@ function buyForSelf(menu, args, db) {
                     premium: premium,
                     installment_type: installment_type,
                     installment_order: 1,
+                    last_expense_insured: last_expense_insured,
                 }, { where: { user_id: user_id } });
                 let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
                 console.log("PAYMENT STATUS", paymentStatus);

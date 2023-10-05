@@ -108,11 +108,18 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 let registerAARUser, updatePremiumData, updatedPolicy, installment;
                 if (!user.arr_member_number) {
                     registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy, beneficiary, airtel_money_id);
-                    if (registerAARUser.member_no !== null) {
-                        console.log("AAR USER", registerAARUser);
-                        updatePremiumData = yield (0, aar_1.updatePremium)(registerAARUser, policy);
+                    console.log("AAR USER", registerAARUser);
+                    if (registerAARUser.code == 200) {
+                        user.arr_member_number = registerAARUser.member_no;
+                        yield user.save();
+                        updatePremiumData = yield (0, aar_1.updatePremium)(user, policy, airtel_money_id);
                         console.log("AAR UPDATE PREMIUM", updatePremiumData);
                     }
+                }
+                if (user.arr_member_number) {
+                    const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+                    console.log("MEMBER STATUS", memberStatus);
+                    policy.arr_policy_number = memberStatus.policy_no;
                 }
                 const payment = yield Payment.create({
                     payment_amount: amount,

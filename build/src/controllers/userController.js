@@ -304,7 +304,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             const isSame = yield bcrypt.compare(password, user.password);
             //generate token with the user's id and the secretKey in the env file
             if (isSame) {
-                let token = jwt.sign({ user_id: user.user_id, role: user.role, partner_id: user.partner_id }, process.env.JWT_SECRET || "apple123", {
+                let token = jwt.sign({ user_id: user.user_id, role: user.role, partner_id: user.partner_id, partner_name: partner.partner_name }, process.env.JWT_SECRET || "apple123", {
                     expiresIn: 1 * 24 * 60 * 60 * 1000,
                 });
                 //go ahead and generate a cookie for the user

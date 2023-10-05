@@ -17,6 +17,7 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const uuid_1 = require("uuid");
 function chooseHospital(menu, args, db) {
     const User = db.users;
+    const UserHospital = db.user_hospitals;
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
@@ -30,7 +31,7 @@ function chooseHospital(menu, args, db) {
     });
     menu.state("chooseHospital", {
         run: () => {
-            const districts = [
+            const regions = [
                 "Central Region",
                 "Western Region",
                 "Eastern Region",
@@ -39,877 +40,1722 @@ function chooseHospital(menu, args, db) {
                 "Northern Region",
             ];
             let message = "Select Region\n";
-            districts.forEach((district, index) => {
-                message += `${index + 1}. ${district}\n`;
+            regions.forEach((region, index) => {
+                message += `${index + 1}. ${region}\n`;
             });
             message += "0. Back";
             menu.con(message);
         },
         next: {
-            "*\\d+": "selectRegion",
+            "*\\d+": "chooseHospital.distict",
             "0": "chooseHospital",
         },
     });
-    menu.state("selectRegion", {
-        run: () => {
-            const region = parseInt(menu.val);
-            console.log("REGION", region);
-            const hospitalRegions = {
-                //central region
-                1: [
-                    "Joy Medical Centre",
-                    "Grand Medical Centre",
-                    "St. Francis Mukono Medical Centre",
-                    "St. Francis Naggalama Hospital",
-                    "Vision Medical Centre",
-                    "Nkozi Hospital",
-                    "St. Monica Health Center",
-                    "Eunice Memorial Medical centre",
-                    "Dr Ambosoli Health Centre",
-                    "Adcare Medical Services",
-                    "Heart services Uganda Ltd",
-                    "Nsambya Hospital",
-                    "Paramount Hospital",
-                    "Welington Wellness Centre",
-                    "Mukwaya General Hospital",
-                    "Case Hospital",
-                    "Marie stopes Hospital",
-                    "Norvik Hospital",
-                    "Kampala Hospital",
-                    "International Hospital Kampala",
-                    "Bugolobi Medical Centre",
-                    "UMC Victoria Hospital",
-                    "Kyadondo Medical Centre",
-                    "Span medicare",
-                    "CTC Medical center",
-                    "Lubaga hospital",
-                    "Mengo Hospital",
-                    "Doctor's Medical Centre",
-                    "Millineum medical center",
-                    "Life Link Medical Centre",
-                    "Kampala West Medical Centre",
-                    "Henrob Medical Centre",
-                ],
-                2: [
-                    //western region
-                    "Migisha Clinic",
-                    "Rinamo Medical Centre",
-                    "Born Medical Centre",
-                    "Allied Medicare Services",
-                    "Masaka Regional Referra Hopital",
-                    "Kitovu hospital",
-                    "Beacof Medical Centre",
-                    "International Medical Center",
-                    "Kigezi Community Medical Centre",
-                    "Bushenyi Medical Centre",
-                    "KIU- Teaching Hospital",
-                    "Ibanda hospital-Kagongo",
-                    "Rugarama Hospital",
-                    "Kabale Hospital Private wing",
-                    "Bwindi Community Hospital",
-                    "Rugyeyo hospital",
-                    "Mutolere Hospital",
-                    "Kilembe Mines Hospital",
-                    "Kasese Hospital",
-                    "Fort portal regional hospital",
-                    "Kabarole Hospital",
-                    "True Vine Hospital",
-                    "Kiryadondo Hospital",
-                    "Migisha Clinic",
-                    "Life Link Medical Centre",
-                    "Nyakatare Health Centre III",
-                    "St. Karoil Lwanga Nyakibale Hospital",
-                ],
-                3: [
-                    //eastern region
-                    "Jonathan Medical Centre",
-                    "Suubi medical center",
-                    "Fastline Medical Center",
-                    "Santa Medical Centre",
-                    "Mercy  Health Center",
-                    "Dr Ambosoli Health Centre",
-                    "JK Pancrass Medical Centre",
-                    "Emram Doctor's clinic",
-                    "International Medical Centre",
-                    "Townside Clinic",
-                    "Divine Mercy Hospital",
-                    "International medical centre",
-                    "Kumi Hospital",
-                    "Masha Clinic",
-                    "Hope Charity Medicare",
-                    "Kamuli Mission Hospital(Lubaga)",
-                    "Crescent medical centre",
-                ],
-                4: [
-                    "Amudat Hospital",
-                    "Rainbow Empirical Medical Centre",
-                    "Fitzmann Medical Services",
-                ],
-                5: [
-                    "Nebbi Hospital",
-                    "Nyapea Mission Hospital",
-                    "Pioneer Medical Centre Arua",
-                ],
-                6: [
-                    "St.Mary’s Lacor Hospital",
-                    "St John Paul Hospital",
-                    "Hope Charity Medicare",
-                    "Florence Nightingale Hospital",
-                    "St. Joseph’s Hospital",
-                    "St.Ambrosoli Kalongo hospital",
-                ],
-            };
-            const selectedRegion = hospitalRegions[region];
-            if (selectedRegion) {
-                const hospitalsPerPage = 8;
-                let page = 1;
-                const displayHospitals = () => {
-                    const startIndex = (page - 1) * hospitalsPerPage;
-                    const endIndex = startIndex + hospitalsPerPage;
-                    const hospitalsToShow = selectedRegion.slice(startIndex, endIndex);
-                    let message = `Hospitals - Page ${page}:\n`;
-                    hospitalsToShow.forEach((hospital, index) => {
-                        message += `${index + 1}. ${hospital}\n`;
-                    });
-                    if (endIndex < selectedRegion.length) {
-                        message += "9. See More/n";
-                    }
-                    message += "0. Back";
-                    menu.con(message);
-                };
-                displayHospitals();
-            }
-            else {
-                menu.con("No hospitals found for the selected region. Please choose a different region:");
-            }
-        },
-        next: {
-            "*\\d+": "selectHospital",
-            "0": "chooseHospital",
-            "9": "seeMoreHospitals",
-        },
-    });
-    menu.state("seeMoreHospitals", {
-        run: () => {
-            const selected = args.text;
-            console.log(" more REGION", selected);
-            console.log("select region", selected);
-            const input = selected.trim();
-            const digits = input.split("*").map((digit) => parseInt(digit, 10));
-            function check9AppearsTwice(digits) {
-                return digits.filter((digit) => digit === 9).length === 2;
-            }
-            const result = check9AppearsTwice(digits);
-            let secondLastDigit = digits[digits.length - 2];
-            console.log("result", result);
-            if (result) {
-                secondLastDigit = digits[digits.length - 3];
-            }
-            const lastDigit = digits[digits.length - 1];
-            const hospitalRegions = {
-                //central region
-                1: [
-                    "Joy Medical Centre",
-                    "Grand Medical Centre",
-                    "St. Francis Mukono Medical Centre",
-                    "St. Francis Naggalama Hospital",
-                    "Vision Medical Centre",
-                    "Nkozi Hospital",
-                    "St. Monica Health Center",
-                    "Eunice Memorial Medical centre",
-                    "Dr Ambosoli Health Centre",
-                    "Adcare Medical Services",
-                    "Heart services Uganda Ltd",
-                    "Nsambya Hospital",
-                    "Paramount Hospital",
-                    "Welington Wellness Centre",
-                    "Mukwaya General Hospital",
-                    "Case Hospital",
-                    "Marie stopes Hospital",
-                    "Norvik Hospital",
-                    "Kampala Hospital",
-                    "International Hospital Kampala",
-                    "Bugolobi Medical Centre",
-                    "UMC Victoria Hospital",
-                    "Kyadondo Medical Centre",
-                    "Span medicare",
-                    "CTC Medical center",
-                    "Lubaga hospital",
-                    "Mengo Hospital",
-                    "Doctor's Medical Centre",
-                    "Millineum medical center",
-                    "Life Link Medical Centre",
-                    "Kampala West Medical Centre",
-                    "Henrob Medical Centre",
-                ],
-                2: [
-                    //western region
-                    "Migisha Clinic",
-                    "Rinamo Medical Centre",
-                    "Born Medical Centre",
-                    "Allied Medicare Services",
-                    "Masaka Regional Referra Hopital",
-                    "Kitovu hospital",
-                    "Beacof Medical Centre",
-                    "International Medical Center",
-                    "Kigezi Community Medical Centre",
-                    "Bushenyi Medical Centre",
-                    "KIU- Teaching Hospital",
-                    "Ibanda hospital-Kagongo",
-                    "Rugarama Hospital",
-                    "Kabale Hospital Private wing",
-                    "Bwindi Community Hospital",
-                    "Rugyeyo hospital",
-                    "Mutolere Hospital",
-                    "Kilembe Mines Hospital",
-                    "Kasese Hospital",
-                    "Fort portal regional hospital",
-                    "Kabarole Hospital",
-                    "True Vine Hospital",
-                    "Kiryadondo Hospital",
-                    "Migisha Clinic",
-                    "Life Link Medical Centre",
-                    "Nyakatare Health Centre III",
-                    "St. Karoil Lwanga Nyakibale Hospital",
-                ],
-                3: [
-                    //eastern region
-                    "Jonathan Medical Centre",
-                    "Suubi medical center",
-                    "Fastline Medical Center",
-                    "Santa Medical Centre",
-                    "Mercy  Health Center",
-                    "Dr Ambosoli Health Centre",
-                    "JK Pancrass Medical Centre",
-                    "Emram Doctor's clinic",
-                    "International Medical Centre",
-                    "Townside Clinic",
-                    "Divine Mercy Hospital",
-                    "International medical centre",
-                    "Kumi Hospital",
-                    "Masha Clinic",
-                    "Hope Charity Medicare",
-                    "Kamuli Mission Hospital(Lubaga)",
-                    "Crescent medical centre",
-                ],
-                4: [
-                    "Amudat Hospital",
-                    "Rainbow Empirical Medical Centre",
-                    "Fitzmann Medical Services",
-                ],
-                5: [
-                    "Nebbi Hospital",
-                    "Nyapea Mission Hospital",
-                    "Pioneer Medical Centre Arua",
-                ],
-                6: [
-                    "St.Mary’s Lacor Hospital",
-                    "St John Paul Hospital",
-                    "Hope Charity Medicare",
-                    "Florence Nightingale Hospital",
-                    "St. Joseph’s Hospital",
-                    "St.Ambrosoli Kalongo hospital",
-                ],
-            };
-            const selectedRegion = hospitalRegions[secondLastDigit];
-            console.log("secondLastDigit", secondLastDigit);
-            console.log("lastDigit", lastDigit);
-            console.log("selected hopital", selectedRegion);
-            if (selectedRegion) {
-                let hospitalsPerPage = 8;
-                let page = 2;
-                if (result) {
-                    //hospitalsPerPage =
-                    page = 3;
-                }
-                const displayHospitals = () => {
-                    const startIndex = (page - 1) * hospitalsPerPage;
-                    const endIndex = startIndex + hospitalsPerPage;
-                    const hospitalsToShow = selectedRegion.slice(startIndex, endIndex);
-                    let message = `Hospitals - Page ${page}:\n`;
-                    hospitalsToShow.forEach((hospital, index) => {
-                        message += `${index + 1}. ${hospital}\n`;
-                    });
-                    if (endIndex < selectedRegion.length) {
-                        message += "9. See More/n";
-                    }
-                    message += "0. Back";
-                    menu.con(message);
-                };
-                displayHospitals();
-            }
-            else {
-                menu.con("No hospitals found for the selected region. Please choose a different region:");
-            }
-        },
-        next: {
-            "*\\d+": "selectHospital",
-            "0": "chooseHospital",
-            "9": "seeMoreHospitals",
-        },
-    });
-    menu.state("selectHospital", {
+    menu.state("chooseHospital.distict", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const selectedRegion = args.text;
-            console.log("select region", selectedRegion);
-            const input = selectedRegion.trim();
-            const digits = input.split("*").map((digit) => parseInt(digit, 10));
-            console.log("digits", digits, digits.includes(9));
-            function check9AppearsTwice(digits) {
-                return digits.filter((digit) => digit === 9).length === 2;
-            }
-            const result = check9AppearsTwice(digits);
-            console.log("result", result);
-            let secondLastDigit = digits[digits.length - 2];
-            if (digits.includes(9)) {
-                secondLastDigit = digits[digits.length - 3];
-            }
-            if (result) {
-                secondLastDigit = digits[digits.length - 4];
-            }
-            const lastDigit = digits[digits.length - 1];
-            // Now you have the second last digit and the last digit
-            console.log("Second Last Digit:", secondLastDigit);
-            console.log("Last Digit:", lastDigit);
-            const hospitalRegions = {
-                //central region
-                1: [
-                    "Joy Medical Centre",
-                    "Grand Medical Centre",
-                    "St. Francis Mukono Medical Centre",
-                    "St. Francis Naggalama Hospital",
-                    "Vision Medical Centre",
-                    "Nkozi Hospital",
-                    "St. Monica Health Center",
-                    "Eunice Memorial Medical centre",
-                    "Dr Ambosoli Health Centre",
-                    "Adcare Medical Services",
-                    "Heart services Uganda Ltd",
-                    "Nsambya Hospital",
-                    "Paramount Hospital",
-                    "Welington Wellness Centre",
-                    "Mukwaya General Hospital",
-                    "Case Hospital",
-                    "Marie stopes Hospital",
-                    "Norvik Hospital",
-                    "Kampala Hospital",
-                    "International Hospital Kampala",
-                    "Bugolobi Medical Centre",
-                    "UMC Victoria Hospital",
-                    "Kyadondo Medical Centre",
-                    "Span medicare",
-                    "CTC Medical center",
-                    "Lubaga hospital",
-                    "Mengo Hospital",
-                    "Doctor's Medical Centre",
-                    "Millineum medical center",
-                    "Life Link Medical Centre",
-                    "Kampala West Medical Centre",
-                    "Henrob Medical Centre",
-                ],
-                2: [
-                    //western region
-                    "Migisha Clinic",
-                    "Rinamo Medical Centre",
-                    "Born Medical Centre",
-                    "Allied Medicare Services",
-                    "Masaka Regional Referra Hopital",
-                    "Kitovu hospital",
-                    "Beacof Medical Centre",
-                    "International Medical Center",
-                    "Kigezi Community Medical Centre",
-                    "Bushenyi Medical Centre",
-                    "KIU- Teaching Hospital",
-                    "Ibanda hospital-Kagongo",
-                    "Rugarama Hospital",
-                    "Kabale Hospital Private wing",
-                    "Bwindi Community Hospital",
-                    "Rugyeyo hospital",
-                    "Mutolere Hospital",
-                    "Kilembe Mines Hospital",
-                    "Kasese Hospital",
-                    "Fort portal regional hospital",
-                    "Kabarole Hospital",
-                    "True Vine Hospital",
-                    "Kiryadondo Hospital",
-                    "Migisha Clinic",
-                    "Life Link Medical Centre",
-                    "Nyakatare Health Centre III",
-                    "St. Karoil Lwanga Nyakibale Hospital",
-                ],
-                3: [
-                    //eastern region
-                    "Jonathan Medical Centre",
-                    "Suubi medical center",
-                    "Fastline Medical Center",
-                    "Santa Medical Centre",
-                    "Mercy  Health Center",
-                    "Dr Ambosoli Health Centre",
-                    "JK Pancrass Medical Centre",
-                    "Emram Doctor's clinic",
-                    "International Medical Centre",
-                    "Townside Clinic",
-                    "Divine Mercy Hospital",
-                    "International medical centre",
-                    "Kumi Hospital",
-                    "Masha Clinic",
-                    "Hope Charity Medicare",
-                    "Kamuli Mission Hospital(Lubaga)",
-                    "Crescent medical centre",
-                ],
-                4: [
-                    "Amudat Hospital",
-                    "Rainbow Empirical Medical Centre",
-                    "Fitzmann Medical Services",
-                ],
-                5: [
-                    "Nebbi Hospital",
-                    "Nyapea Mission Hospital",
-                    "Pioneer Medical Centre Arua",
-                ],
-                6: [
-                    "St.Mary’s Lacor Hospital",
-                    "St John Paul Hospital",
-                    "Hope Charity Medicare",
-                    "Florence Nightingale Hospital",
-                    "St. Joseph’s Hospital",
-                    "St.Ambrosoli Kalongo hospital",
-                ],
-            };
-            const hospitals = hospitalRegions[secondLastDigit];
-            let hospitalIndex = lastDigit - 1;
-            if (digits.includes(9)) {
-                hospitalIndex = lastDigit + 7;
-            }
-            if (result) {
-                hospitalIndex = lastDigit + 15;
-            }
-            console.log("HOSPITAL", hospitals, hospitalIndex);
-            if (hospitalIndex >= 0 && hospitalIndex < hospitals.length) {
-                const selectedHospital = hospitals[hospitalIndex];
-                console.log("SELECTED HOSPITAL", selectedHospital);
-                // menu.con(`You selected: ${selectedHospital}\n\nPlease enter the hospital details:`);
-                let hospitalList = {
-                    "Rinamo Medical Centre": {
-                        address: "Kakumiro town",
-                        contactPerson: "Crissy",
-                        contact: "0774-725761/0705-200-275",
-                    },
-                    "Born Medical Centre": {
-                        address: "P. O. Box 18, Lyantonde",
-                        contactPerson: "Dr. Kizza Isaiah",
-                        contact: "0772-495779/0701-462-459",
-                    },
-                    "Beacof Medical Centre": {
-                        address: "Sembabule Town",
-                        contactPerson: "Dr Asuman",
-                        contact: "0779-147033",
-                    },
-                    "Nkozi Hospital": {
-                        address: "P.O Box 4349,Kampala",
-                        contactPerson: "Dr. Criscent",
-                        contact: "0776-738-723",
-                    },
-                    "Vision Medical Centre": {
-                        address: "Wakaliga Road-Natete",
-                        contactPerson: "Dr. Dan Zaake",
-                        contact: "0704-768-939",
-                    },
-                    "Adcare Medical Services": {
-                        address: "Near Ethiopian Village at the junction of the Italian Supermarket",
-                        contactPerson: "Eton",
-                        contact: "0705929944/0776-212-847",
-                    },
-                    "Heart services Uganda Ltd": {
-                        address: "Kitgum House",
-                        contactPerson: "Florence",
-                        contact: "0757-934376/0785-580855",
-                    },
-                    "Nsambya Hospital": {
-                        address: "Plot 57 Nsambya-Ggaba road",
-                        contactPerson: "Rose",
-                        contact: "0701-417-478",
-                    },
-                    "Paramount Hospital": {
-                        address: "Gadaffi Road",
-                        contactPerson: "Dr. Simon Begumisa",
-                        contact: "0700 873155",
-                    },
-                    "Welington Wellness Centre": {
-                        address: "Medical Hub Yusuf Lule road next to Fairway Hotel",
-                        contactPerson: "Hellen Nabwire",
-                        contact: "0776-832-820/0393-217-854",
-                    },
-                    "Mukwaya General Hospital": {
-                        address: "Opp. American Embassy",
-                        contactPerson: "Elijah Semalulu",
-                        contact: "0702-132 123 / 0788-268 682",
-                    },
-                    "Case Hospital": {
-                        address: "Opp. American Embassy",
-                        contactPerson: "Elijah Semalulu",
-                        contact: "0702-132 123 / 0788-268 682",
-                    },
-                    "Marie stopes Hospital": {
-                        address: "Forest mall",
-                        contactPerson: "Dorcus",
-                        contact: "0775 274373",
-                    },
-                    "Norvik Hospital": {
-                        address: "Kampala road",
-                        contactPerson: "Isaac",
-                        contact: "0704-143507",
-                    },
-                    "Kampala Hospital": {
-                        address: "Kampala road",
-                        contactPerson: "Isaac",
-                        contact: "0704-143507",
-                    },
-                    "International Hospital Kampala": {
-                        address: "0312 200 400/0752-966-812/0753-242-688",
-                        contactPerson: "Herbert Mukova",
-                        contact: "Namuwongo",
-                    },
-                    "Bugolobi Medical Centre": {
-                        address: "Bugolobi",
-                        contactPerson: "Owor Gilbert",
-                        contact: "0777 717034",
-                    },
-                    "UMC Victoria Hospital": {
-                        address: "Bukoto. P.O Box 72587 Kampala",
-                        contactPerson: "Dr.Jjuko",
-                        contact: "0773-42203",
-                    },
-                    "St. Joseph'S Hospital - Wakiso": {
-                        address: "Mission Road Nyenyiki Village",
-                        contactPerson: "Dr.Pamela Atim/Robert",
-                        contact: "0772-591493/0772-054-72",
-                    },
-                    "St. Francis Mukono Medical Centre": {
-                        address: "Mukono Ssaza Road",
-                        contactPerson: "Marris Nakayaga",
-                        contact: "0782 884415",
-                    },
-                    "Crescent medical centre": {
-                        address: "Jinja Town",
-                        contactPerson: "Abdallah/ Ssjjabi",
-                        contact: "0702 678240/0702 417284",
-                    },
-                    "International Medical Centre": {
-                        address: "Plot 14 Circular Road",
-                        contactPerson: "Joseph Nyanzi/ Agasha Carol",
-                        contact: "0434-122-499 /0712-856-200/ 0712-484-846",
-                    },
-                    "International medical centre": {
-                        address: "Mbale town",
-                        contactPerson: "Slyvia",
-                        contact: "0781 221 703/0392 000 054",
-                    },
-                    "Allied Medicare Services": {
-                        address: "Pliot 5 Elgin Road Masaka",
-                        contactPerson: "Bawakanya Stephen",
-                        contact: "0702-427-668",
-                    },
-                    "Masaka Regional Referra Hopital": {
-                        address: "Makaka",
-                        contactPerson: "Dr. Dada/Dr. Nathan/Beatrice/Ronald",
-                        contact: "0782-017098/0772-433809/0781-141-755/0776-977-114",
-                    },
-                    "Kitovu hospital": {
-                        address: "Kitovu",
-                        contactPerson: "Jude/Sr Pauline",
-                        contact: "0756-440-056/0752-556-712/0702-683461",
-                    },
-                    "International Medical Center": {
-                        address: "Mbarara complex building -Mbaguta street",
-                        contactPerson: "Dr. Lubega Paul/Scovia Eryenyu",
-                        contact: "0393 - 280- 696",
-                    },
-                    "St.Mary’s Lacor Hospital": {
-                        address: "Gulu",
-                        contactPerson: "Mrs. Iris/Beatrice/Jackie",
-                        contact: "0471-432-310/0772-365-480/0787-576-636/0777-326438",
-                    },
-                    "Pioneer Medical Centre Arua": {
-                        address: "P.O BOX 1124 KOBOKO",
-                        contactPerson: "Dr. Aldo Pariyo",
-                        contact: "0392 961427",
-                    },
-                    "Rugarama Hospital": {
-                        address: "Kabale town",
-                        contactPerson: "Dr. Gilbert Mateeka",
-                        contact: "0486-422-628/0773-455618",
-                    },
-                    "Kabale Hospital Private wing": {
-                        address: "Kabale town",
-                        contactPerson: "Justus",
-                        contact: "0775-273-584",
-                    },
-                    "Joy Medical Centre": {
-                        address: "P.O BOX 12723, OPP TOTAL PETROL STATION",
-                        contactPerson: "Mutesi Esther",
-                        contact: "0414-383151/0752-827-024",
-                    },
-                    "St.Ambrosoli Kalongo hospital": {
-                        address: "Mission Ward, Kalongo Town Council",
-                        contactPerson: "Sr Pamela/Ojok",
-                        contact: "0772-323072/0782840036",
-                    },
-                    "St. Joseph’s Hospital": {
-                        address: "Mission Road Nyenyiki Village",
-                        contactPerson: "Dr.Pamela Atim/Robert",
-                        contact: "0772-591493/0772-054-72",
-                    },
-                    "Florence Nightingale Hospital": {
-                        address: "Apac town, P.O BOX 20",
-                        contactPerson: "Sr. Margaret/Okello Dickson",
-                        contact: "0772-539-049/0773-875-601",
-                    },
-                    "Hope Charity Medicare": {
-                        address: "Amolatar",
-                        contactPerson: "Aloka Bonny Obongi",
-                        contact: "0782 807490",
-                    },
-                    "St John Paul Hospital": {
-                        address: "Oyam town",
-                        contactPerson: "Sarah",
-                        contact: "0780 590859",
-                    },
-                    "Nyapea Mission Hospital": {
-                        address: "Paidha /Zombo",
-                        contactPerson: "Dr Omara ",
-                        contact: "0783-725018",
-                    },
-                    "Nebbi Hospital": {
-                        address: "Nebbi town",
-                        contactPerson: "Peace Nikum",
-                        contact: "0784 219998",
-                    },
-                    "Amudat Hospital": {
-                        address: "Amudat, P.O Box 44 Moroto",
-                        contactPerson: "Dr. Jane",
-                        contact: "0782187876",
-                    },
-                    "Rainbow Empirical Medical Centre": {
-                        address: " Huzafrans House Plot 9 Jie Road Campswahili Juu",
-                        contactPerson: " Dr. Paul Olong",
-                        contact: " 0750-584045 ",
-                    },
-                    "Fitzmann Medical Services": {
-                        address: "Former mariestopes offices",
-                        contactPerson: "Dr. Nuwagaba Charles",
-                        contact: "0774 309 908",
-                    },
-                    "Masha Clinic": {
-                        address: "Plot 5 Chemonges Road",
-                        contactPerson: "Dr. Boyo Alfred",
-                        contact: "0772 984 947",
-                    },
-                    "Kumi Hospital": {
-                        address: "P.O BOX 09, Ongino",
-                        contactPerson: "Dr. Robert",
-                        contact: "0776-221443",
-                    },
-                    "Divine Mercy Hospital": {
-                        address: "Tororo",
-                        contactPerson: "Dr. Josue",
-                        contact: "0772413166",
-                    },
-                    "Townside Clinic": {
-                        address: "Jinja Town",
-                        contactPerson: "Abdallah/ Ssjjabi",
-                        contact: "0702 678240/0702 417284",
-                    },
-                    "Emram Doctor's clinic": {
-                        address: "Dr. Tusiime Emmanuel",
-                        contactPerson: "Dr. Tusiime Emmanuel",
-                        contact: "0773-375551",
-                    },
-                    "Kamuli Mission Hospital(Lubaga)": {
-                        address: "P.O BOX 99, Kamuli town",
-                        contactPerson: "Ronald",
-                        contact: "0774-187-499/0755-187-499",
-                    },
-                    "JK Pancrass Medical Centre": {
-                        address: "Mayuge Town Council, Kaguta Rd",
-                        contactPerson: "Dr. Joseph",
-                        contact: "0774 931798",
-                    },
-                    "Dr Ambosoli Health Centre": {
-                        address: "Kaliro Town council, Munayeka Rd near Kaliro High school",
-                        contactPerson: "Dr Ambrose/Bruno",
-                        contact: "0782-867978/0785-083-087",
-                    },
-                    "Mercy  Health Center": {
-                        address: "Plot 7/9 bulamu Iganda",
-                        contactPerson: "Innocent Mugabi",
-                        contact: "0703-895-928",
-                    },
-                    "Santa Medical Centre": {
-                        address: "Namayingo Town",
-                        contactPerson: "Dr John Paul",
-                        contact: "0788-322099",
-                    },
-                    "Fastline Medical Center": {
-                        address: "Plot 99 Kaune Wakooli Road",
-                        contactPerson: "Dr. Isabirye Stephen",
-                        contact: "0772 664318 /0783 375332",
-                    },
-                    "Suubi medical center": {
-                        address: "Kayunga Town Council",
-                        contactPerson: "Mpooya Simon",
-                        contact: "0772-670-744",
-                    },
-                    "Jonathan Medical Centre": {
-                        address: "Hospital lane next to Umeme Offices ",
-                        contactPerson: "Patrick/Kakooza",
-                        contact: "0756-649-688/0706-730-664",
-                    },
-                    "Kiryadondo Hospital": {
-                        address: "Kiryandongo town center",
-                        contactPerson: "Dr. Gamel",
-                        contact: "0782-506-093",
-                    },
-                    "True Vine Hospital": {
-                        address: "Mubende municipality. P.O. Box 1665 Masaka  ",
-                        contactPerson: "Dr. Emmanuel",
-                        contact: "0704 284351",
-                    },
-                    "Grand Medical Centre": {
-                        address: "Kira Town",
-                        contactPerson: "Ronald",
-                        contact: "0772-713816",
-                    },
-                    "St. Francis Naggalama Hospital": {
-                        address: "P.O Box-22004, Naggalama",
-                        contactPerson: "Sr Jane Frances/Francis",
-                        contact: "0392-702-709/0772-593-665/0776-880-211",
-                    },
-                    "Kabarole Hospital": {
-                        address: "Fortportal Town",
-                        contactPerson: "Dr Mugisha",
-                        contact: "0703-825140",
-                    },
-                    "Migisha Clinic": {
-                        address: "Lwengo Town",
-                        contactPerson: "Dr. Mugisha Joseph",
-                        contact: "0772-444-784",
-                    },
-                    "Mutolere Hospital": {
-                        address: "Kisoro Town",
-                        contactPerson: "Mayunga Godfrey/Peter Tuyikunde",
-                        contact: "0783 647 635/0752-140-702",
-                    },
-                    "Kilembe Mines Hospital": {
-                        address: "Kilembe",
-                        contactPerson: "Ben/ Sr. Betilda",
-                        contact: "0783-353881/0782-915170",
-                    },
-                    "Kasese Hospital": {
-                        address: "Kyebambe rd, Opp. Catholic cemetry",
-                        contactPerson: "Dr. Bernard/Yoledi",
-                        contact: "0701-756712/0392-908493",
-                    },
-                    "Fort portal regional hospital": {
-                        address: "P.O BOX 10,FORT PORTAL",
-                        contactPerson: "Nyakana Samuel",
-                        contact: "0772-834-486",
-                    },
-                    "Kigezi Community Medical Centre": {
-                        address: "Kihihi Town",
-                        contactPerson: "Dr Joshua",
-                        contact: "0779-218416",
-                    },
-                    "Bushenyi Medical Centre": {
-                        address: "Along Bushenyi-Mbarara Rd",
-                        contactPerson: "Dr. Namanya Viann",
-                        contact: "0705-881-084/0779-416-224",
-                    },
-                    "KIU- Teaching Hospital": {
-                        address: "Within KIU University",
-                        contactPerson: "Prof. Sebuufu/ Carol Admin",
-                        contact: "0772-507-248/0701-326-132",
-                    },
-                    "Ibanda hospital-Kagongo": {
-                        address: "Ibanda",
-                        contactPerson: "kyengera",
-                        contact: "0787-088100",
-                    },
-                    "Bwindi Community Hospital": {
-                        address: "Bwindi-Kihihi",
-                        contactPerson: "Enock",
-                        contact: "0782-890884",
-                    },
-                    "Rugyeyo hospital": {
-                        address: "Kanungu",
-                        contactPerson: "Tracy/Trust",
-                        contact: "0782 875 531/0787-536-576",
-                    },
-                    "St. Monica Health Center": {
-                        address: "Mpigi, Katende",
-                        contactPerson: "Sr. Cecilia",
-                        contact: "0706-098-350",
-                    },
-                    "Eunice Memorial Medical centre": {
-                        address: "Kalangala Town Council",
-                        contactPerson: "Dr Suubi",
-                        contact: "0705945534",
-                    },
-                };
-                if (hospitalList[selectedHospital]) {
-                    // Hospital found in the hospitalList, retrieve its details
-                    const hospitalDetails = hospitalList[selectedHospital];
-                    const { address, contactPerson, contact } = hospitalDetails;
-                    let user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
-                    const userHospitalDetails = yield db.user_hospitals.findOne({
-                        where: {
-                            user_id: user.user_id,
-                        },
-                    });
-                    if (userHospitalDetails) {
-                        //update the hospital details
-                        const updateUserHospital = yield db.user_hospitals.update({
-                            hospital_name: selectedHospital,
-                            hospital_address: address,
-                            hospital_contact_person: contactPerson,
-                            hospital_contact_person_phone_number: contact,
-                        }, {
-                            where: {
-                                user_id: user.user_id,
-                            }
-                        });
-                        console.log("updateUserHospital", updateUserHospital);
-                        menu.end(`Hospital Details:\nHospital: ${selectedHospital}\nAddress: ${address}\nContact Person: ${contactPerson}\nContact: ${contact}`);
+            const region = menu.val;
+            const regions = [
+                "Central Region",
+                "Western Region",
+                "Eastern Region",
+                "Karamoja Region",
+                "West Nile Region",
+                "Northern Region",
+            ];
+            console.log("REGION", region, regions[region - 1]);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const userHospital = yield UserHospital.findOne({
+                where: {
+                    user_id: user.user_id,
+                },
+            });
+            if (userHospital) {
+                yield UserHospital.update({
+                    hospital_region: regions[region - 1],
+                }, {
+                    where: {
+                        user_id: user.user_id
                     }
-                    const newUserHospital = yield db.user_hospitals.create({
-                        user_hospital_id: (0, uuid_1.v4)(),
-                        user_id: user === null || user === void 0 ? void 0 : user.user_id,
-                        hospital_name: selectedHospital,
-                        hospital_address: address,
-                        hospital_contact_person: contactPerson,
-                        hospital_contact_person_phone_number: contact,
-                    });
-                    console.log("newUserHospital", newUserHospital);
-                    const message = `Congratulations, you have selected ${selectedHospital} as your preferred Inpatient Hospital. Below are the Hospital details:
-
-              Hospital Name: ${selectedHospital}
-              Contact Number:${contact}
-              Location: ${address}}`;
-                    yield (0, sendSMS_1.default)(args.phoneNumber, message);
-                    menu.end(`Hospital Details:\nHospital: ${selectedHospital}\nAddress: ${address}\nContact Person: ${contactPerson}\nContact: ${contact}`);
-                }
+                });
             }
             else {
-                menu.con("Invalid selection. Please choose a valid hospital:");
+                yield UserHospital.create({
+                    user_hospital_id: (0, uuid_1.v4)(),
+                    user_id: user.user_id,
+                    hospital_region: regions[region - 1],
+                });
             }
+            menu.con(`Type your District to search e.g Kampala  0.Back 00.Main Menu`);
         }),
         next: {
-            "*\\d+": "hospitalDetails",
+            "*\\w+": "chooseHospital.search",
+            "0": "chooseHospital",
+        },
+    });
+    menu.state("chooseHospital.search", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const district = menu.val;
+            console.log("DISTRICT val", district);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const userHospital = yield UserHospital.findOne({
+                where: {
+                    user_id: user.user_id,
+                },
+            });
+            const user_hospital_region = userHospital.hospital_region;
+            const hospitalList = {
+                "Central Region": [
+                    {
+                        region: 'Central Region',
+                        district: 'Bweyogerere',
+                        hospital_name: 'Joy Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mutesi Esther',
+                        hospital_address: 'P.O BOX 12723, OPP TOTAL PETROL STATION',
+                        hospital_contact: '0414-383151/0752-827-024'
+                    },
+                    {
+                        region: 'Central Region',
+                        district: 'Kira',
+                        hospital_name: 'Grand Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Ronald',
+                        hospital_address: 'Kira Town',
+                        hospital_contact: '0772-713816'
+                    },
+                    {
+                        region: 'Central Region',
+                        district: 'Mukono',
+                        hospital_name: 'St. Francis Mukono Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Marris Nakayaga',
+                        hospital_address: 'Mukono Ssaza Road',
+                        hospital_contact: '0782 884415'
+                    },
+                    {
+                        district: 'Nagalama',
+                        region: 'Central Region',
+                        hospital_name: 'St. Francis Naggalama Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Sr Jane Frances/Francis',
+                        hospital_address: 'P.O Box-22004, Naggalama',
+                        hospital_contact: '0392-702-709/0772-593-665/0776-880-211'
+                    },
+                    {
+                        district: 'Natete',
+                        region: 'Central Region',
+                        hospital_name: 'Vision Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dan Zaake',
+                        hospital_address: 'Wakaliga Road-Natete',
+                        hospital_contact: '0704-768-939'
+                    },
+                    {
+                        district: 'Nkozi',
+                        region: 'Central Region',
+                        hospital_name: 'Nkozi Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Criscent',
+                        hospital_address: 'P.O Box 4349,Kampala ',
+                        hospital_contact: '0776-738-723'
+                    },
+                    {
+                        district: 'Mpigi',
+                        region: 'Central Region',
+                        hospital_name: 'St. Monica Health Center',
+                        category: 'IP',
+                        hospital_contact_person: 'Sr. Cecilia',
+                        hospital_address: 'Mpigi, Katende',
+                        hospital_contact: '0706-098-350'
+                    },
+                    {
+                        district: 'Kalangala',
+                        region: 'Central Region',
+                        hospital_name: 'Eunice Memorial Medical centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr Suubi',
+                        hospital_address: 'Kalangala Town Council',
+                        hospital_contact: 705945534
+                    },
+                    {
+                        district: 'Kaliro',
+                        region: 'Central Region',
+                        hospital_name: 'Dr Ambosoli Health Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Ambrose/Bruno',
+                        hospital_address: 'Kaliro Town council, Munayeka Rd near Kaliro High school',
+                        hospital_contact: '0782-867978/0785-083-087'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Adcare Medical Services',
+                        category: 'IP ',
+                        hospital_contact_person: 'Eton',
+                        hospital_address: 'Near Ethiopian Village at the junction of the Italian Supermarket',
+                        hospital_contact: '0705929944/0776-212-847'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Heart services Uganda Ltd',
+                        category: 'IP',
+                        hospital_contact_person: 'Florence',
+                        hospital_address: 'Kitgum House',
+                        hospital_contact: '0757-934376/0785-580855'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Nsambya Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Rose',
+                        hospital_address: 'Plot 57 Nsambya-Ggaba road',
+                        hospital_contact: '0701-417-478'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Paramount Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Simon Begumisa',
+                        hospital_address: 'Gadaffi Road',
+                        hospital_contact: '0700 873155'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Welington Wellness Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Hellen Nabwire',
+                        hospital_address: 'Medical Hub Yusuf Lule road next to Fairway Hotel',
+                        hospital_contact: '0776-832-820/0393-217-854'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Mukwaya General Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Elijah Semalulu',
+                        hospital_address: 'Opp. American Embassy',
+                        hospital_contact: '0702-132 123 / 0788-268 682'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Case Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Brian Nyegenye',
+                        hospital_address: 'Plot 69-71 Buganda Road',
+                        hospital_contact: '0702-917-495/0312-250700'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Marie stopes Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dorcus',
+                        hospital_address: 'Forest mall,',
+                        hospital_contact: '0775 274373'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Norvik Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Isaac',
+                        hospital_address: 'Kampala road',
+                        hospital_contact: '0704-143507'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Kampala Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Jude Kigozi',
+                        hospital_address: 'Kololo Makindu close',
+                        hospital_contact: '0312-563400/0783-893650'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'International Hospital Kampala',
+                        category: 'IP ',
+                        hospital_contact_person: 'Herbert Mukova',
+                        hospital_address: 'Namuwongo',
+                        hospital_contact: '0312 200 400/0752-966-812/0753-242-688'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Bugolobi Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Owor Gilbert',
+                        hospital_address: 'Bugolobi',
+                        hospital_contact: '0777 717034'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'UMC Victoria Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr.Jjuko',
+                        hospital_address: 'Bukoto. P.O Box 72587 Kampala',
+                        hospital_contact: '0773-422034'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Kyadondo Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Musoke',
+                        hospital_address: 'Tula road Kawempe',
+                        hospital_contact: '0705929944/0772-483-267'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Span medicare',
+                        category: 'IP ',
+                        hospital_contact_person: 'Miss Catherine',
+                        hospital_address: 'Kisaasi Trading Centre',
+                        hospital_contact: '0752-049829/0754-035106'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'CTC Medical center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Arnold/ Ivan',
+                        hospital_address: 'Kyengera- Next to DFCU Bank',
+                        hospital_contact: '0772-613-300/0759-577-871'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Lubaga hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Deus/Sylvia',
+                        hospital_address: 'Lubaga',
+                        hospital_contact: '0781-807-627/0701-605-148'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Mengo Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Lincoln/Brenda Naggawa',
+                        hospital_address: 'Mengo Off Sir Albert cook road',
+                        hospital_contact: '0414 270222 /0704-499-907/0756-507-476'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: "Doctor's Medical Centre",
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Kabanda/Carol Admin',
+                        hospital_address: 'Mpererwe-gayaza rd',
+                        hospital_contact: '0702961561(Dr. Kabanda)/0773-251-408(Carol)'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Millineum medical center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dan Zaake',
+                        hospital_address: 'Nsangi',
+                        hospital_contact: '0704-768-939'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Life Link Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Carol',
+                        hospital_address: 'Ntinda, Opposite Caltex',
+                        hospital_contact: '+256 712 965505/0312-294-998'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Kampala West Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Benson Tumwesigye/Hope',
+                        hospital_address: 'Rubaga road next to Hotel Sojovalo',
+                        hospital_contact: '0717-162476/0753-844-159'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Vision Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Dan Zaake',
+                        hospital_address: 'Wakaliga Road-Natete',
+                        hospital_contact: '0704-768-939'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Henrob Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Kiggundu Spire',
+                        hospital_address: 'Zana Entebbe Road',
+                        hospital_contact: '0757-104596 /0782-104-596'
+                    }
+                ],
+                "Western Region": [
+                    {
+                        district: 'Lwengo',
+                        region: 'Western Region',
+                        hospital_name: 'Migisha Clinic',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Mugisha Joseph',
+                        hospital_address: 'Lwengo Town',
+                        hospital_contact: '0772-444-784'
+                    },
+                    {
+                        district: 'Kakumiro',
+                        region: 'Western Region',
+                        hospital_name: 'Rinamo Medical Centre  ',
+                        category: 'IP ',
+                        hospital_contact_person: 'Crissy',
+                        hospital_address: 'Kakumiro town',
+                        hospital_contact: '0774-725761/0705-200-275'
+                    },
+                    {
+                        district: 'Lyantonde',
+                        region: 'Western Region',
+                        hospital_name: 'Born Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Kizza Isaiah',
+                        hospital_address: 'P. O. Box 18, Lyantonde',
+                        hospital_contact: '0772-495779/0701-462-459'
+                    },
+                    {
+                        district: 'Masaka',
+                        region: 'Western Region',
+                        hospital_name: 'Allied Medicare Services',
+                        category: 'IP ',
+                        hospital_contact_person: 'Bawakanya Stephen',
+                        hospital_address: 'Pliot 5 Elgin Road Masaka',
+                        hospital_contact: '0702-427-668'
+                    },
+                    {
+                        district: 'Masaka',
+                        region: 'Western Region',
+                        hospital_name: 'Masaka Regional Referra Hopital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Dada/Dr. Nathan/Beatrice/Ronald',
+                        hospital_address: 'Makaka',
+                        hospital_contact: '0782-017098/0772-433809/0781-141-755/0776-977-114'
+                    },
+                    {
+                        district: 'Masaka',
+                        region: 'Western Region',
+                        hospital_name: 'Kitovu hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Jude/Sr Pauline',
+                        hospital_address: 'Kitovu',
+                        hospital_contact: '0756-440-056/0752-556-712/0702-683461'
+                    },
+                    {
+                        district: 'Sembabule',
+                        region: 'Western Region',
+                        hospital_name: 'Beacof Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Asuman',
+                        hospital_address: 'Sembabule Town',
+                        hospital_contact: '0779-147033'
+                    },
+                    {
+                        district: 'Mbarara',
+                        region: 'Western Region',
+                        hospital_name: 'International Medical Center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Lubega Paul/Scovia Eryenyu',
+                        hospital_address: 'Mbarara complex building -Mbaguta street',
+                        hospital_contact: '0393 - 280- 696'
+                    },
+                    {
+                        district: 'Kihihi',
+                        region: 'Western Region',
+                        hospital_name: 'Kigezi Community Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr Joshua',
+                        hospital_address: 'Kihihi Town',
+                        hospital_contact: '0779-218416'
+                    },
+                    {
+                        district: 'Bushenyi',
+                        region: 'Western Region',
+                        hospital_name: 'Bushenyi Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Namanya Viann',
+                        hospital_address: 'Along Bushenyi-Mbarara Rd',
+                        hospital_contact: '0705-881-084/0779-416-224'
+                    },
+                    {
+                        district: 'Ishaka',
+                        region: 'Western Region',
+                        hospital_name: 'KIU- Teaching Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Prof. Sebuufu/ Carol Admin',
+                        hospital_address: 'Within KIU University',
+                        hospital_contact: '0772-507-248/0701-326-132'
+                    },
+                    {
+                        district: 'Ibanda',
+                        region: 'Western Region',
+                        hospital_name: 'Ibanda hospital-Kagongo',
+                        category: 'IP ',
+                        hospital_contact_person: 'kyengera',
+                        hospital_address: 'Ibanda',
+                        hospital_contact: '0787-088100'
+                    },
+                    {
+                        district: 'Kabale',
+                        region: 'Western Region',
+                        hospital_name: 'Rugarama Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Gilbert Mateeka',
+                        hospital_address: 'Kabale town',
+                        hospital_contact: '0486-422-628/0773-455618'
+                    },
+                    {
+                        district: 'Kabale',
+                        region: 'Western Region',
+                        hospital_name: 'Kabale Hospital Private wing',
+                        category: 'IP',
+                        hospital_contact_person: 'Justus',
+                        hospital_address: 'Kabale town',
+                        hospital_contact: '0775-273-584'
+                    },
+                    {
+                        district: 'Kihihi',
+                        region: 'Western Region',
+                        hospital_name: 'Bwindi Community Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Enock',
+                        hospital_address: 'Bwindi-Kihihi',
+                        hospital_contact: '0782-890884'
+                    },
+                    {
+                        district: 'Kanungu',
+                        region: 'Western Region',
+                        hospital_name: 'Rugyeyo hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Tracy/Trust',
+                        hospital_address: 'Kanungu',
+                        hospital_contact: '0782 875 531/0787-536-576'
+                    },
+                    {
+                        district: 'Kanungu',
+                        region: 'Western Region',
+                        hospital_name: 'Nyakatare Health Centre III',
+                        category: 'IP',
+                        hospital_contact_person: 'Ritah Katumba/Nexon',
+                        hospital_address: '12 Hours',
+                        hospital_contact: 'Nex-0775-620-596/0700-620-596'
+                    },
+                    {
+                        district: 'Rukungiri',
+                        region: 'Western Region',
+                        hospital_name: 'St. Karoil Lwanga Nyakibale Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Claudio/Alex',
+                        hospital_address: 'Rwakabengo rd, Rukungiri municipality',
+                        hospital_contact: '0772-443-572&0705-541-028/0772-321-478'
+                    },
+                    {
+                        district: 'Kisoro',
+                        region: 'Western Region',
+                        hospital_name: 'Mutolere Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mayunga Godfrey/Peter Tuyikunde',
+                        hospital_address: 'Kisoro town',
+                        hospital_contact: '0783 647 635/0752-140-702'
+                    },
+                    {
+                        district: 'Kasese',
+                        region: 'Western Region',
+                        hospital_name: 'Kilembe Mines Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Ben/ Sr. Betilda',
+                        hospital_address: 'Kilembe',
+                        hospital_contact: '0783-353881/0782-915170'
+                    },
+                    {
+                        district: 'Kasese',
+                        region: 'Western Region',
+                        hospital_name: 'Kasese Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Bernard/Yoledi',
+                        hospital_address: 'Kyebambe rd, Opp. Catholic cemetry',
+                        hospital_contact: '0701-756712/0392-908493'
+                    },
+                    {
+                        district: 'Fortportal',
+                        region: 'Western Region',
+                        hospital_name: 'Fort portal regional hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Nyakana Samuel',
+                        hospital_address: 'P.O BOX 10,FORT PORTAL',
+                        hospital_contact: '0772-834-486'
+                    },
+                    {
+                        district: 'Fortportal',
+                        region: 'Western Region',
+                        hospital_name: 'Kabarole Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Mugisha',
+                        hospital_address: 'Fortportal Town',
+                        hospital_contact: '0703-825140'
+                    },
+                    {
+                        district: 'Mubende',
+                        region: 'Western Region',
+                        hospital_name: 'True Vine Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Emmanuel',
+                        hospital_address: 'Mubende municipality. P.O. Box 1665 Masaka',
+                        hospital_contact: '0704 284351'
+                    },
+                    {
+                        district: 'Kiryadongo',
+                        region: 'Western Region',
+                        hospital_name: 'Kiryadondo Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Gamel',
+                        hospital_address: 'Kiryandongo town center',
+                        hospital_contact: '0782-506-093'
+                    }
+                ],
+                "Eastern Region": [
+                    {
+                        district: 'KAYUNGA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Jonathan Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Patrick/Kakooza',
+                        hospital_address: 'Hospital lane next to Umeme Offices ',
+                        hospital_contact: '0756-649-688/0706-730-664'
+                    },
+                    {
+                        district: 'KAYUNGA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Suubi medical center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mpooya Simon',
+                        hospital_address: 'Kayunga Town Council ',
+                        hospital_contact: '0772-670-744'
+                    },
+                    {
+                        district: 'BUGIRI',
+                        region: 'Eastern Region',
+                        hospital_name: 'Fastline Medical Center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Isabirye Stephen',
+                        hospital_address: 'Plot 99 Kaune Wakooli Road',
+                        hospital_contact: '0772 664318 /0783 375332'
+                    },
+                    {
+                        district: 'Namayingo',
+                        region: 'Eastern Region',
+                        hospital_name: 'Santa Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr John Paul',
+                        hospital_address: 'Namayingo Town',
+                        hospital_contact: '0788-322099'
+                    },
+                    {
+                        district: 'IGANGA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Mercy  Health Center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Innocent Mugabi',
+                        hospital_address: 'Plot 7/9 bulamu Iganda',
+                        hospital_contact: '0703-895-928'
+                    },
+                    {
+                        district: 'Kaliro',
+                        region: 'Eastern Region',
+                        hospital_name: 'Dr Ambosoli Health Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Ambrose/Bruno',
+                        hospital_address: 'Kaliro Town council, Munayeka Rd near Kaliro High school',
+                        hospital_contact: '0782-867978/0785-083-087'
+                    },
+                    {
+                        district: 'Mayuge',
+                        region: 'Eastern Region',
+                        hospital_name: 'JK Pancrass Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Joseph',
+                        hospital_address: 'Mayuge Town Council, Kaguta Rd',
+                        hospital_contact: '0774 931798'
+                    },
+                    {
+                        district: 'KAMULI',
+                        region: 'Eastern Region',
+                        hospital_name: 'Kamuli Mission Hospital(Lubaga)',
+                        category: 'IP ',
+                        hospital_contact_person: 'Ronald',
+                        hospital_address: 'P.O BOX 99, Kamuli town',
+                        hospital_contact: '0774-187-499/0755-187-499'
+                    },
+                    {
+                        district: 'JINJA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Crescent medical centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Abdallah/ Ssjjabi',
+                        hospital_address: 'Jinja Town',
+                        hospital_contact: '0702 678240/0702 417284'
+                    },
+                    {
+                        district: 'BUSIA',
+                        region: 'Eastern Region',
+                        hospital_name: "Emram Doctor's clinic",
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Tusiime Emmanuel',
+                        hospital_address: 'Busia Municipality',
+                        hospital_contact: '0773-375551'
+                    },
+                    {
+                        district: 'JINJA',
+                        region: 'Eastern Region',
+                        hospital_name: 'International Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Joseph Nyanzi/ Agasha Carol',
+                        hospital_address: 'Plot 14 Circular Road',
+                        hospital_contact: '0434-122-499 /0712-856-200/ 0712-484-846'
+                    },
+                    {
+                        district: 'PALLISA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Townside Clinic',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Samuel Okoit',
+                        hospital_address: 'Paliisa town',
+                        hospital_contact: '0704-556-667'
+                    },
+                    {
+                        district: 'TORORO',
+                        region: 'Eastern Region',
+                        hospital_name: 'Divine Mercy Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Josue',
+                        hospital_address: 'Tororo',
+                        hospital_contact: '0772413166'
+                    },
+                    {
+                        district: 'MBALE',
+                        region: 'Eastern Region',
+                        hospital_name: 'International medical centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Sylvia',
+                        hospital_address: 'Mbale town',
+                        hospital_contact: '0781 221 703/0392 000 054'
+                    },
+                    {
+                        district: 'KUMI',
+                        region: 'Eastern Region',
+                        hospital_name: 'Kumi Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Robert',
+                        hospital_address: 'P.O BOX 09, Ongino',
+                        hospital_contact: '0776-221443'
+                    },
+                    {
+                        district: 'KAPCHORWA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Masha Clinic',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Boyo Alfred',
+                        hospital_address: 'Plot 5 Chemonges Road',
+                        hospital_contact: '0772 984 947'
+                    }
+                ],
+                "Karamoja Region": [
+                    {
+                        district: 'Moroto',
+                        region: 'Karamoja Region',
+                        hospital_name: 'Amudat Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Jane',
+                        hospital_address: 'Amudat, P.O Box 44 Moroto',
+                        hospital_contact: '0782187876'
+                    },
+                    {
+                        district: 'Moroto',
+                        region: 'Karamoja Region',
+                        hospital_name: 'Rainbow Empirical Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Paul Olong',
+                        hospital_address: 'Huzafrans House Plot 9 Jie Road Campswahili Juu',
+                        hospital_contact: ' 0750-584045 '
+                    },
+                    {
+                        district: 'Moroto',
+                        region: 'Karamoja Region',
+                        hospital_name: 'Fitzmann Medical Services',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Nuwagaba Charles',
+                        hospital_address: 'Former mariestopes offices',
+                        hospital_contact: '0774 309 908'
+                    }
+                ],
+                "West Nile Region": [
+                    {
+                        district: 'Nebbi',
+                        region: 'West Nile Region',
+                        hospital_name: 'Nebbi Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Peace Nikum',
+                        hospital_address: 'Nebbi town',
+                        hospital_contact: '0784 219998'
+                    },
+                    {
+                        district: 'Zombo',
+                        region: 'West Nile Region',
+                        hospital_name: 'Nyapea Mission Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr Omara ',
+                        hospital_address: 'Paidha /Zombo',
+                        hospital_contact: '0783-725018'
+                    },
+                    {
+                        district: 'ARUA',
+                        region: 'West Nile Region',
+                        hospital_name: 'Pioneer Medical Centre Arua',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Aldo Pariyo',
+                        hospital_address: 'P.O BOX 1124 KOBOKO',
+                        hospital_contact: '0392 961427'
+                    }
+                ],
+                "Northern Region": [
+                    {
+                        district: 'Gulu',
+                        region: 'Northern Region',
+                        hospital_name: 'St.Mary’s Lacor Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mrs. Iris/Beatrice/Jackie',
+                        hospital_address: 'Gulu',
+                        hospital_contact: '0471-432-310/0772-365-480/0787-576-636/0777-326438'
+                    },
+                    {
+                        district: 'Oyam',
+                        region: 'Northern Region',
+                        hospital_name: 'St John Paul Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Sarah',
+                        hospital_address: 'Oyam town',
+                        hospital_contact: '0780 590859'
+                    },
+                    {
+                        district: 'Amolatar',
+                        region: 'Northern Region',
+                        hospital_name: 'Hope Charity Medicare',
+                        category: 'IP',
+                        hospital_contact_person: 'Aloka Bonny Obongi',
+                        hospital_address: 'Amolatar',
+                        hospital_contact: '0782 807490'
+                    },
+                    {
+                        district: 'Apac',
+                        region: 'Northern Region',
+                        hospital_name: 'Florence Nightingale Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Sr. Margaret/Okello Dickson',
+                        hospital_address: 'Apac town, P.O BOX 20',
+                        hospital_contact: '0772-539-049/0773-875-601'
+                    },
+                    {
+                        district: 'Kitgum',
+                        region: 'Northern Region',
+                        hospital_name: 'St. Joseph’s Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr.Pamela Atim/Robert',
+                        hospital_address: 'Mission Road Nyenyiki Village',
+                        hospital_contact: '0772-591493/0772-054-72'
+                    },
+                    {
+                        district: 'Agago',
+                        region: 'Northern Region',
+                        hospital_name: 'St.Ambrosoli Kalongo hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Sr Pamela/Ojok',
+                        hospital_address: 'Mission Ward, Kalongo Town Council',
+                        hospital_contact: '0772-323072/0782840036'
+                    }
+                ],
+            };
+            const hospitalListByRegion = hospitalList[user_hospital_region];
+            //console.log("HOSPITAL LIST BY REGION", hospitalListByRegion)
+            // check if district exists in hospitalListByRegion
+            const hospitalListByDistrict = hospitalListByRegion.filter(hospital => hospital.district.toLowerCase().includes(district.toLowerCase()));
+            //console.log("HOSPITAL LIST BY DISTRICT", hospitalListByDistrict)
+            if (hospitalListByDistrict.length === 0) {
+                menu.con('No hospital found in this district. Please try again.');
+                menu.end();
+            }
+            // if district exists, list district for user to choose
+            let districtList = hospitalListByDistrict.map(hospital => hospital.district);
+            districtList = [...new Set(districtList)];
+            menu.con(`Confirm your District e.g. Kampala
+${districtList.map((district, index) => `${district}`).join("\n")}
+
+   0.Back 00.Main Menu`);
+        }),
+        next: {
+            "*\\w+": "searchHospital.hospital",
+            "0": "chooseHospital",
+        },
+    });
+    menu.state("searchHospital.hospital", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const distictInput = menu.val;
+            console.log("DISTRICT INPUT", distictInput);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const userHospital = yield UserHospital.findOne({
+                where: {
+                    user_id: user.user_id,
+                },
+            });
+            const user_hospital_region = userHospital.hospital_region;
+            console.log("USER HOSPITAL REGION", user_hospital_region);
+            // SAVE DISTRICT TO DATABASE
+            userHospital.hospital_district = distictInput;
+            yield userHospital.save();
+            menu.con(`Type your Hospital to search e.g Mengo Hospital`);
+        }),
+        next: {
+            "*[a-zA-Z]+": "selectHospital.search",
             "0": "selectRegion",
+        },
+    });
+    menu.state("selectHospital.search", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const hospitalName = menu.val;
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const userHospital = yield UserHospital.findOne({
+                where: {
+                    user_id: user.user_id,
+                },
+            });
+            const user_hospital_region = userHospital.hospital_region;
+            const user_hospital_district = userHospital.hospital_district;
+            const hospitalList = {
+                "Central Region": [
+                    {
+                        region: 'Central Region',
+                        district: 'Bweyogerere',
+                        hospital_name: 'Joy Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mutesi Esther',
+                        hospital_address: 'P.O BOX 12723, OPP TOTAL PETROL STATION',
+                        hospital_contact: '0414-383151/0752-827-024'
+                    },
+                    {
+                        region: 'Central Region',
+                        district: 'Kira',
+                        hospital_name: 'Grand Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Ronald',
+                        hospital_address: 'Kira Town',
+                        hospital_contact: '0772-713816'
+                    },
+                    {
+                        region: 'Central Region',
+                        district: 'Mukono',
+                        hospital_name: 'St. Francis Mukono Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Marris Nakayaga',
+                        hospital_address: 'Mukono Ssaza Road',
+                        hospital_contact: '0782 884415'
+                    },
+                    {
+                        district: 'Nagalama',
+                        region: 'Central Region',
+                        hospital_name: 'St. Francis Naggalama Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Sr Jane Frances/Francis',
+                        hospital_address: 'P.O Box-22004, Naggalama',
+                        hospital_contact: '0392-702-709/0772-593-665/0776-880-211'
+                    },
+                    {
+                        district: 'Natete',
+                        region: 'Central Region',
+                        hospital_name: 'Vision Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dan Zaake',
+                        hospital_address: 'Wakaliga Road-Natete',
+                        hospital_contact: '0704-768-939'
+                    },
+                    {
+                        district: 'Nkozi',
+                        region: 'Central Region',
+                        hospital_name: 'Nkozi Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Criscent',
+                        hospital_address: 'P.O Box 4349,Kampala ',
+                        hospital_contact: '0776-738-723'
+                    },
+                    {
+                        district: 'Mpigi',
+                        region: 'Central Region',
+                        hospital_name: 'St. Monica Health Center',
+                        category: 'IP',
+                        hospital_contact_person: 'Sr. Cecilia',
+                        hospital_address: 'Mpigi, Katende',
+                        hospital_contact: '0706-098-350'
+                    },
+                    {
+                        district: 'Kalangala',
+                        region: 'Central Region',
+                        hospital_name: 'Eunice Memorial Medical centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr Suubi',
+                        hospital_address: 'Kalangala Town Council',
+                        hospital_contact: 705945534
+                    },
+                    {
+                        district: 'Kaliro',
+                        region: 'Central Region',
+                        hospital_name: 'Dr Ambosoli Health Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Ambrose/Bruno',
+                        hospital_address: 'Kaliro Town council, Munayeka Rd near Kaliro High school',
+                        hospital_contact: '0782-867978/0785-083-087'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Adcare Medical Services',
+                        category: 'IP ',
+                        hospital_contact_person: 'Eton',
+                        hospital_address: 'Near Ethiopian Village at the junction of the Italian Supermarket',
+                        hospital_contact: '0705929944/0776-212-847'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Heart services Uganda Ltd',
+                        category: 'IP',
+                        hospital_contact_person: 'Florence',
+                        hospital_address: 'Kitgum House',
+                        hospital_contact: '0757-934376/0785-580855'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Nsambya Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Rose',
+                        hospital_address: 'Plot 57 Nsambya-Ggaba road',
+                        hospital_contact: '0701-417-478'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Paramount Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Simon Begumisa',
+                        hospital_address: 'Gadaffi Road',
+                        hospital_contact: '0700 873155'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Welington Wellness Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Hellen Nabwire',
+                        hospital_address: 'Medical Hub Yusuf Lule road next to Fairway Hotel',
+                        hospital_contact: '0776-832-820/0393-217-854'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Mukwaya General Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Elijah Semalulu',
+                        hospital_address: 'Opp. American Embassy',
+                        hospital_contact: '0702-132 123 / 0788-268 682'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Case Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Brian Nyegenye',
+                        hospital_address: 'Plot 69-71 Buganda Road',
+                        hospital_contact: '0702-917-495/0312-250700'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Marie stopes Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dorcus',
+                        hospital_address: 'Forest mall,',
+                        hospital_contact: '0775 274373'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Norvik Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Isaac',
+                        hospital_address: 'Kampala road',
+                        hospital_contact: '0704-143507'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Kampala Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Jude Kigozi',
+                        hospital_address: 'Kololo Makindu close',
+                        hospital_contact: '0312-563400/0783-893650'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'International Hospital Kampala',
+                        category: 'IP ',
+                        hospital_contact_person: 'Herbert Mukova',
+                        hospital_address: 'Namuwongo',
+                        hospital_contact: '0312 200 400/0752-966-812/0753-242-688'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Bugolobi Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Owor Gilbert',
+                        hospital_address: 'Bugolobi',
+                        hospital_contact: '0777 717034'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'UMC Victoria Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr.Jjuko',
+                        hospital_address: 'Bukoto. P.O Box 72587 Kampala',
+                        hospital_contact: '0773-422034'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Kyadondo Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Musoke',
+                        hospital_address: 'Tula road Kawempe',
+                        hospital_contact: '0705929944/0772-483-267'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Span medicare',
+                        category: 'IP ',
+                        hospital_contact_person: 'Miss Catherine',
+                        hospital_address: 'Kisaasi Trading Centre',
+                        hospital_contact: '0752-049829/0754-035106'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'CTC Medical center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Arnold/ Ivan',
+                        hospital_address: 'Kyengera- Next to DFCU Bank',
+                        hospital_contact: '0772-613-300/0759-577-871'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Lubaga hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Deus/Sylvia',
+                        hospital_address: 'Lubaga',
+                        hospital_contact: '0781-807-627/0701-605-148'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Mengo Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Lincoln/Brenda Naggawa',
+                        hospital_address: 'Mengo Off Sir Albert cook road',
+                        hospital_contact: '0414 270222 /0704-499-907/0756-507-476'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: "Doctor's Medical Centre",
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Kabanda/Carol Admin',
+                        hospital_address: 'Mpererwe-gayaza rd',
+                        hospital_contact: '0702961561(Dr. Kabanda)/0773-251-408(Carol)'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Millineum medical center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dan Zaake',
+                        hospital_address: 'Nsangi',
+                        hospital_contact: '0704-768-939'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Life Link Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Carol',
+                        hospital_address: 'Ntinda, Opposite Caltex',
+                        hospital_contact: '+256 712 965505/0312-294-998'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Kampala West Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Benson Tumwesigye/Hope',
+                        hospital_address: 'Rubaga road next to Hotel Sojovalo',
+                        hospital_contact: '0717-162476/0753-844-159'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Vision Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Dan Zaake',
+                        hospital_address: 'Wakaliga Road-Natete',
+                        hospital_contact: '0704-768-939'
+                    },
+                    {
+                        district: 'Kampala',
+                        region: 'Central Region',
+                        hospital_name: 'Henrob Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Kiggundu Spire',
+                        hospital_address: 'Zana Entebbe Road',
+                        hospital_contact: '0757-104596 /0782-104-596'
+                    }
+                ],
+                "Western Region": [
+                    {
+                        district: 'Lwengo',
+                        region: 'Western Region',
+                        hospital_name: 'Migisha Clinic',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Mugisha Joseph',
+                        hospital_address: 'Lwengo Town',
+                        hospital_contact: '0772-444-784'
+                    },
+                    {
+                        district: 'Kakumiro',
+                        region: 'Western Region',
+                        hospital_name: 'Rinamo Medical Centre  ',
+                        category: 'IP ',
+                        hospital_contact_person: 'Crissy',
+                        hospital_address: 'Kakumiro town',
+                        hospital_contact: '0774-725761/0705-200-275'
+                    },
+                    {
+                        district: 'Lyantonde',
+                        region: 'Western Region',
+                        hospital_name: 'Born Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Kizza Isaiah',
+                        hospital_address: 'P. O. Box 18, Lyantonde',
+                        hospital_contact: '0772-495779/0701-462-459'
+                    },
+                    {
+                        district: 'Masaka',
+                        region: 'Western Region',
+                        hospital_name: 'Allied Medicare Services',
+                        category: 'IP ',
+                        hospital_contact_person: 'Bawakanya Stephen',
+                        hospital_address: 'Pliot 5 Elgin Road Masaka',
+                        hospital_contact: '0702-427-668'
+                    },
+                    {
+                        district: 'Masaka',
+                        region: 'Western Region',
+                        hospital_name: 'Masaka Regional Referra Hopital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Dada/Dr. Nathan/Beatrice/Ronald',
+                        hospital_address: 'Makaka',
+                        hospital_contact: '0782-017098/0772-433809/0781-141-755/0776-977-114'
+                    },
+                    {
+                        district: 'Masaka',
+                        region: 'Western Region',
+                        hospital_name: 'Kitovu hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Jude/Sr Pauline',
+                        hospital_address: 'Kitovu',
+                        hospital_contact: '0756-440-056/0752-556-712/0702-683461'
+                    },
+                    {
+                        district: 'Sembabule',
+                        region: 'Western Region',
+                        hospital_name: 'Beacof Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Asuman',
+                        hospital_address: 'Sembabule Town',
+                        hospital_contact: '0779-147033'
+                    },
+                    {
+                        district: 'Mbarara',
+                        region: 'Western Region',
+                        hospital_name: 'International Medical Center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Lubega Paul/Scovia Eryenyu',
+                        hospital_address: 'Mbarara complex building -Mbaguta street',
+                        hospital_contact: '0393 - 280- 696'
+                    },
+                    {
+                        district: 'Kihihi',
+                        region: 'Western Region',
+                        hospital_name: 'Kigezi Community Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr Joshua',
+                        hospital_address: 'Kihihi Town',
+                        hospital_contact: '0779-218416'
+                    },
+                    {
+                        district: 'Bushenyi',
+                        region: 'Western Region',
+                        hospital_name: 'Bushenyi Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Namanya Viann',
+                        hospital_address: 'Along Bushenyi-Mbarara Rd',
+                        hospital_contact: '0705-881-084/0779-416-224'
+                    },
+                    {
+                        district: 'Ishaka',
+                        region: 'Western Region',
+                        hospital_name: 'KIU- Teaching Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Prof. Sebuufu/ Carol Admin',
+                        hospital_address: 'Within KIU University',
+                        hospital_contact: '0772-507-248/0701-326-132'
+                    },
+                    {
+                        district: 'Ibanda',
+                        region: 'Western Region',
+                        hospital_name: 'Ibanda hospital-Kagongo',
+                        category: 'IP ',
+                        hospital_contact_person: 'kyengera',
+                        hospital_address: 'Ibanda',
+                        hospital_contact: '0787-088100'
+                    },
+                    {
+                        district: 'Kabale',
+                        region: 'Western Region',
+                        hospital_name: 'Rugarama Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Gilbert Mateeka',
+                        hospital_address: 'Kabale town',
+                        hospital_contact: '0486-422-628/0773-455618'
+                    },
+                    {
+                        district: 'Kabale',
+                        region: 'Western Region',
+                        hospital_name: 'Kabale Hospital Private wing',
+                        category: 'IP',
+                        hospital_contact_person: 'Justus',
+                        hospital_address: 'Kabale town',
+                        hospital_contact: '0775-273-584'
+                    },
+                    {
+                        district: 'Kihihi',
+                        region: 'Western Region',
+                        hospital_name: 'Bwindi Community Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Enock',
+                        hospital_address: 'Bwindi-Kihihi',
+                        hospital_contact: '0782-890884'
+                    },
+                    {
+                        district: 'Kanungu',
+                        region: 'Western Region',
+                        hospital_name: 'Rugyeyo hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Tracy/Trust',
+                        hospital_address: 'Kanungu',
+                        hospital_contact: '0782 875 531/0787-536-576'
+                    },
+                    {
+                        district: 'Kanungu',
+                        region: 'Western Region',
+                        hospital_name: 'Nyakatare Health Centre III',
+                        category: 'IP',
+                        hospital_contact_person: 'Ritah Katumba/Nexon',
+                        hospital_address: '12 Hours',
+                        hospital_contact: 'Nex-0775-620-596/0700-620-596'
+                    },
+                    {
+                        district: 'Rukungiri',
+                        region: 'Western Region',
+                        hospital_name: 'St. Karoil Lwanga Nyakibale Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Claudio/Alex',
+                        hospital_address: 'Rwakabengo rd, Rukungiri municipality',
+                        hospital_contact: '0772-443-572&0705-541-028/0772-321-478'
+                    },
+                    {
+                        district: 'Kisoro',
+                        region: 'Western Region',
+                        hospital_name: 'Mutolere Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mayunga Godfrey/Peter Tuyikunde',
+                        hospital_address: 'Kisoro town',
+                        hospital_contact: '0783 647 635/0752-140-702'
+                    },
+                    {
+                        district: 'Kasese',
+                        region: 'Western Region',
+                        hospital_name: 'Kilembe Mines Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Ben/ Sr. Betilda',
+                        hospital_address: 'Kilembe',
+                        hospital_contact: '0783-353881/0782-915170'
+                    },
+                    {
+                        district: 'Kasese',
+                        region: 'Western Region',
+                        hospital_name: 'Kasese Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Bernard/Yoledi',
+                        hospital_address: 'Kyebambe rd, Opp. Catholic cemetry',
+                        hospital_contact: '0701-756712/0392-908493'
+                    },
+                    {
+                        district: 'Fortportal',
+                        region: 'Western Region',
+                        hospital_name: 'Fort portal regional hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Nyakana Samuel',
+                        hospital_address: 'P.O BOX 10,FORT PORTAL',
+                        hospital_contact: '0772-834-486'
+                    },
+                    {
+                        district: 'Fortportal',
+                        region: 'Western Region',
+                        hospital_name: 'Kabarole Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Mugisha',
+                        hospital_address: 'Fortportal Town',
+                        hospital_contact: '0703-825140'
+                    },
+                    {
+                        district: 'Mubende',
+                        region: 'Western Region',
+                        hospital_name: 'True Vine Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Emmanuel',
+                        hospital_address: 'Mubende municipality. P.O. Box 1665 Masaka',
+                        hospital_contact: '0704 284351'
+                    },
+                    {
+                        district: 'Kiryadongo',
+                        region: 'Western Region',
+                        hospital_name: 'Kiryadondo Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Gamel',
+                        hospital_address: 'Kiryandongo town center',
+                        hospital_contact: '0782-506-093'
+                    }
+                ],
+                "Eastern Region": [
+                    {
+                        district: 'KAYUNGA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Jonathan Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Patrick/Kakooza',
+                        hospital_address: 'Hospital lane next to Umeme Offices ',
+                        hospital_contact: '0756-649-688/0706-730-664'
+                    },
+                    {
+                        district: 'KAYUNGA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Suubi medical center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mpooya Simon',
+                        hospital_address: 'Kayunga Town Council ',
+                        hospital_contact: '0772-670-744'
+                    },
+                    {
+                        district: 'BUGIRI',
+                        region: 'Eastern Region',
+                        hospital_name: 'Fastline Medical Center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Isabirye Stephen',
+                        hospital_address: 'Plot 99 Kaune Wakooli Road',
+                        hospital_contact: '0772 664318 /0783 375332'
+                    },
+                    {
+                        district: 'Namayingo',
+                        region: 'Eastern Region',
+                        hospital_name: 'Santa Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr John Paul',
+                        hospital_address: 'Namayingo Town',
+                        hospital_contact: '0788-322099'
+                    },
+                    {
+                        district: 'IGANGA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Mercy  Health Center',
+                        category: 'IP ',
+                        hospital_contact_person: 'Innocent Mugabi',
+                        hospital_address: 'Plot 7/9 bulamu Iganda',
+                        hospital_contact: '0703-895-928'
+                    },
+                    {
+                        district: 'Kaliro',
+                        region: 'Eastern Region',
+                        hospital_name: 'Dr Ambosoli Health Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr Ambrose/Bruno',
+                        hospital_address: 'Kaliro Town council, Munayeka Rd near Kaliro High school',
+                        hospital_contact: '0782-867978/0785-083-087'
+                    },
+                    {
+                        district: 'Mayuge',
+                        region: 'Eastern Region',
+                        hospital_name: 'JK Pancrass Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Joseph',
+                        hospital_address: 'Mayuge Town Council, Kaguta Rd',
+                        hospital_contact: '0774 931798'
+                    },
+                    {
+                        district: 'KAMULI',
+                        region: 'Eastern Region',
+                        hospital_name: 'Kamuli Mission Hospital(Lubaga)',
+                        category: 'IP ',
+                        hospital_contact_person: 'Ronald',
+                        hospital_address: 'P.O BOX 99, Kamuli town',
+                        hospital_contact: '0774-187-499/0755-187-499'
+                    },
+                    {
+                        district: 'JINJA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Crescent medical centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Abdallah/ Ssjjabi',
+                        hospital_address: 'Jinja Town',
+                        hospital_contact: '0702 678240/0702 417284'
+                    },
+                    {
+                        district: 'BUSIA',
+                        region: 'Eastern Region',
+                        hospital_name: "Emram Doctor's clinic",
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Tusiime Emmanuel',
+                        hospital_address: 'Busia Municipality',
+                        hospital_contact: '0773-375551'
+                    },
+                    {
+                        district: 'JINJA',
+                        region: 'Eastern Region',
+                        hospital_name: 'International Medical Centre',
+                        category: 'IP ',
+                        hospital_contact_person: 'Joseph Nyanzi/ Agasha Carol',
+                        hospital_address: 'Plot 14 Circular Road',
+                        hospital_contact: '0434-122-499 /0712-856-200/ 0712-484-846'
+                    },
+                    {
+                        district: 'PALLISA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Townside Clinic',
+                        category: 'IP ',
+                        hospital_contact_person: 'Dr. Samuel Okoit',
+                        hospital_address: 'Paliisa town',
+                        hospital_contact: '0704-556-667'
+                    },
+                    {
+                        district: 'TORORO',
+                        region: 'Eastern Region',
+                        hospital_name: 'Divine Mercy Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Josue',
+                        hospital_address: 'Tororo',
+                        hospital_contact: '0772413166'
+                    },
+                    {
+                        district: 'MBALE',
+                        region: 'Eastern Region',
+                        hospital_name: 'International medical centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Sylvia',
+                        hospital_address: 'Mbale town',
+                        hospital_contact: '0781 221 703/0392 000 054'
+                    },
+                    {
+                        district: 'KUMI',
+                        region: 'Eastern Region',
+                        hospital_name: 'Kumi Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Robert',
+                        hospital_address: 'P.O BOX 09, Ongino',
+                        hospital_contact: '0776-221443'
+                    },
+                    {
+                        district: 'KAPCHORWA',
+                        region: 'Eastern Region',
+                        hospital_name: 'Masha Clinic',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Boyo Alfred',
+                        hospital_address: 'Plot 5 Chemonges Road',
+                        hospital_contact: '0772 984 947'
+                    }
+                ],
+                "Karamoja Region": [
+                    {
+                        district: 'Moroto',
+                        region: 'Karamoja Region',
+                        hospital_name: 'Amudat Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Jane',
+                        hospital_address: 'Amudat, P.O Box 44 Moroto',
+                        hospital_contact: '0782187876'
+                    },
+                    {
+                        district: 'Moroto',
+                        region: 'Karamoja Region',
+                        hospital_name: 'Rainbow Empirical Medical Centre',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Paul Olong',
+                        hospital_address: 'Huzafrans House Plot 9 Jie Road Campswahili Juu',
+                        hospital_contact: ' 0750-584045 '
+                    },
+                    {
+                        district: 'Moroto',
+                        region: 'Karamoja Region',
+                        hospital_name: 'Fitzmann Medical Services',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Nuwagaba Charles',
+                        hospital_address: 'Former mariestopes offices',
+                        hospital_contact: '0774 309 908'
+                    }
+                ],
+                "West Nile Region": [
+                    {
+                        district: 'Nebbi',
+                        region: 'West Nile Region',
+                        hospital_name: 'Nebbi Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Peace Nikum',
+                        hospital_address: 'Nebbi town',
+                        hospital_contact: '0784 219998'
+                    },
+                    {
+                        district: 'Zombo',
+                        region: 'West Nile Region',
+                        hospital_name: 'Nyapea Mission Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr Omara ',
+                        hospital_address: 'Paidha /Zombo',
+                        hospital_contact: '0783-725018'
+                    },
+                    {
+                        district: 'ARUA',
+                        region: 'West Nile Region',
+                        hospital_name: 'Pioneer Medical Centre Arua',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr. Aldo Pariyo',
+                        hospital_address: 'P.O BOX 1124 KOBOKO',
+                        hospital_contact: '0392 961427'
+                    }
+                ],
+                "Northern Region": [
+                    {
+                        district: 'Gulu',
+                        region: 'Northern Region',
+                        hospital_name: 'St.Mary’s Lacor Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Mrs. Iris/Beatrice/Jackie',
+                        hospital_address: 'Gulu',
+                        hospital_contact: '0471-432-310/0772-365-480/0787-576-636/0777-326438'
+                    },
+                    {
+                        district: 'Oyam',
+                        region: 'Northern Region',
+                        hospital_name: 'St John Paul Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Sarah',
+                        hospital_address: 'Oyam town',
+                        hospital_contact: '0780 590859'
+                    },
+                    {
+                        district: 'Amolatar',
+                        region: 'Northern Region',
+                        hospital_name: 'Hope Charity Medicare',
+                        category: 'IP',
+                        hospital_contact_person: 'Aloka Bonny Obongi',
+                        hospital_address: 'Amolatar',
+                        hospital_contact: '0782 807490'
+                    },
+                    {
+                        district: 'Apac',
+                        region: 'Northern Region',
+                        hospital_name: 'Florence Nightingale Hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Sr. Margaret/Okello Dickson',
+                        hospital_address: 'Apac town, P.O BOX 20',
+                        hospital_contact: '0772-539-049/0773-875-601'
+                    },
+                    {
+                        district: 'Kitgum',
+                        region: 'Northern Region',
+                        hospital_name: 'St. Joseph’s Hospital',
+                        category: 'IP',
+                        hospital_contact_person: 'Dr.Pamela Atim/Robert',
+                        hospital_address: 'Mission Road Nyenyiki Village',
+                        hospital_contact: '0772-591493/0772-054-72'
+                    },
+                    {
+                        district: 'Agago',
+                        region: 'Northern Region',
+                        hospital_name: 'St.Ambrosoli Kalongo hospital',
+                        category: 'IP ',
+                        hospital_contact_person: 'Sr Pamela/Ojok',
+                        hospital_address: 'Mission Ward, Kalongo Town Council',
+                        hospital_contact: '0772-323072/0782840036'
+                    }
+                ],
+            };
+            const hospitalsByRegion = hospitalList[user_hospital_region];
+            console.log('hospitalsByRegion', hospitalsByRegion);
+            const hospitalsByDistrict = hospitalsByRegion.filter(hospital => hospital.district.toLowerCase() === user_hospital_district.toLowerCase());
+            console.log('hospitalsByDistrict', hospitalsByDistrict);
+            const hospitalSearchList = hospitalsByDistrict.find(hospital => hospital.hospital_name.toLowerCase().includes(hospitalName.toLowerCase()));
+            console.log('hospitalSearchList', hospitalSearchList);
+            if (!hospitalSearchList) {
+                menu.end('Sorry, we could not find a hospital with that name. Please try again.');
+            }
+            const { hospital_name, hospital_address, hospital_contact_person, hospital_contact } = hospitalSearchList;
+            userHospital.hospital_name = hospital_name;
+            userHospital.hospital_address = hospital_address;
+            userHospital.hospital_contact_person = hospital_contact_person;
+            userHospital.hospital_contact = hospital_contact;
+            yield userHospital.save();
+            const hospitalInfo = `
+          You have selected ${hospital_name}\n as your preferred facility.Below are the Hospital details
+          \nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
+            menu.con(hospitalInfo);
+        }),
+        next: {
+            "00": "insurance",
         },
     });
     menu.state("myHospitalOption", {
@@ -930,26 +1776,33 @@ function chooseHospital(menu, args, db) {
     });
     menu.state("myHospital", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                let user = yield findUserByPhoneNumber(args.phoneNumber);
-                const hospitalDetails = yield db.user_hospitals.findOne({
-                    where: {
-                        user_id: user.user_id,
-                    },
-                });
-                if (!hospitalDetails) {
-                    menu.end("Sorry, you have not selected a hospital yet.");
-                }
-                console.log("hospitalDetails", hospitalDetails);
-                const { hospital_name, hospital_address, hospital_contact_person, hospital_contact_person_phone_number } = hospitalDetails;
-                const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact_person_phone_number}`;
-                menu.end(hospitalInfo);
+            let user = yield findUserByPhoneNumber(args.phoneNumber);
+            const hospitalDetails = yield db.user_hospitals.findOne({
+                where: {
+                    user_id: user.user_id,
+                },
+            });
+            if (!hospitalDetails) {
+                menu.end(`Sorry, you have not selected a hospital yet.
+                      \nPlease select a hospital first.
+                      \n1. Select Hospital`);
             }
-            catch (error) {
-                console.error('myHospital Error:', error);
-                menu.end('An error occurred. Please try again later.');
-            }
+            console.log("hospitalDetails", hospitalDetails);
+            const { hospital_name, hospital_address, hospital_contact_person, hospital_contact } = hospitalDetails;
+            const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
+            const message = `Congratulations, you have selected ${hospital_name} as your preferred Inpatient Hospital. Below are the Hospital details:
+                        Hospital Name: ${hospital_name}
+                        Contact Number: ${hospital_contact}
+                        Location: ${hospital_address}
+                        Contact Person: ${hospital_contact_person}
+                        `;
+            yield (0, sendSMS_1.default)(args.phoneNumber, message);
+            menu.end(hospitalInfo);
         }),
+        next: {
+            "1": "chooseHospital",
+            "00": "insurance",
+        },
     });
 }
 exports.chooseHospital = chooseHospital;
