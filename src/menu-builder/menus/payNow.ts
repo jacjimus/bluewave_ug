@@ -1,7 +1,7 @@
 import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 
-export function payNow(menu: any, args: any, db: any): void {
+export function payNowPremium(menu: any, args: any, db: any): void {
   const User = db.users;
   const Policy = db.policies;
 
@@ -45,13 +45,13 @@ export function payNow(menu: any, args: any, db: any): void {
       menu.con(`${outstandingPremiumMessage}\n${enterPinMessage}`);
     },
     next: {
-      '*\\d+': 'payNowPin',
+      '*\\d+': 'payNowPremiumPin',
       '0': 'account',
       '00': 'insurance',
     },
   });
 
-  menu.state('payNowPin', {
+  menu.state('payNowPremiumPin', {
     run: async () => {
       const pin = parseInt(menu.val);
 
@@ -68,13 +68,13 @@ export function payNow(menu: any, args: any, db: any): void {
         return;
       }
 
-      const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount } = user;
+      const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount , membership_id} = user;
      
 
-      const payment = await airtelMoney(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, user.membership_id, "KE", "KES");
+      let paymentStatus = await airtelMoney(user_id, partner_id, selectedPolicy.policy_id, phone_number, selectedPolicy.premium, membership_id, "UG", "UGX");
 
-      if (payment.code === 200) {
-        const message = `Paid UGX ${policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on day ${selectedPolicy.policy_next_deduction_date} of ${selectedPolicy.policy_next_deduction_month}`;
+      if (paymentStatus.code === 200) {
+        const message = `Paid UGX ${selectedPolicy.policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on ${selectedPolicy.policy_end_date.toDateString()}`;
         menu.end(message);
       } else {
         menu.end('Payment failed. Please try again');

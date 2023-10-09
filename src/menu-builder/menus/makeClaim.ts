@@ -1,17 +1,26 @@
 import sendSMS from "../../services/sendSMS";
 import { generateClaimId } from "../../services/utils";
+import { v4 as uuidv4 } from 'uuid';
 
 export function makeClaim(menu: any, args: any, db: any): void {
 
     const User = db.users;
     const Policy = db.policies;
     const Claim = db.claims;
+    const Beneficiary = db.beneficiaries;
 
     if (args.phoneNumber.charAt(0) == "+") {
 
         args.phoneNumber = args.phoneNumber.substring(1);
     }
 
+    const findUserByPhoneNumber = async (phoneNumber: any) => {
+        return await User.findOne({
+            where: {
+                phone_number: phoneNumber,
+            },
+        });
+    }
     //==================MAKE CLAIM===================
     menu.state('makeClaim', {
         run: async () => {
@@ -26,7 +35,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
         ,
         next: {
             '1': 'inpatientClaim',
-            '2': 'inpatientClaim',
+            '2': 'deathClaim',
             '0': 'account',
             '00': 'insurance'
         }
@@ -100,161 +109,131 @@ export function makeClaim(menu: any, args: any, db: any): void {
         }
     })
 
+    menu.state('deathClaim', {
+        run : async () => {
 
-    //   menu.state('makeClaim', {
-    //     run: async () => {
-    //       const bronzeLastExpenseBenefit = "UGX 1,000,000";
-    //       const silverLastExpenseBenefit = "UGX 1,500,000";
-    //       const goldLastExpenseBenefit = "UGX 2,000,000";
-    //       let user = await User.findOne({
-    //         where: {
-    //           phone_number: args.phoneNumber
-    //         }
-    //       })
+            menu.con(`Enter phone of next of Kin `)
 
-    //       let policies = await Policy.findAll({
-    //         where: {
-    //           user_id: user?.user_id,
-    //           policy_status: 'paid'
-    //         },
-    //       });
+        },
+        next: {
+            '*\\d+': 'deathClaimPhoneNumber',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    })
 
-    //       console.log("POLICIES: ", policies);
+    menu.state('deathClaimPhoneNumber', {
+        run : async () => {
+            const nextOfKinPhoneNumber = menu.val;
+            const user = await findUserByPhoneNumber(args.phoneNumber);
+            const nextOfKin = await Beneficiary.findOne({
+                where: {
+                    user_id: user?.user_id,
+                    beneficiary_type: 'NEXTOFKIN'
+                }
+            })
+            if(nextOfKin){
+                menu.end(`Next of Kin already exists`);
+            }
+            const newKin = await Beneficiary.create({
+                beneficiary_id : uuidv4(),
+                user_id: user?.user_id,
+                phone_number: nextOfKinPhoneNumber,
+                beneficiary_type: 'NEXTOFKIN'
+            })
+            console.log("NEXT OF KIN PHONE NUMBER", nextOfKinPhoneNumber);
+            console.log("NEW KIN", newKin);
 
-    //       if (policies.length === 0) {
-    //         menu.con(
-    //           'You have no policies\n' +
-    //           '1. Buy cover\n' +
-    //           '0. Back\n' +
-    //           '00. Main Menu'
-    //         );
-    //         return;
-    //       }
+            menu.con(`Enter Name of deceased
+                      0.Back 00.Main Menu  `)
 
-    //       let policyInfo = '';
+        },
+        next: {
+            "*\\w+": 'deathClaimName',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    })
 
-    //       for (let i = 0; i < policies.length; i++) {
-    //         let policy = policies[i];
-    //         let benefit: any;
+    menu.state('deathClaimName', {
+        run : async () => {
+            const deceasedName = menu.val;
+            console.log("DECEASED NAME", deceasedName);
+            const user = await findUserByPhoneNumber(args.phoneNumber);
+            const firstName = deceasedName.split(" ")[0];
+            const middleName = deceasedName.split(" ")[1];
+            const lastName = deceasedName.split(" ")[2] ||  deceasedName.split(" ")[1];
 
-    //         if (policy.policy_type == 'MINI') {
-    //           benefit = bronzeLastExpenseBenefit;
-    //         } else if (policy.policy_type == 'MIDI') {
-    //           benefit = silverLastExpenseBenefit;
-    //         } else if (policy.policy_type == 'BIGGIE') {
-    //           benefit = goldLastExpenseBenefit;
-    //         }
+            await Beneficiary.update({ full_name: deceasedName, first_name: firstName, middle_name: middleName, last_name: lastName }, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } }); 
 
-    //         policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-    //           `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-    //           `   Remaining: UGX ${policy.sum_insured}\n` +
-    //           `   Last Expense Per Person Benefit: ${benefit}\n\n`;
-    //       }
+            menu.con(`Enter your Relationship to the deceased
+                     0.Back 00.Main Menu `)
 
-    //       // menu.end(`My Insurance Policies:\n\n${policyInfo}`);
-    //       menu.con(`Please, Choose policy to make a claim for
-    //         ${policyInfo}
+        },
+        next: {
+            "*\\w+": 'deathClaimRelationship',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    })
 
-    //         00.Main Menu`
-    //       );
-    //     },
-    //     next: {
-    //       '*\\d+': 'choosePolicyToMakeClaim',
-    //       '0': 'account',
-    //       '00': 'insurance',
-    //     }
+    menu.state('deathClaimRelationship', {
+        run : async () => {
+            const relationship = menu.val;
+            console.log("RELATIONSHIP", relationship);
+            const user = await findUserByPhoneNumber(args.phoneNumber);
 
-    //   })
-    //   menu.state('choosePolicyToMakeClaim', {
-    //     run: async () => {
-    //       const policyIndex = Number(menu.val) - 1; // Adjust the policy index
-    //       const phoneNumber = args.phoneNumber;
+            await Beneficiary.update({ relationship: relationship }, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } });
 
-    //       try {
-    //         const user = await User.findOne({
-    //           where: {
-    //             phone_number: phoneNumber,
-    //           },
-    //         });
-
-    //         if (!user) {
-    //           throw new Error('Sorry. recgiister first');
-    //         }
-
-    //         const policies = await Policy.findAll({
-    //           where: {
-    //             policy_status: 'paid',
-    //             user_id: user.user_id,
-    //           },
-    //         });
-
-    //         if (!policies || policies.length === 0) {
-    //           throw new Error('Sorry, No paid policies found, please buy a policy first or contact customer care');
-    //         }
-
-    //         const selectedPolicy = policies[policyIndex];
-
-    //         if (!selectedPolicy) {
-    //           throw new Error('Sorry, Invalid policy selection');
-    //         }
-
-    //         const {
-    //           policy_id,
-    //           premium,
-    //           policy_type,
-    //           beneficiary,
-    //           sum_insured,
-    //         } = selectedPolicy;
-
-    //         // check if claim has been made for this policy
-    //         const existingClaim = await Claim.findOne({
-    //           where: {
-    //             policy_id: policy_id,
-    //           },
-    //         });
+            menu.con(`Enter Date of death in the format DDMMYYYY e.g 01011990"
 
 
-    //         if (existingClaim) {
-    //           menu.end('Claim already made for this policy');
-    //         }
+            0.Back 00.Main Menu
+             `)
+
+        },
+        next: {
+            "*\\w+": 'deathClaimDate',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    })
 
 
+    menu.state('deathClaimDate', {
+        run : async () => {
+            let dateOfDeath = menu.val;
+            console.log("DATE OF DEATH", dateOfDeath);
+           
+           // convert ddmmyyyy to valid date
+            let day = dateOfDeath.substring(0, 2);
+            let month = dateOfDeath.substring(2, 4);
+            let year = dateOfDeath.substring(4, 8);
+            let date = new Date(year, month - 1, day);
+            console.log("date", date);
+            let thisYear = new Date().getFullYear();
 
-    //         // Example usage:
-    //         const claimId = generateClaimId();
-    //         console.log(claimId);
+            dateOfDeath = date.toISOString().split('T')[0];
 
-    //         const claim = await Claim.create({
-    //           claim_number: claimId,
-    //           policy_id: policy_id,
-    //           user_id: user?.user_id,
-    //           claim_date: new Date(),
-    //           claim_status: 'pending',
-    //           partner_id: user.partner_id,
-    //           claim_description: `Admission of Claim: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
-    //           claim_type: 'Dwalingo medical cover claim',
-    //           claim_amount: sum_insured,
 
-    //         });
+            const user = await findUserByPhoneNumber(args.phoneNumber);
+            await Beneficiary.update({ date_of_death: dateOfDeath , age: thisYear - date.getFullYear()}, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } });
 
-    //         if (claim) {
-    //           const goldAndSilverMessage = `Your medical details have been confirmed. You are covered for Inpatient benefit of UGX 10,000,000`;
-    //           const bronzeMessage = `Your medical details have been confirmed. You are covered for Inpatient cash of UGX 4,500 per night payable from the second night`;
+            menu.con(`Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107
+                     0.Back 00.Main Menu
+            `)
 
-    //           const message = policy_type.toLowerCase() === 'MINI' ? bronzeMessage : goldAndSilverMessage;
+            const sms =`Your claim have been submitted. Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107 `
 
-    //           await sendSMS(phoneNumber, message);
+            await sendSMS(args.phoneNumber, sms);
 
-    //           menu.end(`Admission Claim - CLAIM ID: ${claim.claim_number},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`);
-    //         } else {
-    //           menu.end('Claim failed. Please try again');
-    //         }
-    //       } catch (error) {
-    //         console.error('Error:', error);
-    //         menu.end('An error occurred while processing the claim');
-    //       }
-    //     },
-    //   });
+        },
+        next: {
+            '0': 'account',
+            '00': 'insurance'
+        }
+    })
+
 
 
 }

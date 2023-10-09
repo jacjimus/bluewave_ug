@@ -133,6 +133,10 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        cover_type: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
        
     }, { timestamps: true },)
 

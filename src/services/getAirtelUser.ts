@@ -85,8 +85,8 @@ async function getAirtelUser(
         partner_id: partner_id,
       });
       // WELCOME SMS
-      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Your membership ID is ${user.membership_id} and PIN is ${user.pin}. Dial *185*4*4# to access your account.`;
-      // await sendSMS(user.phone_number, message);
+      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+      await sendSMS(user.phone_number, message);
 
       console.log("USER FOR AIRTEL API", user);
       return user;

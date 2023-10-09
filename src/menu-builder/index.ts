@@ -13,7 +13,7 @@ import { buyForSelf } from "./menus/buyForSelf";
 import { displayFaqsMenu } from "./menus/faqs";
 import { buyForFamily } from "./menus/buyForFamily";
 import { myAccount } from "./menus/myAccount";
-import { payNow } from "./menus/payNow";
+import { payNowPremium } from "./menus/payNow";
 import { chooseHospital } from "./menus/chooseHospital";
 import { buyForOthers } from "./menus/buyForOthers";
 import { makeClaim } from "./menus/makeClaim";
@@ -132,7 +132,7 @@ export default function (args: RequestBody, db: any) {
       makeClaim(menu, args, db);
 
       //==================PAY NOW===================
-      payNow(menu, args, db);
+      payNowPremium(menu, args, db);
 
       //==================FAQS===================
       displayFaqsMenu(menu);

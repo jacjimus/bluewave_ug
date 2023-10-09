@@ -88,7 +88,8 @@ menu.state("chooseHospital.distict", {
     
   }
 
-menu.con(`Type your District to search e.g Kampala  0.Back 00.Main Menu`);
+menu.con(`Type your District to search e.g Kampala
+         0.Back 00.Main Menu`);
 
 
   

@@ -112,10 +112,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             })
 
 
-            menu.con(`Inpatient cover for ${phone_number}, ${first_name}, ${last_name} UGX ${sum_insured} a year 
+            menu.con(`Inpatient cover for ${phone_number},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                     PAY
-                    1. UGX ${premium} monthly
-                    2. UGX ${yearly_premium} yearly
+                    1-UGX ${premium} payable monthly
+                    2-UGX ${yearly_premium} yearly
                     
                     0. Back 00. Main Menu`);
         },
@@ -212,13 +212,15 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 if(policy_id == null){
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly',last_expense_insured: number = 0;
+               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly',last_expense_insured: number = 0, si: string , lei: string;
                if(policy_type == 'MINI'){
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 1500000;
+                    si = '1.5M'
                     premium = 120000;
-                    last_expense_insured = 500000;
+                    last_expense_insured = 1000000;
+                    lei = '1M'
                     if(paymentOption == 1){
                         period = 'monthly'
                         premium = 10000;
@@ -229,8 +231,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 3000000;
+                    si = '3M'
                     premium = 167000;
-                    last_expense_insured = 1000000;
+                    last_expense_insured = 1500000;
+                    lei = '1.5M'
                    
                     if(paymentOption == 1){
                         period = 'monthly'
@@ -243,8 +247,10 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 5000000;
+                    si = '5M'
                     premium = 208000;
                     last_expense_insured = 2000000;
+                    lei = '2M'
                     if(paymentOption == 1){
                         period = 'monthly'
                         premium = 18000;
@@ -254,6 +260,9 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     
                 }
 
+                const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+
+
                 await Policy.update({ 
                      policy_deduction_amount: premium,
                      policy_pending_premium: premium,
@@ -262,6 +271,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                      installment_type: installment_type,
                      installment_order: 1,
                         last_expense_insured: last_expense_insured,
+                        policy_end_date: policy_end_date,
+                        policy_start_date: new Date(),
                     }, { where: { user_id: user_id } });
 
     
@@ -270,8 +281,11 @@ export function buyForSelf(menu: any, args: any, db: any): void {
   
                    console.log("PAYMENT STATUS", paymentStatus)
                     if (paymentStatus.code === 200) {
-                        menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${premium} will be payable every ${period}`);
+                    menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                           Cover valid till ${policy_end_date.toDateString()}`)
+
+
+                    
                     } else {
                         menu.end(`Sorry, your payment was not successful. 
                         \n0. Back \n00. Main Menu`);

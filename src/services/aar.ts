@@ -118,9 +118,9 @@ async function registerPrincipal(user: any, policy: any, beneficiary: any, airte
   // console.log("BENEFICIARY", beneficiary);
   // console.log("AIRTEL MONEY ID", airtel_money_id);
   const userData: PrincipalRegistration = {
-    surname: user.last_name + "test9",
-    first_name: user.first_name + "test9",
-    other_names: user.middle_name + "test9",
+    surname: user.last_name,
+    first_name: user.first_name,
+    other_names: user.middle_name || "",
     gender: user.gender == 'M' ? "1" : "2",
     dob: user.dob,
     pri_dep: "24",

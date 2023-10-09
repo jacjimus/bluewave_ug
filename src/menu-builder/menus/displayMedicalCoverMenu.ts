@@ -5,10 +5,8 @@ export function displayMedicalCoverMenu(menu: any, args: any, db: any): void {
     
 
       menu.con('Insurance ' +
-        '\n1. Ddwaliro Care' +
-        '\n2. Auto Insurance' +
-        '\n0. Back' +
-        '\n00. Main Menu'
+        '\n1. Ddwaliro Care' 
+        // '\n2. Auto Insurance' +
       );
     },
     next: {
