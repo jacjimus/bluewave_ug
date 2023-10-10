@@ -27,6 +27,8 @@ export function displayFaqsMenu(menu: any): void {
       "7": "whenToMakeClaim",
       "8": "claimPayment",
       "9": "renewal",
+      "0": "account",
+      "00": "insurance",
       "99": "insuredName",
     },
   });
@@ -42,6 +44,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -55,6 +58,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -69,6 +73,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -84,6 +89,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -97,6 +103,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -111,6 +118,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
  
@@ -126,6 +134,7 @@ menu.state("waitingPeriod", {
   },
   next: {
     "0": "faqs",
+    "00": "insurance"
   },
 });
 
@@ -141,6 +150,7 @@ menu.state("waitingPeriod", {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -155,6 +165,7 @@ menu.state("waitingPeriod", {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 
@@ -168,6 +179,7 @@ menu.state("waitingPeriod", {
     },
     next: {
       "0": "faqs",
+      "00": "insurance"
     },
   });
 }

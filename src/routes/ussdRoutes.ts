@@ -28,7 +28,9 @@ const handleUSSDRequest = async (req: any, res: any, menuBuilder: any) => {
 
 router.post("/uga", async (req: any, res: any) => {
 
- 
+  await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
+});
+router.post("/uat/uga", async (req: any, res: any) => {
 
   await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
 });

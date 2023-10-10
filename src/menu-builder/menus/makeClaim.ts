@@ -132,9 +132,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
                     beneficiary_type: 'NEXTOFKIN'
                 }
             })
-            if(nextOfKin){
-                menu.end(`Next of Kin already exists`);
-            }
+           
             const newKin = await Beneficiary.create({
                 beneficiary_id : uuidv4(),
                 user_id: user?.user_id,
