@@ -121,7 +121,7 @@ function default_1(args, db) {
             //================== MAKE CLAIM ===================
             (0, makeClaim_1.makeClaim)(menu, args, db);
             //==================PAY NOW===================
-            (0, payNow_1.payNow)(menu, args, db);
+            (0, payNow_1.payNowPremium)(menu, args, db);
             //==================FAQS===================
             (0, faqs_1.displayFaqsMenu)(menu);
             //===================TERMS AND CONDITIONS===================

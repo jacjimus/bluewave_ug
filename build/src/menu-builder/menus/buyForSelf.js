@@ -101,10 +101,10 @@ function buyForSelf(menu, args, db) {
                 currency_code: "UGX",
                 product_id: 'd18424d6-5316-4e12-9826-302b866a380c',
             });
-            menu.con(`Inpatient cover for ${phone_number}, ${first_name}, ${last_name} UGX ${sum_insured} a year 
+            menu.con(`Inpatient cover for ${phone_number},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                     PAY
-                    1. UGX ${premium} monthly
-                    2. UGX ${yearly_premium} yearly
+                    1-UGX ${premium} payable monthly
+                    2-UGX ${yearly_premium} yearly
                     
                     0. Back 00. Main Menu`);
         }),
@@ -184,13 +184,15 @@ function buyForSelf(menu, args, db) {
                 if (policy_id == null) {
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0;
+                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0, si, lei;
                 if (policy_type == 'MINI') {
                     period = 'yearly';
                     installment_type = 1;
                     sum_insured = 1500000;
+                    si = '1.5M';
                     premium = 120000;
-                    last_expense_insured = 500000;
+                    last_expense_insured = 1000000;
+                    lei = '1M';
                     if (paymentOption == 1) {
                         period = 'monthly';
                         premium = 10000;
@@ -201,8 +203,10 @@ function buyForSelf(menu, args, db) {
                     period = 'yearly';
                     installment_type = 1;
                     sum_insured = 3000000;
+                    si = '3M';
                     premium = 167000;
-                    last_expense_insured = 1000000;
+                    last_expense_insured = 1500000;
+                    lei = '1.5M';
                     if (paymentOption == 1) {
                         period = 'monthly';
                         premium = 14000;
@@ -213,14 +217,17 @@ function buyForSelf(menu, args, db) {
                     period = 'yearly';
                     installment_type = 1;
                     sum_insured = 5000000;
+                    si = '5M';
                     premium = 208000;
                     last_expense_insured = 2000000;
+                    lei = '2M';
                     if (paymentOption == 1) {
                         period = 'monthly';
                         premium = 18000;
                         installment_type = 2;
                     }
                 }
+                const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
                 yield Policy.update({
                     policy_deduction_amount: premium,
                     policy_pending_premium: premium,
@@ -229,12 +236,14 @@ function buyForSelf(menu, args, db) {
                     installment_type: installment_type,
                     installment_order: 1,
                     last_expense_insured: last_expense_insured,
+                    policy_end_date: policy_end_date,
+                    policy_start_date: new Date(),
                 }, { where: { user_id: user_id } });
                 let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
                 console.log("PAYMENT STATUS", paymentStatus);
                 if (paymentStatus.code === 200) {
-                    menu.end(`Congratulations! You are now covered. 
-                        To stay covered, UGX ${premium} will be payable every ${period}`);
+                    menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                           Cover valid till ${policy_end_date.toDateString()}`);
                 }
                 else {
                     menu.end(`Sorry, your payment was not successful. 

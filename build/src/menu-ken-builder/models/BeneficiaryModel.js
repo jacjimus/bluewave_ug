@@ -26,12 +26,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const beneficiarySchema = new mongoose_1.Schema({
     full_name: { type: String },
+    first_name: { type: String },
+    middle_name: { type: String },
+    last_name: { type: String },
+    status: { type: String },
     relationship: { type: String },
     national_id: { type: Number },
     user_id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     age: { type: Number },
     dob: { type: Date },
     birth_cert: { type: String },
+    date_of_death: { type: Date },
+    beneficiary_type: { type: String },
+    phone_number: { type: String },
 }, { timestamps: true });
 const BeneficiaryModel = mongoose_1.default.model('Beneficiary', beneficiarySchema);
 exports.default = BeneficiaryModel;

@@ -130,6 +130,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        cover_type: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, { timestamps: true });
     return User;
 };

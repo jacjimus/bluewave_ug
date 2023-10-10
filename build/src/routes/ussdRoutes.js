@@ -39,6 +39,9 @@ const handleUSSDRequest = (req, res, menuBuilder) => __awaiter(void 0, void 0, v
 router.post("/uga", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield handleUSSDRequest(req, res, menu_builder_1.default);
 }));
+router.post("/uat/uga", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield handleUSSDRequest(req, res, menu_builder_1.default);
+}));
 router.post("/ken", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield handleUSSDRequest(req, res, menu_ken_builder_1.default);
 }));

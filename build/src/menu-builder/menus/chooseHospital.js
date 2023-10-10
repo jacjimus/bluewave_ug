@@ -85,7 +85,8 @@ function chooseHospital(menu, args, db) {
                     hospital_region: regions[region - 1],
                 });
             }
-            menu.con(`Type your District to search e.g Kampala  0.Back 00.Main Menu`);
+            menu.con(`Type your District to search e.g Kampala
+         0.Back 00.Main Menu`);
         }),
         next: {
             "*\\w+": "chooseHospital.search",

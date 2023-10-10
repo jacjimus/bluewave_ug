@@ -9,9 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.payNow = void 0;
+exports.payNowPremium = void 0;
 const payment_1 = require("../../services/payment");
-function payNow(menu, args, db) {
+function payNowPremium(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
@@ -46,12 +46,12 @@ function payNow(menu, args, db) {
             menu.con(`${outstandingPremiumMessage}\n${enterPinMessage}`);
         }),
         next: {
-            '*\\d+': 'payNowPin',
+            '*\\d+': 'payNowPremiumPin',
             '0': 'account',
             '00': 'insurance',
         },
     });
-    menu.state('payNowPin', {
+    menu.state('payNowPremiumPin', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const pin = parseInt(menu.val);
             if (isNaN(pin)) {
@@ -64,10 +64,10 @@ function payNow(menu, args, db) {
                 menu.end('You have no pending policies');
                 return;
             }
-            const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount } = user;
-            const payment = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, policy_deduction_amount, user.membership_id, "KE", "KES");
-            if (payment.code === 200) {
-                const message = `Paid UGX ${policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on day ${selectedPolicy.policy_next_deduction_date} of ${selectedPolicy.policy_next_deduction_month}`;
+            const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount, membership_id } = user;
+            let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, selectedPolicy.policy_id, phone_number, selectedPolicy.premium, membership_id, "UG", "UGX");
+            if (paymentStatus.code === 200) {
+                const message = `Paid UGX ${selectedPolicy.policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on ${selectedPolicy.policy_end_date.toDateString()}`;
                 menu.end(message);
             }
             else {
@@ -186,4 +186,4 @@ function payNow(menu, args, db) {
         }),
     });
 }
-exports.payNow = payNow;
+exports.payNowPremium = payNowPremium;

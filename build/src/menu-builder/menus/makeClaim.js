@@ -8,16 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.makeClaim = void 0;
+const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const utils_1 = require("../../services/utils");
+const uuid_1 = require("uuid");
 function makeClaim(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
     const Claim = db.claims;
+    const Beneficiary = db.beneficiaries;
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
+    const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
+        return yield User.findOne({
+            where: {
+                phone_number: phoneNumber,
+            },
+        });
+    });
     //==================MAKE CLAIM===================
     menu.state('makeClaim', {
         run: () => __awaiter(this, void 0, void 0, function* () {
@@ -29,7 +42,7 @@ function makeClaim(menu, args, db) {
         }),
         next: {
             '1': 'inpatientClaim',
-            '2': 'inpatientClaim',
+            '2': 'deathClaim',
             '0': 'account',
             '00': 'insurance'
         }
@@ -91,130 +104,103 @@ function makeClaim(menu, args, db) {
             '00': 'insurance'
         }
     });
-    //   menu.state('makeClaim', {
-    //     run: async () => {
-    //       const bronzeLastExpenseBenefit = "UGX 1,000,000";
-    //       const silverLastExpenseBenefit = "UGX 1,500,000";
-    //       const goldLastExpenseBenefit = "UGX 2,000,000";
-    //       let user = await User.findOne({
-    //         where: {
-    //           phone_number: args.phoneNumber
-    //         }
-    //       })
-    //       let policies = await Policy.findAll({
-    //         where: {
-    //           user_id: user?.user_id,
-    //           policy_status: 'paid'
-    //         },
-    //       });
-    //       console.log("POLICIES: ", policies);
-    //       if (policies.length === 0) {
-    //         menu.con(
-    //           'You have no policies\n' +
-    //           '1. Buy cover\n' +
-    //           '0. Back\n' +
-    //           '00. Main Menu'
-    //         );
-    //         return;
-    //       }
-    //       let policyInfo = '';
-    //       for (let i = 0; i < policies.length; i++) {
-    //         let policy = policies[i];
-    //         let benefit: any;
-    //         if (policy.policy_type == 'MINI') {
-    //           benefit = bronzeLastExpenseBenefit;
-    //         } else if (policy.policy_type == 'MIDI') {
-    //           benefit = silverLastExpenseBenefit;
-    //         } else if (policy.policy_type == 'BIGGIE') {
-    //           benefit = goldLastExpenseBenefit;
-    //         }
-    //         policyInfo += `${i + 1}. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-    //           `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-    //           `   Remaining: UGX ${policy.sum_insured}\n` +
-    //           `   Last Expense Per Person Benefit: ${benefit}\n\n`;
-    //       }
-    //       // menu.end(`My Insurance Policies:\n\n${policyInfo}`);
-    //       menu.con(`Please, Choose policy to make a claim for
-    //         ${policyInfo}
-    //         00.Main Menu`
-    //       );
-    //     },
-    //     next: {
-    //       '*\\d+': 'choosePolicyToMakeClaim',
-    //       '0': 'account',
-    //       '00': 'insurance',
-    //     }
-    //   })
-    //   menu.state('choosePolicyToMakeClaim', {
-    //     run: async () => {
-    //       const policyIndex = Number(menu.val) - 1; // Adjust the policy index
-    //       const phoneNumber = args.phoneNumber;
-    //       try {
-    //         const user = await User.findOne({
-    //           where: {
-    //             phone_number: phoneNumber,
-    //           },
-    //         });
-    //         if (!user) {
-    //           throw new Error('Sorry. recgiister first');
-    //         }
-    //         const policies = await Policy.findAll({
-    //           where: {
-    //             policy_status: 'paid',
-    //             user_id: user.user_id,
-    //           },
-    //         });
-    //         if (!policies || policies.length === 0) {
-    //           throw new Error('Sorry, No paid policies found, please buy a policy first or contact customer care');
-    //         }
-    //         const selectedPolicy = policies[policyIndex];
-    //         if (!selectedPolicy) {
-    //           throw new Error('Sorry, Invalid policy selection');
-    //         }
-    //         const {
-    //           policy_id,
-    //           premium,
-    //           policy_type,
-    //           beneficiary,
-    //           sum_insured,
-    //         } = selectedPolicy;
-    //         // check if claim has been made for this policy
-    //         const existingClaim = await Claim.findOne({
-    //           where: {
-    //             policy_id: policy_id,
-    //           },
-    //         });
-    //         if (existingClaim) {
-    //           menu.end('Claim already made for this policy');
-    //         }
-    //         // Example usage:
-    //         const claimId = generateClaimId();
-    //         console.log(claimId);
-    //         const claim = await Claim.create({
-    //           claim_number: claimId,
-    //           policy_id: policy_id,
-    //           user_id: user?.user_id,
-    //           claim_date: new Date(),
-    //           claim_status: 'pending',
-    //           partner_id: user.partner_id,
-    //           claim_description: `Admission of Claim: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
-    //           claim_type: 'Dwalingo medical cover claim',
-    //           claim_amount: sum_insured,
-    //         });
-    //         if (claim) {
-    //           const goldAndSilverMessage = `Your medical details have been confirmed. You are covered for Inpatient benefit of UGX 10,000,000`;
-    //           const bronzeMessage = `Your medical details have been confirmed. You are covered for Inpatient cash of UGX 4,500 per night payable from the second night`;
-    //           const message = policy_type.toLowerCase() === 'MINI' ? bronzeMessage : goldAndSilverMessage;
-    //           await sendSMS(phoneNumber, message);
-    //           menu.end(`Admission Claim - CLAIM ID: ${claim.claim_number},  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} - Premium: UGX ${premium}, SUM INSURED: UGX ${sum_insured} \nProceed to the reception to verify your details\n0. Back\n00. Main Menu"`);
-    //         } else {
-    //           menu.end('Claim failed. Please try again');
-    //         }
-    //       } catch (error) {
-    //         console.error('Error:', error);
-    //         menu.end('An error occurred while processing the claim');
-    //       }
-    //     },
-    //   });
+    menu.state('deathClaim', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            menu.con(`Enter phone of next of Kin `);
+        }),
+        next: {
+            '*\\d+': 'deathClaimPhoneNumber',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    });
+    menu.state('deathClaimPhoneNumber', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const nextOfKinPhoneNumber = menu.val;
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const nextOfKin = yield Beneficiary.findOne({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    beneficiary_type: 'NEXTOFKIN'
+                }
+            });
+            const newKin = yield Beneficiary.create({
+                beneficiary_id: (0, uuid_1.v4)(),
+                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                phone_number: nextOfKinPhoneNumber,
+                beneficiary_type: 'NEXTOFKIN'
+            });
+            console.log("NEXT OF KIN PHONE NUMBER", nextOfKinPhoneNumber);
+            console.log("NEW KIN", newKin);
+            menu.con(`Enter Name of deceased
+                      0.Back 00.Main Menu  `);
+        }),
+        next: {
+            "*\\w+": 'deathClaimName',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    });
+    menu.state('deathClaimName', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const deceasedName = menu.val;
+            console.log("DECEASED NAME", deceasedName);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            const firstName = deceasedName.split(" ")[0];
+            const middleName = deceasedName.split(" ")[1];
+            const lastName = deceasedName.split(" ")[2] || deceasedName.split(" ")[1];
+            yield Beneficiary.update({ full_name: deceasedName, first_name: firstName, middle_name: middleName, last_name: lastName }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: 'NEXTOFKIN' } });
+            menu.con(`Enter your Relationship to the deceased
+                     0.Back 00.Main Menu `);
+        }),
+        next: {
+            "*\\w+": 'deathClaimRelationship',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    });
+    menu.state('deathClaimRelationship', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const relationship = menu.val;
+            console.log("RELATIONSHIP", relationship);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            yield Beneficiary.update({ relationship: relationship }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: 'NEXTOFKIN' } });
+            menu.con(`Enter Date of death in the format DDMMYYYY e.g 01011990"
+
+
+            0.Back 00.Main Menu
+             `);
+        }),
+        next: {
+            "*\\w+": 'deathClaimDate',
+            '0': 'account',
+            '00': 'insurance'
+        }
+    });
+    menu.state('deathClaimDate', {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            let dateOfDeath = menu.val;
+            console.log("DATE OF DEATH", dateOfDeath);
+            // convert ddmmyyyy to valid date
+            let day = dateOfDeath.substring(0, 2);
+            let month = dateOfDeath.substring(2, 4);
+            let year = dateOfDeath.substring(4, 8);
+            let date = new Date(year, month - 1, day);
+            console.log("date", date);
+            let thisYear = new Date().getFullYear();
+            dateOfDeath = date.toISOString().split('T')[0];
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            yield Beneficiary.update({ date_of_death: dateOfDeath, age: thisYear - date.getFullYear() }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: 'NEXTOFKIN' } });
+            menu.con(`Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107
+                     0.Back 00.Main Menu
+            `);
+            const sms = `Your claim have been submitted. Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107 `;
+            yield (0, sendSMS_1.default)(args.phoneNumber, sms);
+        }),
+        next: {
+            '0': 'account',
+            '00': 'insurance'
+        }
+    });
 }
 exports.makeClaim = makeClaim;

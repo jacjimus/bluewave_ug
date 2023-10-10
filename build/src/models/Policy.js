@@ -129,6 +129,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        bought_for: {
+            type: DataTypes.UUID,
+            allowNull: true
+        },
     }, { timestamps: true });
     Policy.belongsTo(User, {
         as: "user",

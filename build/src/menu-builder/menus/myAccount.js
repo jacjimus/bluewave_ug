@@ -22,8 +22,8 @@ function myAccount(menu, args, db) {
     menu.state("myAccount", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.con("My Account " +
-                "\n1. Pay Now" +
-                "\n2. My insurance policy" +
+                "\n1. Policy Status" +
+                "\n2. Pay Now" +
                 "\n3. Renew Policy" +
                 "\n4. Update My Profile(KYC)" +
                 "\n5. Cancel policy" +
@@ -33,8 +33,8 @@ function myAccount(menu, args, db) {
                 "\n00.Main Menu");
         }),
         next: {
-            "1": "payNow",
-            "2": "myInsurancePolicy",
+            "1": "myInsurancePolicy",
+            "2": "payNow",
             "3": "renewPolicy",
             "4": "updateProfile",
             "5": "cancelPolicy",
@@ -517,10 +517,15 @@ function myAccount(menu, args, db) {
             }
             let policies = yield Policy.findAll({
                 where: {
-                    policy_status: "paid",
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
                 },
             });
+            let otherPolicies = yield Policy.findAll({
+                where: {
+                    bought_for: user === null || user === void 0 ? void 0 : user.user_id,
+                },
+            });
+            policies = policies.concat(otherPolicies);
             console.log("POLICIES: ", policies);
             if (policies.length === 0) {
                 menu.con("You have no policies\n" +
@@ -542,10 +547,8 @@ function myAccount(menu, args, db) {
                     return `${dd}/${mm}/${yyyy}`;
                 };
                 policy.policy_end_date = formatDate(policy.policy_end_date);
-                policyInfo +=
-                    `${i + 1}. ${policy.policy_type.toUpperCase()} ACTIVE to ${policy.policy_end_date}\n` +
-                        `   Inpatient limit: UGX ${policy.sum_insured} 
-              Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n`;
+                policyInfo += ` Dwaliro Biggie Inpatient UGX ${policy.sum_insured} and Funeral benefit UGX ${policy.last_expense_insured} is active and paid to ${policy.policy_end_date}. Dial *187*7# to renew.
+        0.Back 00.Main Menu 01 Next`;
             }
             menu.end(`My Insurance Policies:\n\n${policyInfo}`);
         }),

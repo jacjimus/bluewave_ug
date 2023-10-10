@@ -51,6 +51,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        beneficiary_type: { type: String },
+        date_of_death: { type: Date },
     });
     Beneficiary.belongsTo(sequelize.models.user, {
         foreignKey: "user_id",
