@@ -46,14 +46,6 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
     menu.state('buyForFamily', {
         run: async () => {
-            const user = await findUserByPhoneNumber(args.phoneNumber);
-            const policy = await findPaidPolicyByUser(user);
-
-            // if (policy) {
-            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
-            //     return;
-            // }
-
 
             menu.con('Buy for family ' +
                 '\n1. Self + Spouse or Child' +
@@ -79,14 +71,6 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
     menu.state('buyForFamily.next', {
         run: async () => {
-            const user = await findUserByPhoneNumber(args.phoneNumber);
-            const policy = await findPaidPolicyByUser(user);
-
-            // if (policy) {
-            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
-            //     return;
-            // }
-
 
             menu.con('Buy for family ' +
                 '\n4. Self + Spouse + 3 Child' +
@@ -201,8 +185,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     menu.state('buyForFamily.selfSpouseCoverType', {
         run: async () => {
             let coverType = menu.val;
-            console.log("COVER TYPE", coverType)
-            let { user_id, partner_id, total_member_number } = await findUserByPhoneNumber(args.phoneNumber);
+            console.log("FAMILY COVER TYPE", coverType)
+            let { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
             let date = new Date();
             let day = date.getDate() - 1;
 
@@ -301,7 +285,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
             const { user_id, partner_id, cover_type, phone_number, first_name, last_name, total_member_number } = await findUserByPhoneNumber(args.phoneNumber);
             console.log(" ========= USER total_member_number========", total_member_number)
             await Beneficiary.update({ phone_number: spousePhone }, { where: { user_id: user_id, relationship: 'SPOUSE' } });
-            console.log(" ==========  POLICY TYPE ==========", cover_type)
+            console.log(" ==========  COVER TYPE ==========", cover_type)
 
 
             const { policy_type, beneficiary, bought_for } = await findPolicyByUser(user_id);
@@ -1391,7 +1375,9 @@ export function buyForFamily(menu: any, args: any, db: any): void {
                     menu.end('Invalid option');
                 }
 
-                const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+                let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+                // minus 1 day
+                policy_end_date.setDate(policy_end_date.getDate() - 1);
 
                 await Policy.update({
                     policy_type: policy_type,

@@ -176,6 +176,9 @@ export function myAccount(menu: any, args: any, db: any) {
           },
         }
       );
+      // send sms
+      const message = `Dear ${title} ${user.first_name}, your profile has been updated successfully`;
+      await sendSMS(args.phoneNumber, message);
 
       menu.con(`Your profile has been updated successfully
             0. Back
@@ -536,9 +539,9 @@ export function myAccount(menu: any, args: any, db: any) {
           // 1. Cancel Policy
           menu.con(
             `Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-            `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-            `   Remaining: UGX ${policy.sum_insured}\n` +
-            `   Last Expense Per Person Benefit: ${policy.benefit}\n\n` +
+            // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+            // `   Remaining: UGX ${policy.sum_insured}\n` +
+            // `   Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n` +
             "\n1. Cancel Policy"
           );
 
@@ -747,12 +750,34 @@ export function myAccount(menu: any, args: any, db: any) {
       const policy = await Policy.findOne({
         where: {
           user_id: user?.user_id,
+          installment: "2",
         },
       });
+      console.log("POLICY: ", policy);
 
-      //list
+      if (!policy) {
+        menu.con("You have no policy to renew\n1. Buy cover\n0. Back\n00. Main Menu");
+        return;
+      }
 
-    }
+      menu.con(
+        `Your ${policy.policy_type.toUpperCase()} cover expires on ${policy.policy_end_date.toDateString()}.\n` +
+        `   Pending amount : UGX ${policy.policy_pending_premium}\n` +
+
+        "\n1. Renew Policy"
+      );
+
+    },
+    next: {
+      "1": "renewPolicyPin",
+      "0": "myAccount",
+      "00": "account",
+    },
+
+
+
+    
+
   }
   )
 

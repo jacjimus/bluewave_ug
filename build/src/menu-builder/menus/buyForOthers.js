@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForOthers = void 0;
+const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const uuid_1 = require("uuid");
 const bcrypt = require("bcrypt");
 function buyForOthers(menu, args, db) {
@@ -254,7 +258,7 @@ function buyForOthers(menu, args, db) {
                 otherPhone = otherPhone.substring(3);
             }
             if (otherPhone.length != 9) {
-                menu.end('Invalid Phone Number');
+                menu.con('Invalid Phone Number, please try again');
                 return;
             }
             console.log("OTHER PHONE NUMBER", otherPhone);
@@ -279,6 +283,8 @@ function buyForOthers(menu, args, db) {
                 partner_id: user.partner_id,
             });
             console.log("NEW USER", newUser);
+            const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id} and Ddwaliro PIN: ${newUser.pin}. Dial *187*7*6# to access your account.`;
+            yield (0, sendSMS_1.default)(otherPhone, message);
             let otherPolicy = yield Policy.findOne({ where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary: 'OTHERS' } });
             console.log("OTHER POLICY", otherPolicy);
             otherPolicy.bought_for = newUser.user_id;

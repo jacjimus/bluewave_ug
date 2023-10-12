@@ -188,6 +188,8 @@ router.all("/callback", async (req, res) => {
 
         }
         updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
+
+        // AAR renewal
        
         console.log("=== PAYMENT ===",payment)
         console.log("=== TRANSACTION === ",transactionData)

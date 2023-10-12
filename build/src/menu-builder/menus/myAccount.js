@@ -164,6 +164,9 @@ function myAccount(menu, args, db) {
                     phone_number: args.phoneNumber,
                 },
             });
+            // send sms
+            const message = `Dear ${title} ${user.first_name}, your profile has been updated successfully`;
+            yield (0, sendSMS_1.default)(args.phoneNumber, message);
             menu.con(`Your profile has been updated successfully
             0. Back
             00. Main Menu
@@ -446,9 +449,9 @@ function myAccount(menu, args, db) {
                 if (policy) {
                     // 1. Cancel Policy
                     menu.con(`Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
-                        `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-                        `   Remaining: UGX ${policy.sum_insured}\n` +
-                        `   Last Expense Per Person Benefit: ${policy.benefit}\n\n` +
+                        // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+                        // `   Remaining: UGX ${policy.sum_insured}\n` +
+                        // `   Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n` +
                         "\n1. Cancel Policy");
                 }
                 else {
@@ -612,10 +615,23 @@ function myAccount(menu, args, db) {
             const policy = yield Policy.findOne({
                 where: {
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    installment: "2",
                 },
             });
-            //list
-        })
+            console.log("POLICY: ", policy);
+            if (!policy) {
+                menu.con("You have no policy to renew\n1. Buy cover\n0. Back\n00. Main Menu");
+                return;
+            }
+            menu.con(`Your ${policy.policy_type.toUpperCase()} cover expires on ${policy.policy_end_date.toDateString()}.\n` +
+                `   Pending amount : UGX ${policy.policy_pending_premium}\n` +
+                "\n1. Renew Policy");
+        }),
+        next: {
+            "1": "renewPolicyPin",
+            "0": "myAccount",
+            "00": "account",
+        },
     });
 }
 exports.myAccount = myAccount;

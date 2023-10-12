@@ -163,6 +163,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     });
                 }
                 updatedPolicy = yield updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
+                // AAR renewal
                 console.log("=== PAYMENT ===", payment);
                 console.log("=== TRANSACTION === ", transactionData);
                 console.log("=== UPDATED POLICY ===", updatedPolicy);

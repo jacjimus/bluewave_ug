@@ -7,7 +7,7 @@ import crypto from "crypto";
 // import { startMenu } from "./menus/startMenu";
 import { displayMedicalCoverMenu } from "./menus/startMenu";
 import { termsAndConditions } from "./menus/termsAndConditions";
-import { displayAccount } from "./menus/displayAccount";
+//import { displayAccount } from "./menus/displayAccount";
 import { buyForSelf } from "./menus/buyForSelf";
 import { displayFaqsMenu } from "./menus/faqs";
 import { buyForFamily } from "./menus/buyForFamily";
@@ -45,8 +45,8 @@ export default function (args: RequestBody, db: any) {
       }
 
 
-      const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-      console.log("USER KYC", userKyc)
+     // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+      //console.log("USER KYC", userKyc)
 
       async function getUser(phoneNumber: any) {
         return await User.findOne({
@@ -110,11 +110,66 @@ export default function (args: RequestBody, db: any) {
       }
 
       // ===============SET MENU STATES============
-      //startMenu(menu);
-      // displayInsuranceMenu(menu);
-      displayMedicalCoverMenu(menu, args, db);
+      menu.startState({
+        run: async () => {
+          console.log(" ===========================")
+          console.log(" ******** START MENU *******")
+          console.log(" ===========================")
+      
+          menu.con('Insurance ' +
+            '\n1. Ddwaliro Care' 
+          );
+        },
+        next: {
+          '1': 'account', 
+        },
+      });
 
-      displayAccount(menu, args, db);
+      //displayAccount(menu, args, db);
+      menu.state('account', {
+        run: async () => {
+          const user = await db.users.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+              gender: {
+                [db.Sequelize.Op.ne]: null,
+              },
+            },
+          });
+    
+          console.log(" ============== USER - ACCOUNT ================ ", user);
+          if (user) {
+            menu.con('Medical cover ' +
+              '\n1. Buy for self' +
+              '\n2. Buy (family)' +
+              '\n3. Buy (others)' +
+              '\n4. Make Claim' +
+              '\n5. My Policy' +
+              '\n6. View Hospital' +
+              '\n7. Terms & Conditions' +
+              '\n8. FAQs'
+              // '\n00.Main Menu'
+            )
+    
+          } else {
+            menu.con('Medical cover ' +
+              '\n0. Update profile(KYC)')
+    
+          }
+        },
+        next: {
+          '1': 'buyForSelf',
+          '2': 'buyForFamily',
+          '3': 'buyForOthers',
+          '4': 'makeClaim',
+          '5': 'myAccount',
+          '6': 'chooseHospital',
+          '7': 'termsAndConditions',
+          '8': 'faqs',
+          '0': 'updateProfile',
+          // '00': 'account',
+        }
+      });
       //=================BUY FOR SELF=================
       buyForSelf(menu, args, db);
 

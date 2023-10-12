@@ -51,12 +51,6 @@ function buyForFamily(menu, args, db) {
     //============  BUY FOR FAMILY ===================
     menu.state('buyForFamily', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const user = yield findUserByPhoneNumber(args.phoneNumber);
-            const policy = yield findPaidPolicyByUser(user);
-            // if (policy) {
-            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
-            //     return;
-            // }
             menu.con('Buy for family ' +
                 '\n1. Self + Spouse or Child' +
                 '\n2. Self + Spouse + 1 Child' +
@@ -76,12 +70,6 @@ function buyForFamily(menu, args, db) {
     });
     menu.state('buyForFamily.next', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const user = yield findUserByPhoneNumber(args.phoneNumber);
-            const policy = yield findPaidPolicyByUser(user);
-            // if (policy) {
-            //     menu.end(`You already have an ${policy.policy_type.toUpperCase()} ACTIVE policy`);
-            //     return;
-            // }
             menu.con('Buy for family ' +
                 '\n4. Self + Spouse + 3 Child' +
                 '\n5. Self + Spouse + 4 Child' +
@@ -190,8 +178,8 @@ function buyForFamily(menu, args, db) {
     menu.state('buyForFamily.selfSpouseCoverType', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let coverType = menu.val;
-            console.log("COVER TYPE", coverType);
-            let { user_id, partner_id, total_member_number } = yield findUserByPhoneNumber(args.phoneNumber);
+            console.log("FAMILY COVER TYPE", coverType);
+            let { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
             let date = new Date();
             let day = date.getDate() - 1;
             if (coverType == 1) {
@@ -271,7 +259,7 @@ function buyForFamily(menu, args, db) {
             const { user_id, partner_id, cover_type, phone_number, first_name, last_name, total_member_number } = yield findUserByPhoneNumber(args.phoneNumber);
             console.log(" ========= USER total_member_number========", total_member_number);
             yield Beneficiary.update({ phone_number: spousePhone }, { where: { user_id: user_id, relationship: 'SPOUSE' } });
-            console.log(" ==========  POLICY TYPE ==========", cover_type);
+            console.log(" ==========  COVER TYPE ==========", cover_type);
             const { policy_type, beneficiary, bought_for } = yield findPolicyByUser(user_id);
             console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for);
             if (bought_for !== null) {
@@ -1243,7 +1231,9 @@ function buyForFamily(menu, args, db) {
                 else {
                     menu.end('Invalid option');
                 }
-                const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+                let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+                // minus 1 day
+                policy_end_date.setDate(policy_end_date.getDate() - 1);
                 yield Policy.update({
                     policy_type: policy_type,
                     policy_deduction_amount: premium,

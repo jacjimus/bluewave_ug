@@ -193,11 +193,11 @@ db.hospitals = require('./Hospital')(sequelize, DataTypes)
 
 
 //syncing the model
-sequelize.sync().then(() => {
-  console.log(`Database & tables created! time: ${new Date()}`)
-}).catch((err) => {
-  console.log(err)
-})
+// sequelize.sync().then(() => {
+//   console.log(`Database & tables created! time: ${new Date()}`)
+// }).catch((err) => {
+//   console.log(err)
+// })
 
 
 //exporting the module

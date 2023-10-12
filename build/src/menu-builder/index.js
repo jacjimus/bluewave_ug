@@ -16,10 +16,8 @@ const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
-// import { startMenu } from "./menus/startMenu";
-const startMenu_1 = require("./menus/startMenu");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
-const displayAccount_1 = require("./menus/displayAccount");
+//import { displayAccount } from "./menus/displayAccount";
 const buyForSelf_1 = require("./menus/buyForSelf");
 const faqs_1 = require("./menus/faqs");
 const buyForFamily_1 = require("./menus/buyForFamily");
@@ -28,7 +26,6 @@ const payNow_1 = require("./menus/payNow");
 const chooseHospital_1 = require("./menus/chooseHospital");
 const buyForOthers_1 = require("./menus/buyForOthers");
 const makeClaim_1 = require("./menus/makeClaim");
-const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
 require("dotenv").config();
 let menu = new ussd_builder_1.default();
 function default_1(args, db) {
@@ -47,8 +44,8 @@ function default_1(args, db) {
                 userPhoneNumber = args.phoneNumber.substring(3);
                 args.phoneNumber = userPhoneNumber;
             }
-            const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "UG", "UGX", 2);
-            console.log("USER KYC", userKyc);
+            // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+            //console.log("USER KYC", userKyc)
             function getUser(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return yield User.findOne({
@@ -106,10 +103,61 @@ function default_1(args, db) {
                 console.log("Updated Session:", session);
             }
             // ===============SET MENU STATES============
-            //startMenu(menu);
-            // displayInsuranceMenu(menu);
-            (0, startMenu_1.displayMedicalCoverMenu)(menu, args, db);
-            (0, displayAccount_1.displayAccount)(menu, args, db);
+            menu.startState({
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    console.log(" ===========================");
+                    console.log(" ******** START MENU *******");
+                    console.log(" ===========================");
+                    menu.con('Insurance ' +
+                        '\n1. Ddwaliro Care');
+                }),
+                next: {
+                    '1': 'account',
+                },
+            });
+            //displayAccount(menu, args, db);
+            menu.state('account', {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield db.users.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                            gender: {
+                                [db.Sequelize.Op.ne]: null,
+                            },
+                        },
+                    });
+                    console.log(" ============== USER - ACCOUNT ================ ", user);
+                    if (user) {
+                        menu.con('Medical cover ' +
+                            '\n1. Buy for self' +
+                            '\n2. Buy (family)' +
+                            '\n3. Buy (others)' +
+                            '\n4. Make Claim' +
+                            '\n5. My Policy' +
+                            '\n6. View Hospital' +
+                            '\n7. Terms & Conditions' +
+                            '\n8. FAQs'
+                        // '\n00.Main Menu'
+                        );
+                    }
+                    else {
+                        menu.con('Medical cover ' +
+                            '\n0. Update profile(KYC)');
+                    }
+                }),
+                next: {
+                    '1': 'buyForSelf',
+                    '2': 'buyForFamily',
+                    '3': 'buyForOthers',
+                    '4': 'makeClaim',
+                    '5': 'myAccount',
+                    '6': 'chooseHospital',
+                    '7': 'termsAndConditions',
+                    '8': 'faqs',
+                    '0': 'updateProfile',
+                    // '00': 'account',
+                }
+            });
             //=================BUY FOR SELF=================
             (0, buyForSelf_1.buyForSelf)(menu, args, db);
             //=================BUY FOR FAMILY=================

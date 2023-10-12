@@ -48,12 +48,6 @@ app.use(
 );
 
 
-// // Event listeners for MongoDB connection
-// db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-// db.once('open', () => {
-//   console.log('Connected to Bluewave MongoDB');
-//   // Start your application or perform other operations here
-//});
 // Swagger configuration options
 const swaggerOptions = {
   definition: {
@@ -91,7 +85,7 @@ const errorHandler = (error: any, req: any, res: any, next: any) => {
 
 //route health check
 app.get("/status", (req: any, res: any) =>
-  res.send({ status: "I'm up and running" })
+  res.send({ status: "I'm up and running - Bluewave Insurance" })
 );
 
 //routes for the user API

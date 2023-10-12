@@ -183,7 +183,7 @@ export function payNowPremium(menu: any, args: any, db: any): void {
           console.log('Policy already paid for');
           console.log('Policy', selectedPolicy, selectedPolicy.policy_paid_amount, selectedPolicy.premium, selectedPolicy.policy_paid_amount == selectedPolicy.premium);
 
-          if (selectedPolicy.policy_paid_amount == selectedPolicy.premium) {
+          if (selectedPolicy.policy_paid_amount == selectedPolicy.sum_insured) {
             menu.end(`Your ${selectedPolicy.policy_type.toUpperCase()} cover is already paid for`);
           }
         }
