@@ -317,7 +317,7 @@ const getPolicyPayments = (req, res) => __awaiter(void 0, void 0, void 0, functi
     *       400:
     *         description: Invalid request
     */
-const getUserPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserByPhoneNumberPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -418,6 +418,6 @@ module.exports = {
     getPayments,
     getPayment,
     getPolicyPayments,
-    getUserPayments,
+    findUserByPhoneNumberPayments,
     createPayment
 };

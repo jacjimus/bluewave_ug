@@ -22,7 +22,7 @@ const User = db_1.db.users;
 const Partner = db_1.db.partners;
 const Policy = db_1.db.policies;
 const Log = db_1.db.logs;
-function getUserFunc(user_id, partner_id) {
+function findUserByPhoneNumberFunc(user_id, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
         let user = yield User.findOne({
             where: {
@@ -398,7 +398,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *       200:
  *         description: Successful response
  */
-const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserByPhoneNumbers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let partner_id = req.query.partner_id;
     console.log("PARTNER ID", partner_id);
     let filter = req.query.filter || "";
@@ -484,7 +484,7 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *     tags:
  *       - Users
  *     description: Get User
- *     operationId: getUser
+ *     operationId: findUserByPhoneNumber
  *     summary: Get User
  *     security:
  *       - ApiKeyAuth: []
@@ -505,11 +505,11 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *       400:
  *         description: Invalid request
  */
-const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserByPhoneNumber = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let user_id = req.params.user_id;
         let partner_id = req.query.partner_id;
-        let user = yield getUserFunc(user_id, partner_id);
+        let user = yield findUserByPhoneNumberFunc(user_id, partner_id);
         console.log(user);
         if (!user || user.length === 0) {
             return res.status(404).json({ item: 0, message: "No user found" });
@@ -574,7 +574,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { first_name, middle_name, last_name, email, password, phone_number, national_id, dob, gender, marital_status, addressline, nationality, title, pinzip, weight, height, driver_licence, voter_id, } = req.body;
-        let user = getUserFunc(req.params.user_id, req.query.partner_id);
+        let user = findUserByPhoneNumberFunc(req.params.user_id, req.query.partner_id);
         //check if user exists
         if (!user || user.length === 0) {
             return res.status(404).json({ message: "No Customer found" });
@@ -943,8 +943,8 @@ module.exports = {
     adminSignup,
     signup,
     login,
-    getUsers,
-    getUser,
+    findUserByPhoneNumbers,
+    findUserByPhoneNumber,
     getPartner,
     updateUser,
     deleteUser,

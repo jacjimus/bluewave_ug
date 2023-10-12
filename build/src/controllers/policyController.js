@@ -263,7 +263,7 @@ const getPolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
   *       400:
   *         description: Invalid request
   */
-const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserByPhoneNumberPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let status = {
         code: 200,
         result: {},
@@ -311,11 +311,13 @@ const getUserPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function
             count,
             items: policy
         };
-        return res.status(status.code).json({ result: {
+        return res.status(status.code).json({
+            result: {
                 code: 200,
                 message: "Policies fetched successfully",
                 item: status.result
-            } });
+            }
+        });
     }
     catch (error) {
         console.log(error);
@@ -624,9 +626,11 @@ const updatePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         //send policy details
-        return res.status(201).json({ result: {
+        return res.status(201).json({
+            result: {
                 code: 200, message: "Policy updated successfully"
-            } });
+            }
+        });
     }
     catch (error) {
         console.log(error);
@@ -675,9 +679,11 @@ const deletePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
         });
         //send policy details
-        return res.status(201).json({ result: {
+        return res.status(201).json({
+            result: {
                 code: 201, message: "Policy deleted successfully"
-            } });
+            }
+        });
     }
     catch (error) {
         console.log(error);
@@ -689,7 +695,7 @@ const deletePolicy = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 module.exports = {
     getPolicies,
     getPolicy,
-    getUserPolicies,
+    findUserByPhoneNumberPolicies,
     createPolicy,
     updatePolicy,
     deletePolicy,

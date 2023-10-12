@@ -49,7 +49,7 @@ function handleUssd(args, db) {
             }
             const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "KE", "KES", 1);
             // console.log("USER KYC KENYA ", userKyc)
-            function getUser(phoneNumber) {
+            function findUserByPhoneNumber(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return yield User.findOne({
                         where: {
@@ -59,7 +59,7 @@ function handleUssd(args, db) {
                 });
             }
             // Retrieve user using provided phone number
-            const user = yield getUser(userPhoneNumber);
+            const user = yield findUserByPhoneNumber(userPhoneNumber);
             // console.log("USER KENYA: ", user);
             if (!user) {
                 throw new Error("User not found");
@@ -182,7 +182,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.bronze", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
-                        let { name } = yield getUser(args.phoneNumber);
+                        let { name } = yield findUserByPhoneNumber(args.phoneNumber);
                         console.log("USER NAME: ", name);
                         const policy = yield Policy.findOne({ where: { partner_id: 1 } });
                         console.log("POLICY: ", policy);
@@ -212,7 +212,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.silver", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
-                        let { name } = yield getUser(args.phoneNumber);
+                        let { name } = yield findUserByPhoneNumber(args.phoneNumber);
                         console.log("USER NAME: ", name);
                         const policy = yield Policy.findOne({ where: { partner_id: 1 } });
                         console.log("POLICY: ", policy);
@@ -242,7 +242,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.gold", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
-                        let { name } = yield getUser(args.phoneNumber);
+                        let { name } = yield findUserByPhoneNumber(args.phoneNumber);
                         console.log("USER NAME: ", name);
                         const policy = yield Policy.findOne({ where: { partner_id: 1 } });
                         console.log("POLICY: ", policy);
@@ -329,7 +329,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     // use menu.val to access user input value
                     let user_pin = Number(menu.val);
-                    const { pin, membership_id } = yield getUser(args.phoneNumber);
+                    const { pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     // check if pin is correct
                     if (user_pin == pin || membership_id == user_pin) {
                         menu.con("SCHEDULE" +
@@ -351,7 +351,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     // use menu.val to access user input value
                     let user_pin = Number(menu.val);
-                    const { pin, membership_id } = yield getUser(args.phoneNumber);
+                    const { pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     // check if pin is correct
                     if (user_pin == pin || membership_id == user_pin) {
                         menu.con("SCHEDULE" +
@@ -373,7 +373,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     // use menu.val to access user input value
                     let user_pin = Number(menu.val);
-                    const { pin, membership_id } = yield getUser(args.phoneNumber);
+                    const { pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     // check if pin is correct
                     if (user_pin == pin || membership_id == user_pin) {
                         menu.con("SCHEDULE" +
@@ -394,7 +394,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.bronze.yearly.pin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let user_pin = Number(menu.val);
-                    const { pin, membership_id } = yield getUser(args.phoneNumber);
+                    const { pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     if (user_pin !== 1234 ||
                         user_pin == pin ||
                         membership_id == user_pin) {
@@ -416,7 +416,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.silver.yearly.pin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let user_pin = Number(menu.val);
-                    const { pin, membership_id } = yield getUser(args.phoneNumber);
+                    const { pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     if (user_pin !== 1234 ||
                         user_pin == pin ||
                         membership_id == user_pin) {
@@ -438,7 +438,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.gold.yearly.pin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let user_pin = Number(menu.val);
-                    const { pin, membership_id } = yield getUser(args.phoneNumber);
+                    const { pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     if (user_pin !== 1234 ||
                         user_pin == pin ||
                         membership_id == user_pin) {
@@ -460,7 +460,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.bronze.confirm", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let deduction_day = Number(menu.val);
-                    const { pin, user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { pin, user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
                     console.log("NEXT DEDUCTION", nextDeduction);
@@ -517,7 +517,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.silver.confirm", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let deduction_day = Number(menu.val);
-                    const { pin, user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { pin, user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
                     console.log("NEXT DEDUCTION", nextDeduction);
@@ -574,7 +574,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.gold.confirm", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let deduction_day = Number(menu.val);
-                    const { pin, user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { pin, user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
                     console.log("NEXT DEDUCTION", nextDeduction);
@@ -632,7 +632,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         let user_pin = Number(menu.val);
-                        const { pin, user_id, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                        const { pin, user_id, partner_id, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                         if (user_pin !== pin && user_pin !== membership_id) {
                             menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
                         }
@@ -690,7 +690,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         let user_pin = Number(menu.val);
-                        const { pin, user_id, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                        const { pin, user_id, partner_id, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                         if (user_pin !== pin && user_pin !== membership_id) {
                             menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
                         }
@@ -748,7 +748,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         let user_pin = Number(menu.val);
-                        const { pin, user_id, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                        const { pin, user_id, partner_id, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                         if (user_pin !== pin && user_pin !== membership_id) {
                             menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
                         }
@@ -806,7 +806,7 @@ function handleUssd(args, db) {
             menu.state("confirmation", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
-                        const { user_id, phone_number, partner_id, membership_id } = yield getUser(args.phoneNumber);
+                        const { user_id, phone_number, partner_id, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                         const { policy_id, policy_deduction_day, policy_deduction_amount } = yield Policy.findOne({
                             where: {
                                 user_id: user_id,
@@ -846,7 +846,7 @@ function handleUssd(args, db) {
             });
             menu.state("buyForOthersOptionsPhoneNumber", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield getUser(args.phoneNumber);
+                    const user = yield findUserByPhoneNumber(args.phoneNumber);
                     let updateBeneficiary = yield Beneficiary.create({
                         beneficiary_id: (0, uuid_1.v4)(),
                         user_id: user.user_id,
@@ -865,7 +865,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const phoneNumber = menu.val;
                     // save beneficiary phone number to user
-                    const user = yield getUser(args.phoneNumber);
+                    const user = yield findUserByPhoneNumber(args.phoneNumber);
                     let updateBeneficiary = yield Beneficiary.update({
                         phone_number: phoneNumber,
                     }, {
@@ -2030,7 +2030,7 @@ function handleUssd(args, db) {
             menu.state("buyForFamily.selfSpouse.spouse", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spouse = menu.val;
-                    const { user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
                     const policy = {
@@ -2086,7 +2086,7 @@ function handleUssd(args, db) {
                     const day = Number(menu.val);
                     const date = new Date();
                     const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
-                    const { user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let policy = yield Policy.findOne({
                         where: {
                             user_id: user_id,
@@ -2127,7 +2127,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spouse = menu.val;
                     console.log("SPOUSE NAME 1", spouse);
-                    const { user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let date = new Date();
                     let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, 1);
                     const policy = {
@@ -2183,7 +2183,7 @@ function handleUssd(args, db) {
                     const day = Number(menu.val);
                     const date = new Date();
                     const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
-                    const { user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     let policy = yield Policy.findOne({
                         where: {
                             user_id: user_id,
@@ -2219,7 +2219,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spouse = menu.val;
                     console.log("SPOUSE NAME 1", spouse);
-                    const { user_id, partner_id } = yield getUser(args.phoneNumber);
+                    const { user_id, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
                     const policy = {
                         policy_id: (0, uuid_1.v4)(),
                         policy_type: "bronze",
@@ -2274,7 +2274,7 @@ function handleUssd(args, db) {
                         const day = Number(menu.val);
                         const date = new Date();
                         const nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, day);
-                        const { user_id, partner_id, premium } = yield getUser(args.phoneNumber);
+                        const { user_id, partner_id, premium } = yield findUserByPhoneNumber(args.phoneNumber);
                         let policy = yield Policy.update({
                             policy_deduction_day: day,
                             policy_next_deduction_date: nextDeduction,
@@ -2335,7 +2335,7 @@ function handleUssd(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         const user_pin = Number(menu.val);
-                        const { user_id, pin, membership_id } = yield getUser(args.phoneNumber);
+                        const { user_id, pin, membership_id } = yield findUserByPhoneNumber(args.phoneNumber);
                         if (user_pin === pin || user_pin === membership_id) {
                             const policy = yield Policy.findOne({
                                 where: {

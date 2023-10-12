@@ -6,7 +6,7 @@ const Product = db.products;
 const Partner = db.partners;
 const Log = db.logs;
 const { v4: uuidv4 } = require("uuid");
-const { Op,Sequelize, } = require("sequelize");
+const { Op, Sequelize, } = require("sequelize");
 import { globalSearch } from "../services/utils";
 
 
@@ -141,7 +141,7 @@ const getPolicies = async (req, res) => {
       return res.status(404).json({ message: "No policies found" });
     }
 
- 
+
 
     // Add paid premium and pending premium
     policies.rows.forEach((policy) => {
@@ -150,10 +150,10 @@ const getPolicies = async (req, res) => {
       policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
     });
 
-     //impletement search
-     const searchResults = globalSearch(policies.rows, filter);
-    
-console.log("SEARCH RESULTS", searchResults)
+    //impletement search
+    const searchResults = globalSearch(policies.rows, filter);
+
+    console.log("SEARCH RESULTS", searchResults)
 
     // Calculate pagination information
     const total = searchResults.length;
@@ -179,13 +179,13 @@ console.log("SEARCH RESULTS", searchResults)
       result: {
         code: 200,
         message: "Policies fetched successfully",
-          count: total,
-          items: searchResults
+        count: total,
+        items: searchResults
       },
-  });
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
 };
 
@@ -234,7 +234,8 @@ const getPolicy = async (req: any, res: any) => {
     if (!policy) {
       return res.status(404).json({
         code: 404,
-         message: "No policy found" });
+        message: "No policy found"
+      });
     }
 
     // Calculate paid and pending premiums
@@ -243,7 +244,7 @@ const getPolicy = async (req: any, res: any) => {
     const pending_premium = total_premium - paid_premium;
 
 
-  
+
     const result = {
       item: {
         ...policy.dataValues,
@@ -263,14 +264,16 @@ const getPolicy = async (req: any, res: any) => {
       user: req?.user_id,
       partner_id: req?.partner_id,
     });
-    return res.status(200).json({ 
+    return res.status(200).json({
       code: 200,
-      result });
+      result
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       code: 500,
-      message: "Internal server error", error: error.message });
+      message: "Internal server error", error: error.message
+    });
   }
 };
 
@@ -315,7 +318,7 @@ const getPolicy = async (req: any, res: any) => {
   *       400:
   *         description: Invalid request
   */
-const getUserPolicies = async (req: any, res: any) => {
+const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
   let status = {
     code: 200,
     result: {},
@@ -376,10 +379,13 @@ const getUserPolicies = async (req: any, res: any) => {
       count,
       items: policy
     };
-    return res.status(status.code).json({ result: {
-      code: 200, 
-      message: "Policies fetched successfully",
-      item: status.result } });
+    return res.status(status.code).json({
+      result: {
+        code: 200,
+        message: "Policies fetched successfully",
+        item: status.result
+      }
+    });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ message: "Internal server error", error: error });
@@ -448,9 +454,10 @@ const createPolicy = async (req: any, res: any) => {
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ 
+    return res.status(500).json({
       code: 500,
-      message: "Internal server error", error: error });
+      message: "Internal server error", error: error
+    });
   }
 
 }
@@ -503,7 +510,7 @@ const createPolicy = async (req: any, res: any) => {
   */
 const policyIssuance = async (req: any, res: any) => {
   try {
-    const {  ReceiptObj } = req.body;
+    const { ReceiptObj } = req.body;
 
     const { user_id, policy_id, partner_id, product_id } = req.query;
 
@@ -533,20 +540,20 @@ const policyIssuance = async (req: any, res: any) => {
     }
 
     let PolicyCreationRequest = {
-        Quotation_No: policy.quotation_no,
-        Intermediary_Cd: policy.intermediary_cd,
-        Source_System_Nm: policy.source_system_nm,
-        Employee_No: policy.employee_no,
-        Quotation_Dt: policy.quotation_dt,
-        IsPayment: policy.is_payment,
-        Policy_Tenure: policy.policy_tenure,
-        FamilyType_Cd: policy.familytype_cd,
-        Cal_Type: policy.cal_type,
-        Business_Type: policy.business_type,
-        Subsidiary_Cd: policy.subsidiary_cd
+      Quotation_No: policy.quotation_no,
+      Intermediary_Cd: policy.intermediary_cd,
+      Source_System_Nm: policy.source_system_nm,
+      Employee_No: policy.employee_no,
+      Quotation_Dt: policy.quotation_dt,
+      IsPayment: policy.is_payment,
+      Policy_Tenure: policy.policy_tenure,
+      FamilyType_Cd: policy.familytype_cd,
+      Cal_Type: policy.cal_type,
+      Business_Type: policy.business_type,
+      Subsidiary_Cd: policy.subsidiary_cd
     }
 
-   let MemObj = {
+    let MemObj = {
       Member: [
         {
           Insured_Cd: '1',
@@ -570,7 +577,7 @@ const policyIssuance = async (req: any, res: any) => {
                   Cover_Cd: '1100001',
                   Sum_Insured: '40000000.0',
                   installment_Order: 1,
-          
+
                   installment_Date: '2023-05-22T02:30:00+08:00',
                   installment_Alert_Date: '2023-05-22T02:30:00+08:00',
                   tax_Rate_Vat: 0.2,
@@ -627,7 +634,7 @@ const policyIssuance = async (req: any, res: any) => {
 
   } catch (error) {
     console.log("ERROR ON POLICY ISSURANC", error)
-    return res.status(500).json({code: 500, message: "Internal server error", error: error  });
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
 };
 
@@ -741,13 +748,17 @@ const updatePolicy = async (req: any, res: any) => {
       partner_id: req?.partner_id,
     });
     //send policy details
-    return res.status(201).json({ result: { 
-      code: 200,message: "Policy updated successfully" } });
+    return res.status(201).json({
+      result: {
+        code: 200, message: "Policy updated successfully"
+      }
+    });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ 
+    return res.status(500).json({
       code: 500,
-      message: "Internal server error", error });
+      message: "Internal server error", error
+    });
   }
 }
 
@@ -790,12 +801,16 @@ const deletePolicy = async (req: any, res: any) => {
       partner_id: req?.partner_id,
     });
     //send policy details
-    return res.status(201).json({ result: { 
-      code: 201,message: "Policy deleted successfully" } });
+    return res.status(201).json({
+      result: {
+        code: 201, message: "Policy deleted successfully"
+      }
+    });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ 
-      code: 500,message: "Internal server error", error });
+    return res.status(500).json({
+      code: 500, message: "Internal server error", error
+    });
 
   }
 }
@@ -804,7 +819,7 @@ const deletePolicy = async (req: any, res: any) => {
 module.exports = {
   getPolicies,
   getPolicy,
-  getUserPolicies,
+  findUserByPhoneNumberPolicies,
   createPolicy,
   updatePolicy,
   deletePolicy,

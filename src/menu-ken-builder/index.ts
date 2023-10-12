@@ -44,7 +44,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       const userKyc = await getAirtelUser(userPhoneNumber, "KE", "KES", 1)
       // console.log("USER KYC KENYA ", userKyc)
 
-      async function getUser(phoneNumber: any) {
+      async function findUserByPhoneNumber(phoneNumber: any) {
         return await User.findOne({
           where: {
             phone_number: phoneNumber,
@@ -53,7 +53,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       }
 
       // Retrieve user using provided phone number
-      const user = await getUser(userPhoneNumber);
+      const user = await findUserByPhoneNumber(userPhoneNumber);
       // console.log("USER KENYA: ", user);
 
       if (!user) {
@@ -108,7 +108,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         });
         //console.log("Updated Session:", session);
       }
-    
+
 
       menu.startState({
         run: async () => {
@@ -195,7 +195,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.bronze", {
         run: async () => {
           try {
-            let { name } = await getUser(args.phoneNumber);
+            let { name } = await findUserByPhoneNumber(args.phoneNumber);
             console.log("USER NAME: ", name);
             const policy = await Policy.findOne({ where: { partner_id: 1 } });
             console.log("POLICY: ", policy);
@@ -230,7 +230,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.silver", {
         run: async () => {
           try {
-            let { name } = await getUser(args.phoneNumber);
+            let { name } = await findUserByPhoneNumber(args.phoneNumber);
             console.log("USER NAME: ", name);
             const policy = await Policy.findOne({ where: { partner_id: 1 } });
             console.log("POLICY: ", policy);
@@ -265,7 +265,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.gold", {
         run: async () => {
           try {
-            let { name } = await getUser(args.phoneNumber);
+            let { name } = await findUserByPhoneNumber(args.phoneNumber);
             console.log("USER NAME: ", name);
             const policy = await Policy.findOne({ where: { partner_id: 1 } });
             console.log("POLICY: ", policy);
@@ -370,7 +370,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           // use menu.val to access user input value
           let user_pin = Number(menu.val);
-          const { pin, membership_id } = await getUser(args.phoneNumber);
+          const { pin, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
           // check if pin is correct
           if (user_pin == pin || membership_id == user_pin
           ) {
@@ -396,7 +396,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           // use menu.val to access user input value
           let user_pin = Number(menu.val);
-          const { pin, membership_id } = await getUser(args.phoneNumber);
+          const { pin, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
           // check if pin is correct
           if (user_pin == pin || membership_id == user_pin
           ) {
@@ -422,7 +422,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           // use menu.val to access user input value
           let user_pin = Number(menu.val);
-          const { pin, membership_id } = await getUser(args.phoneNumber);
+          const { pin, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
           // check if pin is correct
           if (user_pin == pin || membership_id == user_pin
           ) {
@@ -447,7 +447,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.bronze.yearly.pin", {
         run: async () => {
           let user_pin = Number(menu.val);
-          const { pin, membership_id } = await getUser(args.phoneNumber);
+          const { pin, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
           if (
             user_pin !== 1234 ||
             user_pin == pin ||
@@ -474,7 +474,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.silver.yearly.pin", {
         run: async () => {
           let user_pin = Number(menu.val);
-          const { pin, membership_id } = await getUser(args.phoneNumber);
+          const { pin, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
           if (
             user_pin !== 1234 ||
             user_pin == pin ||
@@ -502,7 +502,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.gold.yearly.pin", {
         run: async () => {
           let user_pin = Number(menu.val);
-          const { pin, membership_id } = await getUser(args.phoneNumber);
+          const { pin, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
           if (
             user_pin !== 1234 ||
             user_pin == pin ||
@@ -531,7 +531,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.bronze.confirm", {
         run: async () => {
           let deduction_day = Number(menu.val);
-          const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
+          const { pin, user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
 
           let date = new Date();
           let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
@@ -604,7 +604,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.silver.confirm", {
         run: async () => {
           let deduction_day = Number(menu.val);
-          const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
+          const { pin, user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
 
           let date = new Date();
           let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
@@ -677,7 +677,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForSelf.gold.confirm", {
         run: async () => {
           let deduction_day = Number(menu.val);
-          const { pin, user_id, partner_id } = await getUser(args.phoneNumber);
+          const { pin, user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
 
           let date = new Date();
           let nextDeduction = new Date(date.getFullYear(), date.getMonth() + 1, deduction_day);
@@ -750,7 +750,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           try {
             let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            const { pin, user_id, partner_id, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
             if (user_pin !== pin && user_pin !== membership_id) {
               menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
@@ -820,7 +820,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           try {
             let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            const { pin, user_id, partner_id, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
             if (user_pin !== pin && user_pin !== membership_id) {
               menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
@@ -889,7 +889,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           try {
             let user_pin = Number(menu.val);
-            const { pin, user_id, partner_id, membership_id } = await getUser(args.phoneNumber);
+            const { pin, user_id, partner_id, membership_id } = await findUserByPhoneNumber(args.phoneNumber);
             if (user_pin !== pin && user_pin !== membership_id) {
               menu.con('Sorry incorrect PIN or Membership ID. Please Try again');
             }
@@ -958,7 +958,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("confirmation", {
         run: async () => {
           try {
-            const { user_id, phone_number, partner_id, membership_id } = await getUser(
+            const { user_id, phone_number, partner_id, membership_id } = await findUserByPhoneNumber(
               args.phoneNumber
             );
             const { policy_id, policy_deduction_day, policy_deduction_amount } = await Policy.findOne({
@@ -1016,7 +1016,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForOthersOptionsPhoneNumber", {
         run: async () => {
 
-          const user = await getUser(args.phoneNumber);
+          const user = await findUserByPhoneNumber(args.phoneNumber);
 
           let updateBeneficiary = await Beneficiary.create({
             beneficiary_id: uuidv4(),
@@ -1041,7 +1041,7 @@ export default function handleUssd(args: RequestBody, db: any) {
 
 
           // save beneficiary phone number to user
-          const user = await getUser(args.phoneNumber);
+          const user = await findUserByPhoneNumber(args.phoneNumber);
 
           let updateBeneficiary = await Beneficiary.update(
             {
@@ -2358,7 +2358,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForFamily.selfSpouse.spouse", {
         run: async () => {
           let spouse = menu.val;
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
+          const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
           let date = new Date();
           let nextDeduction = new Date(
             date.getFullYear(),
@@ -2436,7 +2436,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             day
           );
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
+          const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
           let policy = await Policy.findOne({
             where: {
               user_id: user_id,
@@ -2483,7 +2483,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           let spouse = menu.val;
           console.log("SPOUSE NAME 1", spouse);
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
+          const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
           let date = new Date();
           let nextDeduction = new Date(
             date.getFullYear(),
@@ -2571,7 +2571,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             date.getMonth() + 1,
             day
           );
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
+          const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
           let policy = await Policy.findOne({
             where: {
               user_id: user_id,
@@ -2613,7 +2613,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           let spouse = menu.val;
           console.log("SPOUSE NAME 1", spouse);
-          const { user_id, partner_id } = await getUser(args.phoneNumber);
+          const { user_id, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
 
           const policy = {
             policy_id: uuidv4(),
@@ -2698,7 +2698,7 @@ export default function handleUssd(args: RequestBody, db: any) {
               day
             );
 
-            const { user_id, partner_id, premium } = await getUser(
+            const { user_id, partner_id, premium } = await findUserByPhoneNumber(
               args.phoneNumber
             );
 
@@ -2772,7 +2772,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: async () => {
           try {
             const user_pin = Number(menu.val);
-            const { user_id, pin, membership_id } = await getUser(
+            const { user_id, pin, membership_id } = await findUserByPhoneNumber(
               args.phoneNumber
             );
 

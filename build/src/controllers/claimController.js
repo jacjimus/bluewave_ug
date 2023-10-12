@@ -247,7 +247,7 @@ const getClaim = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *       400:
  *         description: Invalid request
  */
-const getUserClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserByPhoneNumberClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
@@ -641,7 +641,7 @@ module.exports = {
     getClaims,
     createClaim,
     getClaim,
-    getUserClaims,
+    findUserByPhoneNumberClaims,
     getPolicyClaims,
     updateClaim,
     deleteClaim

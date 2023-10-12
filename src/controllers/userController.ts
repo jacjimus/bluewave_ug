@@ -18,7 +18,7 @@ const Partner = db.partners;
 const Policy = db.policies;
 const Log = db.logs;
 
-async function getUserFunc(user_id: string, partner_id: number) {
+async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
   let user = await User.findOne({
     where: {
       user_id: user_id,
@@ -496,7 +496,7 @@ const login = async (req: any, res: any) => {
  *       200:
  *         description: Successful response
  */
-const getUsers = async (req: any, res: any) => {
+const findUserByPhoneNumbers = async (req: any, res: any) => {
   let partner_id = req.query.partner_id;
   console.log("PARTNER ID", partner_id);
   let filter = req.query.filter || "";
@@ -592,7 +592,7 @@ const getUsers = async (req: any, res: any) => {
  *     tags:
  *       - Users
  *     description: Get User
- *     operationId: getUser
+ *     operationId: findUserByPhoneNumber
  *     summary: Get User
  *     security:
  *       - ApiKeyAuth: []
@@ -613,12 +613,12 @@ const getUsers = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-const getUser = async (req: any, res: any) => {
+const findUserByPhoneNumber = async (req: any, res: any) => {
   try {
     let user_id = req.params.user_id;
     let partner_id = req.query.partner_id;
 
-    let user: any = await getUserFunc(user_id, partner_id);
+    let user: any = await findUserByPhoneNumberFunc(user_id, partner_id);
     console.log(user);
 
     if (!user || user.length === 0) {
@@ -708,7 +708,7 @@ const updateUser = async (req: any, res: any) => {
       voter_id,
     } = req.body;
 
-    let user: any = getUserFunc(req.params.user_id, req.query.partner_id);
+    let user: any = findUserByPhoneNumberFunc(req.params.user_id, req.query.partner_id);
 
     //check if user exists
     if (!user || user.length === 0) {
@@ -1132,8 +1132,8 @@ module.exports = {
   adminSignup,
   signup,
   login,
-  getUsers,
-  getUser,
+  findUserByPhoneNumbers,
+  findUserByPhoneNumber,
   getPartner,
   updateUser,
   deleteUser,

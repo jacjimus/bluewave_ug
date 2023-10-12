@@ -99,7 +99,8 @@ const getPayments = async (req: any, res: any) => {
         if (!payments || payments.length === 0) {
             return res.status(404).json({
                 code: 404,
-                 message: "No payments found" });
+                message: "No payments found"
+            });
         }
         await Log.create({
             log_id: uuidv4(),
@@ -120,7 +121,8 @@ const getPayments = async (req: any, res: any) => {
         console.log("ERROR", error);
         return res.status(500).json({
             code: 500,
-             message: "Internal server error", error: error });
+            message: "Internal server error", error: error
+        });
     }
 };
 
@@ -182,12 +184,13 @@ const getPayment = async (req: any, res: any) => {
                 }
             });
         } else {
-            res.status(404).json({ 
-                code: 404,message: "Payment not found" });
+            res.status(404).json({
+                code: 404, message: "Payment not found"
+            });
         }
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({   code: 500,message: "Internal server error", error: error.message });
+        res.status(500).json({ code: 500, message: "Internal server error", error: error.message });
     }
 };
 
@@ -267,12 +270,13 @@ const getPolicyPayments = async (req: any, res: any) => {
                 }
             });
         } else {
-            res.status(404).json({  code: 404, message: "No payments found" });
+            res.status(404).json({ code: 404, message: "No payments found" });
         }
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ 
-            code: 500,message: "Internal server error", error: error.message });
+        res.status(500).json({
+            code: 500, message: "Internal server error", error: error.message
+        });
     }
 };
 
@@ -316,7 +320,7 @@ const getPolicyPayments = async (req: any, res: any) => {
     *       400:
     *         description: Invalid request
     */
-const getUserPayments = async (req: any, res: any) => {
+const findUserByPhoneNumberPayments = async (req: any, res: any) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -357,9 +361,10 @@ const getUserPayments = async (req: any, res: any) => {
         });
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ 
+        res.status(500).json({
             code: 500,
-            message: "Internal server error", error: error.message });
+            message: "Internal server error", error: error.message
+        });
     }
 };
 
@@ -414,7 +419,8 @@ const createPayment = async (req: any, res: any) => {
     } catch (error) {
         console.error("ERROR", error);
         res.status(500).json({
-            code: 500, message: "Internal server error", error: error.message });
+            code: 500, message: "Internal server error", error: error.message
+        });
     }
 };
 
@@ -424,7 +430,7 @@ module.exports = {
     getPayments,
     getPayment,
     getPolicyPayments,
-    getUserPayments,
+    findUserByPhoneNumberPayments,
     createPayment
 
 }

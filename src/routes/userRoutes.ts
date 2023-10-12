@@ -2,7 +2,7 @@
 import express from 'express';
 const userController = require('../controllers/userController');
 const {
-    isBluewave,
+  isBluewave,
   isAirtel,
   isVodacom,
   isAAR,
@@ -44,18 +44,18 @@ const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
 
-router.get('/',isSuperAdmin, userController.getUsers)
-router.get('/partner',isSuperAdmin, userController.getPartner)
-router.get('/partners',isSuperAdmin, userController.listPartners)
-router.get('/:user_id', isSuperAdmin, userController.getUser)
-router.post('/partnerSwitch',isSuperAdmin, userController.partnerSwitch)
+router.get('/', isSuperAdmin, userController.findUserByPhoneNumbers)
+router.get('/partner', isSuperAdmin, userController.getPartner)
+router.get('/partners', isSuperAdmin, userController.listPartners)
+router.get('/:user_id', isSuperAdmin, userController.findUserByPhoneNumber)
+router.post('/partnerSwitch', isSuperAdmin, userController.partnerSwitch)
 router.post('/login', userController.login)
 router.post('/signup', userController.signup)
 router.post('/admin/signup', userController.adminSignup)
-router.post('/group/signup',upload.single('excel_file'), userController.bulkUserRegistration)
-router.post('/partner/register',isBluewave, userController.partnerRegistration)
+router.post('/group/signup', upload.single('excel_file'), userController.bulkUserRegistration)
+router.post('/partner/register', isBluewave, userController.partnerRegistration)
 router.put('/:user_id', userController.updateUser)
-router.delete('/:user_id',  userController.deleteUser)
+router.delete('/:user_id', userController.deleteUser)
 
 
 

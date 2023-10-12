@@ -10,6 +10,6 @@ const router = express_1.default.Router();
 router.get('/', isSuperAdmin, paymentController.getPayments);
 router.get('/:payment_id', isSuperAdmin, paymentController.getPayment);
 router.get('/policy/:policy_id', isSuperAdmin, paymentController.getPolicyPayments);
-router.get('/user/:user_id', isSuperAdmin, paymentController.getUserPayments);
+router.get('/user/:user_id', isSuperAdmin, paymentController.findUserByPhoneNumberPayments);
 router.post('/create', isSuperAdmin, isSuperAdmin, paymentController.createPayment);
 module.exports = router;

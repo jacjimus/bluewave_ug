@@ -11,7 +11,7 @@ import {
     getRandomInt,
     isValidEmail,
     globalSearch
-  } from "../services/utils";
+} from "../services/utils";
 
 
 
@@ -87,7 +87,7 @@ const getClaims = async (req: any, res: any) => {
             claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
         }
 
-        
+
         // Check if a filter is provided to include additional search criteria
         if (filter) {
             // Convert the filter to lowercase for case-insensitive search
@@ -102,17 +102,17 @@ const getClaims = async (req: any, res: any) => {
 
             // Use the globalSearch() method to find objects matching the search term
             claim = globalSearch(claim, search);
-        }else{
-             // Retrieve claims based on the 'claimWhere' filter object
-         claim = await Claim.findAll({
-            where: claimWhere,
-            order: [["createdAt", "DESC"]],
-            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
-        });
+        } else {
+            // Retrieve claims based on the 'claimWhere' filter object
+            claim = await Claim.findAll({
+                where: claimWhere,
+                order: [["createdAt", "DESC"]],
+                include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+            });
         }
 
-    console.log("CLAIM", claim);
-    
+        console.log("CLAIM", claim);
+
         if (!claim || claim.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
@@ -136,14 +136,16 @@ const getClaims = async (req: any, res: any) => {
             user: req?.user_id,
             partner_id: req?.partner_id,
         });
-        return res.status(200).json({ 
+        return res.status(200).json({
             code: 200,
-            result: claim });
+            result: claim
+        });
     } catch (error) {
         console.log("ERROR", error);
-        return res.status(500).json({ 
+        return res.status(500).json({
             code: 200,
-            message: "Error fetching claims", error: error });
+            message: "Error fetching claims", error: error
+        });
     }
 };
 /**
@@ -206,7 +208,8 @@ const getClaim = async (req: any, res: any) => {
     } catch (error) {
         console.error('Error getting claim:', error);
         return res.status(500).json({
-            code: 500, message: 'Internal server error', error: error.message });
+            code: 500, message: 'Internal server error', error: error.message
+        });
     }
 };
 
@@ -250,7 +253,7 @@ const getClaim = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-const getUserClaims = async (req: any, res: any) => {
+const findUserByPhoneNumberClaims = async (req: any, res: any) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
@@ -298,7 +301,8 @@ const getUserClaims = async (req: any, res: any) => {
     } catch (error) {
         console.error('Error fetching claims:', error);
         return res.status(500).json({
-            code: 500, message: 'Internal server error', error: error.message });
+            code: 500, message: 'Internal server error', error: error.message
+        });
     }
 };
 
@@ -361,8 +365,9 @@ const getPolicyClaims = async (req: any, res: any) => {
         });
 
         if (!claims || claims.length === 0) {
-            return res.status(404).json({ 
-                code: 404,message: 'No claims found' });
+            return res.status(404).json({
+                code: 404, message: 'No claims found'
+            });
         }
 
         if (page && limit) {
@@ -387,8 +392,9 @@ const getPolicyClaims = async (req: any, res: any) => {
         return res.status(200).json(claims);
     } catch (error) {
         console.error('Error fetching claims:', error);
-        return res.status(500).json({ 
-            code: 500,message: 'Internal server error', error: error.message });
+        return res.status(500).json({
+            code: 500, message: 'Internal server error', error: error.message
+        });
     }
 };
 
@@ -457,15 +463,17 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (!policy) {
-            return res.status(404).json({ 
-                code: 404,message: "No policy found" });
+            return res.status(404).json({
+                code: 404, message: "No policy found"
+            });
         }
 
         // Check if user exists
         const user = await User.findByPk(user_id);
         if (!user) {
-            return res.status(404).json({ 
-                code: 404,message: "User not found" });
+            return res.status(404).json({
+                code: 404, message: "User not found"
+            });
         }
 
         // Check if user has the policy
@@ -477,8 +485,9 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (!userPolicy) {
-            return res.status(404).json({ 
-                code: 404,message: "User does not have the policy" });
+            return res.status(404).json({
+                code: 404, message: "User does not have the policy"
+            });
         }
 
         // Check if the policy already has an active claim
@@ -489,8 +498,9 @@ const createClaim = async (req: any, res: any) => {
         });
 
         if (existingClaim) {
-            return res.status(409).json({ 
-                code: 400,message: "Policy already has an active claim" });
+            return res.status(409).json({
+                code: 400, message: "Policy already has an active claim"
+            });
         }
 
 
@@ -519,12 +529,14 @@ const createClaim = async (req: any, res: any) => {
             partner_id: req?.partner_id,
         });
 
-        return res.status(201).json({ 
-            code: 201,message: "Claim created successfully", claim: newClaim });
+        return res.status(201).json({
+            code: 201, message: "Claim created successfully", claim: newClaim
+        });
     } catch (error) {
         console.log("ERROR", error);
         return res.status(500).json({
-            code: 500, message: "Error creating claim", error: error.message });
+            code: 500, message: "Error creating claim", error: error.message
+        });
     }
 };
 
@@ -629,8 +641,9 @@ const updateClaim = async (req: any, res: any) => {
         }
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ 
-            code: 500,message: "Error updating claim", error: error });
+        return res.status(500).json({
+            code: 500, message: "Error updating claim", error: error
+        });
 
     }
 }
@@ -662,8 +675,9 @@ const deleteClaim = async (req: any, res: any) => {
         }
     } catch (error) {
         console.log("ERROR", error)
-        return res.status(500).json({ 
-            code: 500,message: "Error deleting claim", error: error });
+        return res.status(500).json({
+            code: 500, message: "Error deleting claim", error: error
+        });
 
     }
 }
@@ -675,7 +689,7 @@ module.exports = {
     getClaims,
     createClaim,
     getClaim,
-    getUserClaims,
+    findUserByPhoneNumberClaims,
     getPolicyClaims,
     updateClaim,
     deleteClaim
