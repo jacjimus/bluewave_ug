@@ -107,51 +107,6 @@ function handleUssd(args, db) {
                 });
                 //console.log("Updated Session:", session);
             }
-            // ===============SET START MENU STATES============
-            // Set the start state for the menu
-            // menu.startState({
-            //   run: async () => {
-            //     menu.con(
-            //       "Welcome. Choose option:" +
-            //       "\n1. Send Money" +
-            //       "\n2. Airtime/Bundles" +
-            //       "\n3. Withdraw Cash" +
-            //       "\n4. Pay Bill" +
-            //       "\n5. Payments" +
-            //       "\n6. School Fees" +
-            //       "\n7. Financial Services" +
-            //       "\n8. Wewole" +
-            //       "\n9. AirtelMoney Pay" +
-            //       "\n10. My account" +
-            //       "\n11. BiZ Wallet"
-            //     );
-            //   },
-            //   next: {
-            //     "7": "account",
-            //   },
-            // });
-            // menu.state("account", {
-            //   run: () => {
-            //     menu.con(
-            //       "Financial Services" +
-            //       "\n1. Banks" +
-            //       "\n2. Group Collections" +
-            //       "\n3. M-SACCO" +
-            //       "\n4. ATM Withdraw" +
-            //       "\n5. NSSF Savings" +
-            //       "\n6. Insurance" +
-            //       "\n7. Yassako Loans" +
-            //       "\n8. SACCO" +
-            //       "\n9. AirtelMoney MasterCard" +
-            //       "\n10. Loans" +
-            //       "\n11. Savings" +
-            //       "\nn  Next"
-            //     );
-            //   },
-            //   next: {
-            //     "6": "medical_cover",
-            //   },
-            // });
             menu.startState({
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     menu.con("Insurance " +

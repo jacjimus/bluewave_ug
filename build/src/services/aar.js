@@ -16,6 +16,12 @@ exports.updatePremium = exports.fetchMemberStatusData = exports.updateMember = e
 const axios_1 = __importDefault(require("axios"));
 const db_1 = require("../models/db");
 const User = db_1.db.users;
+function randomDateOfBirth() {
+    const start = new Date(1950, 0, 1);
+    const end = new Date(2000, 0, 1);
+    const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    return date.toISOString().split('T')[0];
+}
 function arr_uganda_login() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -83,6 +89,7 @@ function refreshToken() {
 // }
 function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
     return __awaiter(this, void 0, void 0, function* () {
+        // random date of birth and gender
         console.log("i was called register principal");
         // console.log("USER", user);
         // console.log("POLICY", policy);
@@ -92,8 +99,8 @@ function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
             surname: user.last_name,
             first_name: user.first_name,
             other_names: user.middle_name || user.last_name,
-            gender: user.gender == 'M' ? "1" : "2",
-            dob: user.dob,
+            gender: "M",
+            dob: randomDateOfBirth(),
             pri_dep: "24",
             family_title: "24",
             tel_no: `256${user.phone_number}`,

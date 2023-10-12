@@ -5,6 +5,13 @@ import { db } from '../models/db';
 
 const User = db.users;
 
+function randomDateOfBirth() {
+  const start = new Date(1950, 0, 1);
+  const end = new Date(2000, 0, 1);
+  const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  return date.toISOString().split('T')[0];
+  
+}
 
 async function arr_uganda_login() {
   try {
@@ -111,6 +118,8 @@ interface PrincipalRegistration {
 // }
 
 async function registerPrincipal(user: any, policy: any, beneficiary: any, airtel_money_id: any) {
+// random date of birth and gender
+
 
   console.log("i was called register principal");
   // console.log("USER", user);
@@ -121,8 +130,8 @@ async function registerPrincipal(user: any, policy: any, beneficiary: any, airte
     surname: user.last_name,
     first_name: user.first_name,
     other_names: user.middle_name || user.last_name,
-    gender: user.gender == 'M' ? "1" : "2",
-    dob: user.dob,
+    gender: "M",//user.gender == 'M' ? "1" : "2",
+    dob: randomDateOfBirth(),//user.date_of_birth,
     pri_dep: "24",
     family_title: "24",
     tel_no: `256${user.phone_number}`,

@@ -110,21 +110,7 @@ export default function (args: RequestBody, db: any) {
       }
 
       // ===============SET MENU STATES============
-      // menu.startState({
-      //   run: async () => {
-      //     console.log(" ===========================");
-      //     console.log(" ******** START MENU *******");
-      //     console.log(" ===========================");
-      
-      //     menu.con(
-      //       'Insurance ' +
-      //         '\n1. Ddwaliro Care'
-      //     );
-      //   },
-      //   next: {
-      //     '1': 'account',
-      //   },
-      // });
+  
       
       menu.startState({
         run: async () => {
@@ -133,7 +119,7 @@ export default function (args: RequestBody, db: any) {
           console.log(" ===========================");
       
             menu.con(
-              'Medical cover' +
+              'Ddwaliro Care' +
                 '\n1. Buy for self' +
                 '\n2. Buy (family)' +
                 '\n3. Buy (others)' +

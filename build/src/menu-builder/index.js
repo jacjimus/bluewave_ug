@@ -103,26 +103,12 @@ function default_1(args, db) {
                 });
             }
             // ===============SET MENU STATES============
-            // menu.startState({
-            //   run: async () => {
-            //     console.log(" ===========================");
-            //     console.log(" ******** START MENU *******");
-            //     console.log(" ===========================");
-            //     menu.con(
-            //       'Insurance ' +
-            //         '\n1. Ddwaliro Care'
-            //     );
-            //   },
-            //   next: {
-            //     '1': 'account',
-            //   },
-            // });
             menu.startState({
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     console.log(" ===========================");
                     console.log(" ******** START MENU *******");
                     console.log(" ===========================");
-                    menu.con('Medical cover' +
+                    menu.con('Ddwaliro Care' +
                         '\n1. Buy for self' +
                         '\n2. Buy (family)' +
                         '\n3. Buy (others)' +
