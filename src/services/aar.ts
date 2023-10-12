@@ -120,7 +120,7 @@ async function registerPrincipal(user: any, policy: any, beneficiary: any, airte
   const userData: PrincipalRegistration = {
     surname: user.last_name,
     first_name: user.first_name,
-    other_names: user.middle_name || "",
+    other_names: user.middle_name || user.last_name,
     gender: user.gender == 'M' ? "1" : "2",
     dob: user.dob,
     pri_dep: "24",
@@ -213,7 +213,7 @@ interface requestPremiumData {
 async function updatePremium(data: any, policy: any, airtel_money_id: any) {
 
   try {
-    console.log("i was called update premium");
+
     console.log("updatePremium DATA", data, policy);
 
     const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / 12;

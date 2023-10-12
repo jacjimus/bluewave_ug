@@ -38,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
         policy_type: {
             type: DataTypes.STRING,
             allowNull: false,
-            enum: ["MINI", "MIDI", "BIGGIE", "FAMILY"]
+            enum: ["MINI", "MIDI", "BIGGIE"]
         },
         policy_end_date: {
             type: DataTypes.DATE,
@@ -58,11 +58,13 @@ module.exports = (sequelize, DataTypes) => {
         },
         installment_order: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: true,
+            enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] // monthly
         },
         installment_type: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: true,
+            enum: [1, 2] // 1 = annual, 2 = monthly
         },
         installment_date: {
             type: DataTypes.DATE,

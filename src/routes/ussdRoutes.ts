@@ -107,7 +107,14 @@ router.all("/callback", async (req, res) => {
       const { policy_id, user_id, amount, partner_id } = transactionData;
 
       const user = await Users.findOne({ where: { user_id } });
-      const policy = await Policy.findOne({ where: { policy_id } });
+      let policy = await Policy.findAll({ where: { policy_id } });
+
+      // latest policy
+      policy =  policy[policy.length - 1];
+
+
+
+      console.log("======= POLICY =========", policy);
 
       if (!policy) {
         console.log("Policy not found");
@@ -162,7 +169,7 @@ router.all("/callback", async (req, res) => {
           let installment_order = await db.installments.count({ where: { policy_id } });
           installment_order++;
 
-          installment =await db.installments.create({
+          installment = await db.installments.create({
             installment_id: uuidv4(),
             policy_id,
             installment_order,

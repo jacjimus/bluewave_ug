@@ -19,6 +19,13 @@ function myAccount(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
+    const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
+        return yield User.findOne({
+            where: {
+                phone_number: phoneNumber,
+            },
+        });
+    });
     menu.state("myAccount", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.con("My Account " +
@@ -27,8 +34,9 @@ function myAccount(menu, args, db) {
                 "\n3. Renew Policy" +
                 "\n4. Update My Profile(KYC)" +
                 "\n5. Cancel policy" +
-                "\n6. Update Beneficiary Details" +
-                "\n7. My Hospital" +
+                "\n6. Add Dependant" +
+                "\n7. Update Beneficiary" +
+                "\n8. My Hospital" +
                 "\n0.Back" +
                 "\n00.Main Menu");
         }),
@@ -38,8 +46,9 @@ function myAccount(menu, args, db) {
             "3": "renewPolicy",
             "4": "updateProfile",
             "5": "cancelPolicy",
-            "6": "listBeneficiaries",
-            "7": "myHospitalOption",
+            "6": "addDependant",
+            "7": "listBeneficiaries",
+            "8": "myHospitalOption",
             "0": "account",
             "00": "insurance",
         },
@@ -58,7 +67,7 @@ function myAccount(menu, args, db) {
             "1": "updateGender",
             "2": "updateGender",
             "0": "myAccount",
-            "00": "insurance",
+            "00": "account",
         },
     });
     menu.state("updateGender", {
@@ -80,7 +89,7 @@ function myAccount(menu, args, db) {
         next: {
             "*[0-9]": "updateDob",
             "0": "myAccount",
-            "00": "insurance",
+            "00": "account",
         },
     });
     menu.state("updateDob", {
@@ -116,7 +125,7 @@ function myAccount(menu, args, db) {
         next: {
             "*[0-9]": "updateMaritalStatus",
             "0": "myAccount",
-            "00": "insurance",
+            "00": "account",
         },
     });
     menu.state("updateMaritalStatus", {
@@ -160,40 +169,28 @@ function myAccount(menu, args, db) {
         }),
         next: {
             "0": "myAccount",
-            "00": "insurance",
+            "00": "account",
         },
     });
-    //list beneficiaries
-    menu.state("listBeneficiaries", {
+    // ======= ADD SPOUSE DEPENDANT =========
+    menu.state("addDependant", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const user = yield User.findOne({
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            console.log("USER: ", user === null || user === void 0 ? void 0 : user.user_id);
-            if (user) {
-                const beneficiaries = yield Beneficiary.findAll({
-                    where: {
-                        user_id: user === null || user === void 0 ? void 0 : user.user_id,
-                    },
-                });
-                console.log("BENEFICIARIES: ", beneficiaries);
-                if (beneficiaries.length > 0) {
-                    let beneficiaryInfo = "";
-                    for (let i = 0; i < beneficiaries.length; i++) {
-                        let beneficiary = beneficiaries[i];
-                        beneficiaryInfo += `${i + 1}. ${beneficiary.full_name.toUpperCase()}\n`;
-                    }
-                    menu.con(beneficiaryInfo);
-                }
-                else {
-                    menu.con("You have no beneficiaries\n0 Back");
-                }
-            }
-            else {
-                menu.end("User not found");
-            }
+            menu.con("Add Dependant " +
+                "\n1. Update Spouse" +
+                "\n2. Add Child" +
+                "\n0.Back" +
+                "\n00.Main Menu");
+        }),
+        next: {
+            "1": "updateSpouse",
+            "2": "addChild",
+            "0": "myAccount",
+            "00": "account",
+        },
+    });
+    menu.state("updateSpouse", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            menu.con("Enter gender of spouse: " + "\n1. Male" + "\n2. Female");
         }),
         next: {
             "*[0-9]": "updateBeneficiaryGender",
@@ -201,155 +198,53 @@ function myAccount(menu, args, db) {
     });
     menu.state("updateBeneficiaryGender", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con("Enter gender of beneficiary: " + "\n1. Male" + "\n2. Female");
+            const gender = menu.val == 1 ? "M" : "F";
+            console.log("GENDER", gender);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            let beneficiary = yield Beneficiary.findOne({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    relationship: "SPOUSE",
+                },
+            });
+            if (!beneficiary) {
+                return menu.end("You have not added a spouse, please buy family cover first");
+            }
+            console.log("BENEFICIARY: ", beneficiary);
+            beneficiary.gender = gender;
+            yield beneficiary.save();
+            console.log("USER: ", user);
+            menu.con(`Enter your spouse's date of birth in the format DDMMYYYY e.g 01011990
+            0. Back
+            00. Main Menu
+             `);
         }),
         next: {
             "*[0-9]": "updateBeneficiaryDob",
+            "0": "myAccount",
+            "00": "account",
         },
     });
     menu.state("updateBeneficiaryDob", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const ben_dob = menu.val;
-            console.log("ben_dob", ben_dob);
+            const spouse_dob = menu.val;
             // convert ddmmyyyy to valid date
-            let day = ben_dob.substring(0, 2);
-            let month = ben_dob.substring(2, 4);
-            let year = ben_dob.substring(4, 8);
+            let day = spouse_dob.substring(0, 2);
+            let month = spouse_dob.substring(2, 4);
+            let year = spouse_dob.substring(4, 8);
             let date = new Date(year, month - 1, day);
-            console.log("date", date);
-            //get the second last digit of the input
-            const selected = args.text;
-            const input = selected.trim();
-            const digits = input.split("*").map((digit) => parseInt(digit, 10));
-            console.log("digits", digits);
-            const beneficiaryId = digits[digits.length - 2];
-            console.log("beneficiaryId", beneficiaryId);
-            //get all beneficiaries for this user and select the one with the beneficiaryId index
-            const user = yield User.findOne({
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            const beneficiaries = yield Beneficiary.findAll({
+            console.log("DATE OF BIRTH", date);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            let beneficiary = yield Beneficiary.findOne({
                 where: {
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    relationship: "SPOUSE",
                 },
             });
-            let myBeneficiary = beneficiaries[beneficiaryId - 1];
-            console.log("myBeneficiary", myBeneficiary);
-            // FIRST_NAME LAST_NAME
-            // divide the name into first name and last name and save them separately
-            let names = myBeneficiary.full_name.split(" ");
-            let first_name = names[0];
-            let last_name = names[1];
-            let middle_names = names[2] || names[1];
-            console.log("GENDER", digits[digits.length - 1]);
-            if (myBeneficiary) {
-                // Update the beneficiary's information
-                let thisYear = new Date().getFullYear();
-                myBeneficiary.dob = date;
-                myBeneficiary.age = thisYear - date.getFullYear();
-                myBeneficiary.first_name = first_name;
-                myBeneficiary.last_name = last_name;
-                myBeneficiary.middle_names = middle_names;
-                myBeneficiary.gender = digits[digits.length - 1] == 1 ? "M" : "F";
-                myBeneficiary.save();
-            }
-            console.log("==== myBeneficiary =======", myBeneficiary);
-            menu.con("Enter beneficiary date of birth in the format DDMMYYYY e.g 01011990");
-        }),
-        next: {
-            "*[0-9]": "updateBeneficiaryConfirm",
-        },
-    });
-    menu.state("updateBeneficiaryConfirm", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            let dob = menu.val;
-            console.log("dob", dob);
-            // convert ddmmyyyy to valid date
-            let day = dob.substring(0, 2);
-            let month = dob.substring(2, 4);
-            let year = dob.substring(4, 8);
-            let date = new Date(year, month - 1, day);
-            console.log("date", date);
-            // Fetch the beneficiary ID from the previous step's input value
-            const selected = args.text;
-            const input = selected.trim();
-            const digits = input.split("*").map((digit) => parseInt(digit, 10));
-            console.log("digits", digits);
-            const beneficiaryId = digits[digits.length - 3];
-            console.log("beneficiaryId", beneficiaryId);
-            let gender = digits[digits.length - 2] == 1 ? "M" : "F";
-            console.log("gender", gender);
-            // Assuming you have the beneficiary ID from the previous steps
-            const user = yield User.findOne({
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            if (user) {
-                let beneficiaries = yield Beneficiary.findAll({
-                    where: {
-                        user_id: user === null || user === void 0 ? void 0 : user.user_id,
-                    },
-                    attributes: { exclude: [] }, // return all columns
-                });
-                const selectedBeneficiary = beneficiaries[beneficiaryId - 1];
-                console.log("selectedBeneficiary", selectedBeneficiary);
-                if (selectedBeneficiary) {
-                    // Update the beneficiary's information
-                    let thisYear = new Date().getFullYear();
-                    selectedBeneficiary.dob = date;
-                    selectedBeneficiary.age = thisYear - date.getFullYear();
-                    selectedBeneficiary.gender = gender;
-                    try {
-                        let result = yield selectedBeneficiary.save();
-                        console.log("Result after save:", result);
-                        menu.con("Enter the phone number of the beneficiary eg 0772123456");
-                    }
-                    catch (error) {
-                        console.error("Error saving beneficiary:", error);
-                        menu.end("Failed to update beneficiary. Please try again.");
-                    }
-                }
-                else {
-                    menu.end("Invalid beneficiary selection");
-                }
-            }
-            else {
-                menu.end("User not found");
-            }
-        }),
-        next: {
-            "*[0-9]": "updateBeneficiaryPhoneNumber",
-            "1": "cancelPolicyPin",
-        },
-    });
-    menu.state("updateBeneficiaryPhoneNumber", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            let ben_first_phone = menu.val;
-            //remove all non numeric characters
-            ben_first_phone = ben_first_phone.replace(/\D/g, "");
-            console.log("ben_first_phone", ben_first_phone);
-            //remove leading 0 if any and add 256
-            if (ben_first_phone.startsWith("0")) {
-                ben_first_phone = "256" + ben_first_phone.substring(1);
-            }
-            else if (ben_first_phone.startsWith("7")) {
-                ben_first_phone = "256" + ben_first_phone;
-            }
-            //check if phone number is valid
-            if (ben_first_phone.length != 12) {
-                menu.end("Invalid phone number");
-                return;
-            }
-            console.log("ben_first_phone", ben_first_phone);
-            let user = yield User.findOne({
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            console.log("USER: ", user);
+            beneficiary.dob = date;
+            beneficiary.age = new Date().getFullYear() - date.getFullYear();
+            yield beneficiary.save();
+            console.log("BENEFICIARY: ", beneficiary);
             const policy = yield Policy.findOne({
                 where: {
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -357,14 +252,6 @@ function myAccount(menu, args, db) {
                 },
             });
             console.log("POLICY: ", policy);
-            let beneficiary = yield Beneficiary.findOne({
-                where: {
-                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
-                },
-            });
-            beneficiary.phone_number = ben_first_phone;
-            yield beneficiary.save();
-            console.log("beneficiary", beneficiary);
             let arr_member = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
             console.log("arr_member", arr_member);
             if (arr_member.code == 200) {
@@ -372,7 +259,7 @@ function myAccount(menu, args, db) {
                     member_no: user.arr_member_number,
                     surname: beneficiary.last_name,
                     first_name: beneficiary.first_name,
-                    other_names: beneficiary.middle_name || "",
+                    other_names: beneficiary.middle_name || beneficiary.last_name,
                     gender: beneficiary.gender == "M" ? "1" : "2",
                     dob: beneficiary.dob,
                     email: "dependant@bluewave.insure",
@@ -385,22 +272,125 @@ function myAccount(menu, args, db) {
                         other_names: "",
                         tel_no: "",
                     },
-                    member_status: "2",
+                    member_status: "1",
                     health_option: "63",
                     health_plan: "AIRTEL_" + (policy === null || policy === void 0 ? void 0 : policy.policy_type),
                     policy_start_date: policy.policy_start_date,
                     policy_end_date: policy.policy_end_date,
-                    unique_profile_id: user.membership_id + "-04",
+                    unique_profile_id: user.membership_id + "-01",
                 });
             }
-            menu.con(`Your beneficiary profile has been updated successfully
-            0. Back
-            00. Main Menu
-             `);
+            menu.con(`Your spouse ${beneficiary.full_name} profile has been updated successfully
+                0. Back
+                00. Main Menu
+                 `);
         }),
         next: {
             "0": "myAccount",
-            "00": "insurance",
+            "00": "account",
+        },
+    });
+    // ======= ADD CHILD DEPENDANT =========
+    menu.state("addChild", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            menu.con("Enter child's name: ");
+        }),
+        next: {
+            "*[a-zA-Z]": "addChildGender",
+        },
+    });
+    menu.state("addChildGender", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            let child_name = menu.val;
+            console.log("CHILD NAME", child_name);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            let beneficiary = yield Beneficiary.findAll({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    relationship: "CHILD",
+                },
+            });
+            console.log("BENEFICIARY: ", beneficiary);
+            yield Beneficiary.create({
+                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                full_name: child_name,
+                first_name: child_name.split(" ")[0],
+                middle_name: child_name.split(" ")[1],
+                last_name: child_name.split(" ")[2] || child_name.split(" ")[1],
+                relationship: "CHILD",
+            });
+            console.log("BENEFICIARY: ", beneficiary);
+            menu.con(`Enter child's date of birth in the format DDMMYYYY e.g 01011990`);
+        }),
+        next: {
+            "*[0-9]": "addChildDob",
+        },
+    });
+    menu.state("addChildDob", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            let child_dob = menu.val;
+            console.log("CHILD DOB", child_dob);
+            // convert ddmmyyyy to valid date
+            let day = child_dob.substring(0, 2);
+            let month = child_dob.substring(2, 4);
+            let year = child_dob.substring(4, 8);
+            let date = new Date(year, month - 1, day);
+            console.log("DATE OF BIRTH", date);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            let beneficiary = yield Beneficiary.findAll({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    relationship: "CHILD",
+                },
+            });
+            beneficiary = beneficiary[beneficiary.length - 1];
+            beneficiary.dob = date;
+            beneficiary.age = new Date().getFullYear() - date.getFullYear();
+            yield beneficiary.save();
+            console.log("BENEFICIARY: ", beneficiary);
+            const policy = yield Policy.findOne({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    beneficiary: 'FAMILY',
+                },
+            });
+            console.log("POLICY: ", policy);
+            let arr_member = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+            console.log("arr_member", arr_member);
+            if (arr_member.code == 200) {
+                yield (0, aar_1.registerDependant)({
+                    member_no: user.arr_member_number,
+                    surname: beneficiary.last_name,
+                    first_name: beneficiary.first_name,
+                    other_names: beneficiary.middle_name || beneficiary.last_name,
+                    gender: beneficiary.gender,
+                    dob: beneficiary.dob,
+                    email: "dependant@bluewave.insure",
+                    pri_dep: "25",
+                    family_title: "25",
+                    tel_no: beneficiary.phone_number,
+                    next_of_kin: {
+                        surname: "",
+                        first_name: "",
+                        other_names: "",
+                        tel_no: "",
+                    },
+                    member_status: "1",
+                    health_option: "63",
+                    health_plan: "AIRTEL_" + (policy === null || policy === void 0 ? void 0 : policy.policy_type),
+                    policy_start_date: policy.policy_start_date,
+                    policy_end_date: policy.policy_end_date,
+                    unique_profile_id: user.membership_id + "-02",
+                });
+            }
+            menu.con(`Your child ${beneficiary.full_name} profile has been updated successfully
+                0. Back
+                00. Main Menu
+                 `);
+        }),
+        next: {
+            "0": "myAccount",
+            "00": "account",
         },
     });
     //============CANCEL POLICY=================
@@ -491,7 +481,7 @@ function myAccount(menu, args, db) {
             }
             const message = `You CANCELLED your Medical cover cover. Your Policy will expire on ${today} and you will not be covered. Dial *187*7*1# to reactivate.`;
             const sms = yield (0, sendSMS_1.default)(to, message);
-            menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *187*7# to reactivate.
+            menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *185*7*6# to reactivate.
             0.Back     00.Main Menu`);
         }),
         next: {
@@ -520,13 +510,18 @@ function myAccount(menu, args, db) {
                     user_id: user === null || user === void 0 ? void 0 : user.user_id,
                 },
             });
+            console.log("====USER ===  ", user === null || user === void 0 ? void 0 : user.user_id);
             let otherPolicies = yield Policy.findAll({
                 where: {
                     bought_for: user === null || user === void 0 ? void 0 : user.user_id,
                 },
             });
+            console.log("OTHER POLICIES: ", otherPolicies);
             policies = policies.concat(otherPolicies);
             console.log("POLICIES: ", policies);
+            function formatNumberToM(value) {
+                return (value / 1000000).toFixed(1) + 'M';
+            }
             if (policies.length === 0) {
                 menu.con("You have no policies\n" +
                     "1. Buy cover\n" +
@@ -547,9 +542,11 @@ function myAccount(menu, args, db) {
                     return `${dd}/${mm}/${yyyy}`;
                 };
                 policy.policy_end_date = formatDate(policy.policy_end_date);
-                policyInfo += ` Dwaliro Biggie Inpatient UGX ${policy.sum_insured} and Funeral benefit UGX ${policy.last_expense_insured} is active and paid to ${policy.policy_end_date}. Dial *187*7# to renew.
-        0.Back 00.Main Menu 01 Next`;
+                policyInfo += ` Dwaliro Inpatient UGX ${formatNumberToM(policy.sum_insured)} and Funeral benefit UGX ${formatNumberToM(policy.last_expense_insured)} is active and paid to ${policy.policy_end_date.toDateString()}.
+        `;
             }
+            policyInfo += "Dial *185*7*6# to renew";
+            policyInfo += "\n0. Back\n00. Main Menu";
             menu.end(`My Insurance Policies:\n\n${policyInfo}`);
         }),
         next: {
@@ -566,6 +563,24 @@ function myAccount(menu, args, db) {
                 "\n0.Back" +
                 "\n00.Main Menu");
         }),
+    });
+    //renewPolicy
+    menu.state("renewPolicy", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            // get policy
+            const user = yield User.findOne({
+                where: {
+                    phone_number: args.phoneNumber,
+                },
+            });
+            console.log("USER: ", user);
+            const policy = yield Policy.findOne({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                },
+            });
+            //list
+        })
     });
 }
 exports.myAccount = myAccount;

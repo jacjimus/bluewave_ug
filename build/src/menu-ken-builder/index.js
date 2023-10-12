@@ -1202,7 +1202,7 @@ function handleUssd(args, db) {
                         policy.policy_end_date = today;
                         yield policy.save();
                     }
-                    menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *187*7# to reactivate.
+                    menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *185*7*6# to reactivate.
             0.Back     00.Main Menu`);
                 }),
                 next: {

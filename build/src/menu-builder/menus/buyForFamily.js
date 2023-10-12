@@ -31,19 +31,21 @@ function buyForFamily(menu, args, db) {
         });
     });
     const findPaidPolicyByUser = (user) => __awaiter(this, void 0, void 0, function* () {
-        return yield Policy.findOne({
+        let policies = yield Policy.findAll({
             where: {
-                user_id: user === null || user === void 0 ? void 0 : user.user_id,
-                policy_status: 'paid',
+                user_id: user.user_id,
+                policy_status: 'paid'
             },
         });
+        return policies[policies.length - 1];
     });
     const findPolicyByUser = (user_id) => __awaiter(this, void 0, void 0, function* () {
-        return yield Policy.findOne({
+        let policies = yield Policy.findAll({
             where: {
                 user_id: user_id,
             },
         });
+        return policies[policies.length - 1];
     });
     //============  BUY FOR FAMILY ===================
     menu.state('buyForFamily', {
@@ -55,7 +57,7 @@ function buyForFamily(menu, args, db) {
             //     return;
             // }
             menu.con('Buy for family ' +
-                '\n1. Self +Spouse or Child' +
+                '\n1. Self + Spouse or Child' +
                 '\n2. Self + Spouse + 1 Child' +
                 '\n3. Self + Spouse + 2 Children' +
                 '\n01. Next' +
@@ -67,7 +69,7 @@ function buyForFamily(menu, args, db) {
             '2': 'buyForFamily.selfSpouseCover',
             '3': 'buyForFamily.selfSpouseCover',
             '0': 'account',
-            '00': 'insurance',
+            '00': 'account',
             "01": "buyForFamily.next"
         }
     });
@@ -90,6 +92,8 @@ function buyForFamily(menu, args, db) {
             '4': 'buyForFamily.selfSpouseCover',
             '5': 'buyForFamily.selfSpouseCover',
             '6': 'buyForFamily.selfSpouseCover',
+            '0': 'buyForFamily',
+            '00': 'account',
         }
     });
     menu.state('buyForFamily.selfSpouseCover', {
@@ -188,7 +192,7 @@ function buyForFamily(menu, args, db) {
             console.log("COVER TYPE", coverType);
             let { user_id, partner_id, total_member_number } = yield findUserByPhoneNumber(args.phoneNumber);
             let date = new Date();
-            let day = date.getDate();
+            let day = date.getDate() - 1;
             if (coverType == 1) {
                 coverType = 'MINI';
             }
@@ -220,7 +224,7 @@ function buyForFamily(menu, args, db) {
         next: {
             '*[a-zA-Z]+': 'buyForFamily.selfSpouseName',
             '0': 'buyForFamily',
-            '00': 'insurance'
+            '00': 'account'
         }
     });
     menu.state('buyForFamily.selfSpouseName', {
@@ -234,7 +238,7 @@ function buyForFamily(menu, args, db) {
                 first_name: spouse.split(" ")[0],
                 middle_name: spouse.split(" ")[1],
                 last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
-                relationship: 'SPOUSEORCHILD-1',
+                relationship: 'SPOUSE',
                 member_number: total_member_number,
                 user_id: user_id
             };
@@ -247,23 +251,31 @@ function buyForFamily(menu, args, db) {
         next: {
             '*\\d+': 'buyForFamily.selfSpousePhoneNumber',
             '0': 'buyForFamily',
-            '00': 'insurance'
+            '00': 'account'
         }
     });
     //buyForFamily.selfSpouse.spouse
     menu.state('buyForFamily.selfSpousePhoneNumber', {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            const spousePhone = menu.val;
+            let spousePhone = menu.val;
             console.log("SPOUSE Phone", spousePhone);
-            const { user_id, partner_id, brought_for, cover_type, phone_number, first_name, last_name, total_member_number } = yield findUserByPhoneNumber(args.phoneNumber);
+            // remove the first character from the phone number if it is + sign or 0
+            if (spousePhone.charAt(0) == "+") {
+                spousePhone = spousePhone.substring(1);
+            }
+            const current_beneficiary = yield Beneficiary.findOne({ where: { phone_number: spousePhone } });
+            if (current_beneficiary) {
+                menu.con('Beneficiary already exists');
+            }
+            const { user_id, partner_id, cover_type, phone_number, first_name, last_name, total_member_number } = yield findUserByPhoneNumber(args.phoneNumber);
             console.log(" ========= USER total_member_number========", total_member_number);
-            yield Beneficiary.update({ phone_number: spousePhone }, { where: { user_id: user_id, relationship: 'SPOUSEORCHILD-1' } });
+            yield Beneficiary.update({ phone_number: spousePhone }, { where: { user_id: user_id, relationship: 'SPOUSE' } });
             console.log(" ==========  POLICY TYPE ==========", cover_type);
-            const { policy_type, beneficiary } = yield findPolicyByUser(user_id);
-            console.log(" ========= USER policy_type========", policy_type, beneficiary, brought_for);
-            // if(brought_for !== null ){
-            //     await User.update({ phone_number: spousePhone  }, { where: { user_id :brought_for} });
-            // }
+            const { policy_type, beneficiary, bought_for } = yield findPolicyByUser(user_id);
+            console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for);
+            if (bought_for !== null) {
+                yield User.update({ phone_number: spousePhone }, { where: { user_id: bought_for } });
+            }
             let sum_insured, period, installment_type, si, premium = 0, yearly_premium = 0, last_expense_insured = 0, lei;
             let paymentOption = 1;
             let coverType = cover_type;
@@ -561,9 +573,9 @@ function buyForFamily(menu, args, db) {
             console.log("PREMIUM", premium);
             console.log("LAST EXPENSE INSURED", last_expense_insured);
             console.log("YEARLY PREMIUM", yearly_premium);
-            menu.con(`Inpatient Family cover for ${phone_number}, ${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} each a year
+            menu.con(`Inpatient Family cover for ${first_name.toUpperCase()} ${last_name.toUpperCase()} ${phone_number}, UGX ${si} 
                   PAY
-                  1-UGX ${new Intl.NumberFormat().format(premium)} payable monthly
+                  1-UGX ${new Intl.NumberFormat().format(premium)} monthly
                   2-UGX ${new Intl.NumberFormat().format(yearly_premium)} yearly
                   0.Back
                   00.Main Menu`);
@@ -571,7 +583,7 @@ function buyForFamily(menu, args, db) {
         next: {
             '*\\d+': 'buyForFamilyPin',
             '0': 'buyForFamily',
-            '00': 'insurance'
+            '00': 'account'
         }
     });
     menu.state('buyForFamilyPin', {
@@ -882,7 +894,7 @@ function buyForFamily(menu, args, db) {
         next: {
             '*\\d+': 'family.confirmation',
             '0': 'buyForFamily',
-            '00': 'insurance'
+            '00': 'account'
         }
     });
     //buyForFamily.selfSpouse.pay.yearly
@@ -897,16 +909,26 @@ function buyForFamily(menu, args, db) {
                 const digits = input.split("*").map((digit) => parseInt(digit, 10));
                 let paymentOption = Number(digits[digits.length - 2]);
                 console.log("PAYMENT OPTION", paymentOption);
-                const { user_id, phone_number, partner_id, membership_id, pin, total_member_number, cover_type } = yield findUserByPhoneNumber(args.phoneNumber);
+                let user = yield findUserByPhoneNumber(args.phoneNumber);
+                const { user_id, phone_number, partner_id, membership_id, pin, total_member_number, cover_type } = user;
                 let coverType = cover_type;
                 if (userPin != pin && userPin != membership_id) {
                     menu.end('Invalid PIN');
                 }
-                const { policy_type, policy_id } = yield findPolicyByUser(user_id);
+                const { policy_type, policy_id, beneficiary, bought_for } = yield findPolicyByUser(user_id);
+                console.log("POLICY TYPE", policy_type);
+                console.log("POLICY ID", policy_id);
+                console.log("BENEFICIARY", beneficiary);
+                console.log("BOUGHT FOR", bought_for);
                 if (policy_id == null) {
                     menu.end('Sorry, you have no policy to buy for family');
                 }
-                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0, si = '', lei, yearly_premium = 0;
+                let otherMember;
+                if (bought_for !== null && beneficiary == "OTHERS") {
+                    otherMember = yield User.findOne({ where: { user_id: bought_for } });
+                    console.log("OTHER MEMBER", otherMember);
+                }
+                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0, si = '', lei, yearly_premium = 0, members = '';
                 if (coverType == 'MINI') {
                     lei = "1M";
                     si = "1.5M";
@@ -922,6 +944,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 120000;
                         last_expense_insured = 1000000;
+                        members = "other";
                         if (paymentOption == 1) {
                             premium = 10000;
                             yearly_premium = 240000;
@@ -932,6 +955,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 240000;
                         last_expense_insured = 1000000;
+                        members = "You and 1 dependent";
                         if (paymentOption == 1) {
                             premium = 20000;
                             yearly_premium = 240000;
@@ -942,6 +966,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 360000;
                         last_expense_insured = 1000000;
+                        members = "You and 2 dependent";
                         if (paymentOption == 1) {
                             premium = 30000;
                             yearly_premium = 360000;
@@ -952,6 +977,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 480000;
                         last_expense_insured = 1000000;
+                        members = "You and 3 dependent";
                         if (paymentOption == 1) {
                             premium = 40000;
                             yearly_premium = 480000;
@@ -962,6 +988,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 600000;
                         last_expense_insured = 1000000;
+                        members = "You and 4 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 50000;
@@ -973,6 +1000,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 720000;
                         last_expense_insured = 1000000;
+                        members = "You and 5 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 60000;
@@ -984,6 +1012,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 840000;
                         last_expense_insured = 1000000;
+                        members = "You and 6 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 70000;
@@ -995,6 +1024,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 1500000;
                         premium = 240000;
                         last_expense_insured = 1000000;
+                        members = "You";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 20000;
@@ -1018,6 +1048,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 167000;
                         last_expense_insured = 1500000;
+                        members = "other";
                         if (paymentOption == 1) {
                             premium = 14000;
                             yearly_premium = 167000;
@@ -1028,6 +1059,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 322000;
                         last_expense_insured = 1500000;
+                        members = "You and 1 dependent";
                         if (paymentOption == 1) {
                             premium = 28000;
                             yearly_premium = 322000;
@@ -1038,6 +1070,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 467000;
                         last_expense_insured = 1500000;
+                        members = "You and 2 dependent";
                         if (paymentOption == 1) {
                             premium = 40000;
                             yearly_premium = 467000;
@@ -1048,6 +1081,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 590000;
                         last_expense_insured = 1500000;
+                        members = "You and 3 dependent";
                         if (paymentOption == 1) {
                             premium = 50000;
                             yearly_premium = 590000;
@@ -1058,6 +1092,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 720000;
                         last_expense_insured = 1500000;
+                        members = "You and 4 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 63000;
@@ -1069,6 +1104,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 860000;
                         last_expense_insured = 1500000;
+                        members = "You and 5 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 75000;
@@ -1080,6 +1116,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 1010000;
                         last_expense_insured = 1500000;
+                        members = "You and 6 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 88000;
@@ -1091,6 +1128,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 3000000;
                         premium = 322000;
                         last_expense_insured = 1500000;
+                        members = "You";
                         if (paymentOption == 1) {
                             premium = 28000;
                             yearly_premium = 322000;
@@ -1113,6 +1151,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 208000;
                         last_expense_insured = 2000000;
+                        members = "other";
                         if (paymentOption == 1) {
                             premium = 18000;
                             yearly_premium = 208000;
@@ -1123,6 +1162,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 400000;
                         last_expense_insured = 2000000;
+                        members = "You and 1 dependent";
                         if (paymentOption == 1) {
                             premium = 35000;
                             yearly_premium = 400000;
@@ -1133,6 +1173,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 577000;
                         last_expense_insured = 2000000;
+                        members = "You and 2 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 50000;
@@ -1144,6 +1185,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 740000;
                         last_expense_insured = 2000000;
+                        members = "You and 3 dependent";
                         if (paymentOption == 1) {
                             premium = 65000;
                             yearly_premium = 740000;
@@ -1154,6 +1196,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 885000;
                         last_expense_insured = 2000000;
+                        members = "You and 4 dependent";
                         if (paymentOption == 1) {
                             premium = 77000;
                             yearly_premium = 885000;
@@ -1164,6 +1207,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 1060000;
                         last_expense_insured = 2000000;
+                        members = "You and 5 dependent";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 93000;
@@ -1186,6 +1230,7 @@ function buyForFamily(menu, args, db) {
                         sum_insured = 5000000;
                         premium = 400000;
                         last_expense_insured = 2000000;
+                        members = "You";
                         if (paymentOption == 1) {
                             period = 'monthly';
                             premium = 35000;
@@ -1212,13 +1257,39 @@ function buyForFamily(menu, args, db) {
                 }, { where: { user_id: user_id } });
                 let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
                 //let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)
-                let congratSms = `Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
-                             Cover valid till ${policy_end_date.toDateString()}.  `;
+                let members_covered, congratSms, congratText, frequency = 'monthly';
+                if (paymentOption == 1) {
+                    frequency = 'month';
+                }
+                else {
+                    frequency = 'year';
+                }
+                if (beneficiary == "FAMILY") {
+                    members_covered = "Your family";
+                    congratText = `Congratulations! Your family is now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    Cover valid till ${policy_end_date.toDateString()}.`;
+                    congratText = `Congratulations! ${members} are each covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                     Cover valid till ${policy_end_date.toDateString()} `;
+                }
+                else if (beneficiary == "OTHERS") {
+                    members_covered = members;
+                    congratText = `Congratulations! You have bought cover for ${otherMember === null || otherMember === void 0 ? void 0 : otherMember.name.toUpperCase()} for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    Cover valid till ${policy_end_date.toDateString()}.  `;
+                    congratText = `Congratulations! You have  bought Mini cover for ${otherMember === null || otherMember === void 0 ? void 0 : otherMember.name.toUpperCase()} . 
+                    Pay UGX ${premium} every ${frequency} to stay covered`;
+                }
+                else {
+                    members_covered = "You";
+                    congratText = `Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    Cover valid till ${policy_end_date.toDateString()}`;
+                    congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
+                    Pay UGX ${premium} every ${frequency} to stay covered`;
+                }
                 console.log("PAYMENT STATUS", paymentStatus);
                 if (paymentStatus.code === 200) {
+                    yield user.update({ cover_type: null, total_member_number: null });
                     yield (0, sendSMS_1.default)(phone_number, congratSms);
-                    menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
-                        Cover valid till ${policy_end_date.toDateString()}`);
+                    menu.end(congratText);
                 }
                 else {
                     menu.end(`Sorry, your payment was not successful. 

@@ -25,20 +25,23 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     };
 
     const findPaidPolicyByUser = async (user: any) => {
-        return await Policy.findOne({
+        let policies = await Policy.findAll({
             where: {
-                user_id: user?.user_id,
-                policy_status: 'paid',
+                user_id: user.user_id,
+                policy_status: 'paid'
             },
         });
+        return policies[policies.length - 1];
     };
 
     const findPolicyByUser = async (user_id: any) => {
-        return await Policy.findOne({
+        let policies =  await Policy.findAll({
             where: {
                 user_id: user_id,
             },
         });
+
+        return policies[policies.length - 1];
     }
 
     
@@ -66,7 +69,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             '*\\d+': 'buyForSelf.coverType',
 
             '0': 'account',
-            '00': 'insurance',
+            '00': 'account',
         }
     });
     menu.state('buyForSelf.coverType', {
@@ -75,7 +78,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
             const { user_id, phone_number, first_name, last_name, partner_id } = await findUserByPhoneNumber(args.phoneNumber);
             const date = new Date();
-            const day = date.getDate();
+            const day = date.getDate() - 1;
             let sum_insured: any, premium: any, yearly_premium: any;
             if (coverType == 1) {
                 coverType = 'MINI';
@@ -114,7 +117,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
             menu.con(`Inpatient cover for ${phone_number},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                     PAY
-                    1-UGX ${premium} payable monthly
+                    1-UGX ${premium} monthly
                     2-UGX ${yearly_premium} yearly
                     
                     0. Back 00. Main Menu`);
@@ -139,6 +142,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 installment_type = 1;
                 sum_insured = 1500000;
                 premium = 120000;
+                
                 if(paymentOption == 1){
                     period = 'monthly'
                     premium = 10000;
@@ -164,6 +168,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 sum_insured = 5000000;
                 premium = 208000;
                 
+                
                 if(paymentOption == 1){
                     period = 'monthly'
                     premium = 18000;
@@ -174,8 +179,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             menu.con(`Pay UGX ${premium} payable ${period}.
             Terms&Conditions - www.airtel.com
             Enter PIN to Agree and Pay 
-            n0.Back
-            00.Main Menu`
+            \n0 .Back
+             00 .Main Menu`
     )
         },
         next: {
@@ -191,9 +196,9 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             try {
 
                 const userPin = Number(menu.val)
-                console.log("USER PIN", userPin)
+              
                 const selected = args.text;
-                console.log("SELECTED TEXT", selected)
+            
 
                 const input = selected.trim();
                 const digits = input.split("*").map((digit) => parseInt(digit, 10));
@@ -212,7 +217,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 if(policy_id == null){
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly',last_expense_insured: number = 0, si: string , lei: string;
+               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly',last_expense_insured: number = 0, si: string , lei: string, frequency: string;
                if(policy_type == 'MINI'){
                     period = 'yearly'
                     installment_type = 1;
@@ -239,7 +244,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     if(paymentOption == 1){
                         period = 'monthly'
                         premium = 14000;
-                    installment_type = 2;
+                        installment_type = 2;
 
                     }
                 }
@@ -258,6 +263,12 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
                     }
                     
+                }
+
+                if (paymentOption == 1) {
+                    frequency = 'month'
+                } else {
+                    frequency = 'year'
                 }
 
                 const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
@@ -281,10 +292,12 @@ export function buyForSelf(menu: any, args: any, db: any): void {
   
                    console.log("PAYMENT STATUS", paymentStatus)
                     if (paymentStatus.code === 200) {
-                    menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                      let  congratText =`Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
+                        Pay UGX ${premium} every ${frequency} to stay covered`
+                        await sendSMS(phone_number, congratText);
+
+                        menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                            Cover valid till ${policy_end_date.toDateString()}`)
-
-
                     
                     } else {
                         menu.end(`Sorry, your payment was not successful. 

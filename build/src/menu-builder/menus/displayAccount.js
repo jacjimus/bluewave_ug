@@ -34,8 +34,9 @@ function displayAccount(menu, args, db) {
                     '\n5. My Policy' +
                     '\n6. View Hopital' +
                     '\n7. Terms & Conditions' +
-                    '\n8. FAQs' +
-                    '\n00.Main Menu');
+                    '\n8. FAQs'
+                // '\n00.Main Menu'
+                );
             }
             else {
                 menu.con('Medical cover ' +
@@ -52,7 +53,7 @@ function displayAccount(menu, args, db) {
             '7': 'termsAndConditions',
             '8': 'faqs',
             '0': 'updateProfile',
-            '00': 'insurance',
+            // '00': 'account',
         }
     });
 }

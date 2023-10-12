@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buyForSelf = void 0;
+const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const payment_1 = require("../../services/payment");
 const uuid_1 = require("uuid");
 function buyForSelf(menu, args, db) {
@@ -27,19 +31,21 @@ function buyForSelf(menu, args, db) {
         });
     });
     const findPaidPolicyByUser = (user) => __awaiter(this, void 0, void 0, function* () {
-        return yield Policy.findOne({
+        let policies = yield Policy.findAll({
             where: {
-                user_id: user === null || user === void 0 ? void 0 : user.user_id,
-                policy_status: 'paid',
+                user_id: user.user_id,
+                policy_status: 'paid'
             },
         });
+        return policies[policies.length - 1];
     });
     const findPolicyByUser = (user_id) => __awaiter(this, void 0, void 0, function* () {
-        return yield Policy.findOne({
+        let policies = yield Policy.findAll({
             where: {
                 user_id: user_id,
             },
         });
+        return policies[policies.length - 1];
     });
     menu.state('buyForSelf', {
         run: () => __awaiter(this, void 0, void 0, function* () {
@@ -59,7 +65,7 @@ function buyForSelf(menu, args, db) {
         next: {
             '*\\d+': 'buyForSelf.coverType',
             '0': 'account',
-            '00': 'insurance',
+            '00': 'account',
         }
     });
     menu.state('buyForSelf.coverType', {
@@ -67,7 +73,7 @@ function buyForSelf(menu, args, db) {
             let coverType = menu.val;
             const { user_id, phone_number, first_name, last_name, partner_id } = yield findUserByPhoneNumber(args.phoneNumber);
             const date = new Date();
-            const day = date.getDate();
+            const day = date.getDate() - 1;
             let sum_insured, premium, yearly_premium;
             if (coverType == 1) {
                 coverType = 'MINI';
@@ -103,7 +109,7 @@ function buyForSelf(menu, args, db) {
             });
             menu.con(`Inpatient cover for ${phone_number},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                     PAY
-                    1-UGX ${premium} payable monthly
+                    1-UGX ${premium} monthly
                     2-UGX ${yearly_premium} yearly
                     
                     0. Back 00. Main Menu`);
@@ -156,8 +162,8 @@ function buyForSelf(menu, args, db) {
             menu.con(`Pay UGX ${premium} payable ${period}.
             Terms&Conditions - www.airtel.com
             Enter PIN to Agree and Pay 
-            n0.Back
-            00.Main Menu`);
+            \n0 .Back
+             00 .Main Menu`);
         }),
         next: {
             '*\\d+': 'buyForSelf.confirm',
@@ -169,9 +175,7 @@ function buyForSelf(menu, args, db) {
         run: () => __awaiter(this, void 0, void 0, function* () {
             try {
                 const userPin = Number(menu.val);
-                console.log("USER PIN", userPin);
                 const selected = args.text;
-                console.log("SELECTED TEXT", selected);
                 const input = selected.trim();
                 const digits = input.split("*").map((digit) => parseInt(digit, 10));
                 let paymentOption = Number(digits[digits.length - 2]);
@@ -184,7 +188,7 @@ function buyForSelf(menu, args, db) {
                 if (policy_id == null) {
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0, si, lei;
+                let sum_insured, premium = 0, installment_type = 0, period = 'monthly', last_expense_insured = 0, si, lei, frequency;
                 if (policy_type == 'MINI') {
                     period = 'yearly';
                     installment_type = 1;
@@ -227,6 +231,12 @@ function buyForSelf(menu, args, db) {
                         installment_type = 2;
                     }
                 }
+                if (paymentOption == 1) {
+                    frequency = 'month';
+                }
+                else {
+                    frequency = 'year';
+                }
                 const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
                 yield Policy.update({
                     policy_deduction_amount: premium,
@@ -242,6 +252,9 @@ function buyForSelf(menu, args, db) {
                 let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
                 console.log("PAYMENT STATUS", paymentStatus);
                 if (paymentStatus.code === 200) {
+                    let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
+                        Pay UGX ${premium} every ${frequency} to stay covered`;
+                    yield (0, sendSMS_1.default)(phone_number, congratText);
                     menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                            Cover valid till ${policy_end_date.toDateString()}`);
                 }

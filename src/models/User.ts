@@ -6,6 +6,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         user_id: {
             type: DataTypes.UUID,
             defaultValue: uuid(),
+            unique: true,
             primaryKey: true,
         },
         id: {
@@ -136,7 +137,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         cover_type: {
             type: DataTypes.STRING,
             allowNull: true
-        },
+        }
        
     }, { timestamps: true },)
 

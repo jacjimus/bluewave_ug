@@ -97,7 +97,10 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
             });
             const { policy_id, user_id, amount, partner_id } = transactionData;
             const user = yield Users.findOne({ where: { user_id } });
-            const policy = yield Policy.findOne({ where: { policy_id } });
+            let policy = yield Policy.findAll({ where: { policy_id } });
+            // latest policy
+            policy = policy[policy.length - 1];
+            console.log("======= POLICY =========", policy);
             if (!policy) {
                 console.log("Policy not found");
                 return res.status(404).json({ message: "Policy not found" });

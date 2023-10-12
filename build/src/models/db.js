@@ -25,6 +25,7 @@ exports.db.logs = require('./Log')(sequelize, DataTypes);
 exports.db.transactions = require('./Transaction')(sequelize, DataTypes);
 exports.db.installments = require('./Installment')(sequelize, DataTypes);
 exports.db.user_hospitals = require('./UserHospital')(sequelize, DataTypes);
+exports.db.hospitals = require('./Hospital')(sequelize, DataTypes);
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
 //insert a test pdf to policy table, colunm policy_documents which id jsonb[]

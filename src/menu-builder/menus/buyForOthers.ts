@@ -33,11 +33,13 @@ export function buyForOthers(menu: any, args: any, db: any): void {
     };
 
     const findPolicyByUser = async (user_id: any) => {
-        return await Policy.findOne({
+        let policies  = await Policy.findAll({
             where: {
                 user_id: user_id,
             },
         });
+
+        return policies[policies.length - 1];
     }
 
     //buyForOthers
@@ -199,7 +201,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
             console.log("COVER TYPE", coverType)
             let { user_id, partner_id, total_member_number } = await findUserByPhoneNumber(args.phoneNumber);
             let date = new Date();
-            let day = date.getDate();
+            let day = date.getDate() - 1;
 
             if (coverType == 1) {
                 coverType = 'MINI';
@@ -235,57 +237,457 @@ export function buyForOthers(menu: any, args: any, db: any): void {
             
         },
         next: {
-            '*[a-zA-Z]+': 'buyForOthersPhoneNumber',
+            '*[a-zA-Z]+': 'buyForOthersName',
         }
     });
 
-    menu.state('buyForOthersPhoneNumber', {
+    menu.state('buyForOthersName', {
         run: async () => {
             let name = menu.val;
+            console.log("NAME", name)
+           
+            menu.con('Enter Phone number for Other');
+        },
+        next: {
+            '*\\d+': 'buyForOthersPhoneNumber',
+        }
+    });
+    
+
+    menu.state('buyForOthersPhoneNumber', {
+        run: async () => {
+            let otherPhone = menu.val;
+            console.log("SPOUSE Phone", otherPhone)
+
+            //uganda phone number validation
+           
+            if (otherPhone.charAt(0) == "0") {
+                otherPhone = otherPhone.substring(1);
+            }
+            if (otherPhone.charAt(0) == "+") {
+                otherPhone = otherPhone.substring(1);
+            }
+
+            if (otherPhone.charAt(0) == "256") {
+                otherPhone = otherPhone.substring(3);
+            }
+
+            if (otherPhone.length != 9) {
+                menu.end('Invalid Phone Number');
+                return;
+            }
+           
+
+            console.log("OTHER PHONE NUMBER", otherPhone)
+
 
             let user = await findUserByPhoneNumber(args.phoneNumber);
 
-            const newBeneficiary = await db.beneficiaries.create({
-                beneficiary_id: uuidv4(),
-                user_id: user?.user_id,
-                full_name: name,
-                first_name: name.split(" ")[0],
-                middle_name: name.split(" ")[1],
-                last_name: name.split(" ")[2] || name.split(" ")[1],
 
-            });
+            // second last input text
+            let otherName = menu.args.text.split("*")[menu.args.text.split("*").length - 2];
+        
+            console.log("OTHER NAME", otherName)
+
+
             let uniqueId = uuidv4();
             const newUser = await User.create({
                 user_id: uniqueId,
-                name: name,
-                first_name: name.split(" ")[0],
-                middle_name: name.split(" ")[1],
-                last_name: name.split(" ")[2] || name.split(" ")[1],
-                password: await bcrypt.hash(`${name}`, 10),
+                name: otherName,
+                first_name: otherName.split(" ")[0],
+                middle_name: otherName.split(" ")[1],
+                last_name: otherName.split(" ")[2] || otherName.split(" ")[1],
+                password: await bcrypt.hash(`${otherName}`, 10),
                 createdAt: new Date(),
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 pin: Math.floor(1000 + Math.random() * 9000),
                 nationality: 'UGANDA',
-                bought_for: user?.user_id,
+                phone_number: otherPhone,
+                role: 'user',
+                partner_id: user.partner_id,
             })
-
-            await User.update({ bought_for : newUser.user_id }, { where: { phone_number: args.phoneNumber } });
 
 
             console.log("NEW USER", newUser)
 
 
-            await Policy.update({ bought_for: newUser.user_id }, { where: { user_id: user?.user_id, beneficiary: 'OTHERS' } });
-            console.log("NEW BENEFICIARY", newBeneficiary);
+            let otherPolicy = await Policy.findOne({ where: { user_id: user?.user_id, beneficiary: 'OTHERS' } });
 
-           
-            menu.con('Enter Phone number for Other');
+
+
+            console.log("OTHER POLICY", otherPolicy)
+             otherPolicy.bought_for = newUser.user_id 
+                await otherPolicy.save();
+            
+            const { user_id, phone_number, first_name, last_name, total_member_number } = user
+            console.log(" ========= USER total_member_number========", total_member_number)
+
+
+            const { policy_type ,beneficiary, bought_for} = otherPolicy
+            
+            console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for)
+          
+            let sum_insured: number,period: string, installment_type: number, si: string, premium: number = 0, yearly_premium: number = 0, last_expense_insured: number = 0, lei: string;
+               let paymentOption = 1;
+    
+            if (policy_type == 'MINI') {
+                lei = "1M"
+                si = "1.5M"
+                if (paymentOption == 1) {
+                    period = 'monthly'
+                    installment_type = 1;
+                } else {
+                    period = 'yearly'
+                    installment_type = 2;
+                }
+
+
+                if (total_member_number == "M") {
+                    sum_insured = 1500000;
+                    premium = 120000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+
+                        premium = 10000;
+                        yearly_premium = 240000;
+                        last_expense_insured = 1000000;
+
+                    }
+
+                 } else if (total_member_number == "M+1") {
+                    sum_insured = 1500000;
+                    premium = 240000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+
+                        premium = 20000;
+                        yearly_premium = 240000;
+                        last_expense_insured = 1000000;
+
+                    }
+                } else if (total_member_number == "M+2") {
+                    sum_insured = 1500000;
+
+                    premium = 360000;
+                    last_expense_insured = 1000000;
+
+
+                    if (paymentOption == 1) {
+
+
+                        premium = 30000;
+                        yearly_premium = 360000;
+                        last_expense_insured = 1000000;
+
+                    }
+                } else if (total_member_number == "M+3") {
+                    sum_insured = 1500000;
+                    premium = 480000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+                        premium = 40000;
+                        yearly_premium = 480000;
+                        last_expense_insured = 1000000;
+
+                    }
+                } else if (total_member_number == "M+4") {
+
+                    sum_insured = 1500000;
+                    premium = 600000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 50000;
+                        yearly_premium = 600000;
+                        last_expense_insured = 1000000;
+                    }
+                } else if (total_member_number == "M+5") {
+                    sum_insured = 1500000;
+                    premium = 720000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 60000;
+                        yearly_premium = 7200000;
+                        last_expense_insured = 1000000;
+
+                    }
+                } else if (total_member_number == "M+6") {
+                    sum_insured = 1500000;
+                    premium = 840000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 70000;
+                        yearly_premium = 840000;
+                        last_expense_insured = 1000000;
+
+                    }
+                } else {
+                    sum_insured = 1500000;
+                    premium = 240000;
+                    last_expense_insured = 1000000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 20000;
+                        yearly_premium = 240000;
+                        last_expense_insured = 1000000;
+
+                    }
+                }
+
+            } else if (policy_type == 'MIDI') {
+                si = '3M'
+                lei = '1.5M'
+                if (paymentOption == 1) {
+                    period = 'monthly'
+                    installment_type = 1;
+                } else {
+                    period = 'yearly'
+                    installment_type = 2;
+                }
+
+                if (total_member_number == "M") {
+                    sum_insured = 3000000;
+                    premium = 167000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        premium = 14000;
+                        yearly_premium = 167000;
+                        last_expense_insured = 1500000;
+                    }
+
+                }else if (total_member_number == "M+1") {
+
+                    sum_insured = 3000000;
+                    premium = 322000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        premium = 28000;
+                        yearly_premium = 322000;
+                        last_expense_insured = 1500000;
+                    }
+                }
+                else if (total_member_number == "M+2") {
+
+                    sum_insured = 3000000;
+                    premium = 467000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        premium = 40000;
+                        yearly_premium = 467000;
+                        last_expense_insured = 1500000;
+                    }
+                } else if (total_member_number == "M+3") {
+                    sum_insured = 3000000;
+                    premium = 590000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        premium = 50000;
+                        yearly_premium = 590000;
+                        last_expense_insured = 1500000;
+                    }
+                } else if (total_member_number == "M+4") {
+                    sum_insured = 3000000;
+                    premium = 720000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 63000;
+                        yearly_premium = 720000;
+                        last_expense_insured = 1500000;
+                    }
+                } else if (total_member_number == "M+5") {
+                    sum_insured = 3000000;
+                    premium = 860000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 75000;
+                        yearly_premium = 860000;
+                        last_expense_insured = 1500000;
+                    }
+                } else if (total_member_number == "M+6") {
+                    sum_insured = 3000000;
+                    premium = 1010000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 88000;
+                        yearly_premium = 1010000;
+                        last_expense_insured = 1500000;
+                    }
+                } else {
+                    sum_insured = 3000000;
+                    premium = 322000;
+                    last_expense_insured = 1500000;
+
+                    if (paymentOption == 1) {
+                        premium = 28000;
+                        yearly_premium = 322000;
+                        last_expense_insured = 1500000;
+                    }
+                }
+            }
+            else if (policy_type == 'BIGGIE') {
+                si = '5M'
+                lei = '2M'
+                if (paymentOption == 1) {
+                    period = 'monthly'
+                    installment_type = 1;
+                } else {
+                    period = 'yearly'
+                    installment_type = 2;
+                }
+
+                if (total_member_number == "M") {
+                    sum_insured = 5000000;
+                    premium = 208000;
+                    last_expense_insured = 2000000;
+
+                    if (paymentOption == 1) {
+
+                        premium = 18000;
+                        yearly_premium = 208000;
+                        last_expense_insured = 2000000;
+                    }
+
+
+                }else if (total_member_number == "M+1") {
+                    sum_insured = 5000000;
+
+                    premium = 400000;
+                    last_expense_insured = 2000000;
+
+                    if (paymentOption == 1) {
+
+                        premium = 35000;
+                        yearly_premium = 400000;
+                        last_expense_insured = 2000000;
+                    }
+                } else if (total_member_number == "M+2") {
+                    sum_insured = 5000000;
+
+                    premium = 577000;
+                    last_expense_insured = 2000000;
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+
+                        premium = 50000;
+                        yearly_premium = 577000;
+                        last_expense_insured = 2000000;
+                    }
+                } else if (total_member_number == "M+3") {
+                    sum_insured = 5000000;
+
+
+                    premium = 740000;
+                    last_expense_insured = 2000000;
+
+
+                    if (paymentOption == 1) {
+
+
+                        premium = 65000;
+                        yearly_premium = 740000;
+                        last_expense_insured = 2000000;
+                    }
+                } else if (total_member_number == "M+4") {
+                    sum_insured = 5000000;
+
+
+                    premium = 885000;
+                    last_expense_insured = 2000000;
+
+
+                    if (paymentOption == 1) {
+
+
+                        premium = 77000;
+                        yearly_premium = 885000;
+                        last_expense_insured = 2000000;
+
+
+                    }
+                } else if (total_member_number == "M+5") {
+                    sum_insured = 5000000;
+                    premium = 1060000;
+                    last_expense_insured = 2000000;
+
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 93000;
+                        yearly_premium = 1060000;
+                        last_expense_insured = 2000000;
+                    }
+                } else if (total_member_number == "M+6") {
+                    sum_insured = 5000000;
+                    premium = 1238000;
+                    last_expense_insured = 2000000;
+
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 108000;
+                        yearly_premium = 1238000;
+                        last_expense_insured = 2000000;
+                    }
+                } else {
+                    sum_insured = 5000000;
+                    premium = 400000;
+                    last_expense_insured = 2000000;
+
+
+                    if (paymentOption == 1) {
+                        period = 'monthly'
+                        premium = 35000;
+                        yearly_premium = 400000;
+                        last_expense_insured = 2000000;
+                    }
+                }
+
+            }else
+            {
+                menu.end('Invalid option');
+            }
+
+            console.log("SUM INSURED", sum_insured)
+            console.log("PREMIUM", premium)
+            console.log("LAST EXPENSE INSURED", last_expense_insured)
+            console.log("YEARLY PREMIUM", yearly_premium)
+
+            menu.con(`Inpatient Family cover for ${first_name.toUpperCase()} ${last_name.toUpperCase()} ${phone_number}, UGX ${si} 
+                  PAY
+                  1-UGX ${new Intl.NumberFormat().format(premium)} monthly
+                  2-UGX ${new Intl.NumberFormat().format(yearly_premium)} yearly
+                  0.Back
+                  00.Main Menu`);
+
         },
         next: {
-            '*\\d+': 'buyForFamily.selfSpousePhoneNumber',
+            '*\\d+': 'buyForFamilyPin',
+            '0': 'buyForFamily',
+            '00': 'insurance'
         }
+
     });
-    
+
 
 
 

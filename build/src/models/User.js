@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
         user_id: {
             type: DataTypes.UUID,
             defaultValue: (0, uuidv4_1.uuid)(),
+            unique: true,
             primaryKey: true,
         },
         id: {
@@ -133,7 +134,7 @@ module.exports = (sequelize, DataTypes) => {
         cover_type: {
             type: DataTypes.STRING,
             allowNull: true
-        },
+        }
     }, { timestamps: true });
     return User;
 };

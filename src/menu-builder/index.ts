@@ -46,8 +46,8 @@ export default function (args: RequestBody, db: any) {
       }
 
 
-      // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-      // console.log("USER KYC", userKyc)
+      const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+      console.log("USER KYC", userKyc)
 
       async function getUser(phoneNumber: any) {
         return await User.findOne({

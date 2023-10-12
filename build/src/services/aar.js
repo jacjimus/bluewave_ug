@@ -91,7 +91,7 @@ function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
         const userData = {
             surname: user.last_name,
             first_name: user.first_name,
-            other_names: user.middle_name || "",
+            other_names: user.middle_name || user.last_name,
             gender: user.gender == 'M' ? "1" : "2",
             dob: user.dob,
             pri_dep: "24",
@@ -165,7 +165,6 @@ const registrationMembData = {
 function updatePremium(data, policy, airtel_money_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("i was called update premium");
             console.log("updatePremium DATA", data, policy);
             const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / 12;
             const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / 12;

@@ -28,6 +28,7 @@ db.logs = require('./Log')(sequelize, DataTypes)
 db.transactions = require('./Transaction')(sequelize, DataTypes)
 db.installments = require('./Installment')(sequelize, DataTypes)
 db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
+db.hospitals = require('./Hospital')(sequelize, DataTypes)
 
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')

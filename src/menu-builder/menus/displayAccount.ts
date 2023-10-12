@@ -26,8 +26,8 @@ export function displayAccount(menu: any, args: any, db: any): void {
           '\n5. My Policy' +
           '\n6. View Hopital' +
           '\n7. Terms & Conditions' +
-          '\n8. FAQs' +
-          '\n00.Main Menu'
+          '\n8. FAQs'
+          // '\n00.Main Menu'
         )
 
       } else {
@@ -46,7 +46,7 @@ export function displayAccount(menu: any, args: any, db: any): void {
       '7': 'termsAndConditions',
       '8': 'faqs',
       '0': 'updateProfile',
-      '00': 'insurance',
+      // '00': 'account',
     }
   });
 
