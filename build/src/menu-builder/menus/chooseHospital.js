@@ -29,7 +29,7 @@ function chooseHospital(menu, args, db) {
             },
         });
     });
-    console.log("CHOOSE HOPITAL", args.phoneNumber);
+    console.log("CHOOSE HOsPITAL", args.phoneNumber);
     menu.state("chooseHospital", {
         run: () => {
             const regions = [
@@ -495,7 +495,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
             //     {
             //       district: 'Masaka',
             //       region: 'Western Region',
-            //       hospital_name: 'Masaka Regional Referra Hopital',
+            //       hospital_name: 'Masaka Regional Referra Hospital',
             //       category: 'IP ',
             //       hospital_contact_person: 'Dr. Dada/Dr. Nathan/Beatrice/Ronald',
             //       hospital_address: 'Makaka',
@@ -1382,7 +1382,7 @@ exports.chooseHospital = chooseHospital;
 //     {
 //       district: 'Masaka',
 //       region: 'Western Region',
-//       hospital_name: 'Masaka Regional Referra Hopital',
+//       hospital_name: 'Masaka Regional Referra Hospital',
 //       category: 'IP ',
 //       hospital_contact_person: 'Dr. Dada/Dr. Nathan/Beatrice/Ronald',
 //       hospital_address: 'Makaka',

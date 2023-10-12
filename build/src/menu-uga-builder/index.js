@@ -178,7 +178,7 @@ function handleUssd(args, db) {
                         '\n3. Buy (others)' +
                         '\n4. Admission Claim' +
                         '\n5. My Account' +
-                        '\n6. Choose Hopital' +
+                        '\n6. Choose Hospital' +
                         '\n7. Terms & Conditions' +
                         '\n8. FAQs' +
                         '\n0.Back' +
