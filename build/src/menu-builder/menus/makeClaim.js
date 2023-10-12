@@ -24,6 +24,7 @@ function makeClaim(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
+    console.log("* MAKE CLAIM", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {

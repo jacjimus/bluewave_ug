@@ -13,6 +13,7 @@ exports.displayFaqsMenu = void 0;
 function displayFaqsMenu(menu) {
     menu.state("faqs", {
         run: () => __awaiter(this, void 0, void 0, function* () {
+            console.log(" ======= FAQ =============");
             menu.con("FAQs " +
                 "\n1. Eligibility" +
                 "\n2. Mini cover" +
@@ -38,7 +39,7 @@ function displayFaqsMenu(menu) {
             "8": "claimPayment",
             "9": "renewal",
             "0": "account",
-            "00": "insurance",
+            "00": "account",
             "99": "insuredName",
         },
     });
@@ -50,7 +51,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("miniCover", {
@@ -63,7 +64,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("midiCover", {
@@ -77,7 +78,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("biggieCover", {
@@ -92,7 +93,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("renewal", {
@@ -103,7 +104,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("waitingPeriodMeaning", {
@@ -115,7 +116,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("waitingPeriod", {
@@ -128,7 +129,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("whenToMakeClaim", {
@@ -140,7 +141,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("claimPayment", {
@@ -152,7 +153,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
     menu.state("insuredName", {
@@ -163,7 +164,7 @@ function displayFaqsMenu(menu) {
         }),
         next: {
             "0": "faqs",
-            "00": "insurance"
+            "00": "account"
         },
     });
 }

@@ -1036,7 +1036,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         },
         next: {
          
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1053,7 +1053,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
           "1": "myHospital",
           "2": "chooseHospital",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1094,7 +1094,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         },
         next: {
           "1": "chooseHospital",
-          "00": "insurance",
+          "00": "account",
         },
     });
     

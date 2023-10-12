@@ -60,6 +60,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         beneficiary_type: { type: String },
         date_of_death: { type: Date },
+        dependant_member_number: { type: String },
 
 
 

@@ -4,18 +4,18 @@ export function displayFaqsMenu(menu: any): void {
       console.log(" ======= FAQ =============");
       menu.con(
         "FAQs " +
-          "\n1. Eligibility" +
-          "\n2. Mini cover" +
-          "\n3. Midi Cover" +
-          "\n4. Biggie cover" +
-          "\n5. Waiting period" +
-          '\n6. Waiting period meaning' +
-          "\n7. When to make claim" +
-          "\n8. Claim Payment" +
-          '\n9. Renewal' +
-          "\n99. Insured Name" +
-          "\n0.Back" +
-          "\n00.Main Menu"
+        "\n1. Eligibility" +
+        "\n2. Mini cover" +
+        "\n3. Midi Cover" +
+        "\n4. Biggie cover" +
+        "\n5. Waiting period" +
+        '\n6. Waiting period meaning' +
+        "\n7. When to make claim" +
+        "\n8. Claim Payment" +
+        '\n9. Renewal' +
+        "\n99. Insured Name" +
+        "\n0.Back" +
+        "\n00.Main Menu"
       );
     },
     next: {
@@ -29,7 +29,7 @@ export function displayFaqsMenu(menu: any): void {
       "8": "claimPayment",
       "9": "renewal",
       "0": "account",
-      "00": "insurance",
+      "00": "account",
       "99": "insuredName",
     },
   });
@@ -38,14 +38,14 @@ export function displayFaqsMenu(menu: any): void {
     run: async () => {
       menu.con(
         "Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy" +
-          "\nTs&Cs apply" +
-          
-          "\n0.Back"
+        "\nTs&Cs apply" +
+
+        "\n0.Back"
       );
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
@@ -59,7 +59,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
@@ -74,7 +74,7 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
@@ -90,21 +90,21 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
   menu.state("renewal", {
     run: async () => {
       menu.con(
-       `Premiums are either paid monthly or on annual basis. Premium due notices will be send to you via SMS on your Airtel Line.
+        `Premiums are either paid monthly or on annual basis. Premium due notices will be send to you via SMS on your Airtel Line.
 
         0.Back`
       );
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
@@ -119,31 +119,31 @@ export function displayFaqsMenu(menu: any): void {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
- 
-menu.state("waitingPeriod", {
-  run: async () => {
-    menu.con(
-      ` 1. No waiting period on Accident cases
+
+  menu.state("waitingPeriod", {
+    run: async () => {
+      menu.con(
+        ` 1. No waiting period on Accident cases
         2. (30)-day waiting period on illness hospitalization
         3. 6-months waiting period on chronic illness hospitalizations
         
         0.Back`
-    );
-  },
-  next: {
-    "0": "faqs",
-    "00": "insurance"
-  },
-});
+      );
+    },
+    next: {
+      "0": "faqs",
+      "00": "account"
+    },
+  });
 
 
   menu.state("whenToMakeClaim", {
     run: async () => {
       menu.con(
-       `Claims will be paid directly to the hospital
+        `Claims will be paid directly to the hospital
        Ts&Cs apply
 
        0.Back`
@@ -151,7 +151,7 @@ menu.state("waitingPeriod", {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
@@ -166,7 +166,7 @@ menu.state("waitingPeriod", {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 
@@ -180,7 +180,7 @@ menu.state("waitingPeriod", {
     },
     next: {
       "0": "faqs",
-      "00": "insurance"
+      "00": "account"
     },
   });
 }

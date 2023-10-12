@@ -28,8 +28,8 @@ export function myAccount(menu: any, args: any, db: any) {
         "\n4. Update My Profile(KYC)" +
         "\n5. Cancel policy" +
         "\n6. Add Dependant" +
-        "\n7. Update Beneficiary" +
-        "\n8. My Hospital" +
+        // "\n7. Update Beneficiary" +
+        "\n7. My Hospital" +
         "\n0.Back" +
         "\n00.Main Menu"
       );
@@ -41,18 +41,18 @@ export function myAccount(menu: any, args: any, db: any) {
       "4": "updateProfile",
       "5": "cancelPolicy",
       "6": "addDependant",
-      "7": "listBeneficiaries",
-      "8": "myHospitalOption",
+      // "7": "listBeneficiaries",
+      "7": "myHospitalOption",
       "0": "account",
-      "00": "insurance",
+      "00": "account",
     },
   });
 
   //update profile ( user dob and gender)
   menu.state("updateProfile", {
     run: async () => {
-      menu.con(`Whats their gender
-            1.  Male
+      menu.con(`Whats our gender
+            1. Male
             2. Female
             0. Back
             00. Main Menu
@@ -254,8 +254,8 @@ export function myAccount(menu: any, args: any, db: any) {
     run: async () => {
       const spouse_dob = menu.val;
 
- // convert ddmmyyyy to valid date
- 
+      // convert ddmmyyyy to valid date
+
       // convert ddmmyyyy to valid date
       let day = spouse_dob.substring(0, 2);
       let month = spouse_dob.substring(2, 4);
@@ -360,8 +360,8 @@ export function myAccount(menu: any, args: any, db: any) {
       });
 
       console.log("BENEFICIARY CHILD GENDER: ", beneficiary);
-      
-     let newChildDep = await Beneficiary.create({
+
+      let newChildDep = await Beneficiary.create({
         beneficiary_id: uuidv4(),
         user_id: user?.user_id,
         full_name: child_name,
@@ -403,7 +403,7 @@ export function myAccount(menu: any, args: any, db: any) {
       }
       console.log("BENEFICIARY: ", beneficiary);
 
-      
+
 
       beneficiary.gender = gender;
       await beneficiary.save();
@@ -411,8 +411,8 @@ export function myAccount(menu: any, args: any, db: any) {
       console.log("USER: ", user);
 
       menu.con(`Enter child's date of birth in the format DDMMYYYY e.g 01011990`)
-  
-    
+
+
     },
     next: {
       "*[0-9]": "addChildDob",
@@ -465,10 +465,11 @@ export function myAccount(menu: any, args: any, db: any) {
 
       let arr_member = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
       console.log("arr_member", arr_member);
+      let arr_dep_reg
       if (arr_member.code == 200) {
-        await registerDependant({
+        arr_dep_reg = await registerDependant({
           member_no: user.arr_member_number,
-          surname: beneficiary.last_name ,
+          surname: beneficiary.last_name,
           first_name: beneficiary.first_name,
           other_names: beneficiary.middle_name || beneficiary.last_name,
           gender: beneficiary.gender == "M" ? "1" : "2",
@@ -476,7 +477,7 @@ export function myAccount(menu: any, args: any, db: any) {
           email: "dependant@bluewave.insure",
           pri_dep: "25",
           family_title: "25", //4 spouse // 3 -principal // 25 - child
-          tel_no: "0700000000",
+          tel_no: user.phone_number,
           next_of_kin: {
             surname: "",
             first_name: "",
@@ -491,6 +492,8 @@ export function myAccount(menu: any, args: any, db: any) {
           unique_profile_id: user.membership_id + "-02",
         }
         );
+        beneficiary.dependant_member_number = arr_dep_reg.member_no;
+        await beneficiary.save();
       }
       menu.con(
         `Your child ${beneficiary.full_name} profile has been updated successfully
@@ -618,7 +621,7 @@ export function myAccount(menu: any, args: any, db: any) {
     },
     next: {
       "0": "myAccount",
-      "00": "insurance",
+      "00": "account",
     },
   });
 
@@ -712,7 +715,7 @@ export function myAccount(menu: any, args: any, db: any) {
     next: {
       "1": "account",
       "0": "account",
-      "00": "insurance",
+      "00": "account",
     },
   });
 

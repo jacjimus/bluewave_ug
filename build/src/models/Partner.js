@@ -70,7 +70,7 @@ module.exports = (sequelize, DataTypes) => {
 //     "tenant_id": "1",
 //     "business_name": "Vodacom",
 //     "business_type": "Telecom",
-//     "business_category": "insurance",
+//     "business_category": "account",
 //     "business_address": "Dar es salaam",
 //     "country": "Tanzania",
 //     "email": "info@vodacom.com",

@@ -11,7 +11,7 @@
     "start": "npm run build && node build/app.js"
   },
   "keywords": [
-    "insurance",
+    "account",
     "ussd",
     "medical"
   ],

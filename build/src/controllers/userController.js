@@ -186,7 +186,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *         application/json:
  *           schema:
  *             type: object
- *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "insurance","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
+ *             example: { "partner_name": "Vodacom", "business_name": "Vodacom","business_type": "Telecom","business_category": "account","business_address": "Dar es salaam","country": "Tanzania","email": "info@vodacom.com","phone_number": "255754000000" ,"password": "passw0rd", "partner_id": "1"}
  *     responses:
  *       200:
  *         description: Information fetched succussfully

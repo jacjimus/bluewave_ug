@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.myAccount = void 0;
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const aar_1 = require("../../services/aar");
+const uuid_1 = require("uuid");
 function myAccount(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
@@ -26,6 +27,7 @@ function myAccount(menu, args, db) {
             },
         });
     });
+    console.log("* MY ACCOUNT ", args.phoneNumber);
     menu.state("myAccount", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.con("My Account " +
@@ -35,8 +37,8 @@ function myAccount(menu, args, db) {
                 "\n4. Update My Profile(KYC)" +
                 "\n5. Cancel policy" +
                 "\n6. Add Dependant" +
-                "\n7. Update Beneficiary" +
-                "\n8. My Hospital" +
+                // "\n7. Update Beneficiary" +
+                "\n7. My Hospital" +
                 "\n0.Back" +
                 "\n00.Main Menu");
         }),
@@ -47,17 +49,17 @@ function myAccount(menu, args, db) {
             "4": "updateProfile",
             "5": "cancelPolicy",
             "6": "addDependant",
-            "7": "listBeneficiaries",
-            "8": "myHospitalOption",
+            // "7": "listBeneficiaries",
+            "7": "myHospitalOption",
             "0": "account",
-            "00": "insurance",
+            "00": "account",
         },
     });
     //update profile ( user dob and gender)
     menu.state("updateProfile", {
         run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con(`Whats their gender
-            1.  Male
+            menu.con(`Whats our gender
+            1. Male
             2. Female
             0. Back
             00. Main Menu
@@ -229,6 +231,7 @@ function myAccount(menu, args, db) {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const spouse_dob = menu.val;
             // convert ddmmyyyy to valid date
+            // convert ddmmyyyy to valid date
             let day = spouse_dob.substring(0, 2);
             let month = spouse_dob.substring(2, 4);
             let year = spouse_dob.substring(4, 8);
@@ -261,7 +264,7 @@ function myAccount(menu, args, db) {
                     first_name: beneficiary.first_name,
                     other_names: beneficiary.middle_name || beneficiary.last_name,
                     gender: beneficiary.gender == "M" ? "1" : "2",
-                    dob: beneficiary.dob,
+                    dob: date.toISOString().split('T')[0],
                     email: "dependant@bluewave.insure",
                     pri_dep: "25",
                     family_title: "4",
@@ -310,8 +313,9 @@ function myAccount(menu, args, db) {
                     relationship: "CHILD",
                 },
             });
-            console.log("BENEFICIARY: ", beneficiary);
-            yield Beneficiary.create({
+            console.log("BENEFICIARY CHILD GENDER: ", beneficiary);
+            let newChildDep = yield Beneficiary.create({
+                beneficiary_id: (0, uuid_1.v4)(),
                 user_id: user === null || user === void 0 ? void 0 : user.user_id,
                 full_name: child_name,
                 first_name: child_name.split(" ")[0],
@@ -319,11 +323,38 @@ function myAccount(menu, args, db) {
                 last_name: child_name.split(" ")[2] || child_name.split(" ")[1],
                 relationship: "CHILD",
             });
+            console.log("NEW CHILD BENEFICIARY: ", newChildDep);
+            menu.con("Enter gender of child: " + "\n1. Male" + "\n2. Female");
+        }),
+        next: {
+            "*[0-9]": "updateChildGender",
+        },
+    });
+    menu.state("updateChildGender", {
+        run: () => __awaiter(this, void 0, void 0, function* () {
+            const gender = menu.val == 1 ? "M" : "F";
+            console.log("GENDER", gender);
+            const user = yield findUserByPhoneNumber(args.phoneNumber);
+            let beneficiary = yield Beneficiary.findAll({
+                where: {
+                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                    relationship: "CHILD",
+                },
+            });
+            beneficiary = beneficiary[beneficiary.length - 1];
+            if (!beneficiary) {
+                return menu.end("You have not added a spouse, please buy family cover first");
+            }
             console.log("BENEFICIARY: ", beneficiary);
+            beneficiary.gender = gender;
+            yield beneficiary.save();
+            console.log("USER: ", user);
             menu.con(`Enter child's date of birth in the format DDMMYYYY e.g 01011990`);
         }),
         next: {
             "*[0-9]": "addChildDob",
+            "0": "myAccount",
+            "00": "account",
         },
     });
     menu.state("addChildDob", {
@@ -343,6 +374,7 @@ function myAccount(menu, args, db) {
                     relationship: "CHILD",
                 },
             });
+            console.log("CHILD DOB BENEFICIARY: ", beneficiary);
             beneficiary = beneficiary[beneficiary.length - 1];
             beneficiary.dob = date;
             beneficiary.age = new Date().getFullYear() - date.getFullYear();
@@ -357,18 +389,19 @@ function myAccount(menu, args, db) {
             console.log("POLICY: ", policy);
             let arr_member = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
             console.log("arr_member", arr_member);
+            let arr_dep_reg;
             if (arr_member.code == 200) {
-                yield (0, aar_1.registerDependant)({
+                arr_dep_reg = yield (0, aar_1.registerDependant)({
                     member_no: user.arr_member_number,
                     surname: beneficiary.last_name,
                     first_name: beneficiary.first_name,
                     other_names: beneficiary.middle_name || beneficiary.last_name,
-                    gender: beneficiary.gender,
-                    dob: beneficiary.dob,
+                    gender: beneficiary.gender == "M" ? "1" : "2",
+                    dob: date.toISOString().split('T')[0],
                     email: "dependant@bluewave.insure",
                     pri_dep: "25",
                     family_title: "25",
-                    tel_no: beneficiary.phone_number,
+                    tel_no: user.phone_number,
                     next_of_kin: {
                         surname: "",
                         first_name: "",
@@ -382,6 +415,8 @@ function myAccount(menu, args, db) {
                     policy_end_date: policy.policy_end_date,
                     unique_profile_id: user.membership_id + "-02",
                 });
+                beneficiary.dependant_member_number = arr_dep_reg.member_no;
+                yield beneficiary.save();
             }
             menu.con(`Your child ${beneficiary.full_name} profile has been updated successfully
                 0. Back
@@ -486,7 +521,7 @@ function myAccount(menu, args, db) {
         }),
         next: {
             "0": "myAccount",
-            "00": "insurance",
+            "00": "account",
         },
     });
     //my insurance policy
@@ -552,7 +587,7 @@ function myAccount(menu, args, db) {
         next: {
             "1": "account",
             "0": "account",
-            "00": "insurance",
+            "00": "account",
         },
     });
     menu.state("manageAutoRenew", {

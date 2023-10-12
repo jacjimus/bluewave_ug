@@ -17,8 +17,7 @@ const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
 // import { startMenu } from "./menus/startMenu";
-// import { displayInsuranceMenu } from "./menus/displayInsuranceMenu";
-const displayMedicalCoverMenu_1 = require("./menus/displayMedicalCoverMenu");
+const startMenu_1 = require("./menus/startMenu");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
 const displayAccount_1 = require("./menus/displayAccount");
 const buyForSelf_1 = require("./menus/buyForSelf");
@@ -109,7 +108,7 @@ function default_1(args, db) {
             // ===============SET MENU STATES============
             //startMenu(menu);
             // displayInsuranceMenu(menu);
-            (0, displayMedicalCoverMenu_1.displayMedicalCoverMenu)(menu, args, db);
+            (0, startMenu_1.displayMedicalCoverMenu)(menu, args, db);
             (0, displayAccount_1.displayAccount)(menu, args, db);
             //=================BUY FOR SELF=================
             (0, buyForSelf_1.buyForSelf)(menu, args, db);

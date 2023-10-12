@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = void 0;
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@bluewave-postgres.cemxniymyjt7.us-east-1.rds.amazonaws.com:5432/airtelDB`, { dialect: "postgres" });
+require('dotenv').config();
+const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres" });
 //checking if connection is done
 sequelize.authenticate().then(() => {
     console.log(`Database connected to Airtel`);

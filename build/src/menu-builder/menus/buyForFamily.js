@@ -23,6 +23,7 @@ function buyForFamily(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
+    console.log("* BUY FOR FAMILY", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {
@@ -1266,21 +1267,21 @@ function buyForFamily(menu, args, db) {
                 }
                 if (beneficiary == "FAMILY") {
                     members_covered = "Your family";
-                    congratText = `Congratulations! Your family is now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    congratSms = `Congratulations! Your family is now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                     Cover valid till ${policy_end_date.toDateString()}.`;
                     congratText = `Congratulations! ${members} are each covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                      Cover valid till ${policy_end_date.toDateString()} `;
                 }
                 else if (beneficiary == "OTHERS") {
                     members_covered = members;
-                    congratText = `Congratulations! You have bought cover for ${otherMember === null || otherMember === void 0 ? void 0 : otherMember.name.toUpperCase()} for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    congratSms = `Congratulations! You have bought cover for ${otherMember === null || otherMember === void 0 ? void 0 : otherMember.name.toUpperCase()} for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                     Cover valid till ${policy_end_date.toDateString()}.  `;
                     congratText = `Congratulations! You have  bought Mini cover for ${otherMember === null || otherMember === void 0 ? void 0 : otherMember.name.toUpperCase()} . 
                     Pay UGX ${premium} every ${frequency} to stay covered`;
                 }
                 else {
                     members_covered = "You";
-                    congratText = `Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    congratSms = `Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                     Cover valid till ${policy_end_date.toDateString()}`;
                     congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
                     Pay UGX ${premium} every ${frequency} to stay covered`;

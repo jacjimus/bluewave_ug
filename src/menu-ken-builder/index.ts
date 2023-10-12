@@ -128,11 +128,11 @@ export default function handleUssd(args: RequestBody, db: any) {
       //     );
       //   },
       //   next: {
-      //     "7": "insurance",
+      //     "7": "account",
       //   },
       // });
 
-      // menu.state("insurance", {
+      // menu.state("account", {
       //   run: () => {
       //     menu.con(
       //       "Financial Services" +
@@ -233,7 +233,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "2": "buyForSelf.silver",
           "3": "buyForSelf.gold",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -269,7 +269,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "1": "buyForSelf.bronze.pay",
           "2": "buyForSelf.bronze.pay.yearly",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -304,7 +304,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "1": "buyForSelf.silver.pay",
           "2": "buyForSelf.silver.pay.yearly",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -339,7 +339,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "1": "buyForSelf.bronze.pay",
           "2": "buyForSelf.bronze.pay.yearly",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -356,7 +356,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.bronze.pin",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -373,7 +373,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.silver.pin",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -391,7 +391,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.gold.pin",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -408,7 +408,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.bronze.yearly.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -434,7 +434,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.bronze.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -460,7 +460,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.silver.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -486,7 +486,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.gold.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -513,7 +513,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.bronze.yearly.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -540,7 +540,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.silver.yearly.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -568,7 +568,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "buyForSelf.gold.yearly.confirm",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -642,7 +642,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "confirmation",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -715,7 +715,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "confirmation",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -788,7 +788,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "confirmation",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -857,7 +857,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "confirmation",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -927,7 +927,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "confirmation",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -996,7 +996,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "confirmation",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
       //===============CONFIRMATION=================
@@ -1133,7 +1133,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "2": "buyForSelf.silver",
           "3": "buyForSelf.gold",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1161,7 +1161,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "5": "cancelPolicy",
           "6": "myHospital",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1179,7 +1179,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           "1": "updateGender",
           "2": "updateGender",
           "0": "myAccount",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1207,7 +1207,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*[0-9]": "updateDob",
           "0": "myAccount",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1250,7 +1250,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
         next: {
           "1": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1308,7 +1308,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "choosePolicy",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1451,7 +1451,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
         next: {
           "0": "myAccount",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1521,7 +1521,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "1": "account",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -1600,7 +1600,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         next: {
           "*\\d+": "choosePolicyTomakeClaim",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2168,13 +2168,13 @@ export default function handleUssd(args: RequestBody, db: any) {
           },
         ]
 
-    
+
 
       };
 
 
 
-    menu.state("chooseHospital", {
+      menu.state("chooseHospital", {
         run: () => {
           menu.con(`Welcome to My USSD Hospital Finder!
           Please select your region:
@@ -2193,87 +2193,87 @@ export default function handleUssd(args: RequestBody, db: any) {
         },
       });
 
-// Define the state to select a region
-menu.state('selectRegion', {
-  run: () => {
-      const selectedRegion = menu.val;
+      // Define the state to select a region
+      menu.state('selectRegion', {
+        run: () => {
+          const selectedRegion = menu.val;
 
-      let region ={
-        "1": "nairobi",
-        "2": "eastern",
-        "3": "central",
-        "4": "centralrift",
-        "5": "northrift",
-        "6": "southrift",
-        "7": "coast",
-        "8": "nyanza",
-      }
-      let theRegion = region[selectedRegion];
-      const hospitalsInRegion = hospitalsData[theRegion];
-      console.log('hospitalsInRegion', hospitalsInRegion);
-      if (hospitalsInRegion) {
-          menu.con(`Please search for hospital e.g. Nairobi Hospital`);
-      } else {
-          menu.end(`Invalid region selected.`);
-      }
-  },
-  next: {
-      '*': 'selectHospital'
-  }
-});
-
-// Define the state to select a hospital
-menu.state('selectHospital', {
-  run: async () => {
-      const selectedHospital = menu.val;
-      console.log('selectedHospital', selectedHospital);
-      console.log(menu.args.text)
-      //get the secondlast input
-      const secondLastInput = menu.args.text.split('*')[menu.args.text.split('*').length - 2];
-      console.log('secondLastInput', secondLastInput);
-      //get the region
-      const region ={
-        "1": "nairobi",
-        "2": "eastern",
-        "3": "central",
-        "4": "centralrift",
-        "5": "northrift",
-        "6": "southrift",
-        "7": "coast",
-        "8": "nyanza",
-      }
-
-      let theRegion = region[secondLastInput];
-      console.log('theRegion', theRegion);
-      const hospitalsInRegion = hospitalsData[theRegion];
-      console.log('hospitalsInRegion', hospitalsInRegion);
-      const selectedHospitalDetails = hospitalsInRegion.filter(hospital => hospital.PROVIDER.toLowerCase().includes(selectedHospital.toLowerCase()));
-
-      const newUserHospital = await db.user_hospitals.create({
-        user_hospital_id: uuidv4(),
-        user_id: user?.user_id,
-        hospital_name: selectedHospitalDetails[0].PROVIDER,
-        hospital_address: selectedHospitalDetails[0].LOCATION,
-       // hospital_contact_person: contactPerson,
-       hospital_phone_number: selectedHospitalDetails[0].CONTACTS,
-        hospital_contact_person_phone_number: selectedHospitalDetails[0].CONTACTS
+          let region = {
+            "1": "nairobi",
+            "2": "eastern",
+            "3": "central",
+            "4": "centralrift",
+            "5": "northrift",
+            "6": "southrift",
+            "7": "coast",
+            "8": "nyanza",
+          }
+          let theRegion = region[selectedRegion];
+          const hospitalsInRegion = hospitalsData[theRegion];
+          console.log('hospitalsInRegion', hospitalsInRegion);
+          if (hospitalsInRegion) {
+            menu.con(`Please search for hospital e.g. Nairobi Hospital`);
+          } else {
+            menu.end(`Invalid region selected.`);
+          }
+        },
+        next: {
+          '*': 'selectHospital'
+        }
       });
-      console.log(newUserHospital)
 
-      if (selectedHospitalDetails.length > 0) {
-          menu.con(`Hospital Information:\nProvider: ${selectedHospitalDetails[0].PROVIDER}\nLocation: ${selectedHospitalDetails[0].LOCATION}\nContacts: ${selectedHospitalDetails[0].CONTACTS}\nSpeciality: ${selectedHospitalDetails[0].SPECIALITY}`);
-          menu.end(`Press 0 to go back to the main menu.`);
-      } else {
-          menu.end(`No hospital found with the given name. Please try a different name.`);
-      }
-  }
-});
+      // Define the state to select a hospital
+      menu.state('selectHospital', {
+        run: async () => {
+          const selectedHospital = menu.val;
+          console.log('selectedHospital', selectedHospital);
+          console.log(menu.args.text)
+          //get the secondlast input
+          const secondLastInput = menu.args.text.split('*')[menu.args.text.split('*').length - 2];
+          console.log('secondLastInput', secondLastInput);
+          //get the region
+          const region = {
+            "1": "nairobi",
+            "2": "eastern",
+            "3": "central",
+            "4": "centralrift",
+            "5": "northrift",
+            "6": "southrift",
+            "7": "coast",
+            "8": "nyanza",
+          }
+
+          let theRegion = region[secondLastInput];
+          console.log('theRegion', theRegion);
+          const hospitalsInRegion = hospitalsData[theRegion];
+          console.log('hospitalsInRegion', hospitalsInRegion);
+          const selectedHospitalDetails = hospitalsInRegion.filter(hospital => hospital.PROVIDER.toLowerCase().includes(selectedHospital.toLowerCase()));
+
+          const newUserHospital = await db.user_hospitals.create({
+            user_hospital_id: uuidv4(),
+            user_id: user?.user_id,
+            hospital_name: selectedHospitalDetails[0].PROVIDER,
+            hospital_address: selectedHospitalDetails[0].LOCATION,
+            // hospital_contact_person: contactPerson,
+            hospital_phone_number: selectedHospitalDetails[0].CONTACTS,
+            hospital_contact_person_phone_number: selectedHospitalDetails[0].CONTACTS
+          });
+          console.log(newUserHospital)
+
+          if (selectedHospitalDetails.length > 0) {
+            menu.con(`Hospital Information:\nProvider: ${selectedHospitalDetails[0].PROVIDER}\nLocation: ${selectedHospitalDetails[0].LOCATION}\nContacts: ${selectedHospitalDetails[0].CONTACTS}\nSpeciality: ${selectedHospitalDetails[0].SPECIALITY}`);
+            menu.end(`Press 0 to go back to the main menu.`);
+          } else {
+            menu.end(`No hospital found with the given name. Please try a different name.`);
+          }
+        }
+      });
 
 
 
 
       // ================== HOSPITAL DETAILS ===================
-    
+
 
       menu.state("hospitalDetails", {
         run: async () => {
@@ -2288,7 +2288,7 @@ menu.state('selectHospital', {
           "1": "myHospital",
           "2": "chooseHospital",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2336,8 +2336,8 @@ menu.state('selectHospital', {
       //     "4": "buyForFamily.selfSpouse3Children",
       //     "5": "buyForFamily.selfSpouse4Children",
       //     "6": "buyForFamily.selfSpouse5Children",
-      //     "0": "insurance",
-      //     "00": "insurance",
+      //     "0": "account",
+      //     "00": "account",
       //   },
       // });
 
@@ -2358,7 +2358,7 @@ menu.state('selectHospital', {
           "2": "buyForFamily.selfSpouse1Child",
           "3": "buyForFamily.selfSpouse2Children",
           "0": "buyForFamilyScreen2", // Go to the next screen for additional options
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2379,11 +2379,11 @@ menu.state('selectHospital', {
           "5": "buyForFamily.selfSpouse4Children",
           "6": "buyForFamily.selfSpouse5Children",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
-    
+
 
       //=============BUY FOR FAMILY SELF SPOUSE================
 
@@ -2396,7 +2396,7 @@ menu.state('selectHospital', {
         next: {
           "*[a-zA-Z]+": "buyForFamily.selfSpouse.spouse",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2458,7 +2458,7 @@ menu.state('selectHospital', {
 
           let newBeneficiary = await Beneficiary.create(beneficiary);
           console.log("new beneficiary 1", newBeneficiary);
-     menu.con(
+          menu.con(
             "\nEnter day of the month you want to deduct premium" +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -2467,10 +2467,10 @@ menu.state('selectHospital', {
         next: {
           "*[0-9]+": "buyForFamily.selfSpouse.confirm",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
- 
+
 
       //buyForFamily.selfSpouse.confirm
       menu.state("buyForFamily.selfSpouse.confirm", {
@@ -2508,7 +2508,7 @@ menu.state('selectHospital', {
         next: {
           "1": "confirmation",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2520,7 +2520,7 @@ menu.state('selectHospital', {
         next: {
           "*[a-zA-Z]+": "buyForFamily.selfSpouse1Child.spouse",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2592,7 +2592,7 @@ menu.state('selectHospital', {
 
           let newBeneficiary = await Beneficiary.create(beneficiary);
           console.log("new beneficiary 1", newBeneficiary);
-       menu.con(
+          menu.con(
             "\nEnter day of the month you want to deduct premium" +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -2601,11 +2601,11 @@ menu.state('selectHospital', {
         next: {
           "*[0-9]+": "buyForFamily.selfSpouse1Child.confirm",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
-    
+
 
       //buy for family selfSpouse1Child confirm
       menu.state("buyForFamily.selfSpouse1Child.confirm", {
@@ -2638,7 +2638,7 @@ menu.state('selectHospital', {
         next: {
           "1": "confirmation",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2650,7 +2650,7 @@ menu.state('selectHospital', {
         next: {
           "*[a-zA-Z]+": "buyForFamily.selfSpouse2Child.spouse",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2727,7 +2727,7 @@ menu.state('selectHospital', {
         next: {
           "*\\d+": "buyForFamily.selfSpouse2Child.confirm",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2735,31 +2735,31 @@ menu.state('selectHospital', {
       menu.state("buyForFamily.selfSpouse2Child.confirm", {
         run: async () => {
           try {
-        
-       const day: any = Number(menu.val);
-          const date = new Date();
-          const nextDeduction = new Date(
-            date.getFullYear(),
-            date.getMonth() + 1,
-            day
-          );
 
-          const { user_id, partner_id, premium } = await getUser(
-            args.phoneNumber
-          );
+            const day: any = Number(menu.val);
+            const date = new Date();
+            const nextDeduction = new Date(
+              date.getFullYear(),
+              date.getMonth() + 1,
+              day
+            );
 
-          let policy = await Policy.update(
-            {
-              policy_deduction_day: day,
-              policy_next_deduction_date: nextDeduction,
-            },
-            {
-              where: {
-                user_id: user_id,
-                partner_id: partner_id,
+            const { user_id, partner_id, premium } = await getUser(
+              args.phoneNumber
+            );
+
+            let policy = await Policy.update(
+              {
+                policy_deduction_day: day,
+                policy_next_deduction_date: nextDeduction,
               },
-            }
-          );
+              {
+                where: {
+                  user_id: user_id,
+                  partner_id: partner_id,
+                },
+              }
+            );
 
             menu.con(`Pay KES 1,456 deducted monthly.
                     Terms&Conditions - www.airtel.com
@@ -2777,7 +2777,7 @@ menu.state('selectHospital', {
         next: {
           "*\\d+": "buyForFamily.selfSpouse2Child.pin",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2793,7 +2793,7 @@ menu.state('selectHospital', {
         next: {
           "*\\d+": "buyForFamilySChedule",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2810,7 +2810,7 @@ menu.state('selectHospital', {
         next: {
           "*\\d+": "confirmation",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -2846,7 +2846,7 @@ menu.state('selectHospital', {
         next: {
           "*\\d+": "confirmation",
           "0": "buyForFamily",
-          "00": "insurance",
+          "00": "account",
         },
       });
 

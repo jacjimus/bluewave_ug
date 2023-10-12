@@ -127,10 +127,10 @@ function handleUssd(args, db) {
             //     );
             //   },
             //   next: {
-            //     "7": "insurance",
+            //     "7": "account",
             //   },
             // });
-            // menu.state("insurance", {
+            // menu.state("account", {
             //   run: () => {
             //     menu.con(
             //       "Financial Services" +
@@ -220,7 +220,7 @@ function handleUssd(args, db) {
                     "2": "buyForSelf.silver",
                     "3": "buyForSelf.gold",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             // TO BE DONE
@@ -251,7 +251,7 @@ function handleUssd(args, db) {
                     "1": "buyForSelf.bronze.pay",
                     "2": "buyForSelf.bronze.pay.yearly",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.silver", {
@@ -281,7 +281,7 @@ function handleUssd(args, db) {
                     "1": "buyForSelf.silver.pay",
                     "2": "buyForSelf.silver.pay.yearly",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.gold", {
@@ -311,7 +311,7 @@ function handleUssd(args, db) {
                     "1": "buyForSelf.bronze.pay",
                     "2": "buyForSelf.bronze.pay.yearly",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.bronze.pay", {
@@ -325,7 +325,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.bronze.pin",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.silver.pay", {
@@ -339,7 +339,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.silver.pin",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.gold.pay", {
@@ -353,7 +353,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.gold.pin",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.bronze.pay.yearly", {
@@ -367,7 +367,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.bronze.yearly.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.bronze.pin", {
@@ -389,7 +389,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.bronze.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.silver.pin", {
@@ -411,7 +411,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.silver.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.gold.pin", {
@@ -433,7 +433,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.gold.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.bronze.yearly.pin", {
@@ -455,7 +455,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.bronze.yearly.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.silver.yearly.pin", {
@@ -477,7 +477,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.silver.yearly.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.gold.yearly.pin", {
@@ -499,7 +499,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForSelf.gold.yearly.confirm",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.bronze.confirm", {
@@ -556,7 +556,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.silver.confirm", {
@@ -613,7 +613,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.gold.confirm", {
@@ -670,7 +670,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.bronze.yearly.confirm", {
@@ -728,7 +728,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.silver.yearly.confirm", {
@@ -786,7 +786,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.gold.yearly.confirm", {
@@ -844,7 +844,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //===============CONFIRMATION=================
@@ -943,7 +943,7 @@ function handleUssd(args, db) {
                     "2": "buyForSelf.silver",
                     "3": "buyForSelf.gold",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //================MY ACCOUNT===================
@@ -967,7 +967,7 @@ function handleUssd(args, db) {
                     "5": "cancelPolicy",
                     "6": "myHospital",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //update profile ( user dob and gender)
@@ -984,7 +984,7 @@ function handleUssd(args, db) {
                     "1": "updateGender",
                     "2": "updateGender",
                     "0": "myAccount",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("updateGender", {
@@ -1006,7 +1006,7 @@ function handleUssd(args, db) {
                 next: {
                     "*[0-9]": "updateDob",
                     "0": "myAccount",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("updateDob", {
@@ -1037,7 +1037,7 @@ function handleUssd(args, db) {
                 }),
                 next: {
                     "1": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //==================PAY NOW===================
@@ -1085,7 +1085,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "choosePolicy",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("choosePolicy", {
@@ -1207,7 +1207,7 @@ function handleUssd(args, db) {
                 }),
                 next: {
                     "0": "myAccount",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             // ============== MY INSURANCE POLICY ==========================
@@ -1263,7 +1263,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "account",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("manageAutoRenew", {
@@ -1327,7 +1327,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "choosePolicyTomakeClaim",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("choosePolicyTomakeClaim", {
@@ -1978,7 +1978,7 @@ function handleUssd(args, db) {
                     "1": "myHospital",
                     "2": "chooseHospital",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("myHospital", {
@@ -2019,8 +2019,8 @@ function handleUssd(args, db) {
             //     "4": "buyForFamily.selfSpouse3Children",
             //     "5": "buyForFamily.selfSpouse4Children",
             //     "6": "buyForFamily.selfSpouse5Children",
-            //     "0": "insurance",
-            //     "00": "insurance",
+            //     "0": "account",
+            //     "00": "account",
             //   },
             // });
             // First Screen
@@ -2038,7 +2038,7 @@ function handleUssd(args, db) {
                     "2": "buyForFamily.selfSpouse1Child",
                     "3": "buyForFamily.selfSpouse2Children",
                     "0": "buyForFamilyScreen2",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             // Second Screen (Add more options after the third option)
@@ -2056,7 +2056,7 @@ function handleUssd(args, db) {
                     "5": "buyForFamily.selfSpouse4Children",
                     "6": "buyForFamily.selfSpouse5Children",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //=============BUY FOR FAMILY SELF SPOUSE================
@@ -2068,7 +2068,7 @@ function handleUssd(args, db) {
                 next: {
                     "*[a-zA-Z]+": "buyForFamily.selfSpouse.spouse",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buyForFamily.selfSpouse.spouse
@@ -2122,7 +2122,7 @@ function handleUssd(args, db) {
                 next: {
                     "*[0-9]+": "buyForFamily.selfSpouse.confirm",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buyForFamily.selfSpouse.confirm
@@ -2153,7 +2153,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //=============BUY FOR FAMILY SELF SPOUSE 1 CHILD================
@@ -2164,7 +2164,7 @@ function handleUssd(args, db) {
                 next: {
                     "*[a-zA-Z]+": "buyForFamily.selfSpouse1Child.spouse",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buy for family selfSpouse1Child spouse
@@ -2219,7 +2219,7 @@ function handleUssd(args, db) {
                 next: {
                     "*[0-9]+": "buyForFamily.selfSpouse1Child.confirm",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buy for family selfSpouse1Child confirm
@@ -2245,7 +2245,7 @@ function handleUssd(args, db) {
                 next: {
                     "1": "confirmation",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //===========BUY FOR FAMILY SELF SPOUSE 2 CHILDREN==================
@@ -2256,7 +2256,7 @@ function handleUssd(args, db) {
                 next: {
                     "*[a-zA-Z]+": "buyForFamily.selfSpouse2Child.spouse",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buyForFamily.selfSpouse2Children spouse
@@ -2309,7 +2309,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForFamily.selfSpouse2Child.confirm",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buyForFamily.selfSpouse2Children child2
@@ -2343,7 +2343,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForFamily.selfSpouse2Child.pin",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //buyForFamily.selfSpouse2Children pin
@@ -2358,7 +2358,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "buyForFamilySChedule",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForFamilyPin", {
@@ -2373,7 +2373,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "confirmation",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("buyForFamilySchedule", {
@@ -2405,7 +2405,7 @@ function handleUssd(args, db) {
                 next: {
                     "*\\d+": "confirmation",
                     "0": "buyForFamily",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             //===================TERMS AND CONDITIONS===================

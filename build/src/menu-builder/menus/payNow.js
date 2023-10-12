@@ -14,6 +14,7 @@ const payment_1 = require("../../services/payment");
 function payNowPremium(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
+    console.log("* PAY NOW", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {

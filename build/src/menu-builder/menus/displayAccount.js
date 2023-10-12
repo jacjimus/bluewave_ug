@@ -11,9 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.displayAccount = void 0;
 function displayAccount(menu, args, db) {
-    const User = db.users;
-    const Policy = db.policies;
-    const Claim = db.claims;
     menu.state('account', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             const user = yield db.users.findOne({
@@ -24,7 +21,7 @@ function displayAccount(menu, args, db) {
                     },
                 },
             });
-            console.log(" ============== USER ================ ", user);
+            console.log(" ============== USER - ACCOUNT ================ ", user);
             if (user) {
                 menu.con('Medical cover ' +
                     '\n1. Buy for self' +

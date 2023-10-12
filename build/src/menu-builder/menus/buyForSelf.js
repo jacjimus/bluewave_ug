@@ -22,7 +22,7 @@ function buyForSelf(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    console.log("ARGS PHONE NUMBER", args.phoneNumber);
+    console.log("* BUY FOR SELF", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {
