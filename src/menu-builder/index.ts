@@ -138,7 +138,6 @@ export default function (args: RequestBody, db: any) {
           });
           console.log('ACCOUNT User:', user);
       
-          if (user) {
             menu.con(
               'Medical cover' +
                 '\n1. Buy for self' +
@@ -150,10 +149,10 @@ export default function (args: RequestBody, db: any) {
                 '\n7. Terms & Conditions' +
                 '\n8. FAQs'
             );
-          } else {
-            menu.con('Medical cover' +
-              '\n00. Update profile(KYC)');
-          }
+          // } else {
+          //   menu.con('Medical cover' +
+          //     '\n00. Update profile(KYC)');
+          // }
         },
         next: {
           '1': 'buyForSelf',
