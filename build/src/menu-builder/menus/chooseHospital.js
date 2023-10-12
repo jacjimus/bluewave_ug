@@ -29,9 +29,9 @@ function chooseHospital(menu, args, db) {
             },
         });
     });
-    console.log("CHOOSE HOsPITAL", args.phoneNumber);
     menu.state("chooseHospital", {
         run: () => {
+            console.log("* CHOOSE HOSPITAL", args.phoneNumber);
             const regions = [
                 "Central Region",
                 "Western Region",

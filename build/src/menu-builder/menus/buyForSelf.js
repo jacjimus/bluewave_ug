@@ -22,7 +22,6 @@ function buyForSelf(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    console.log("* BUY FOR SELF", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {
@@ -49,6 +48,7 @@ function buyForSelf(menu, args, db) {
     });
     menu.state('buyForSelf', {
         run: () => __awaiter(this, void 0, void 0, function* () {
+            console.log("* BUY FOR SELF", args.phoneNumber);
             const user = yield findUserByPhoneNumber(args.phoneNumber);
             const policy = yield findPaidPolicyByUser(user);
             // if (policy) {

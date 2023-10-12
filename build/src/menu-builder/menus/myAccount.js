@@ -27,9 +27,9 @@ function myAccount(menu, args, db) {
             },
         });
     });
-    console.log("* MY ACCOUNT ", args.phoneNumber);
     menu.state("myAccount", {
         run: () => __awaiter(this, void 0, void 0, function* () {
+            console.log("* MY ACCOUNT ", args.phoneNumber);
             menu.con("My Account " +
                 "\n1. Policy Status" +
                 "\n2. Pay Now" +

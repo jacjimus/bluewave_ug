@@ -20,10 +20,11 @@ export function chooseHospital(menu: any, args: any, db: any): void {
         },
       });
     };
-    console.log("CHOOSE HOsPITAL", args.phoneNumber)
     
     menu.state("chooseHospital", {
         run: () => {
+    console.log("* CHOOSE HOSPITAL", args.phoneNumber)
+
           const regions = [
             "Central Region",
             "Western Region",

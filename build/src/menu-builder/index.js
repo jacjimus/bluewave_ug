@@ -17,7 +17,6 @@ const configs_1 = __importDefault(require("./configs"));
 const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const crypto_1 = __importDefault(require("crypto"));
 const termsAndConditions_1 = require("./menus/termsAndConditions");
-//import { displayAccount } from "./menus/displayAccount";
 const buyForSelf_1 = require("./menus/buyForSelf");
 const faqs_1 = require("./menus/faqs");
 const buyForFamily_1 = require("./menus/buyForFamily");
@@ -26,6 +25,7 @@ const payNow_1 = require("./menus/payNow");
 const chooseHospital_1 = require("./menus/chooseHospital");
 const buyForOthers_1 = require("./menus/buyForOthers");
 const makeClaim_1 = require("./menus/makeClaim");
+const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
 require("dotenv").config();
 let menu = new ussd_builder_1.default();
 function default_1(args, db) {
@@ -44,8 +44,8 @@ function default_1(args, db) {
                 userPhoneNumber = args.phoneNumber.substring(3);
                 args.phoneNumber = userPhoneNumber;
             }
-            // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-            //console.log("USER KYC", userKyc)
+            const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "UG", "UGX", 2);
+            console.log("USER KYC", userKyc);
             function getUser(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return yield User.findOne({

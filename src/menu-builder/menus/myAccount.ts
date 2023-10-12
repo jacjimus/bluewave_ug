@@ -14,11 +14,11 @@ export function myAccount(menu: any, args: any, db: any) {
       },
     });
   };
-  console.log("* MY ACCOUNT ", args.phoneNumber)
 
 
   menu.state("myAccount", {
     run: async () => {
+      console.log("* MY ACCOUNT ", args.phoneNumber)
 
       menu.con(
         "My Account " +

@@ -4,10 +4,7 @@ import configs from "./configs";
 import UssdMenu from "ussd-builder";
 import crypto from "crypto";
 
-// import { startMenu } from "./menus/startMenu";
-import { displayMedicalCoverMenu } from "./menus/startMenu";
 import { termsAndConditions } from "./menus/termsAndConditions";
-//import { displayAccount } from "./menus/displayAccount";
 import { buyForSelf } from "./menus/buyForSelf";
 import { displayFaqsMenu } from "./menus/faqs";
 import { buyForFamily } from "./menus/buyForFamily";
@@ -45,8 +42,8 @@ export default function (args: RequestBody, db: any) {
       }
 
 
-     // const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-      //console.log("USER KYC", userKyc)
+     const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
+      console.log("USER KYC", userKyc)
 
       async function getUser(phoneNumber: any) {
         return await User.findOne({

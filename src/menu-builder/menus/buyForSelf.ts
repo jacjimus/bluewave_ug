@@ -13,8 +13,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
 
-    console.log("* BUY FOR SELF", args.phoneNumber)
-
+   
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
         return await User.findOne({
@@ -48,6 +47,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
     menu.state('buyForSelf', {
         run: async () => {
+            console.log("* BUY FOR SELF", args.phoneNumber)
 
             const user = await findUserByPhoneNumber(args.phoneNumber);
             const policy = await findPaidPolicyByUser(user);

@@ -24,7 +24,6 @@ function makeClaim(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    console.log("* MAKE CLAIM", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {
@@ -35,6 +34,7 @@ function makeClaim(menu, args, db) {
     //==================MAKE CLAIM===================
     menu.state('makeClaim', {
         run: () => __awaiter(this, void 0, void 0, function* () {
+            console.log("* MAKE CLAIM", args.phoneNumber);
             menu.con('Make Claim ' +
                 '\n1. Inpatient Claim' +
                 '\n2. Death Claim' +

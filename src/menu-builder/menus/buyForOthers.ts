@@ -12,7 +12,6 @@ export function buyForOthers(menu: any, args: any, db: any): void {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
 
-    console.log("* BUY FOR OTHERS", args.phoneNumber)
 
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
@@ -45,6 +44,9 @@ export function buyForOthers(menu: any, args: any, db: any): void {
     //buyForOthers
     menu.state('buyForOthers', {
         run: async () => {
+            
+     console.log("* BUY FOR OTHERS", args.phoneNumber)
+
             const user = await findUserByPhoneNumber(args.phoneNumber);
             const policy = await findPaidPolicyByUser(user);
 

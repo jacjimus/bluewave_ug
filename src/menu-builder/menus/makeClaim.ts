@@ -13,7 +13,6 @@ export function makeClaim(menu: any, args: any, db: any): void {
 
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    console.log("* MAKE CLAIM", args.phoneNumber)
 
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
@@ -26,6 +25,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
     //==================MAKE CLAIM===================
     menu.state('makeClaim', {
         run: async () => {
+            console.log("* MAKE CLAIM", args.phoneNumber)
 
             menu.con('Make Claim ' +
                 '\n1. Inpatient Claim' +

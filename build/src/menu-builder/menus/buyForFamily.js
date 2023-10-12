@@ -23,7 +23,6 @@ function buyForFamily(menu, args, db) {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    console.log("* BUY FOR FAMILY", args.phoneNumber);
     const findUserByPhoneNumber = (phoneNumber) => __awaiter(this, void 0, void 0, function* () {
         return yield User.findOne({
             where: {
@@ -51,6 +50,7 @@ function buyForFamily(menu, args, db) {
     //============  BUY FOR FAMILY ===================
     menu.state('buyForFamily', {
         run: () => __awaiter(this, void 0, void 0, function* () {
+            console.log("* BUY FOR FAMILY", args.phoneNumber);
             menu.con('Buy for family ' +
                 '\n1. Self + Spouse or Child' +
                 '\n2. Self + Spouse + 1 Child' +
@@ -243,12 +243,10 @@ function buyForFamily(menu, args, db) {
             '00': 'account'
         }
     });
-    //buyForFamily.selfSpouse.spouse
     menu.state('buyForFamily.selfSpousePhoneNumber', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             let spousePhone = menu.val;
             console.log("SPOUSE Phone", spousePhone);
-            // remove the first character from the phone number if it is + sign or 0
             if (spousePhone.charAt(0) == "+") {
                 spousePhone = spousePhone.substring(1);
             }

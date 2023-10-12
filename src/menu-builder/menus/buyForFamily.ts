@@ -11,7 +11,6 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
-    console.log("* BUY FOR FAMILY", args.phoneNumber)
 
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
@@ -46,6 +45,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
 
     menu.state('buyForFamily', {
         run: async () => {
+            console.log("* BUY FOR FAMILY", args.phoneNumber)
 
             menu.con('Buy for family ' +
                 '\n1. Self + Spouse or Child' +
@@ -264,16 +264,11 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     });
 
 
-
-
-
-
-    //buyForFamily.selfSpouse.spouse
     menu.state('buyForFamily.selfSpousePhoneNumber', {
         run: async () => {
             let spousePhone = menu.val;
             console.log("SPOUSE Phone", spousePhone)
-            // remove the first character from the phone number if it is + sign or 0
+         
             if (spousePhone.charAt(0) == "+") {
                 spousePhone = spousePhone.substring(1);
             }
