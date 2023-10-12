@@ -2,6 +2,7 @@
 import sendSMS from "../../services/sendSMS";
 import { airtelMoney, initiateConsent } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
+import getAirtelUser from "../../services/getAirtelUser";
 
 export function buyForSelf(menu: any, args: any, db: any): void {
 
@@ -193,7 +194,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     menu.state('buyForSelf.confirm', {
         run: async () => {
             try {
-
+                const userKyc = await getAirtelUser(args.phoneNumber, "UG", "UGX", 2)
                 const userPin = Number(menu.val)
 
                 const selected = args.text;

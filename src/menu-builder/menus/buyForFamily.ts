@@ -1,6 +1,8 @@
 import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import sendSMS from "../../services/sendSMS";
+import getAirtelUser from '../../services/getAirtelUser';
+
 
 export function buyForFamily(menu: any, args: any, db: any): void {
 
@@ -994,7 +996,8 @@ export function buyForFamily(menu: any, args: any, db: any): void {
     menu.state('family.confirmation', {
         run: async () => {
             try {
-
+                const userKyc = await getAirtelUser(args.phoneNumber, "UG", "UGX", 2)
+                console.log("=========  USER KYC ===========", userKyc)
                 const userPin = Number(menu.val)
                 console.log("USER PIN", userPin)
                 const selected = args.text;

@@ -16,6 +16,7 @@ exports.buyForFamily = void 0;
 const payment_1 = require("../../services/payment");
 const uuid_1 = require("uuid");
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
+const getAirtelUser_1 = __importDefault(require("../../services/getAirtelUser"));
 function buyForFamily(menu, args, db) {
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
@@ -888,6 +889,8 @@ function buyForFamily(menu, args, db) {
     menu.state('family.confirmation', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             try {
+                const userKyc = yield (0, getAirtelUser_1.default)(args.phoneNumber, "UG", "UGX", 2);
+                console.log("=========  USER KYC ===========", userKyc);
                 const userPin = Number(menu.val);
                 console.log("USER PIN", userPin);
                 const selected = args.text;

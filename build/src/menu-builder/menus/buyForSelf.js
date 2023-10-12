@@ -16,6 +16,7 @@ exports.buyForSelf = void 0;
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const payment_1 = require("../../services/payment");
 const uuid_1 = require("uuid");
+const getAirtelUser_1 = __importDefault(require("../../services/getAirtelUser"));
 function buyForSelf(menu, args, db) {
     const User = db.users;
     const Policy = db.policies;
@@ -173,6 +174,7 @@ function buyForSelf(menu, args, db) {
     menu.state('buyForSelf.confirm', {
         run: () => __awaiter(this, void 0, void 0, function* () {
             try {
+                const userKyc = yield (0, getAirtelUser_1.default)(args.phoneNumber, "UG", "UGX", 2);
                 const userPin = Number(menu.val);
                 const selected = args.text;
                 const input = selected.trim();

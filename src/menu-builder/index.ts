@@ -43,8 +43,7 @@ export default function (args: RequestBody, db: any) {
       }
 
 
-     const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-      console.log("=========  USER KYC ===========", userKyc)
+   
 
       async function getUser(phoneNumber: any) {
         return await User.findOne({
@@ -146,7 +145,6 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("account", {
         run: async () => {
-      
             menu.con(
               'Medical cover' +
                 '\n1. Buy for self' +
@@ -175,151 +173,7 @@ export default function (args: RequestBody, db: any) {
 
       
 
-      menu.state("updateProfile", {
-        run: async () => {
-          console.log("Update Profile");
-          menu.con(
-            `What's your gender?
-            1. Male
-            2. Female
-            0. Back
-            00. Main Menu`
-          );
-        },
-        next: {
-          "1": "updateGender",
-          "2": "updateGender",
-          "0": "account",
-          "00": "account",
-        },
-      });
-      
     
-      menu.state("updateGender", {
-        run: async () => {
-          const gender = menu.val === "1" ? "M" : "F";
-          const user = await User.update(
-            { gender },
-            { where: { phone_number: args.phoneNumber } }
-          );
-      
-          console.log("Updated user:", user);
-      
-          menu.con(`Enter your date of birth in the format DDMMYYYY (e.g., 01011990):
-      0. Back
-      00. Main Menu`);
-        },
-        next: {
-          "*\\d{8}": "updateDob",
-          "0": "account",
-          "00": "account",
-        },
-      });
-      
-      menu.state("updateDob", {
-        run: async () => {
-          let dob = menu.val;
-          console.log("Input Date of Birth:", dob);
-      
-          // Remove all non-numeric characters
-          dob = dob.replace(/\D/g, "");
-          console.log("Cleaned Date of Birth:", dob);
-      
-          // Convert DDMMYYYY to a valid date
-          let day = parseInt(dob.substring(0, 2));
-          let month = parseInt(dob.substring(2, 4));
-          let year = parseInt(dob.substring(4, 8));
-          let date = new Date(year, month - 1, day);
-          console.log("Parsed Date of Birth:", date);
-      
-          const user = await User.update(
-            {
-              dob: date,
-            },
-            {
-              where: {
-                phone_number: args.phoneNumber,
-              },
-            }
-          );
-      
-          console.log("User DOB Update:", user);
-      
-          menu.con(`Enter your marital status
-            1. Single
-            2. Married
-            3. Divorced
-            4. Widowed
-            0. Back
-            00. Main Menu`);
-        },
-        next: {
-          "*[0-9]": "updateMaritalStatus",
-          "0": "account",
-          "00": "account",
-        },
-      });
-      
-    
-      menu.state("updateMaritalStatus", {
-        run: async () => {
-          const { gender, first_name } = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
-      
-          const ben_marital_status = getMenuOption(menu.val);
-          const title = getTitle(ben_marital_status, gender);
-      
-          console.log("ben_marital_status", ben_marital_status);
-      
-          const user = await User.update(
-            {
-              marital_status: ben_marital_status,
-              title: title,
-            },
-            {
-              where: {
-                phone_number: args.phoneNumber,
-              },
-            }
-          );
-      
-          console.log("User Marital Status Update:", user);
-          // Send SMS
-          const message = `Dear ${title} ${first_name}, your profile has been updated successfully`;
-          await sendSMS(args.phoneNumber, message);
-      
-          menu.con(`Your profile has been updated successfully
-            0. Back
-            00. Main Menu`);
-        },
-        next: {
-          "0": "account",
-          "00": "account",
-        },
-      });
-      
-      function getMenuOption(val) {
-        const options = {
-          "1": "single",
-          "2": "married",
-          "3": "divorced",
-          "4": "widowed",
-        };
-        return options[val] || "";
-      }
-      
-      function getTitle(maritalStatus, gender) {
-        let title = gender === "M" ? "Mr" : "Ms";
-        if (maritalStatus === "married") {
-          title = gender === "M" ? "Mr" : "Mrs";
-        }
-        return title;
-      }
-      
-
       myAccount(menu, args, db);
     
       //=================BUY FOR SELF=================
