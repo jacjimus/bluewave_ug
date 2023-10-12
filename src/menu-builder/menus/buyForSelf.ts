@@ -68,8 +68,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         next: {
             '*\\d+': 'buyForSelf.coverType',
 
-            '0': 'account',
-            '00': 'account',
+            '0': ""
         }
     });
     menu.state('buyForSelf.coverType', {

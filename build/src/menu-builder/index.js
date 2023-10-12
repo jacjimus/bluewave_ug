@@ -38,7 +38,7 @@ function default_1(args, db) {
             if (args.phoneNumber.charAt(0) == "+") {
                 args.phoneNumber = args.phoneNumber.substring(1);
             }
-            console.log("USER PHONE NUMBER", args.phoneNumber);
+            console.log("====== USER PHONE NUMBER ===", args.phoneNumber);
             let userPhoneNumber = args.phoneNumber;
             //if args.phoneNumber is 12 digit remove the first three country code
             if (args.phoneNumber.length == 12) {
@@ -46,7 +46,7 @@ function default_1(args, db) {
                 args.phoneNumber = userPhoneNumber;
             }
             const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "UG", "UGX", 2);
-            console.log("USER KYC", userKyc);
+            console.log("=========  USER KYC ===========", userKyc);
             function getUser(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {
                     return yield User.findOne({
@@ -101,32 +101,27 @@ function default_1(args, db) {
                         sid: buildInput.sid,
                     },
                 });
-                console.log("Updated Session:", session);
             }
             // ===============SET MENU STATES============
+            // menu.startState({
+            //   run: async () => {
+            //     console.log(" ===========================");
+            //     console.log(" ******** START MENU *******");
+            //     console.log(" ===========================");
+            //     menu.con(
+            //       'Insurance ' +
+            //         '\n1. Ddwaliro Care'
+            //     );
+            //   },
+            //   next: {
+            //     '1': 'account',
+            //   },
+            // });
             menu.startState({
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     console.log(" ===========================");
                     console.log(" ******** START MENU *******");
                     console.log(" ===========================");
-                    menu.con('Insurance ' +
-                        '\n1. Ddwaliro Care');
-                }),
-                next: {
-                    '1': 'account',
-                },
-            });
-            menu.state('account', {
-                run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield db.users.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                            gender: {
-                                [db.Sequelize.Op.ne]: null,
-                            },
-                        },
-                    });
-                    console.log('ACCOUNT User:', user);
                     menu.con('Medical cover' +
                         '\n1. Buy for self' +
                         '\n2. Buy (family)' +
@@ -136,10 +131,6 @@ function default_1(args, db) {
                         '\n6. View Hospital' +
                         '\n7. Terms & Conditions' +
                         '\n8. FAQs');
-                    // } else {
-                    //   menu.con('Medical cover' +
-                    //     '\n00. Update profile(KYC)');
-                    // }
                 }),
                 next: {
                     '1': 'buyForSelf',
@@ -150,7 +141,29 @@ function default_1(args, db) {
                     '6': 'chooseHospital',
                     '7': 'termsAndConditions',
                     '8': 'faqs',
-                    '00': 'updateProfile',
+                },
+            });
+            menu.state("account", {
+                run: () => __awaiter(this, void 0, void 0, function* () {
+                    menu.con('Medical cover' +
+                        '\n1. Buy for self' +
+                        '\n2. Buy (family)' +
+                        '\n3. Buy (others)' +
+                        '\n4. Make Claim' +
+                        '\n5. My Policy' +
+                        '\n6. View Hospital' +
+                        '\n7. Terms & Conditions' +
+                        '\n8. FAQs');
+                }),
+                next: {
+                    '1': 'buyForSelf',
+                    '2': 'buyForFamily',
+                    '3': 'buyForOthers',
+                    '4': 'makeClaim',
+                    '5': 'myAccount',
+                    '6': 'chooseHospital',
+                    '7': 'termsAndConditions',
+                    '8': 'faqs',
                 },
             });
             menu.state("updateProfile", {

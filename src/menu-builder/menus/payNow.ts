@@ -5,7 +5,6 @@ export function payNowPremium(menu: any, args: any, db: any): void {
   const User = db.users;
   const Policy = db.policies;
 
-  console.log("* PAY NOW", args.phoneNumber)
 
   const findUserByPhoneNumber = async (phoneNumber) => {
     return await User.findOne({
@@ -26,6 +25,8 @@ export function payNowPremium(menu: any, args: any, db: any): void {
 
   menu.state('payNow', {
     run: async () => {
+  console.log("* PAY NOW", args.phoneNumber)
+
       const user = await findUserByPhoneNumber(args.phoneNumber);
 
       if (!user) {

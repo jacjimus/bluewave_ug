@@ -34,7 +34,7 @@ export default function (args: RequestBody, db: any) {
         args.phoneNumber = args.phoneNumber.substring(1);
       }
 
-      console.log("USER PHONE NUMBER", args.phoneNumber)
+      console.log("====== USER PHONE NUMBER ===", args.phoneNumber)
       let userPhoneNumber = args.phoneNumber;
       //if args.phoneNumber is 12 digit remove the first three country code
       if (args.phoneNumber.length == 12) {
@@ -44,7 +44,7 @@ export default function (args: RequestBody, db: any) {
 
 
      const userKyc = await getAirtelUser(userPhoneNumber, "UG", "UGX", 2)
-      console.log("USER KYC", userKyc)
+      console.log("=========  USER KYC ===========", userKyc)
 
       async function getUser(phoneNumber: any) {
         return await User.findOne({
@@ -106,37 +106,31 @@ export default function (args: RequestBody, db: any) {
             sid: buildInput.sid,
           },
         });
-        console.log("Updated Session:", session);
+        
       }
 
       // ===============SET MENU STATES============
+      // menu.startState({
+      //   run: async () => {
+      //     console.log(" ===========================");
+      //     console.log(" ******** START MENU *******");
+      //     console.log(" ===========================");
+      
+      //     menu.con(
+      //       'Insurance ' +
+      //         '\n1. Ddwaliro Care'
+      //     );
+      //   },
+      //   next: {
+      //     '1': 'account',
+      //   },
+      // });
+      
       menu.startState({
         run: async () => {
           console.log(" ===========================");
           console.log(" ******** START MENU *******");
           console.log(" ===========================");
-      
-          menu.con(
-            'Insurance ' +
-              '\n1. Ddwaliro Care'
-          );
-        },
-        next: {
-          '1': 'account',
-        },
-      });
-      
-      menu.state('account', {
-        run: async () => {
-          const user = await db.users.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-              gender: {
-                [db.Sequelize.Op.ne]: null,
-              },
-            },
-          });
-          console.log('ACCOUNT User:', user);
       
             menu.con(
               'Medical cover' +
@@ -149,10 +143,7 @@ export default function (args: RequestBody, db: any) {
                 '\n7. Terms & Conditions' +
                 '\n8. FAQs'
             );
-          // } else {
-          //   menu.con('Medical cover' +
-          //     '\n00. Update profile(KYC)');
-          // }
+       
         },
         next: {
           '1': 'buyForSelf',
@@ -163,9 +154,39 @@ export default function (args: RequestBody, db: any) {
           '6': 'chooseHospital',
           '7': 'termsAndConditions',
           '8': 'faqs',
-          '00': 'updateProfile',
+     
         },
       });
+
+      menu.state("account", {
+        run: async () => {
+      
+            menu.con(
+              'Medical cover' +
+                '\n1. Buy for self' +
+                '\n2. Buy (family)' +
+                '\n3. Buy (others)' +
+                '\n4. Make Claim' +
+                '\n5. My Policy' +
+                '\n6. View Hospital' +
+                '\n7. Terms & Conditions' +
+                '\n8. FAQs'
+            );
+        
+        },
+        next: {
+          '1': 'buyForSelf',
+          '2': 'buyForFamily',
+          '3': 'buyForOthers',
+          '4': 'makeClaim',
+          '5': 'myAccount',
+          '6': 'chooseHospital',
+          '7': 'termsAndConditions',
+          '8': 'faqs',
+     
+        },
+      });
+
       
 
       menu.state("updateProfile", {

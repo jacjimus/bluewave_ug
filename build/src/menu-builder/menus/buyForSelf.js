@@ -64,8 +64,7 @@ function buyForSelf(menu, args, db) {
         }),
         next: {
             '*\\d+': 'buyForSelf.coverType',
-            '0': 'account',
-            '00': 'account',
+            '0': ""
         }
     });
     menu.state('buyForSelf.coverType', {
