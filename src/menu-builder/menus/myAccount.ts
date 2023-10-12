@@ -18,19 +18,19 @@ export function myAccount(menu: any, args: any, db: any) {
 
   menu.state("myAccount", {
     run: async () => {
-      console.log("* MY ACCOUNT ", args.phoneNumber)
-
+      console.log("* MY ACCOUNT ", args.phoneNumber);
+  
       menu.con(
-        "My Account " +
-        "\n1. Policy Status" +
-        "\n2. Pay Now" +
-        "\n3. Renew Policy" +
-        "\n4. Update My Profile(KYC)" +
-        "\n5. Cancel policy" +
-        "\n6. Add Dependant" +
-        "\n7. My Hospital" +
-        "\n0.Back" +
-        "\n00.Main Menu"
+        "My Account" +
+          "\n1. Policy Status" +
+          "\n2. Pay Now" +
+          "\n3. Renew Policy" +
+          "\n4. Update My Profile (KYC)" +
+          "\n5. Cancel Policy" +
+          "\n6. Add Dependant" +
+          "\n7. My Hospital" +
+          "\n0. Back" +
+          "\n00. Main Menu"
       );
     },
     next: {
@@ -45,6 +45,7 @@ export function myAccount(menu: any, args: any, db: any) {
       "00": "account",
     },
   });
+  
 
   //update profile ( user dob and gender)
  

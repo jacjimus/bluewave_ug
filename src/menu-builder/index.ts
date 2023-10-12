@@ -112,20 +112,20 @@ export default function (args: RequestBody, db: any) {
       // ===============SET MENU STATES============
       menu.startState({
         run: async () => {
-          console.log(" ===========================")
-          console.log(" ******** START MENU *******")
-          console.log(" ===========================")
+          console.log(" ===========================");
+          console.log(" ******** START MENU *******");
+          console.log(" ===========================");
       
-          menu.con('Insurance ' +
-            '\n1. Ddwaliro Care' 
+          menu.con(
+            'Insurance ' +
+              '\n1. Ddwaliro Care'
           );
         },
         next: {
-          '1': 'account', 
+          '1': 'account',
         },
       });
-
-      //displayAccount(menu, args, db);
+      
       menu.state('account', {
         run: async () => {
           const user = await db.users.findOne({
@@ -136,25 +136,23 @@ export default function (args: RequestBody, db: any) {
               },
             },
           });
-    
-          console.log(" ============== USER - ACCOUNT ================ ", user);
+          console.log('ACCOUNT User:', user);
+      
           if (user) {
-            menu.con('Medical cover ' +
-              '\n1. Buy for self' +
-              '\n2. Buy (family)' +
-              '\n3. Buy (others)' +
-              '\n4. Make Claim' +
-              '\n5. My Policy' +
-              '\n6. View Hospital' +
-              '\n7. Terms & Conditions' +
-              '\n8. FAQs'
-              // '\n00.Main Menu'
-            )
-    
+            menu.con(
+              'Medical cover' +
+                '\n1. Buy for self' +
+                '\n2. Buy (family)' +
+                '\n3. Buy (others)' +
+                '\n4. Make Claim' +
+                '\n5. My Policy' +
+                '\n6. View Hospital' +
+                '\n7. Terms & Conditions' +
+                '\n8. FAQs'
+            );
           } else {
-            menu.con('Medical cover ' +
-              '\n0. Update profile(KYC)')
-    
+            menu.con('Medical cover' +
+              '\n00. Update profile(KYC)');
           }
         },
         next: {
@@ -166,71 +164,68 @@ export default function (args: RequestBody, db: any) {
           '6': 'chooseHospital',
           '7': 'termsAndConditions',
           '8': 'faqs',
-          '0': 'updateProfile',
-          // '00': 'account',
-        }
+          '00': 'updateProfile',
+        },
       });
+      
 
       menu.state("updateProfile", {
         run: async () => {
-          menu.con(`Whats our gender
-                1. Male
-                2. Female
-                0. Back
-                00. Main Menu
-                 `);
+          console.log("Update Profile");
+          menu.con(
+            `What's your gender?
+            1. Male
+            2. Female
+            0. Back
+            00. Main Menu`
+          );
         },
         next: {
           "1": "updateGender",
           "2": "updateGender",
-          "0": "myAccount",
+          "0": "account",
           "00": "account",
         },
       });
+      
     
       menu.state("updateGender", {
         run: async () => {
-          const gender = menu.val == "1" ? "M" : "F";
+          const gender = menu.val === "1" ? "M" : "F";
           const user = await User.update(
-            {
-              gender: gender,
-            },
-            {
-              where: {
-                phone_number: args.phoneNumber,
-              },
-            }
+            { gender },
+            { where: { phone_number: args.phoneNumber } }
           );
-    
-          console.log("USER: ", user);
-    
-          menu.con(`Enter your date of birth in the format DDMMYYYY e.g 01011990
-                0. Back
-                00. Main Menu
-                 `);
+      
+          console.log("Updated user:", user);
+      
+          menu.con(`Enter your date of birth in the format DDMMYYYY (e.g., 01011990):
+      0. Back
+      00. Main Menu`);
         },
         next: {
-          "*[0-9]": "updateDob",
-          "0": "myAccount",
+          "*\\d{8}": "updateDob",
+          "0": "account",
           "00": "account",
         },
       });
-    
+      
       menu.state("updateDob", {
         run: async () => {
           let dob = menu.val;
-          console.log("dob", dob);
-    
-          //remove all non numeric characters
+          console.log("Input Date of Birth:", dob);
+      
+          // Remove all non-numeric characters
           dob = dob.replace(/\D/g, "");
-          console.log("dob", dob);
-          // convert ddmmyyyy to valid date
+          console.log("Cleaned Date of Birth:", dob);
+      
+          // Convert DDMMYYYY to a valid date
           let day = parseInt(dob.substring(0, 2));
           let month = parseInt(dob.substring(2, 4));
           let year = parseInt(dob.substring(4, 8));
           let date = new Date(year, month - 1, day);
-          console.log(" dob date", date);
-    
+          console.log("Parsed Date of Birth:", date);
+      
           const user = await User.update(
             {
               dob: date,
@@ -241,56 +236,42 @@ export default function (args: RequestBody, db: any) {
               },
             }
           );
-    
-          console.log("USER DOB UPDATE: ", user);
-    
+      
+          console.log("User DOB Update:", user);
+      
           menu.con(`Enter your marital status
-                1. Single
-                2. Married
-                3. Divorced
-                4. Widowed
-                0. Back
-                00. Main Menu
-                  `);
+            1. Single
+            2. Married
+            3. Divorced
+            4. Widowed
+            0. Back
+            00. Main Menu`);
         },
         next: {
           "*[0-9]": "updateMaritalStatus",
-          "0": "myAccount",
+          "0": "account",
           "00": "account",
         },
       });
+      
     
       menu.state("updateMaritalStatus", {
         run: async () => {
-    
-          const { gender } = await User.findOne({
+          const { gender, first_name } = await User.findOne({
             where: {
               phone_number: args.phoneNumber,
             },
           });
-    
-          let title = "";
-    
-          let ben_marital_status = (menu.val).toString();
-          if (ben_marital_status == "1") {
-            ben_marital_status = "single";
-            gender == "M" ? title = "Mr" : title = "Ms"
-          } else if (ben_marital_status == "2") {
-            ben_marital_status = "married";
-            gender == "M" ? title = "Mr" : title = "Mrs"
-          } else if (ben_marital_status == "3") {
-            ben_marital_status = "divorced";
-            gender == "M" ? title = "Mr" : title = "Ms"
-          } else if (ben_marital_status == "4") {
-            ben_marital_status = "widowed";
-            gender == "M" ? title = "Mr" : title = "Mrs"
-          }
-    
+      
+          const ben_marital_status = getMenuOption(menu.val);
+          const title = getTitle(ben_marital_status, gender);
+      
           console.log("ben_marital_status", ben_marital_status);
+      
           const user = await User.update(
             {
               marital_status: ben_marital_status,
-              title: title
+              title: title,
             },
             {
               where: {
@@ -298,20 +279,40 @@ export default function (args: RequestBody, db: any) {
               },
             }
           );
-          // send sms
-          const message = `Dear ${title} ${user.first_name}, your profile has been updated successfully`;
+      
+          console.log("User Marital Status Update:", user);
+          // Send SMS
+          const message = `Dear ${title} ${first_name}, your profile has been updated successfully`;
           await sendSMS(args.phoneNumber, message);
-    
+      
           menu.con(`Your profile has been updated successfully
-                0. Back
-                00. Main Menu
-                 `);
+            0. Back
+            00. Main Menu`);
         },
         next: {
-          "0": "myAccount",
+          "0": "account",
           "00": "account",
         },
       });
+      
+      function getMenuOption(val) {
+        const options = {
+          "1": "single",
+          "2": "married",
+          "3": "divorced",
+          "4": "widowed",
+        };
+        return options[val] || "";
+      }
+      
+      function getTitle(maritalStatus, gender) {
+        let title = gender === "M" ? "Mr" : "Ms";
+        if (maritalStatus === "married") {
+          title = gender === "M" ? "Mr" : "Mrs";
+        }
+        return title;
+      }
+      
 
       myAccount(menu, args, db);
     

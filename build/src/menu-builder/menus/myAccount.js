@@ -30,16 +30,16 @@ function myAccount(menu, args, db) {
     menu.state("myAccount", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             console.log("* MY ACCOUNT ", args.phoneNumber);
-            menu.con("My Account " +
+            menu.con("My Account" +
                 "\n1. Policy Status" +
                 "\n2. Pay Now" +
                 "\n3. Renew Policy" +
-                "\n4. Update My Profile(KYC)" +
-                "\n5. Cancel policy" +
+                "\n4. Update My Profile (KYC)" +
+                "\n5. Cancel Policy" +
                 "\n6. Add Dependant" +
                 "\n7. My Hospital" +
-                "\n0.Back" +
-                "\n00.Main Menu");
+                "\n0. Back" +
+                "\n00. Main Menu");
         }),
         next: {
             "1": "myInsurancePolicy",
