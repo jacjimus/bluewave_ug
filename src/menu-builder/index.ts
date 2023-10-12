@@ -3,6 +3,7 @@ import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-builder";
 import crypto from "crypto";
+import sendSMS from "../services/sendSMS";
 
 import { termsAndConditions } from "./menus/termsAndConditions";
 import { buyForSelf } from "./menus/buyForSelf";
@@ -52,6 +53,8 @@ export default function (args: RequestBody, db: any) {
           },
         });
       }
+
+      
 
       // Retrieve user using provided phone number
       const user = await getUser(userPhoneNumber);
@@ -167,6 +170,151 @@ export default function (args: RequestBody, db: any) {
           // '00': 'account',
         }
       });
+
+      menu.state("updateProfile", {
+        run: async () => {
+          menu.con(`Whats our gender
+                1. Male
+                2. Female
+                0. Back
+                00. Main Menu
+                 `);
+        },
+        next: {
+          "1": "updateGender",
+          "2": "updateGender",
+          "0": "myAccount",
+          "00": "account",
+        },
+      });
+    
+      menu.state("updateGender", {
+        run: async () => {
+          const gender = menu.val == "1" ? "M" : "F";
+          const user = await User.update(
+            {
+              gender: gender,
+            },
+            {
+              where: {
+                phone_number: args.phoneNumber,
+              },
+            }
+          );
+    
+          console.log("USER: ", user);
+    
+          menu.con(`Enter your date of birth in the format DDMMYYYY e.g 01011990
+                0. Back
+                00. Main Menu
+                 `);
+        },
+        next: {
+          "*[0-9]": "updateDob",
+          "0": "myAccount",
+          "00": "account",
+        },
+      });
+    
+      menu.state("updateDob", {
+        run: async () => {
+          let dob = menu.val;
+          console.log("dob", dob);
+    
+          //remove all non numeric characters
+          dob = dob.replace(/\D/g, "");
+          console.log("dob", dob);
+          // convert ddmmyyyy to valid date
+          let day = parseInt(dob.substring(0, 2));
+          let month = parseInt(dob.substring(2, 4));
+          let year = parseInt(dob.substring(4, 8));
+          let date = new Date(year, month - 1, day);
+          console.log(" dob date", date);
+    
+          const user = await User.update(
+            {
+              dob: date,
+            },
+            {
+              where: {
+                phone_number: args.phoneNumber,
+              },
+            }
+          );
+    
+          console.log("USER DOB UPDATE: ", user);
+    
+          menu.con(`Enter your marital status
+                1. Single
+                2. Married
+                3. Divorced
+                4. Widowed
+                0. Back
+                00. Main Menu
+                  `);
+        },
+        next: {
+          "*[0-9]": "updateMaritalStatus",
+          "0": "myAccount",
+          "00": "account",
+        },
+      });
+    
+      menu.state("updateMaritalStatus", {
+        run: async () => {
+    
+          const { gender } = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+    
+          let title = "";
+    
+          let ben_marital_status = (menu.val).toString();
+          if (ben_marital_status == "1") {
+            ben_marital_status = "single";
+            gender == "M" ? title = "Mr" : title = "Ms"
+          } else if (ben_marital_status == "2") {
+            ben_marital_status = "married";
+            gender == "M" ? title = "Mr" : title = "Mrs"
+          } else if (ben_marital_status == "3") {
+            ben_marital_status = "divorced";
+            gender == "M" ? title = "Mr" : title = "Ms"
+          } else if (ben_marital_status == "4") {
+            ben_marital_status = "widowed";
+            gender == "M" ? title = "Mr" : title = "Mrs"
+          }
+    
+          console.log("ben_marital_status", ben_marital_status);
+          const user = await User.update(
+            {
+              marital_status: ben_marital_status,
+              title: title
+            },
+            {
+              where: {
+                phone_number: args.phoneNumber,
+              },
+            }
+          );
+          // send sms
+          const message = `Dear ${title} ${user.first_name}, your profile has been updated successfully`;
+          await sendSMS(args.phoneNumber, message);
+    
+          menu.con(`Your profile has been updated successfully
+                0. Back
+                00. Main Menu
+                 `);
+        },
+        next: {
+          "0": "myAccount",
+          "00": "account",
+        },
+      });
+
+      myAccount(menu, args, db);
+    
       //=================BUY FOR SELF=================
       buyForSelf(menu, args, db);
 
@@ -177,8 +325,7 @@ export default function (args: RequestBody, db: any) {
       buyForOthers(menu, args, db);
 
       //================MY ACCOUNT===================
-      myAccount(menu, args, db);
-
+     
       //================== MAKE CLAIM ===================
       makeClaim(menu, args, db);
 

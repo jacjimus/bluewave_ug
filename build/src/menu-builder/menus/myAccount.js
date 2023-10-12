@@ -37,7 +37,6 @@ function myAccount(menu, args, db) {
                 "\n4. Update My Profile(KYC)" +
                 "\n5. Cancel policy" +
                 "\n6. Add Dependant" +
-                // "\n7. Update Beneficiary" +
                 "\n7. My Hospital" +
                 "\n0.Back" +
                 "\n00.Main Menu");
@@ -49,134 +48,12 @@ function myAccount(menu, args, db) {
             "4": "updateProfile",
             "5": "cancelPolicy",
             "6": "addDependant",
-            // "7": "listBeneficiaries",
             "7": "myHospitalOption",
             "0": "account",
             "00": "account",
         },
     });
     //update profile ( user dob and gender)
-    menu.state("updateProfile", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            menu.con(`Whats our gender
-            1. Male
-            2. Female
-            0. Back
-            00. Main Menu
-             `);
-        }),
-        next: {
-            "1": "updateGender",
-            "2": "updateGender",
-            "0": "myAccount",
-            "00": "account",
-        },
-    });
-    menu.state("updateGender", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            const gender = menu.val == 1 ? "M" : "F";
-            const user = yield User.update({
-                gender: gender,
-            }, {
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            console.log("USER: ", user);
-            menu.con(`Enter your date of birth in the format DDMMYYYY e.g 01011990
-            0. Back
-            00. Main Menu
-             `);
-        }),
-        next: {
-            "*[0-9]": "updateDob",
-            "0": "myAccount",
-            "00": "account",
-        },
-    });
-    menu.state("updateDob", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            let dob = menu.val;
-            console.log("dob", dob);
-            //remove all non numeric characters
-            dob = dob.replace(/\D/g, "");
-            console.log("dob", dob);
-            // convert ddmmyyyy to valid date
-            let day = parseInt(dob.substring(0, 2));
-            let month = parseInt(dob.substring(2, 4));
-            let year = parseInt(dob.substring(4, 8));
-            let date = new Date(year, month - 1, day);
-            console.log(" dob date", date);
-            const user = yield User.update({
-                dob: date,
-            }, {
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            console.log("USER DOB UPDATE: ", user);
-            menu.con(`Enter your marital status
-            1. Single
-            2. Married
-            3. Divorced
-            4. Widowed
-            0. Back
-            00. Main Menu
-              `);
-        }),
-        next: {
-            "*[0-9]": "updateMaritalStatus",
-            "0": "myAccount",
-            "00": "account",
-        },
-    });
-    menu.state("updateMaritalStatus", {
-        run: () => __awaiter(this, void 0, void 0, function* () {
-            const { gender } = yield User.findOne({
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            let title = "";
-            let ben_marital_status = menu.val;
-            if (ben_marital_status == 1) {
-                ben_marital_status = "single";
-                gender == "M" ? title = "Mr" : title = "Ms";
-            }
-            else if (ben_marital_status == 2) {
-                ben_marital_status = "married";
-                gender == "M" ? title = "Mr" : title = "Mrs";
-            }
-            else if (ben_marital_status == 3) {
-                ben_marital_status = "divorced";
-                gender == "M" ? title = "Mr" : title = "Ms";
-            }
-            else if (ben_marital_status == 4) {
-                ben_marital_status = "widowed";
-                gender == "M" ? title = "Mr" : title = "Mrs";
-            }
-            console.log("ben_marital_status", ben_marital_status);
-            const user = yield User.update({
-                marital_status: ben_marital_status,
-                title: title
-            }, {
-                where: {
-                    phone_number: args.phoneNumber,
-                },
-            });
-            // send sms
-            const message = `Dear ${title} ${user.first_name}, your profile has been updated successfully`;
-            yield (0, sendSMS_1.default)(args.phoneNumber, message);
-            menu.con(`Your profile has been updated successfully
-            0. Back
-            00. Main Menu
-             `);
-        }),
-        next: {
-            "0": "myAccount",
-            "00": "account",
-        },
-    });
     // ======= ADD SPOUSE DEPENDANT =========
     menu.state("addDependant", {
         run: () => __awaiter(this, void 0, void 0, function* () {
