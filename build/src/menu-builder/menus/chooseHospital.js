@@ -87,7 +87,6 @@ function chooseHospital(menu, args, db) {
                 });
             }
             const user_hospital_region = userHospital.hospital_region;
-            // const hospitalList = await Hospitals.findAll();
             const hospitalList = yield Hospitals.findAll();
             console.log("HOSPITAL LIST", hospitalList.length);
             //console.log("HOSPITAL LIST", hospitalList)

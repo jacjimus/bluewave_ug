@@ -93,8 +93,6 @@ menu.state("chooseHospital.distict", {
   const user_hospital_region = userHospital.hospital_region;
 
  
-
-  // const hospitalList = await Hospitals.findAll();
   const hospitalList = await Hospitals.findAll();
   console.log("HOSPITAL LIST", hospitalList.length)
   //console.log("HOSPITAL LIST", hospitalList)

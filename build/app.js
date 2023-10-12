@@ -66,11 +66,6 @@ app.use(morgan("common", {
         flags: "a",
     }),
 }));
-// const mongoURI = 'mongodb+srv://dickens:ugPUWKvrnAuiTs8@cluster0.yeyah.mongodb.net/bluewavedb?retryWrites=true&w=majority';
-// // Connect to MongoDB
-// mongoose.connect(mongoURI);
-// // Get the default connection
-// const db = mongoose.connection;
 // // Event listeners for MongoDB connection
 // db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 // db.once('open', () => {
