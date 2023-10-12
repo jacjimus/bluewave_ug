@@ -12,7 +12,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
 
-    console.log("ARGS PHONE NUMBER", args.phoneNumber)
+    console.log("* BUY FOR OTHERS", args.phoneNumber)
 
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
@@ -33,7 +33,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
     };
 
     const findPolicyByUser = async (user_id: any) => {
-        let policies  = await Policy.findAll({
+        let policies = await Policy.findAll({
             where: {
                 user_id: user_id,
             },
@@ -82,7 +82,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
             // }
 
             menu.con('Buy for others ' +
-                '\n4. Other + Spouse + 2 Children' +  
+                '\n4. Other + Spouse + 2 Children' +
                 '\n5. Other + Spouse + 3 Children' +
                 '\n6. Other + Spouse + 4 Children' +
                 '\n7. Other + Spouse + 5 Children' +
@@ -128,12 +128,12 @@ export function buyForOthers(menu: any, args: any, db: any): void {
             await User.update({ total_member_number: member_number }, { where: { phone_number: args.phoneNumber } });
             if (member_number == 'M') {
                 menu.con('Buy for Other' +
-                '\n1. Mini – UGX 10,000' +
-                '\n2. Midi - UGX 14,000' +
-                '\n3. Biggie – UGX 18,000' +
-                '\n0.Back' +
-                '\n00.Main Menu'
-            )
+                    '\n1. Mini – UGX 10,000' +
+                    '\n2. Midi - UGX 14,000' +
+                    '\n3. Biggie – UGX 18,000' +
+                    '\n0.Back' +
+                    '\n00.Main Menu'
+                )
             } else if (member_number == 'M+1') {
                 menu.con(`
                 1. Mini – UGX 20,000
@@ -229,12 +229,12 @@ export function buyForOthers(menu: any, args: any, db: any): void {
 
             await User.update({ cover_type: coverType }, { where: { phone_number: args.phoneNumber } });
             console.log("TOTAL MEMBER NUMBER", total_member_number)
-            
+
             menu.con('\nEnter atleast Name of spouse or 1 child' +
-                    '\n0.Back' +
-                    '\n00.Main Menu'
-        )
-            
+                '\n0.Back' +
+                '\n00.Main Menu'
+            )
+
         },
         next: {
             '*[a-zA-Z]+': 'buyForOthersName',
@@ -245,14 +245,14 @@ export function buyForOthers(menu: any, args: any, db: any): void {
         run: async () => {
             let name = menu.val;
             console.log("NAME", name)
-           
+
             menu.con('Enter Phone number for Other');
         },
         next: {
             '*\\d+': 'buyForOthersPhoneNumber',
         }
     });
-    
+
 
     menu.state('buyForOthersPhoneNumber', {
         run: async () => {
@@ -260,7 +260,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
             console.log("SPOUSE Phone", otherPhone)
 
             //uganda phone number validation
-           
+
             if (otherPhone.charAt(0) == "0") {
                 otherPhone = otherPhone.substring(1);
             }
@@ -276,7 +276,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
                 menu.end('Invalid Phone Number');
                 return;
             }
-           
+
 
             console.log("OTHER PHONE NUMBER", otherPhone)
 
@@ -286,7 +286,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
 
             // second last input text
             let otherName = menu.args.text.split("*")[menu.args.text.split("*").length - 2];
-        
+
             console.log("OTHER NAME", otherName)
 
 
@@ -316,20 +316,20 @@ export function buyForOthers(menu: any, args: any, db: any): void {
 
 
             console.log("OTHER POLICY", otherPolicy)
-             otherPolicy.bought_for = newUser.user_id 
-                await otherPolicy.save();
-            
+            otherPolicy.bought_for = newUser.user_id
+            await otherPolicy.save();
+
             const { user_id, phone_number, first_name, last_name, total_member_number } = user
             console.log(" ========= USER total_member_number========", total_member_number)
 
 
-            const { policy_type ,beneficiary, bought_for} = otherPolicy
-            
+            const { policy_type, beneficiary, bought_for } = otherPolicy
+
             console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for)
-          
-            let sum_insured: number,period: string, installment_type: number, si: string, premium: number = 0, yearly_premium: number = 0, last_expense_insured: number = 0, lei: string;
-               let paymentOption = 1;
-    
+
+            let sum_insured: number, period: string, installment_type: number, si: string, premium: number = 0, yearly_premium: number = 0, last_expense_insured: number = 0, lei: string;
+            let paymentOption = 1;
+
             if (policy_type == 'MINI') {
                 lei = "1M"
                 si = "1.5M"
@@ -355,7 +355,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
 
                     }
 
-                 } else if (total_member_number == "M+1") {
+                } else if (total_member_number == "M+1") {
                     sum_insured = 1500000;
                     premium = 240000;
                     last_expense_insured = 1000000;
@@ -465,7 +465,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
                         last_expense_insured = 1500000;
                     }
 
-                }else if (total_member_number == "M+1") {
+                } else if (total_member_number == "M+1") {
 
                     sum_insured = 3000000;
                     premium = 322000;
@@ -567,7 +567,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
                     }
 
 
-                }else if (total_member_number == "M+1") {
+                } else if (total_member_number == "M+1") {
                     sum_insured = 5000000;
 
                     premium = 400000;
@@ -662,8 +662,7 @@ export function buyForOthers(menu: any, args: any, db: any): void {
                     }
                 }
 
-            }else
-            {
+            } else {
                 menu.end('Invalid option');
             }
 

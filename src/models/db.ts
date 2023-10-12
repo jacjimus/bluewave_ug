@@ -1,8 +1,9 @@
 const { Sequelize, DataTypes } = require('sequelize')
 import { v4 as uuidv4 } from 'uuid'
+require('dotenv').config()
 
 
-const sequelize = new Sequelize(`postgres://postgres:bluewave-postgres@bluewave-postgres.cemxniymyjt7.us-east-1.rds.amazonaws.com:5432/airtelDB`, { dialect: "postgres" })
+const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres" })
 
 //checking if connection is done
 sequelize.authenticate().then(() => {

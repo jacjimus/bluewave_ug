@@ -13,6 +13,8 @@ export function makeClaim(menu: any, args: any, db: any): void {
 
         args.phoneNumber = args.phoneNumber.substring(1);
     }
+    console.log("* MAKE CLAIM", args.phoneNumber)
+
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
         return await User.findOne({
@@ -58,7 +60,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
                     policy_status: 'paid'
                 }
             });
-           
+
             const claimId = generateClaimId();
             console.log(claimId);
             let claim_amount: any;
@@ -71,20 +73,20 @@ export function makeClaim(menu: any, args: any, db: any): void {
                 claim_amount = last_expense_insured
             }
 
-        let userClaim = await Claim.findOne({
-            where: {
-                user_id: user?.user_id,
-                claim_type: claim_type,
-                claim_status: 'paid'
+            let userClaim = await Claim.findOne({
+                where: {
+                    user_id: user?.user_id,
+                    claim_type: claim_type,
+                    claim_status: 'paid'
+                }
+            })
+
+            if (userClaim) {
+                menu.end(`Discharge Claim already made for this policy`);
+                return;
             }
-        })
 
-        if(userClaim){
-            menu.end(`Discharge Claim already made for this policy`);
-            return;
-        }
 
-            
             const newClaim = await Claim.create({
                 claim_number: claimId,
                 policy_id: policy_id,
@@ -110,7 +112,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
     })
 
     menu.state('deathClaim', {
-        run : async () => {
+        run: async () => {
 
             menu.con(`Enter phone of next of Kin `)
 
@@ -123,7 +125,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
     })
 
     menu.state('deathClaimPhoneNumber', {
-        run : async () => {
+        run: async () => {
             const nextOfKinPhoneNumber = menu.val;
             const user = await findUserByPhoneNumber(args.phoneNumber);
             const nextOfKin = await Beneficiary.findOne({
@@ -132,9 +134,9 @@ export function makeClaim(menu: any, args: any, db: any): void {
                     beneficiary_type: 'NEXTOFKIN'
                 }
             })
-           
+
             const newKin = await Beneficiary.create({
-                beneficiary_id : uuidv4(),
+                beneficiary_id: uuidv4(),
                 user_id: user?.user_id,
                 phone_number: nextOfKinPhoneNumber,
                 beneficiary_type: 'NEXTOFKIN'
@@ -154,15 +156,15 @@ export function makeClaim(menu: any, args: any, db: any): void {
     })
 
     menu.state('deathClaimName', {
-        run : async () => {
+        run: async () => {
             const deceasedName = menu.val;
             console.log("DECEASED NAME", deceasedName);
             const user = await findUserByPhoneNumber(args.phoneNumber);
             const firstName = deceasedName.split(" ")[0];
             const middleName = deceasedName.split(" ")[1];
-            const lastName = deceasedName.split(" ")[2] ||  deceasedName.split(" ")[1];
+            const lastName = deceasedName.split(" ")[2] || deceasedName.split(" ")[1];
 
-            await Beneficiary.update({ full_name: deceasedName, first_name: firstName, middle_name: middleName, last_name: lastName }, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } }); 
+            await Beneficiary.update({ full_name: deceasedName, first_name: firstName, middle_name: middleName, last_name: lastName }, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } });
 
             menu.con(`Enter your Relationship to the deceased
                      0.Back 00.Main Menu `)
@@ -176,7 +178,7 @@ export function makeClaim(menu: any, args: any, db: any): void {
     })
 
     menu.state('deathClaimRelationship', {
-        run : async () => {
+        run: async () => {
             const relationship = menu.val;
             console.log("RELATIONSHIP", relationship);
             const user = await findUserByPhoneNumber(args.phoneNumber);
@@ -199,11 +201,11 @@ export function makeClaim(menu: any, args: any, db: any): void {
 
 
     menu.state('deathClaimDate', {
-        run : async () => {
+        run: async () => {
             let dateOfDeath = menu.val;
             console.log("DATE OF DEATH", dateOfDeath);
-           
-           // convert ddmmyyyy to valid date
+
+            // convert ddmmyyyy to valid date
             let day = dateOfDeath.substring(0, 2);
             let month = dateOfDeath.substring(2, 4);
             let year = dateOfDeath.substring(4, 8);
@@ -215,13 +217,13 @@ export function makeClaim(menu: any, args: any, db: any): void {
 
 
             const user = await findUserByPhoneNumber(args.phoneNumber);
-            await Beneficiary.update({ date_of_death: dateOfDeath , age: thisYear - date.getFullYear()}, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } });
+            await Beneficiary.update({ date_of_death: dateOfDeath, age: thisYear - date.getFullYear() }, { where: { user_id: user?.user_id, beneficiary_type: 'NEXTOFKIN' } });
 
             menu.con(`Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107
                      0.Back 00.Main Menu
             `)
 
-            const sms =`Your claim have been submitted. Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107 `
+            const sms = `Your claim have been submitted. Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107 `
 
             await sendSMS(args.phoneNumber, sms);
 

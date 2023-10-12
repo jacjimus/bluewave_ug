@@ -13,7 +13,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         args.phoneNumber = args.phoneNumber.substring(1);
     }
 
-    console.log("ARGS PHONE NUMBER", args.phoneNumber)
+    console.log("* BUY FOR SELF", args.phoneNumber)
 
 
     const findUserByPhoneNumber = async (phoneNumber: any) => {
@@ -35,7 +35,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     };
 
     const findPolicyByUser = async (user_id: any) => {
-        let policies =  await Policy.findAll({
+        let policies = await Policy.findAll({
             where: {
                 user_id: user_id,
             },
@@ -44,7 +44,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
         return policies[policies.length - 1];
     }
 
-    
+
 
     menu.state('buyForSelf', {
         run: async () => {
@@ -134,45 +134,45 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             const paymentOption = menu.val
             const { user_id } = await findUserByPhoneNumber(args.phoneNumber)
             const { policy_type } = await findPolicyByUser(user_id)
-            let sum_insured: number, premium: number = 0, period: string, installment_type:number
+            let sum_insured: number, premium: number = 0, period: string, installment_type: number
 
 
-            if(policy_type == 'MINI'){
+            if (policy_type == 'MINI') {
                 period = 'yearly'
                 installment_type = 1;
                 sum_insured = 1500000;
                 premium = 120000;
-                
-                if(paymentOption == 1){
+
+                if (paymentOption == 1) {
                     period = 'monthly'
                     premium = 10000;
                     installment_type = 2;
                 }
 
-            }else if(policy_type == 'MIDI'){
+            } else if (policy_type == 'MIDI') {
                 period = 'yearly'
                 installment_type = 1;
                 sum_insured = 3000000
                 premium = 167000
-                if(paymentOption == 1){
+                if (paymentOption == 1) {
                     period = 'monthly'
                     premium = 14000;
                     installment_type = 2;
 
                 }
-               
+
             }
-            else if(policy_type == 'BIGGIE'){
+            else if (policy_type == 'BIGGIE') {
                 period = 'yearly'
                 installment_type = 1;
                 sum_insured = 5000000;
                 premium = 208000;
-                
-                
-                if(paymentOption == 1){
+
+
+                if (paymentOption == 1) {
                     period = 'monthly'
                     premium = 18000;
-                     installment_type = 2;
+                    installment_type = 2;
 
                 }
             }
@@ -181,7 +181,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             Enter PIN to Agree and Pay 
             \n0 .Back
              00 .Main Menu`
-    )
+            )
         },
         next: {
             '*\\d+': 'buyForSelf.confirm',
@@ -196,29 +196,29 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             try {
 
                 const userPin = Number(menu.val)
-              
+
                 const selected = args.text;
-            
+
 
                 const input = selected.trim();
                 const digits = input.split("*").map((digit) => parseInt(digit, 10));
-      
+
                 let paymentOption = Number(digits[digits.length - 2]);
                 console.log("PAYMENT OPTION", paymentOption)
 
-                const { user_id, phone_number, partner_id, membership_id, pin} = await findUserByPhoneNumber(args.phoneNumber);
+                const { user_id, phone_number, partner_id, membership_id, pin } = await findUserByPhoneNumber(args.phoneNumber);
 
-                if( userPin != pin && userPin != membership_id ){
+                if (userPin != pin && userPin != membership_id) {
                     menu.end('Invalid PIN');
                 }
 
-                const {policy_type, policy_id} = await findPolicyByUser(user_id);
+                const { policy_type, policy_id } = await findPolicyByUser(user_id);
 
-                if(policy_id == null){
+                if (policy_id == null) {
                     menu.end('Sorry, you have no policy to buy for self');
                 }
-               let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly',last_expense_insured: number = 0, si: string , lei: string, frequency: string;
-               if(policy_type == 'MINI'){
+                let sum_insured: number, premium: number = 0, installment_type: number = 0, period: string = 'monthly', last_expense_insured: number = 0, si: string, lei: string, frequency: string;
+                if (policy_type == 'MINI') {
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 1500000;
@@ -226,13 +226,13 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     premium = 120000;
                     last_expense_insured = 1000000;
                     lei = '1M'
-                    if(paymentOption == 1){
+                    if (paymentOption == 1) {
                         period = 'monthly'
                         premium = 10000;
                         installment_type = 2;
                     }
 
-                }else if(policy_type == 'MIDI'){
+                } else if (policy_type == 'MIDI') {
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 3000000;
@@ -240,15 +240,15 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     premium = 167000;
                     last_expense_insured = 1500000;
                     lei = '1.5M'
-                   
-                    if(paymentOption == 1){
+
+                    if (paymentOption == 1) {
                         period = 'monthly'
                         premium = 14000;
                         installment_type = 2;
 
                     }
                 }
-                else if(policy_type == 'BIGGIE'){
+                else if (policy_type == 'BIGGIE') {
                     period = 'yearly'
                     installment_type = 1;
                     sum_insured = 5000000;
@@ -256,13 +256,13 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                     premium = 208000;
                     last_expense_insured = 2000000;
                     lei = '2M'
-                    if(paymentOption == 1){
+                    if (paymentOption == 1) {
                         period = 'monthly'
                         premium = 18000;
                         installment_type = 2;
 
                     }
-                    
+
                 }
 
                 if (paymentOption == 1) {
@@ -274,36 +274,36 @@ export function buyForSelf(menu: any, args: any, db: any): void {
                 const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
 
 
-                await Policy.update({ 
-                     policy_deduction_amount: premium,
-                     policy_pending_premium: premium,
-                     sum_insured: sum_insured,
-                     premium: premium,
-                     installment_type: installment_type,
-                     installment_order: 1,
-                        last_expense_insured: last_expense_insured,
-                        policy_end_date: policy_end_date,
-                        policy_start_date: new Date(),
-                    }, { where: { user_id: user_id } });
+                await Policy.update({
+                    policy_deduction_amount: premium,
+                    policy_pending_premium: premium,
+                    sum_insured: sum_insured,
+                    premium: premium,
+                    installment_type: installment_type,
+                    installment_order: 1,
+                    last_expense_insured: last_expense_insured,
+                    policy_end_date: policy_end_date,
+                    policy_start_date: new Date(),
+                }, { where: { user_id: user_id } });
 
-    
-  
-                    let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
-  
-                   console.log("PAYMENT STATUS", paymentStatus)
-                    if (paymentStatus.code === 200) {
-                      let  congratText =`Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
+
+
+                let paymentStatus = await airtelMoney(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
+
+                console.log("PAYMENT STATUS", paymentStatus)
+                if (paymentStatus.code === 200) {
+                    let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
                         Pay UGX ${premium} every ${frequency} to stay covered`
-                        await sendSMS(phone_number, congratText);
+                    await sendSMS(phone_number, congratText);
 
-                        menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+                    menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                            Cover valid till ${policy_end_date.toDateString()}`)
-                    
-                    } else {
-                        menu.end(`Sorry, your payment was not successful. 
+
+                } else {
+                    menu.end(`Sorry, your payment was not successful. 
                         \n0. Back \n00. Main Menu`);
-                    }
-               
+                }
+
             } catch (error) {
                 console.error('Confirmation Error:', error);
                 menu.end('An error occurred. Please try again later.');

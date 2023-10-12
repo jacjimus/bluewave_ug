@@ -1,10 +1,5 @@
-
-
 export function displayAccount(menu: any, args: any, db: any): void {
 
-  const User = db.users;
-  const Policy = db.policies;
-  const Claim = db.claims;
   menu.state('account', {
     run: async () => {
       const user = await db.users.findOne({
@@ -16,7 +11,7 @@ export function displayAccount(menu: any, args: any, db: any): void {
         },
       });
 
-      console.log(" ============== USER ================ ", user);
+      console.log(" ============== USER - ACCOUNT ================ ", user);
       if (user) {
         menu.con('Medical cover ' +
           '\n1. Buy for self' +

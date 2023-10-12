@@ -5,8 +5,7 @@ import UssdMenu from "ussd-builder";
 import crypto from "crypto";
 
 // import { startMenu } from "./menus/startMenu";
-// import { displayInsuranceMenu } from "./menus/displayInsuranceMenu";
-import { displayMedicalCoverMenu } from "./menus/displayMedicalCoverMenu";
+import { displayMedicalCoverMenu } from "./menus/startMenu";
 import { termsAndConditions } from "./menus/termsAndConditions";
 import { displayAccount } from "./menus/displayAccount";
 import { buyForSelf } from "./menus/buyForSelf";

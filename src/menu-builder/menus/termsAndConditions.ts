@@ -1,12 +1,11 @@
 
-import sendSMS  from '../../services/sendSMS'
+import sendSMS from '../../services/sendSMS'
 
-export function termsAndConditions(menu: any, buildInput:any): void {
+export function termsAndConditions(menu: any, buildInput: any): void {
     menu.state('termsAndConditions', {
         run: async () => {
+            console.log("* TERMS AND  CONDITIONS", buildInput.phoneNumber)
 
-            
-    
             const message = 'To view Medical cover Terms &Conditions Visit www.tclink.com ';
             const to = buildInput.phoneNumber;
 

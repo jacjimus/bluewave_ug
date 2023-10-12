@@ -1,5 +1,6 @@
 import sendSMS from "../../services/sendSMS";
-import {registerDependant,fetchMemberStatusData } from "../../services/aar";
+import { registerDependant, fetchMemberStatusData } from "../../services/aar";
+import { v4 as uuidv4 } from 'uuid';
 
 export function myAccount(menu: any, args: any, db: any) {
   const User = db.users;
@@ -8,27 +9,29 @@ export function myAccount(menu: any, args: any, db: any) {
 
   const findUserByPhoneNumber = async (phoneNumber: any) => {
     return await User.findOne({
-        where: {
-            phone_number: phoneNumber,
-        },
+      where: {
+        phone_number: phoneNumber,
+      },
     });
-};
+  };
+  console.log("* MY ACCOUNT ", args.phoneNumber)
+
 
   menu.state("myAccount", {
     run: async () => {
-      
+
       menu.con(
         "My Account " +
-          "\n1. Policy Status" +
-          "\n2. Pay Now" +
-          "\n3. Renew Policy" +
-          "\n4. Update My Profile(KYC)" +
-          "\n5. Cancel policy" +
-          "\n6. Add Dependant" +
-          "\n7. Update Beneficiary" +
-          "\n8. My Hospital" +
-          "\n0.Back" +
-          "\n00.Main Menu"
+        "\n1. Policy Status" +
+        "\n2. Pay Now" +
+        "\n3. Renew Policy" +
+        "\n4. Update My Profile(KYC)" +
+        "\n5. Cancel policy" +
+        "\n6. Add Dependant" +
+        "\n7. Update Beneficiary" +
+        "\n8. My Hospital" +
+        "\n0.Back" +
+        "\n00.Main Menu"
       );
     },
     next: {
@@ -144,7 +147,7 @@ export function myAccount(menu: any, args: any, db: any) {
         },
       });
 
-      let title ="";
+      let title = "";
 
       let ben_marital_status = menu.val;
       if (ben_marital_status == 1) {
@@ -152,10 +155,10 @@ export function myAccount(menu: any, args: any, db: any) {
         gender == "M" ? title = "Mr" : title = "Ms"
       } else if (ben_marital_status == 2) {
         ben_marital_status = "married";
-        gender == "M"  ? title = "Mr" : title = "Mrs"
+        gender == "M" ? title = "Mr" : title = "Mrs"
       } else if (ben_marital_status == 3) {
         ben_marital_status = "divorced";
-        gender == "M"  ? title = "Mr" : title = "Ms"
+        gender == "M" ? title = "Mr" : title = "Ms"
       } else if (ben_marital_status == 4) {
         ben_marital_status = "widowed";
         gender == "M" ? title = "Mr" : title = "Mrs"
@@ -185,15 +188,15 @@ export function myAccount(menu: any, args: any, db: any) {
     },
   });
 
-// ======= ADD SPOUSE DEPENDANT =========
+  // ======= ADD SPOUSE DEPENDANT =========
   menu.state("addDependant", {
     run: async () => {
       menu.con(
         "Add Dependant " +
-          "\n1. Update Spouse" +
-          "\n2. Add Child" +
-          "\n0.Back" +
-          "\n00.Main Menu"
+        "\n1. Update Spouse" +
+        "\n2. Add Child" +
+        "\n0.Back" +
+        "\n00.Main Menu"
       );
     },
     next: {
@@ -218,21 +221,21 @@ export function myAccount(menu: any, args: any, db: any) {
       console.log("GENDER", gender)
 
       const user = await findUserByPhoneNumber(args.phoneNumber);
-      let beneficiary = await Beneficiary.findOne({ 
+      let beneficiary = await Beneficiary.findOne({
         where: {
           user_id: user?.user_id,
           relationship: "SPOUSE",
 
         },
       });
-      if(!beneficiary){
-      return   menu.end("You have not added a spouse, please buy family cover first");
+      if (!beneficiary) {
+        return menu.end("You have not added a spouse, please buy family cover first");
       }
       console.log("BENEFICIARY: ", beneficiary);
 
       beneficiary.gender = gender;
       await beneficiary.save();
-      
+
       console.log("USER: ", user);
 
       menu.con(`Enter your spouse's date of birth in the format DDMMYYYY e.g 01011990
@@ -251,7 +254,8 @@ export function myAccount(menu: any, args: any, db: any) {
     run: async () => {
       const spouse_dob = menu.val;
 
-
+ // convert ddmmyyyy to valid date
+ 
       // convert ddmmyyyy to valid date
       let day = spouse_dob.substring(0, 2);
       let month = spouse_dob.substring(2, 4);
@@ -261,7 +265,7 @@ export function myAccount(menu: any, args: any, db: any) {
 
       const user = await findUserByPhoneNumber(args.phoneNumber);
 
-      let beneficiary = await Beneficiary.findOne({ 
+      let beneficiary = await Beneficiary.findOne({
         where: {
           user_id: user?.user_id,
           relationship: "SPOUSE",
@@ -279,48 +283,48 @@ export function myAccount(menu: any, args: any, db: any) {
       const policy = await Policy.findOne({
         where: {
           user_id: user?.user_id,
-          beneficiary:  'FAMILY',
+          beneficiary: 'FAMILY',
         },
       });
 
       console.log("POLICY: ", policy);
-      
-    
-      let arr_member =  await fetchMemberStatusData({ member_no: user.arr_member_number , unique_profile_id: user.membership_id + ""});
+
+
+      let arr_member = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
       console.log("arr_member", arr_member);
-      if(arr_member.code == 200){
+      if (arr_member.code == 200) {
         await registerDependant({
-              member_no: user.arr_member_number,
-              surname: beneficiary.last_name,
-              first_name: beneficiary.first_name,
-              other_names: beneficiary.middle_name || beneficiary.last_name,
-              gender: beneficiary.gender == "M" ? "1" : "2",
-              dob: beneficiary.dob,
-              email: "dependant@bluewave.insure",
-              pri_dep: "25",
-              family_title: "4", //4 spouse // 3 -principal // 25 - child
-              tel_no: beneficiary.phone_number,
-              next_of_kin: {
-                surname: "",
-                first_name: "",
-                other_names: "",
-                tel_no: "",
-              },
-              member_status: "1",
-              health_option: "63",
-              health_plan: "AIRTEL_" + policy?.policy_type,
-              policy_start_date: policy.policy_start_date,
-              policy_end_date: policy.policy_end_date,
-              unique_profile_id: user.membership_id + "-01",
-            }
+          member_no: user.arr_member_number,
+          surname: beneficiary.last_name,
+          first_name: beneficiary.first_name,
+          other_names: beneficiary.middle_name || beneficiary.last_name,
+          gender: beneficiary.gender == "M" ? "1" : "2",
+          dob: date.toISOString().split('T')[0],
+          email: "dependant@bluewave.insure",
+          pri_dep: "25",
+          family_title: "4", //4 spouse // 3 -principal // 25 - child
+          tel_no: beneficiary.phone_number,
+          next_of_kin: {
+            surname: "",
+            first_name: "",
+            other_names: "",
+            tel_no: "",
+          },
+          member_status: "1",
+          health_option: "63",
+          health_plan: "AIRTEL_" + policy?.policy_type,
+          policy_start_date: policy.policy_start_date,
+          policy_end_date: policy.policy_end_date,
+          unique_profile_id: user.membership_id + "-01",
+        }
         );
-          }
-          menu.con(
-            `Your spouse ${beneficiary.full_name} profile has been updated successfully
+      }
+      menu.con(
+        `Your spouse ${beneficiary.full_name} profile has been updated successfully
                 0. Back
                 00. Main Menu
                  `
-          );
+      );
     },
     next: {
       "0": "myAccount",
@@ -339,23 +343,26 @@ export function myAccount(menu: any, args: any, db: any) {
     },
   });
 
- menu.state("addChildGender", {
-     run : async () => {
+
+
+  menu.state("addChildGender", {
+    run: async () => {
       let child_name = menu.val;
       console.log("CHILD NAME", child_name);
 
       const user = await findUserByPhoneNumber(args.phoneNumber);
 
-let beneficiary = await Beneficiary.findAll({
+      let beneficiary = await Beneficiary.findAll({
         where: {
           user_id: user?.user_id,
           relationship: "CHILD",
         },
       });
 
-      console.log("BENEFICIARY: ", beneficiary);
-
-      await Beneficiary.create({
+      console.log("BENEFICIARY CHILD GENDER: ", beneficiary);
+      
+     let newChildDep = await Beneficiary.create({
+        beneficiary_id: uuidv4(),
         user_id: user?.user_id,
         full_name: child_name,
         first_name: child_name.split(" ")[0],
@@ -364,15 +371,54 @@ let beneficiary = await Beneficiary.findAll({
         relationship: "CHILD",
       });
 
-      console.log("BENEFICIARY: ", beneficiary);
+      console.log("NEW CHILD BENEFICIARY: ", newChildDep);
 
-      menu.con(`Enter child's date of birth in the format DDMMYYYY e.g 01011990`)
-      }
+      menu.con("Enter gender of child: " + "\n1. Male" + "\n2. Female");
+    }
     ,
     next: {
-      "*[0-9]": "addChildDob",
+      "*[0-9]": "updateChildGender",
     },
 
+  });
+
+  menu.state("updateChildGender", {
+    run: async () => {
+      const gender = menu.val == 1 ? "M" : "F";
+      console.log("GENDER", gender)
+
+      const user = await findUserByPhoneNumber(args.phoneNumber);
+      let beneficiary = await Beneficiary.findAll({
+        where: {
+          user_id: user?.user_id,
+          relationship: "CHILD",
+
+        },
+      });
+
+      beneficiary = beneficiary[beneficiary.length - 1];
+
+      if (!beneficiary) {
+        return menu.end("You have not added a spouse, please buy family cover first");
+      }
+      console.log("BENEFICIARY: ", beneficiary);
+
+      
+
+      beneficiary.gender = gender;
+      await beneficiary.save();
+
+      console.log("USER: ", user);
+
+      menu.con(`Enter child's date of birth in the format DDMMYYYY e.g 01011990`)
+  
+    
+    },
+    next: {
+      "*[0-9]": "addChildDob",
+      "0": "myAccount",
+      "00": "account",
+    },
   });
 
   menu.state("addChildDob", {
@@ -395,6 +441,7 @@ let beneficiary = await Beneficiary.findAll({
           relationship: "CHILD",
         },
       });
+      console.log("CHILD DOB BENEFICIARY: ", beneficiary);
 
       beneficiary = beneficiary[beneficiary.length - 1];
 
@@ -409,48 +456,48 @@ let beneficiary = await Beneficiary.findAll({
       const policy = await Policy.findOne({
         where: {
           user_id: user?.user_id,
-          beneficiary:  'FAMILY',
+          beneficiary: 'FAMILY',
         },
       });
 
       console.log("POLICY: ", policy);
-      
-    
-      let arr_member =  await fetchMemberStatusData({ member_no: user.arr_member_number , unique_profile_id: user.membership_id + ""});
+
+
+      let arr_member = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
       console.log("arr_member", arr_member);
-      if(arr_member.code == 200){
+      if (arr_member.code == 200) {
         await registerDependant({
-              member_no: user.arr_member_number,
-              surname: beneficiary.last_name,
-              first_name: beneficiary.first_name,
-              other_names: beneficiary.middle_name || beneficiary.last_name,
-              gender: beneficiary.gender,
-              dob: beneficiary.dob,
-              email: "dependant@bluewave.insure",
-              pri_dep: "25",
-              family_title: "25", //4 spouse // 3 -principal // 25 - child
-              tel_no: beneficiary.phone_number,
-              next_of_kin: {
-                surname: "",
-                first_name: "",
-                other_names: "",
-                tel_no: "",
-              },
-              member_status: "1",
-              health_option: "63",
-              health_plan: "AIRTEL_" + policy?.policy_type,
-              policy_start_date: policy.policy_start_date,
-              policy_end_date: policy.policy_end_date,
-              unique_profile_id: user.membership_id + "-02",
-            }
+          member_no: user.arr_member_number,
+          surname: beneficiary.last_name ,
+          first_name: beneficiary.first_name,
+          other_names: beneficiary.middle_name || beneficiary.last_name,
+          gender: beneficiary.gender == "M" ? "1" : "2",
+          dob: date.toISOString().split('T')[0],
+          email: "dependant@bluewave.insure",
+          pri_dep: "25",
+          family_title: "25", //4 spouse // 3 -principal // 25 - child
+          tel_no: "0700000000",
+          next_of_kin: {
+            surname: "",
+            first_name: "",
+            other_names: "",
+            tel_no: "",
+          },
+          member_status: "1",
+          health_option: "63",
+          health_plan: "AIRTEL_" + policy?.policy_type,
+          policy_start_date: policy.policy_start_date,
+          policy_end_date: policy.policy_end_date,
+          unique_profile_id: user.membership_id + "-02",
+        }
         );
-          }
-          menu.con(
-            `Your child ${beneficiary.full_name} profile has been updated successfully
+      }
+      menu.con(
+        `Your child ${beneficiary.full_name} profile has been updated successfully
                 0. Back
                 00. Main Menu
                  `
-          );
+      );
 
     },
     next: {
@@ -490,9 +537,9 @@ let beneficiary = await Beneficiary.findAll({
             `   Remaining: UGX ${policy.sum_insured}\n` +
             `   Last Expense Per Person Benefit: ${policy.benefit}\n\n` +
             "\n1. Cancel Policy"
-            );
-        
-            
+          );
+
+
         } else {
           menu.con("Your policy is INACTIVE\n0 Buy cover");
         }
@@ -602,7 +649,7 @@ let beneficiary = await Beneficiary.findAll({
         },
       });
 
-      console.log("====USER ===  ",user?.user_id)
+      console.log("====USER ===  ", user?.user_id)
 
 
       let otherPolicies = await Policy.findAll({
@@ -619,14 +666,14 @@ let beneficiary = await Beneficiary.findAll({
 
       function formatNumberToM(value) {
         return (value / 1000000).toFixed(1) + 'M';
-    }
+      }
 
       if (policies.length === 0) {
         menu.con(
           "You have no policies\n" +
-            "1. Buy cover\n" +
-            "0. Back\n" +
-            "00. Main Menu"
+          "1. Buy cover\n" +
+          "0. Back\n" +
+          "00. Main Menu"
         );
         return;
       }
@@ -635,26 +682,26 @@ let beneficiary = await Beneficiary.findAll({
 
       for (let i = 0; i < policies.length; i++) {
         let policy = policies[i];
-      
 
-//         Bronze cover ACTIVE up to DD/MM/YYYY
-// Inpatient limit L: UGX 3,000,000. Balance remaining UGX 2,300,000 
-  //format date to dd/mm/yyyy
-  let formatDate = (date:any) => {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const yyyy = date.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  }
+
+        //         Bronze cover ACTIVE up to DD/MM/YYYY
+        // Inpatient limit L: UGX 3,000,000. Balance remaining UGX 2,300,000 
+        //format date to dd/mm/yyyy
+        let formatDate = (date: any) => {
+          const dd = String(date.getDate()).padStart(2, '0');
+          const mm = String(date.getMonth() + 1).padStart(2, '0');
+          const yyyy = date.getFullYear();
+          return `${dd}/${mm}/${yyyy}`;
+        }
 
         policy.policy_end_date = formatDate(policy.policy_end_date)
 
 
- 
+
 
         policyInfo += ` Dwaliro Inpatient UGX ${formatNumberToM(policy.sum_insured)} and Funeral benefit UGX ${formatNumberToM(policy.last_expense_insured)} is active and paid to ${policy.policy_end_date.toDateString()}.
         `
-         
+
       }
       policyInfo += "Dial *185*7*6# to renew";
       policyInfo += "\n0. Back\n00. Main Menu";
@@ -673,40 +720,40 @@ let beneficiary = await Beneficiary.findAll({
     run: async () => {
       menu.con(
         "Manage auto-renew " +
-          "\n1. Activate auto-renew" +
-          "\n2. Deactivate auto-renew" +
-          "\n0.Back" +
-          "\n00.Main Menu"
+        "\n1. Activate auto-renew" +
+        "\n2. Deactivate auto-renew" +
+        "\n0.Back" +
+        "\n00.Main Menu"
       );
     },
   });
 
   //renewPolicy
 
-    menu.state("renewPolicy", {
-      run: async ()=>{
-        // get policy
-        const user = await User.findOne({
-          where: {
-            phone_number: args.phoneNumber,
-          },
-        });
+  menu.state("renewPolicy", {
+    run: async () => {
+      // get policy
+      const user = await User.findOne({
+        where: {
+          phone_number: args.phoneNumber,
+        },
+      });
 
-        console.log("USER: ", user);
+      console.log("USER: ", user);
 
-        const policy = await Policy.findOne({
-          where: {
-            user_id: user?.user_id,
-          },
-        });
+      const policy = await Policy.findOne({
+        where: {
+          user_id: user?.user_id,
+        },
+      });
 
-        //list
+      //list
 
-      }
     }
-    )
+  }
+  )
 
- 
+
 
 
 

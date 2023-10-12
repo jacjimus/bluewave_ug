@@ -5,6 +5,7 @@ export function payNowPremium(menu: any, args: any, db: any): void {
   const User = db.users;
   const Policy = db.policies;
 
+  console.log("* PAY NOW", args.phoneNumber)
 
   const findUserByPhoneNumber = async (phoneNumber) => {
     return await User.findOne({
@@ -68,8 +69,8 @@ export function payNowPremium(menu: any, args: any, db: any): void {
         return;
       }
 
-      const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount , membership_id} = user;
-     
+      const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount, membership_id } = user;
+
 
       let paymentStatus = await airtelMoney(user_id, partner_id, selectedPolicy.policy_id, phone_number, selectedPolicy.premium, membership_id, "UG", "UGX");
 

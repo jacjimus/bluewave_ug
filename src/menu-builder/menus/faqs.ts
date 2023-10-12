@@ -1,6 +1,7 @@
 export function displayFaqsMenu(menu: any): void {
   menu.state("faqs", {
     run: async () => {
+      console.log(" ======= FAQ =============");
       menu.con(
         "FAQs " +
           "\n1. Eligibility" +
