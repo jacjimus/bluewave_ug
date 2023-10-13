@@ -20,10 +20,6 @@ const uuid_1 = require("uuid");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const utils_1 = require("../services/utils");
 const aar_1 = require("../services/aar");
-//import { buyForSelf } from "./menus/buyForSelf";
-//import { buyForFamily } from "./menus/buyForFamily";
-// import { chooseHospital } from "./menus/chooseHospital";
-// import { buyForOthers } from "./menus/buyForOthers";
 const myAccount_1 = require("./menus/myAccount");
 const termsAndConditions_1 = require("./menus/termsAndConditions");
 const faqs_1 = require("./menus/faqs");
@@ -35,8 +31,6 @@ const Session = db_1.db.sessions;
 const User = db_1.db.users;
 const Policy = db_1.db.policies;
 const Beneficiary = db_1.db.beneficiaries;
-const Transaction = db_1.db.transactions;
-const Payment = db_1.db.payments;
 const Hospitals = db_1.db.hospitals;
 const Claim = db_1.db.claims;
 const UserHospital = db_1.db.user_hospitals;
@@ -69,7 +63,6 @@ let menu = new ussd_menu_builder_1.default();
 function default_1(args, db) {
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
         try {
-            let user, user_policy, userHospital, hospitalList, pending_policy;
             if (args.phoneNumber.charAt(0) == "+") {
                 args.phoneNumber = args.phoneNumber.substring(1);
             }
@@ -224,7 +217,7 @@ function default_1(args, db) {
                         currency_code: "UGX",
                         product_id: "d18424d6-5316-4e12-9826-302b866a380c",
                     });
-                    user_policy = policy;
+                    let user_policy = policy;
                     if (premium && yearly_premium) {
                         menu.con(`Inpatient cover for ${msisdn},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                 PAY
@@ -649,6 +642,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spousePhone = menu.val;
                     console.log("SPOUSE Phone", spousePhone);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     if (spousePhone.charAt(0) == "+") {
                         spousePhone = spousePhone.substring(1);
                     }
@@ -1888,7 +1882,6 @@ function default_1(args, db) {
                         currency_code: "UGX",
                         product_id: "d18424d6-5316-4e12-9826-302b866a380c",
                     });
-                    yield User.update({ cover_type: coverType }, { where: { phone_number: args.phoneNumber } });
                     console.log("TOTAL MEMBER NUMBER", total_member_number);
                     menu.con("\nEnter atleast Name of spouse or 1 child" +
                         "\n0.Back" +
@@ -1912,6 +1905,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let otherPhone = menu.val;
                     console.log("SPOUSE Phone", otherPhone);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     //uganda phone number validation
                     if (otherPhone.charAt(0) == "0") {
                         otherPhone = otherPhone.substring(1);
@@ -2268,8 +2262,8 @@ function default_1(args, db) {
             });
             //================MY ACCOUNT===================
             menu.state("myAccount", {
-                run: () => __awaiter(this, void 0, void 0, function* () {
-                    console.log("* MY ACCOUNT ", user.phone_number);
+                run: () => {
+                    console.log("* MY ACCOUNT ");
                     menu.con("My Account" +
                         "\n1. Policy Status" +
                         "\n2. Pay Now" +
@@ -2280,7 +2274,7 @@ function default_1(args, db) {
                         "\n7. My Hospital" +
                         "\n0. Back" +
                         "\n00. Main Menu");
-                }),
+                },
                 next: {
                     "1": "myInsurancePolicy",
                     "2": "payNow",
@@ -2435,6 +2429,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const gender = menu.val.toString() == "1" ? "M" : "F";
                     console.log("GENDER", gender);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2462,6 +2457,7 @@ function default_1(args, db) {
             menu.state("updateBeneficiaryDob", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const spouse_dob = menu.val;
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     // convert ddmmyyyy to valid date
                     let day = spouse_dob.substring(0, 2);
                     let month = spouse_dob.substring(2, 4);
@@ -2539,6 +2535,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let child_name = menu.val;
                     console.log("CHILD NAME", child_name);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2566,6 +2563,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const gender = menu.val.toString() == "1" ? "M" : "F";
                     console.log("GENDER", gender);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2665,8 +2663,9 @@ function default_1(args, db) {
             //============CANCEL POLICY=================
             menu.state("cancelPolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     if (user) {
-                        const policy = user_policy || (yield findPolicyByUser(user.user_id));
+                        const policy = yield findPolicyByUser(user.user_id);
                         console.log("POLICY: ", policy);
                         if (policy) {
                             // 1. Cancel Policy
@@ -2692,6 +2691,7 @@ function default_1(args, db) {
             //cancel policy pin
             menu.state("cancelPolicyPin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     const policy = yield Policy.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2713,6 +2713,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const to = args.phoneNumber;
                     let today = new Date();
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     let policy;
                     if (user) {
                         policy = yield Policy.findOne({
@@ -2741,6 +2742,7 @@ function default_1(args, db) {
             //my insurance policy
             menu.state("myInsurancePolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     let policies = yield Policy.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2803,6 +2805,7 @@ function default_1(args, db) {
             //renewPolicy
             menu.state("renewPolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     const policy = yield Policy.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2909,6 +2912,7 @@ function default_1(args, db) {
             });
             menu.state("deathClaimPhoneNumber", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     const nextOfKinPhoneNumber = menu.val;
                     yield Beneficiary.findOne({
                         where: {
@@ -2935,6 +2939,7 @@ function default_1(args, db) {
             });
             menu.state("deathClaimName", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     const deceasedName = menu.val;
                     console.log("DECEASED NAME", deceasedName);
                     const firstName = deceasedName.split(" ")[0];
@@ -2959,6 +2964,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const relationship = menu.val;
                     console.log("RELATIONSHIP", relationship);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     yield Beneficiary.update({ relationship: relationship }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: "NEXTOFKIN" } });
                     menu.con(`Enter Date of death in the format DDMMYYYY e.g 01011990"
 
@@ -2975,6 +2981,7 @@ function default_1(args, db) {
             menu.state("deathClaimDate", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let dateOfDeath = menu.val;
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     // convert ddmmyyyy to valid date
                     let day = dateOfDeath.substring(0, 2);
                     let month = dateOfDeath.substring(2, 4);
@@ -2998,7 +3005,8 @@ function default_1(args, db) {
             //==================PAY NOW===================
             menu.state("payNow", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    console.log("* PAY NOW", args.phoneNumber);
+                    console.log("* PAY NOW");
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     if (!user) {
                         menu.end("User not found");
                         return;
@@ -3021,11 +3029,12 @@ function default_1(args, db) {
             menu.state("payNowPremiumPin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const pin = parseInt(menu.val);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     if (isNaN(pin)) {
                         menu.end("Invalid PIN");
                         return;
                     }
-                    const selectedPolicy = pending_policy || (yield findPendingPolicyByUser(user));
+                    const selectedPolicy = yield findPendingPolicyByUser(user);
                     if (!selectedPolicy) {
                         menu.end("You have no pending policies");
                         return;
@@ -3050,6 +3059,7 @@ function default_1(args, db) {
                     const bronzeLastExpenseBenefit = "UGX 1,000,000";
                     const silverLastExpenseBenefit = "UGX 1,500,000";
                     const goldLastExpenseBenefit = "UGX 2,000,000";
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     try {
                         if (user) {
                             const policies = yield Policy.findAll({
@@ -3106,7 +3116,8 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const policyIndex = Number(menu.val) - 1;
                     try {
-                        const policies = user_policy || (yield findPolicyByUser(user.user_id));
+                        const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                        const policies = yield findPolicyByUser(user.user_id);
                         const selectedPolicy = policies[policyIndex];
                         if (!selectedPolicy) {
                             throw new Error("Invalid policy selection");
@@ -3184,7 +3195,13 @@ function default_1(args, db) {
                         "West Nile Region",
                         "Northern Region",
                     ];
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
                     console.log("REGION", region, regions[region - 1]);
+                    const userHospital = yield UserHospital.findOne({
+                        where: {
+                            user_id: user.user_id,
+                        },
+                    });
                     if (userHospital) {
                         yield UserHospital.update({
                             hospital_region: regions[region - 1],
@@ -3202,6 +3219,7 @@ function default_1(args, db) {
                         });
                     }
                     const user_hospital_region = userHospital.hospital_region;
+                    const hospitalList = yield Hospitals.findAll();
                     console.log("HOSPITAL LIST", hospitalList.length);
                     //console.log("HOSPITAL LIST", hospitalList)
                     const hospitalListByRegion = hospitalList.filter((hospital) => hospital.region === user_hospital_region);
@@ -3223,7 +3241,14 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const district = menu.val;
                     console.log("DISTRICT val", district);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const userHospital = yield UserHospital.findOne({
+                        where: {
+                            user_id: user.user_id,
+                        },
+                    });
                     const user_hospital_region = userHospital.hospital_region;
+                    const hospitalList = yield Hospitals.findAll();
                     const hospitalListByRegion = hospitalList.filter((hospital) => hospital.region
                         .toLowerCase()
                         .includes(user_hospital_region.toLowerCase()));
@@ -3251,12 +3276,19 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const distictInput = menu.val;
                     console.log("DISTRICT INPUT", distictInput);
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const userHospital = yield UserHospital.findOne({
+                        where: {
+                            user_id: user.user_id,
+                        },
+                    });
                     const user_hospital_region = userHospital.hospital_region;
                     console.log("USER HOSPITAL REGION", user_hospital_region);
                     // SAVE DISTRICT TO DATABASE
                     userHospital.hospital_district = distictInput;
                     yield userHospital.save();
                     const user_hospital_district = userHospital.hospital_district;
+                    const hospitalList = yield Hospitals.findAll();
                     const hospitalsByRegion = hospitalList.filter((hospital) => hospital.region.toLowerCase() ===
                         user_hospital_region.toLowerCase());
                     console.log("hospitalsByRegion", hospitalsByRegion);
@@ -3275,8 +3307,15 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
             menu.state("selectHospital.search", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const hospitalName = menu.val;
+                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const userHospital = yield UserHospital.findOne({
+                        where: {
+                            user_id: user.user_id,
+                        },
+                    });
                     const user_hospital_region = userHospital.hospital_region;
                     const user_hospital_district = userHospital.hospital_district;
+                    const hospitalList = yield Hospitals.findAll();
                     const hospitalsByRegion = hospitalList.filter((hospital) => hospital.region.toLowerCase() ===
                         user_hospital_region.toLowerCase());
                     //console.log('hospitalsByRegion', hospitalsByRegion);

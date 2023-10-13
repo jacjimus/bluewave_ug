@@ -7,13 +7,9 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import { generateClaimId } from "../services/utils";
 import { registerDependant, fetchMemberStatusData } from "../services/aar";
-//import { buyForSelf } from "./menus/buyForSelf";
-//import { buyForFamily } from "./menus/buyForFamily";
-// import { chooseHospital } from "./menus/chooseHospital";
-// import { buyForOthers } from "./menus/buyForOthers";
+
 import { myAccount } from "./menus/myAccount";
-import { payNowPremium } from "./menus/payNow";
-import { makeClaim } from "./menus/makeClaim";
+
 import { termsAndConditions } from "./menus/termsAndConditions";
 import { displayFaqsMenu } from "./menus/faqs";
 import { getAirtelUser, getUserByPhoneNumber } from "../services/getAirtelUser";
@@ -26,8 +22,6 @@ const Session = db.sessions;
 const User = db.users;
 const Policy = db.policies;
 const Beneficiary = db.beneficiaries;
-const Transaction = db.transactions;
-const Payment = db.payments;
 const Hospitals = db.hospitals;
 const Claim = db.claims;
 const UserHospital = db.user_hospitals;
@@ -64,7 +58,7 @@ let menu = new UssdMenu();
 export default function (args: RequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
-      let user, user_policy, userHospital, hospitalList, pending_policy;
+   
 
       if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
@@ -242,7 +236,7 @@ export default function (args: RequestBody, db: any) {
             currency_code: "UGX",
             product_id: "d18424d6-5316-4e12-9826-302b866a380c",
           });
-          user_policy = policy;
+         let user_policy = policy;
           if (premium && yearly_premium) {
             menu.con(`Inpatient cover for ${msisdn},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                 PAY
@@ -736,6 +730,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let spousePhone = menu.val;
           console.log("SPOUSE Phone", spousePhone);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           if (spousePhone.charAt(0) == "+") {
             spousePhone = spousePhone.substring(1);
@@ -2092,10 +2088,7 @@ export default function (args: RequestBody, db: any) {
             product_id: "d18424d6-5316-4e12-9826-302b866a380c",
           });
 
-          await User.update(
-            { cover_type: coverType },
-            { where: { phone_number: args.phoneNumber } }
-          );
+          
           console.log("TOTAL MEMBER NUMBER", total_member_number);
 
           menu.con(
@@ -2125,6 +2118,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let otherPhone = menu.val;
           console.log("SPOUSE Phone", otherPhone);
+
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
 
           //uganda phone number validation
 
@@ -2527,8 +2522,8 @@ export default function (args: RequestBody, db: any) {
       //================MY ACCOUNT===================
 
       menu.state("myAccount", {
-        run: async () => {
-          console.log("* MY ACCOUNT ", user.phone_number);
+        run:  () => {
+          console.log("* MY ACCOUNT ");
 
           menu.con(
             "My Account" +
@@ -2732,6 +2727,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const gender = menu.val.toString() == "1" ? "M" : "F";
           console.log("GENDER", gender);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           let beneficiary = await Beneficiary.findOne({
             where: {
@@ -2766,6 +2763,8 @@ export default function (args: RequestBody, db: any) {
       menu.state("updateBeneficiaryDob", {
         run: async () => {
           const spouse_dob = menu.val;
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           // convert ddmmyyyy to valid date
           let day = spouse_dob.substring(0, 2);
@@ -2855,6 +2854,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let child_name = menu.val;
           console.log("CHILD NAME", child_name);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           let beneficiary = await Beneficiary.findAll({
             where: {
@@ -2888,6 +2889,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const gender = menu.val.toString() == "1" ? "M" : "F";
           console.log("GENDER", gender);
+
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
 
           let beneficiary = await Beneficiary.findAll({
             where: {
@@ -3012,9 +3015,10 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("cancelPolicy", {
         run: async () => {
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           if (user) {
-            const policy =
-              user_policy || (await findPolicyByUser(user.user_id));
+            const policy = await findPolicyByUser(user.user_id)
             console.log("POLICY: ", policy);
             if (policy) {
               // 1. Cancel Policy
@@ -3043,6 +3047,8 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("cancelPolicyPin", {
         run: async () => {
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           const policy = await Policy.findOne({
             where: {
               user_id: user?.user_id,
@@ -3067,6 +3073,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const to = args.phoneNumber;
           let today = new Date();
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           let policy: any;
           if (user) {
@@ -3100,6 +3108,8 @@ export default function (args: RequestBody, db: any) {
       //my insurance policy
       menu.state("myInsurancePolicy", {
         run: async () => {
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           let policies = await Policy.findAll({
             where: {
               user_id: user?.user_id,
@@ -3186,6 +3196,8 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("renewPolicy", {
         run: async () => {
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           const policy = await Policy.findOne({
             where: {
               user_id: user?.user_id,
@@ -3321,6 +3333,8 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("deathClaimPhoneNumber", {
         run: async () => {
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           const nextOfKinPhoneNumber = menu.val;
 
           await Beneficiary.findOne({
@@ -3351,6 +3365,8 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("deathClaimName", {
         run: async () => {
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           const deceasedName = menu.val;
           console.log("DECEASED NAME", deceasedName);
 
@@ -3383,6 +3399,8 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const relationship = menu.val;
           console.log("RELATIONSHIP", relationship);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           await Beneficiary.update(
             { relationship: relationship },
@@ -3405,6 +3423,8 @@ export default function (args: RequestBody, db: any) {
       menu.state("deathClaimDate", {
         run: async () => {
           let dateOfDeath = menu.val;
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           // convert ddmmyyyy to valid date
           let day = dateOfDeath.substring(0, 2);
@@ -3439,7 +3459,9 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("payNow", {
         run: async () => {
-          console.log("* PAY NOW", args.phoneNumber);
+          console.log("* PAY NOW");
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           if (!user) {
             menu.end("User not found");
@@ -3469,14 +3491,15 @@ export default function (args: RequestBody, db: any) {
       menu.state("payNowPremiumPin", {
         run: async () => {
           const pin = parseInt(menu.val);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
 
           if (isNaN(pin)) {
             menu.end("Invalid PIN");
             return;
           }
 
-          const selectedPolicy =
-            pending_policy || (await findPendingPolicyByUser(user));
+          const selectedPolicy = await findPendingPolicyByUser(user)
 
           if (!selectedPolicy) {
             menu.end("You have no pending policies");
@@ -3523,6 +3546,7 @@ export default function (args: RequestBody, db: any) {
           const bronzeLastExpenseBenefit = "UGX 1,000,000";
           const silverLastExpenseBenefit = "UGX 1,500,000";
           const goldLastExpenseBenefit = "UGX 2,000,000";
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
 
           try {
             if (user) {
@@ -3591,8 +3615,9 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const policyIndex = Number(menu.val) - 1;
           try {
-            const policies =
-              user_policy || (await findPolicyByUser(user.user_id));
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
+            const policies = await findPolicyByUser(user.user_id)
             const selectedPolicy = policies[policyIndex];
 
             if (!selectedPolicy) {
@@ -3705,7 +3730,14 @@ export default function (args: RequestBody, db: any) {
             "Northern Region",
           ];
 
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
           console.log("REGION", region, regions[region - 1]);
+          const userHospital = await UserHospital.findOne({
+            where: {
+              user_id: user.user_id,
+            },
+          });
 
           if (userHospital) {
             await UserHospital.update(
@@ -3727,6 +3759,7 @@ export default function (args: RequestBody, db: any) {
           }
 
           const user_hospital_region = userHospital.hospital_region;
+          const hospitalList = await Hospitals.findAll();
 
           console.log("HOSPITAL LIST", hospitalList.length);
           //console.log("HOSPITAL LIST", hospitalList)
@@ -3758,8 +3791,18 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const district = menu.val;
           console.log("DISTRICT val", district);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
+
+          const userHospital = await UserHospital.findOne({
+            where: {
+              user_id: user.user_id,
+            },
+          });
 
           const user_hospital_region = userHospital.hospital_region;
+
+          const hospitalList = await Hospitals.findAll();
 
           const hospitalListByRegion = hospitalList.filter((hospital) =>
             hospital.region
@@ -3798,6 +3841,14 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         run: async () => {
           const distictInput = menu.val;
           console.log("DISTRICT INPUT", distictInput);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
+
+          const userHospital = await UserHospital.findOne({
+            where: {
+              user_id: user.user_id,
+            },
+          });
 
           const user_hospital_region = userHospital.hospital_region;
 
@@ -3808,6 +3859,8 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
           await userHospital.save();
 
           const user_hospital_district = userHospital.hospital_district;
+
+          const hospitalList = await Hospitals.findAll();
 
           const hospitalsByRegion = hospitalList.filter(
             (hospital) =>
@@ -3841,9 +3894,19 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
       menu.state("selectHospital.search", {
         run: async () => {
           const hospitalName = menu.val;
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+
+
+          const userHospital = await UserHospital.findOne({
+            where: {
+              user_id: user.user_id,
+            },
+          });
 
           const user_hospital_region = userHospital.hospital_region;
           const user_hospital_district = userHospital.hospital_district;
+
+          const hospitalList = await Hospitals.findAll();
 
           const hospitalsByRegion = hospitalList.filter(
             (hospital) =>
