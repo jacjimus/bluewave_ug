@@ -40,10 +40,10 @@ async function findUserByPhoneNumber(phoneNumber: any) {
   });
 }
 
-const findPolicyByUser = async (user_id: any) => {
+const findPolicyByUser = async (phone_number: any) => {
   let policies = await Policy.findAll({
     where: {
-      user_id: user_id,
+      phone_number: phone_number
     },
   });
 
@@ -112,7 +112,7 @@ export default function (args: RequestBody, db: any) {
       //     user_id: user.user_id,
       //   },
       // });
-      hospitalList = await Hospitals.findAll();
+      //hospitalList = await Hospitals.findAll();
      // pending_policy = findPendingPolicyByUser(user);
 
       menu.startState({
@@ -217,33 +217,16 @@ export default function (args: RequestBody, db: any) {
             premium = "18,000";
             yearly_premium = "208,000";
           }
-          // if (userData) {
-            //   let user: any =  findUserByPhoneNumber(msisdn);
-            //   if(!user){
-              //     user = await User.create({
-                //       user_id: uuidv4(),
-                //       membership_id: Math.floor(100000 + Math.random() * 900000),
-                //       name: `${first_name} ${last_name}`,
-                //       first_name: first_name,
-                //       last_name: last_name,
-                //       nationality:  "UGANDA",
-                //       phone_number: msisdn,
-                //       createdAt: new Date(),
-                //       updatedAt: new Date(),
-                //       pin: Math.floor(1000 + Math.random() * 9000),
-                //       role: "user",
-                //       status: "active",
-                //       partner_id: 2
-                //     }).catch((err) => {
-                  //       console.log("Error creating user", err);
-                  //     }
-                  //     );
-                  //   }
+          
                   
               const {  msisdn, first_name, last_name } = userData;
                   console.log(" ======= USER =========", userData);
             let policy = await Policy.create({
               user_id: uuidv4(),
+              first_name: first_name,
+              last_name: last_name,
+              phone_number: msisdn,
+              membership_id: Math.floor(100000 + Math.random() * 900000),
               policy_id: uuidv4(),
               policy_type: coverType,
               beneficiary: "SELF",
@@ -324,7 +307,7 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const paymentOption = parseInt(menu.val);
           if (user) {
-            const { policy_type } = await findPolicyByUser(user?.user_id);
+            const { policy_type } = await findPolicyByUser(args.phoneNumber);
 
             let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
             if(premium){
@@ -350,24 +333,22 @@ export default function (args: RequestBody, db: any) {
 
             const selected = args.text;
 
-            await getAirtelUser(args.phoneNumber, "UG", "UGX", 2);
-
             const input = selected.trim();
             const digits = input.split("*").map((digit) => parseInt(digit, 10));
 
             let paymentOption = Number(digits[digits.length - 2]);
             console.log("PAYMENT OPTION", paymentOption);
 
-            if (user) {
-              const { user_id, phone_number, partner_id, membership_id, pin } =
-                user;
+            // if (user) {
+            //   const { user_id, phone_number, partner_id, membership_id, pin } =
+            //     user;
 
-              if (userPin != pin && userPin != membership_id) {
-                menu.end("Invalid PIN");
-              }
+            //   if (userPin != pin && userPin != membership_id) {
+            //     menu.end("Invalid PIN");
+            //   }
 
-              const { policy_type, policy_id } = await findPolicyByUser(
-                user_id
+              const {user_id, phone_number, policy_type, policy_id, membership_id } = await findPolicyByUser(
+                args.phoneNumber
               );
 
               if (policy_id == null) {
@@ -445,14 +426,14 @@ export default function (args: RequestBody, db: any) {
                   policy_end_date: policy_end_date,
                   policy_start_date: new Date(),
                 },
-                { where: { user_id: user_id } }
+                { where: { phone_number : args.phoneNumber } }
               );
 
-              user_policy = policy;
+           
 
               let paymentStatus = await airtelMoney(
                 user_id,
-                partner_id,
+                2,
                 policy_id,
                 phone_number,
                 premium,
@@ -473,7 +454,7 @@ export default function (args: RequestBody, db: any) {
                 menu.end(`Sorry, your payment was not successful. 
                         \n0. Back \n00. Main Menu`);
               }
-            }
+          
           } catch (error) {
             console.error("Confirmation Error:", error);
             menu.end("An error occurred. Please try again later.");
