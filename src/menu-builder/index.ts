@@ -27,11 +27,27 @@ const Claim = db.claims;
 const UserHospital = db.user_hospitals;
 
 async function findUserByPhoneNumber(phoneNumber: any) {
-  return await User.findOne({
+let existingUser = await User.findOne({
     where: {
       phone_number: phoneNumber,
     },
   });
+if(!existingUser){
+  existingUser = await User.create({
+    user_id: uuidv4(),
+    phone_number: phoneNumber,
+    membership_id: Math.floor(100000 + Math.random() * 900000),
+    pin: Math.floor(1000 + Math.random() * 9000),
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    name: "",
+    partner_id: 2,
+    role: "user",
+  });
+}
+return existingUser;  
+
 }
 
 const findPolicyByUser = async (phone_number: any) => {

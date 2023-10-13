@@ -36,11 +36,26 @@ const Claim = db_1.db.claims;
 const UserHospital = db_1.db.user_hospitals;
 function findUserByPhoneNumber(phoneNumber) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield User.findOne({
+        let existingUser = yield User.findOne({
             where: {
                 phone_number: phoneNumber,
             },
         });
+        if (!existingUser) {
+            existingUser = yield User.create({
+                user_id: (0, uuid_1.v4)(),
+                phone_number: phoneNumber,
+                membership_id: Math.floor(100000 + Math.random() * 900000),
+                pin: Math.floor(1000 + Math.random() * 9000),
+                first_name: "",
+                middle_name: "",
+                last_name: "",
+                name: "",
+                partner_id: 2,
+                role: "user",
+            });
+        }
+        return existingUser;
     });
 }
 const findPolicyByUser = (phone_number) => __awaiter(void 0, void 0, void 0, function* () {
