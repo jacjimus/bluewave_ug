@@ -87,24 +87,23 @@ function default_1(args, db) {
                 hash: "",
                 partner_id: 2,
             };
-            // Check if session exists
-            let session = yield Session.findOne({
-                where: {
-                    sid: buildInput.sid,
-                },
-            });
-            if (!session) {
-                // Create new session
-                session = yield Session.create(buildInput);
-            }
-            else {
-                // Update existing session
-                yield Session.update(buildInput, {
-                    where: {
-                        sid: buildInput.sid,
-                    },
-                });
-            }
+            // // Check if session exists
+            // let session = await Session.findOne({
+            //   where: {
+            //     sid: buildInput.sid,
+            //   },
+            // });
+            // if (!session) {
+            //   // Create new session
+            //   session = await Session.create(buildInput);
+            // } else {
+            //   // Update existing session
+            //   await Session.update(buildInput, {
+            //     where: {
+            //       sid: buildInput.sid,
+            //     },
+            //   });
+            // }
             // ===============SET MENU STATES============
             // user = await getUserByPhoneNumber( args.phoneNumber, 2);
             // userHospital = await UserHospital.findOne({

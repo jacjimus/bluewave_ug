@@ -85,24 +85,24 @@ export default function (args: RequestBody, db: any) {
         partner_id: 2,
       };
 
-      // Check if session exists
-      let session = await Session.findOne({
-        where: {
-          sid: buildInput.sid,
-        },
-      });
+      // // Check if session exists
+      // let session = await Session.findOne({
+      //   where: {
+      //     sid: buildInput.sid,
+      //   },
+      // });
 
-      if (!session) {
-        // Create new session
-        session = await Session.create(buildInput);
-      } else {
-        // Update existing session
-        await Session.update(buildInput, {
-          where: {
-            sid: buildInput.sid,
-          },
-        });
-      }
+      // if (!session) {
+      //   // Create new session
+      //   session = await Session.create(buildInput);
+      // } else {
+      //   // Update existing session
+      //   await Session.update(buildInput, {
+      //     where: {
+      //       sid: buildInput.sid,
+      //     },
+      //   });
+      // }
 
       // ===============SET MENU STATES============
 
