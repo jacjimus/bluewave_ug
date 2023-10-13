@@ -1903,8 +1903,8 @@ export default function (args: RequestBody, db: any) {
       //=================BUY FOR OTHERS=================
       //buyForOthers
       menu.state("buyForOthers", {
-        run: async () => {
-          console.log("* BUY FOR OTHERS", user.phone_number);
+        run:  () => {
+         
           menu.con(
             "Buy for others " +
               "\n1. Other " +
@@ -1925,7 +1925,7 @@ export default function (args: RequestBody, db: any) {
       });
 
       menu.state("buyForOthers.next", {
-        run: async () => {
+        run:  () => {
           menu.con(
             "Buy for others " +
               "\n4. Other + Spouse + 2 Children" +
@@ -1968,10 +1968,30 @@ export default function (args: RequestBody, db: any) {
             menu.end("Invalid option");
           }
 
-          await User.update(
-            { total_member_number: member_number },
-            { where: { phone_number: args.phoneNumber } }
-          );
+         
+          let existingUser = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+          existingUser.total_member_number = member_number;
+         await existingUser.save();
+
+          if(!existingUser){
+          await User.create({
+            user_id: uuidv4(),
+            phone_number: args.phoneNumber,
+            membership_id: Math.floor(100000 + Math.random() * 900000),
+            pin:  Math.floor(1000 + Math.random() * 9000),
+            first_name: "",
+            middle_name: "",
+            last_name: "",
+            name: "",
+            total_member_number: member_number,
+            partner_id: 2,
+            role: "user",
+          });     
+        }
           if (member_number == "M") {
             menu.con(
               "Buy for Other" +
