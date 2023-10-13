@@ -174,7 +174,7 @@ export default function (args: RequestBody, db: any) {
       //=================BUY FOR SELF=================
       menu.state("buyForSelf", {
         run: async () => {
-          console.log("* BUY FOR SELF", user);
+          
 
           menu.con(
             "Buy for self " +
