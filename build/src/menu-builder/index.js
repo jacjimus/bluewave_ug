@@ -228,7 +228,7 @@ function default_1(args, db) {
                     //     );
                     //   }
                     const { msisdn, first_name, last_name } = userData;
-                    console.log(" ======= USER =========", yield user.user_id);
+                    console.log(" ======= USER =========", userData);
                     let policy = yield Policy.create({
                         user_id: (0, uuid_1.v4)(),
                         policy_id: (0, uuid_1.v4)(),
