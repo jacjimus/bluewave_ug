@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getUserByPhoneNumber = exports.getAirtelUser = void 0;
 const axios_1 = __importDefault(require("axios"));
 const auth_1 = __importDefault(require("./auth"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -19,6 +20,46 @@ const db_1 = require("../models/db");
 const uuid_1 = require("uuid");
 const sendSMS_1 = __importDefault(require("./sendSMS"));
 const User = db_1.db.users;
+function getUserByPhoneNumber(phoneNumber, partner_id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let userData = yield User.findOne({
+                where: {
+                    phone_number: phoneNumber,
+                    partner_id: partner_id,
+                },
+            });
+            // if not found, create a new user
+            if (!userData) {
+                const user = yield User.create({
+                    user_id: (0, uuid_1.v4)(),
+                    membership_id: generateMembershipId(),
+                    name: `${userData.first_name} ${userData.last_name}`,
+                    first_name: userData.first_name,
+                    last_name: userData.last_name,
+                    nationality: partner_id == 1 ? "KENYA" : "UGANDA",
+                    phone_number: userData.msisdn,
+                    password: yield bcrypt_1.default.hash(`${userData.first_name}${userData.last_name}`, 10),
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    pin: generatePIN(),
+                    role: "user",
+                    status: "active",
+                    partner_id: partner_id,
+                });
+                // WELCOME SMS
+                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+                yield (0, sendSMS_1.default)(user.phone_number, message);
+                console.log("USER FOR AIRTEL API", user);
+            }
+            return userData;
+        }
+        catch (error) {
+            console.error(error);
+        }
+    });
+}
+exports.getUserByPhoneNumber = getUserByPhoneNumber;
 function getAirtelUser(phoneNumber, country, currency, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -46,39 +87,43 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
             console.log("GET_USER_URL", GET_USER_URL);
             const response = yield axios_1.default.get(GET_USER_URL, { headers });
             console.log("RESPONSE KYC", response.data);
-            if (response && response.data) {
-                const userData = response.data.data;
-                const user = yield User.create({
-                    user_id: (0, uuid_1.v4)(),
-                    membership_id: generateMembershipId(),
-                    name: `${userData.first_name} ${userData.last_name}`,
-                    first_name: userData.first_name,
-                    last_name: userData.last_name,
-                    nationality: partner_id == 1 ? "KENYA" : "UGANDA",
-                    phone_number: userData.msisdn,
-                    password: yield bcrypt_1.default.hash(`${userData.first_name}${userData.last_name}`, 10),
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    pin: generatePIN(),
-                    role: "user",
-                    status: "active",
-                    partner_id: partner_id,
-                });
-                // WELCOME SMS
-                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
-                yield (0, sendSMS_1.default)(user.phone_number, message);
-                console.log("USER FOR AIRTEL API", user);
-                return user ? user : null;
-            }
-            else {
-                console.error("User data not found in response");
-            }
+            return response.data.data;
+            // if (response && response.data) {
+            //   const userData = response.data.data;
+            //   const user = await User.create({
+            //     user_id: uuidv4(),
+            //     membership_id: generateMembershipId(),
+            //     name: `${userData.first_name} ${userData.last_name}`,
+            //     first_name: userData.first_name,
+            //     last_name: userData.last_name,
+            //     nationality: partner_id == 1 ? "KENYA" : "UGANDA",
+            //     phone_number: userData.msisdn,
+            //     password: await bcrypt.hash(
+            //       `${userData.first_name}${userData.last_name}`,
+            //       10
+            //     ),
+            //     createdAt: new Date(),
+            //     updatedAt: new Date(),
+            //     pin: generatePIN(),
+            //     role: "user",
+            //     status: "active",
+            //     partner_id: partner_id,
+            //   });
+            //   // WELCOME SMS
+            //   const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+            //   await sendSMS(user.phone_number, message);
+            //   console.log("USER FOR AIRTEL API", user);
+            //   return user ? user : null;
+            // } else {
+            //   console.error("User data not found in response");
+            // }
         }
         catch (error) {
             console.error(error);
         }
     });
 }
+exports.getAirtelUser = getAirtelUser;
 function generateMembershipId() {
     while (true) {
         const membershipId = Math.floor(100000 + Math.random() * 900000);
@@ -95,4 +140,3 @@ function generateMembershipId() {
 function generatePIN() {
     return Math.floor(1000 + Math.random() * 9000);
 }
-exports.default = getAirtelUser;

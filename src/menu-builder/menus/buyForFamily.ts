@@ -1,7 +1,7 @@
 import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import sendSMS from "../../services/sendSMS";
-import getAirtelUser from '../../services/getAirtelUser';
+import {getAirtelUser} from '../../services/getAirtelUser';
 
 
 export function buyForFamily(menu: any, args: any, db: any): void {

@@ -8,6 +8,53 @@ import sendSMS from "./sendSMS";
 
 const User = db.users;
 
+async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
+  try {
+    let userData = await User.findOne({
+      where: {
+        phone_number: phoneNumber,
+        partner_id: partner_id,
+      },
+    });
+
+    // if not found, create a new user
+    if (!userData) {
+  
+      const user = await User.create({
+        user_id: uuidv4(),
+        membership_id: generateMembershipId(),
+        name: `${userData.first_name} ${userData.last_name}`,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        nationality: partner_id == 1 ? "KENYA" : "UGANDA",
+        phone_number: userData.msisdn,
+        password: await bcrypt.hash(
+          `${userData.first_name}${userData.last_name}`,
+          10
+        ),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        pin: generatePIN(),
+        role: "user",
+        status: "active",
+        partner_id: partner_id,
+      });
+
+      // WELCOME SMS
+      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+      await sendSMS(user.phone_number, message);
+
+      console.log("USER FOR AIRTEL API", user);
+      
+    }
+
+    return userData;  
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
 async function getAirtelUser(
   phoneNumber: string,
   country: string,
@@ -45,39 +92,40 @@ async function getAirtelUser(
 
     const response = await axios.get(GET_USER_URL, { headers });
     console.log("RESPONSE KYC", response.data);
+    return response.data.data;
 
-    if (response && response.data) {
-      const userData = response.data.data;
+    // if (response && response.data) {
+    //   const userData = response.data.data;
 
-      const user = await User.create({
-        user_id: uuidv4(),
-        membership_id: generateMembershipId(),
-        name: `${userData.first_name} ${userData.last_name}`,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        nationality: partner_id == 1 ? "KENYA" : "UGANDA",
-        phone_number: userData.msisdn,
-        password: await bcrypt.hash(
-          `${userData.first_name}${userData.last_name}`,
-          10
-        ),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        pin: generatePIN(),
-        role: "user",
-        status: "active",
-        partner_id: partner_id,
-      });
+    //   const user = await User.create({
+    //     user_id: uuidv4(),
+    //     membership_id: generateMembershipId(),
+    //     name: `${userData.first_name} ${userData.last_name}`,
+    //     first_name: userData.first_name,
+    //     last_name: userData.last_name,
+    //     nationality: partner_id == 1 ? "KENYA" : "UGANDA",
+    //     phone_number: userData.msisdn,
+    //     password: await bcrypt.hash(
+    //       `${userData.first_name}${userData.last_name}`,
+    //       10
+    //     ),
+    //     createdAt: new Date(),
+    //     updatedAt: new Date(),
+    //     pin: generatePIN(),
+    //     role: "user",
+    //     status: "active",
+    //     partner_id: partner_id,
+    //   });
 
-      // WELCOME SMS
-      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
-      await sendSMS(user.phone_number, message);
+    //   // WELCOME SMS
+    //   const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+    //   await sendSMS(user.phone_number, message);
 
-      console.log("USER FOR AIRTEL API", user);
-      return user ? user : null;
-    } else {
-      console.error("User data not found in response");
-    }
+    //   console.log("USER FOR AIRTEL API", user);
+    //   return user ? user : null;
+    // } else {
+    //   console.error("User data not found in response");
+    // }
   } catch (error) {
     console.error(error);
   }
@@ -107,4 +155,4 @@ function generatePIN() {
   return Math.floor(1000 + Math.random() * 9000);
 }
 
-export default getAirtelUser;
+export { getAirtelUser, getUserByPhoneNumber };

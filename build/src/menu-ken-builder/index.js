@@ -18,7 +18,7 @@ const ussd_builder_1 = __importDefault(require("ussd-builder"));
 const payment_1 = require("../services/payment");
 const uuid_1 = require("uuid");
 const crypto_1 = __importDefault(require("crypto"));
-const getAirtelUser_1 = __importDefault(require("../services/getAirtelUser"));
+const getAirtelUser_1 = require("../services/getAirtelUser");
 require("dotenv").config();
 function capitalizeFirstLetter(str) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -47,7 +47,7 @@ function handleUssd(args, db) {
                 userPhoneNumber = args.phoneNumber.substring(3);
                 args.phoneNumber = userPhoneNumber;
             }
-            const userKyc = yield (0, getAirtelUser_1.default)(userPhoneNumber, "KE", "KES", 1);
+            const userKyc = yield (0, getAirtelUser_1.getAirtelUser)(userPhoneNumber, "KE", "KES", 1);
             // console.log("USER KYC KENYA ", userKyc)
             function findUserByPhoneNumber(phoneNumber) {
                 return __awaiter(this, void 0, void 0, function* () {

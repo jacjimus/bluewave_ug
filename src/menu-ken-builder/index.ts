@@ -5,7 +5,7 @@ import UssdMenu from "ussd-builder";
 import { airtelMoney } from "../services/payment";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
-import getAirtelUser from "../services/getAirtelUser";
+import {getAirtelUser} from "../services/getAirtelUser";
 
 require("dotenv").config();
 
