@@ -135,6 +135,22 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             allowNull: true
         },
+        phone_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        first_name: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        last_name: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        membership_id: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
     }, { timestamps: true });
     Policy.belongsTo(User, {
         as: "user",
