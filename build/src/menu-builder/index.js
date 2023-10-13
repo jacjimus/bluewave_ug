@@ -215,9 +215,6 @@ function default_1(args, db) {
             menu.state("buyForSelf.coverType", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val;
-                    let userData = yield findUserByPhoneNumber(args.phoneNumber);
-                    menu.session.set('user', userData);
-                    console.log("USER DATA SESSION", userData);
                     const date = new Date();
                     const day = date.getDate() - 1;
                     let sum_insured, premium, yearly_premium;
@@ -239,34 +236,44 @@ function default_1(args, db) {
                         premium = "18,000";
                         yearly_premium = "208,000";
                     }
-                    const { msisdn, first_name, last_name } = userData;
-                    console.log(" ======= USER =========", userData);
-                    let policy = yield Policy.create({
-                        user_id: (0, uuid_1.v4)(),
-                        first_name: first_name,
-                        last_name: last_name,
-                        phone_number: msisdn,
-                        membership_id: Math.floor(100000 + Math.random() * 900000),
-                        policy_id: (0, uuid_1.v4)(),
-                        policy_type: coverType,
-                        beneficiary: "SELF",
-                        policy_status: "pending",
-                        policy_start_date: new Date(),
-                        policy_end_date: new Date(date.getFullYear() + 1, date.getMonth(), day),
-                        policy_deduction_day: day * 1,
-                        partner_id: 2,
-                        country_code: "UGA",
-                        currency_code: "UGX",
-                        product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-                    });
-                    let user_policy = policy;
+                    // const { msisdn, first_name, last_name } = userData;
+                    // console.log(" ======= USER =========", userData);
+                    // let policy = await Policy.create({
+                    //   user_id: uuidv4(),
+                    //   first_name: first_name,
+                    //   last_name: last_name,
+                    //   phone_number: msisdn,
+                    //   membership_id: Math.floor(100000 + Math.random() * 900000),
+                    //   policy_id: uuidv4(),
+                    //   policy_type: coverType,
+                    //   beneficiary: "SELF",
+                    //   policy_status: "pending",
+                    //   policy_start_date: new Date(),
+                    //   policy_end_date: new Date(
+                    //     date.getFullYear() + 1,
+                    //     date.getMonth(),
+                    //     day
+                    //   ),
+                    //   policy_deduction_day: day * 1,
+                    //   partner_id: 2,
+                    //   country_code: "UGA",
+                    //   currency_code: "UGX",
+                    //   product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+                    // });
+                    menu.session.set('coverType', coverType);
+                    menu.session.set('sum_insured', sum_insured);
+                    menu.session.set('premium', premium);
+                    menu.session.set('yearly_premium', yearly_premium);
                     if (premium && yearly_premium) {
-                        menu.con(`Inpatient cover for ${msisdn},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
+                        menu.con(`Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year 
                 PAY
                 1-UGX ${premium} monthly
                 2-UGX ${yearly_premium} yearly
                 
                 0. Back 00. Main Menu`);
+                    }
+                    else {
+                        menu.end("Invalid option");
                     }
                 }),
                 next: {
@@ -277,6 +284,7 @@ function default_1(args, db) {
             });
             function calculatePaymentOptions(policyType, paymentOption) {
                 let period, installmentType, sumInsured, premium;
+                console.log("POLICY TYPE", policyType);
                 if (policyType === "MINI") {
                     period = "yearly";
                     installmentType = 1;
@@ -310,19 +318,27 @@ function default_1(args, db) {
                         installmentType = 2;
                     }
                 }
+                else {
+                    return {};
+                }
                 return { period, installmentType, sumInsured, premium };
             }
             menu.state("buyForSelf.paymentOption", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const paymentOption = parseInt(menu.val);
-                    const { policy_type } = yield findPolicyByUser(args.phoneNumber);
-                    let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
-                    if (premium) {
-                        menu.con(`Pay UGX ${premium} payable ${period}.
+                    let policy_type = yield menu.session.get('coverType');
+                    console.log("POLICY TYPE", policy_type);
+                    let options = calculatePaymentOptions(policy_type, paymentOption);
+                    console.log(options);
+                    if (options.premium) {
+                        menu.con(`Pay UGX ${options.premium} payable ${options.period}.
             Terms&Conditions - www.airtel.com
             Enter PIN to Agree and Pay 
             \n0 .Back
              00 .Main Menu`);
+                    }
+                    else {
+                        menu.end("Invalid option");
                     }
                 }),
                 next: {
@@ -335,37 +351,31 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         const userPin = Number(menu.val);
-                        const { user_id, phone_number, pin, policy_type, policy_id, membership_id, first_name, last_name } = yield findPolicyByUser(args.phoneNumber);
-                        const selected = args.text;
-                        const input = selected.trim();
-                        const digits = input.split("*").map((digit) => parseInt(digit, 10));
-                        let paymentOption = Number(digits[digits.length - 2]);
+                        let paymentOption = menu.session.get('paymentOption');
                         console.log("PAYMENT OPTION", paymentOption);
-                        let existingUser = yield menu.session.get('user');
+                        let existingUser = yield (0, getAirtelUser_1.getAirtelUser)(args.phoneNumber, "UGA", "UGX", 2);
                         console.log("EXISTING USER", existingUser);
                         // create user
-                        if (!existingUser) {
-                            const user = yield User.create({
-                                user_id: user_id,
-                                phone_number: phone_number,
-                                membership_id: membership_id,
+                        if (existingUser) {
+                            existingUser = yield User.create({
+                                user_id: (0, uuid_1.v4)(),
+                                phone_number: args.phoneNumber,
+                                membership_id: Math.floor(100000 + Math.random() * 900000),
                                 pin: Math.floor(1000 + Math.random() * 9000),
-                                first_name: first_name,
-                                middle_name: last_name,
-                                last_name: last_name,
-                                name: `${first_name} ${last_name}`,
+                                first_name: existingUser.first_name,
+                                last_name: existingUser.last_name,
+                                name: `${existingUser.first_name} ${existingUser.last_name}`,
                                 total_member_number: "M",
                                 partner_id: 2,
                                 role: "user",
                             });
                             //   // WELCOME SMS
-                            const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
-                            yield (0, sendSMS_1.default)(user.phone_number, message);
-                            console.log(" === USER ====", user);
+                            const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
+                            yield (0, sendSMS_1.default)(existingUser.phone_number, message);
+                            console.log(" === USER ====", existingUser);
                         }
-                        if (policy_id == null) {
-                            menu.end("Sorry, you have no policy to buy for self");
-                        }
+                        let policy_type = yield menu.session.get('coverType');
+                        console.log("POLICY TYPE", policy_type);
                         let sum_insured, premium = 0, installment_type = 0, period = "monthly", last_expense_insured = 0, si, lei, frequency;
                         if (policy_type == "MINI") {
                             period = "yearly";
@@ -416,7 +426,14 @@ function default_1(args, db) {
                             frequency = "year";
                         }
                         const policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
-                        let policy = yield Policy.update({
+                        let day = policy_end_date.getDate() - 1;
+                        let policy = yield Policy.create({
+                            user_id: existingUser.user_id,
+                            first_name: existingUser.first_name,
+                            last_name: existingUser.last_name,
+                            phone_number: args.phoneNumber,
+                            policy_id: (0, uuid_1.v4)(),
+                            policy_type: policy_type,
                             policy_deduction_amount: premium,
                             policy_pending_premium: premium,
                             sum_insured: sum_insured,
@@ -426,13 +443,21 @@ function default_1(args, db) {
                             last_expense_insured: last_expense_insured,
                             policy_end_date: policy_end_date,
                             policy_start_date: new Date(),
+                            membership_id: Math.floor(100000 + Math.random() * 900000),
+                            beneficiary: "SELF",
+                            policy_status: "pending",
+                            policy_deduction_day: day * 1,
+                            partner_id: 2,
+                            country_code: "UGA",
+                            currency_code: "UGX",
+                            product_id: "d18424d6-5316-4e12-9826-302b866a380c",
                         }, { where: { phone_number: args.phoneNumber } });
-                        let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, 2, policy_id, phone_number, premium, membership_id, "UG", "UGX");
+                        let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, args.phoneNumber, premium, existingUser.membership_id, "UG", "UGX");
                         console.log("PAYMENT STATUS", paymentStatus);
                         if (paymentStatus.code === 200) {
                             let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
                         Pay UGX ${premium} every ${frequency} to stay covered`;
-                            yield (0, sendSMS_1.default)(phone_number, congratText);
+                            yield (0, sendSMS_1.default)(args.phoneNumber, congratText);
                             menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                            Cover valid till ${policy_end_date.toDateString()}`);
                         }
