@@ -104,6 +104,16 @@ export default function (args: RequestBody, db: any) {
             await session.save();
         }
 
+        if(args.text == "2*1"){
+            session.active_state = "buyForFamily.spouseOrChild";
+            await session.save();
+        }
+        if(args.text == "2*2"){
+            session.active_state = "buyForFamily.spouseAndChild";
+            await session.save();
+        }
+
+
         if(args.text == "3"){
             session.active_state = "buyForOthers";
             await session.save();
@@ -186,8 +196,30 @@ export default function (args: RequestBody, db: any) {
             break;
 
         case "buyForFamily":
-            resolve("1. Mini – UGX 10,000\n2. Midi - UGX 14,000\n3. Biggie – UGX 18,000\n0.Back\n00.Main Menu")
+            resolve(   "Buy for family " +
+            "\n1. Self + Spouse or Child" +
+            "\n2. Self + Spouse + 1 Child" +
+            "\n3. Self + Spouse + 2 Children" +
+            "\n01. Next" +
+            "\n0.Back" +
+            "\n00.Main Menu")
             break;
+
+        case "buyForFamily.spouseOrChild":
+        resolve(
+            "\nEnter atleast Name of spouse or 1 child" +
+              "\n0.Back" +
+              "\n00.Main Menu"
+          );
+             break;
+
+        case "buyForFamily.spouseAndChild":
+            resolve(
+                "\nEnter atleast Name of spouse and 1 child" +
+                  "\n0.Back" +
+                  "\n00.Main Menu"
+              );
+                 break;
 
         case "buyForFamily.coverType":
             // Handle the "buyForFamily.coverType" state
@@ -217,6 +249,13 @@ export default function (args: RequestBody, db: any) {
             // Handle the "buyForOthers" state
             // Parse user input, validate, and perform actions
             // Then resolve with the appropriate USSD response
+            resolve( "Buy for others " +
+            "\n4. Other + Spouse + 2 Children" +
+            "\n5. Other + Spouse + 3 Children" +
+            "\n6. Other + Spouse + 4 Children" +
+            "\n7. Other + Spouse + 5 Children" +
+            "\n0.Back" +
+            "\n00.Main Menu")
             break;
 
         case "buyForOthers.coverType":
