@@ -198,20 +198,20 @@ function default_1(args, db) {
             });
             //=================BUY FOR SELF=================
             menu.state("buyForSelf", {
-                run: () => {
+                run: () => __awaiter(this, void 0, void 0, function* () {
                     menu.con("Buy for self " +
                         "\n1. Mini – UGX 10,000" +
                         "\n2. Midi - UGX 14,000" +
                         "\n3. Biggie – UGX 18,000" +
-                        "\n0.Back" +
-                        "\n00.Main Menu");
-                },
+                        "\n0. Back" +
+                        "\n00. Main Menu");
+                }),
                 next: {
                     "1": "buyForSelf.coverType",
                     "2": "buyForSelf.coverType",
                     "3": "buyForSelf.coverType",
-                    "00": "account",
                     "0": "account",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.coverType", {
@@ -220,63 +220,38 @@ function default_1(args, db) {
                     const date = new Date();
                     const day = date.getDate() - 1;
                     let sum_insured, premium, yearly_premium;
-                    if (coverType == "1") {
+                    if (coverType === "1") {
                         coverType = "MINI";
                         sum_insured = "1.5M";
                         premium = "10,000";
                         yearly_premium = "120,000";
                     }
-                    else if (coverType == "2") {
+                    else if (coverType === "2") {
                         coverType = "MIDI";
                         sum_insured = "3M";
                         premium = "14,000";
                         yearly_premium = "167,000";
                     }
-                    else if (coverType == "3") {
+                    else if (coverType === "3") {
                         coverType = "BIGGIE";
                         sum_insured = "5M";
                         premium = "18,000";
                         yearly_premium = "208,000";
                     }
-                    // const { msisdn, first_name, last_name } = userData;
-                    // console.log(" ======= USER =========", userData);
-                    // let policy = await Policy.create({
-                    //   user_id: uuidv4(),
-                    //   first_name: first_name,
-                    //   last_name: last_name,
-                    //   phone_number: msisdn,
-                    //   membership_id: Math.floor(100000 + Math.random() * 900000),
-                    //   policy_id: uuidv4(),
-                    //   policy_type: coverType,
-                    //   beneficiary: "SELF",
-                    //   policy_status: "pending",
-                    //   policy_start_date: new Date(),
-                    //   policy_end_date: new Date(
-                    //     date.getFullYear() + 1,
-                    //     date.getMonth(),
-                    //     day
-                    //   ),
-                    //   policy_deduction_day: day * 1,
-                    //   partner_id: 2,
-                    //   country_code: "UGA",
-                    //   currency_code: "UGX",
-                    //   product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-                    // });
+                    else {
+                        menu.end("Invalid option");
+                        return;
+                    }
                     menu.session.set('coverType', coverType);
                     menu.session.set('sum_insured', sum_insured);
                     menu.session.set('premium', premium);
                     menu.session.set('yearly_premium', yearly_premium);
-                    if (premium && yearly_premium) {
-                        menu.con(`Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year 
-                PAY
-                1-UGX ${premium} monthly
-                2-UGX ${yearly_premium} yearly
-                
-                0. Back 00. Main Menu`);
-                    }
-                    else {
-                        menu.end("Invalid option");
-                    }
+                    menu.con(`Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year 
+            PAY
+            1-UGX ${premium} monthly
+            2-UGX ${yearly_premium} yearly
+                      
+            0. Back 00. Main Menu`);
                 }),
                 next: {
                     "1": "buyForSelf.paymentOption",
