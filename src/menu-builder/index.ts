@@ -2042,7 +2042,9 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let coverType = menu.val.toString();
           console.log("COVER TYPE", coverType);
-          let { user_id, partner_id, total_member_number } = user;
+          let { user_id, partner_id, total_member_number } = await User.findOne({
+            where: { phone_number: args.phoneNumber },
+          });
           let date = new Date();
           let day = date.getDate() - 1;
 
@@ -2164,7 +2166,7 @@ export default function (args: RequestBody, db: any) {
             first_name,
             last_name,
             total_member_number,
-          } = user;
+          } = newUser
           console.log(
             " ========= USER total_member_number========",
             total_member_number
@@ -3474,7 +3476,12 @@ export default function (args: RequestBody, db: any) {
             policy_id,
             policy_deduction_amount,
             membership_id,
-          } = user;
+          } = await Policy.findOne({
+            where: {
+              user_id: user?.user_id,
+  
+            },
+          });
 
           let paymentStatus = await airtelMoney(
             user_id,
