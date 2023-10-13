@@ -141,7 +141,7 @@ function default_1(args, db) {
                 },
             });
             menu.state("account", {
-                run: () => __awaiter(this, void 0, void 0, function* () {
+                run: () => {
                     menu.con("Medical cover" +
                         "\n1. Buy for self" +
                         "\n2. Buy (family)" +
@@ -151,7 +151,7 @@ function default_1(args, db) {
                         "\n6. View Hospital" +
                         "\n7. Terms & Conditions" +
                         "\n8. FAQs");
-                }),
+                },
                 next: {
                     "1": "buyForSelf",
                     "2": "buyForFamily",
@@ -165,17 +165,18 @@ function default_1(args, db) {
             });
             //=================BUY FOR SELF=================
             menu.state("buyForSelf", {
-                run: () => __awaiter(this, void 0, void 0, function* () {
+                run: () => {
                     menu.con("Buy for self " +
                         "\n1. Mini – UGX 10,000" +
                         "\n2. Midi - UGX 14,000" +
                         "\n3. Biggie – UGX 18,000" +
                         "\n0.Back" +
                         "\n00.Main Menu");
-                }),
+                },
                 next: {
                     "*\\d+": "buyForSelf.coverType",
-                    "0": "",
+                    "00": "account",
+                    "0": "account",
                 },
             });
             menu.state("buyForSelf.coverType", {

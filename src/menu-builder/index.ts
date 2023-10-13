@@ -146,7 +146,7 @@ export default function (args: RequestBody, db: any) {
       });
 
       menu.state("account", {
-        run: async () => {
+        run:  () => {
           menu.con(
             "Medical cover" +
               "\n1. Buy for self" +
@@ -173,9 +173,8 @@ export default function (args: RequestBody, db: any) {
 
       //=================BUY FOR SELF=================
       menu.state("buyForSelf", {
-        run: async () => {
-          
-
+        run: () => {
+        
           menu.con(
             "Buy for self " +
               "\n1. Mini – UGX 10,000" +
@@ -187,8 +186,8 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "*\\d+": "buyForSelf.coverType",
-
-          "0": "",
+           "00": "account",
+          "0": "account",
         },
       });
       menu.state("buyForSelf.coverType", {
