@@ -241,7 +241,7 @@ export default function (args: RequestBody, db: any) {
                   //   }
                   
               const {  msisdn, first_name, last_name } = userData;
-                  console.log(" ======= USER =========", await user.user_id);
+                  console.log(" ======= USER =========", userData);
             let policy = await Policy.create({
               user_id: uuidv4(),
               policy_id: uuidv4(),
