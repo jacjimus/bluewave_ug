@@ -1,6 +1,5 @@
 import express from "express";
 import ussdUgaMenuBuilder from "../menu-builder";
-import ussdUgaMenuBuilderUAT from "../menu-uat-builder";
 import ussdKenMenuBuilder from "../menu-ken-builder";
 import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
@@ -33,7 +32,7 @@ router.post("/uga", async (req: any, res: any) => {
 });
 router.post("/uat/uga", async (req: any, res: any) => {
 
-  await handleUSSDRequest(req, res, ussdUgaMenuBuilderUAT);
+  await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
 });
 
 router.post("/ken", async (req: any, res: any) => {

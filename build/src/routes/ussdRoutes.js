@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const menu_builder_1 = __importDefault(require("../menu-builder"));
-const menu_uat_builder_1 = __importDefault(require("../menu-uat-builder"));
 const menu_ken_builder_1 = __importDefault(require("../menu-ken-builder"));
 const sendSMS_1 = __importDefault(require("../services/sendSMS"));
 const db_1 = require("../models/db");
@@ -41,7 +40,7 @@ router.post("/uga", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     yield handleUSSDRequest(req, res, menu_builder_1.default);
 }));
 router.post("/uat/uga", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    yield handleUSSDRequest(req, res, menu_uat_builder_1.default);
+    yield handleUSSDRequest(req, res, menu_builder_1.default);
 }));
 router.post("/ken", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield handleUSSDRequest(req, res, menu_ken_builder_1.default);
