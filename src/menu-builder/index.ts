@@ -730,7 +730,11 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let spousePhone = menu.val;
           console.log("SPOUSE Phone", spousePhone);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+          const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
 
 
           if (spousePhone.charAt(0) == "+") {
@@ -2119,7 +2123,12 @@ export default function (args: RequestBody, db: any) {
           let otherPhone = menu.val;
           console.log("SPOUSE Phone", otherPhone);
 
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           //uganda phone number validation
 
@@ -2727,7 +2736,12 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const gender = menu.val.toString() == "1" ? "M" : "F";
           console.log("GENDER", gender);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           let beneficiary = await Beneficiary.findOne({
@@ -2763,7 +2777,12 @@ export default function (args: RequestBody, db: any) {
       menu.state("updateBeneficiaryDob", {
         run: async () => {
           const spouse_dob = menu.val;
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           // convert ddmmyyyy to valid date
@@ -2854,7 +2873,12 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let child_name = menu.val;
           console.log("CHILD NAME", child_name);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           let beneficiary = await Beneficiary.findAll({
@@ -2890,7 +2914,12 @@ export default function (args: RequestBody, db: any) {
           const gender = menu.val.toString() == "1" ? "M" : "F";
           console.log("GENDER", gender);
 
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           let beneficiary = await Beneficiary.findAll({
             where: {
@@ -2936,7 +2965,12 @@ export default function (args: RequestBody, db: any) {
           let date = new Date(Number(year), Number(month) - 1, Number(day));
           console.log("DATE OF BIRTH", date);
 
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           let beneficiary = await Beneficiary.findAll({
             where: {
@@ -3015,7 +3049,12 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("cancelPolicy", {
         run: async () => {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           if (user) {
             const policy = await findPolicyByUser(user.user_id)
@@ -3047,7 +3086,12 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("cancelPolicyPin", {
         run: async () => {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           const policy = await Policy.findOne({
             where: {
@@ -3073,7 +3117,12 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const to = args.phoneNumber;
           let today = new Date();
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           let policy: any;
@@ -3108,7 +3157,12 @@ export default function (args: RequestBody, db: any) {
       //my insurance policy
       menu.state("myInsurancePolicy", {
         run: async () => {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           let policies = await Policy.findAll({
             where: {
@@ -3196,7 +3250,12 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("renewPolicy", {
         run: async () => {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           const policy = await Policy.findOne({
             where: {
@@ -3333,7 +3392,12 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("deathClaimPhoneNumber", {
         run: async () => {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           const nextOfKinPhoneNumber = menu.val;
 
@@ -3365,7 +3429,12 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("deathClaimName", {
         run: async () => {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           const deceasedName = menu.val;
           console.log("DECEASED NAME", deceasedName);
@@ -3399,7 +3468,12 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const relationship = menu.val;
           console.log("RELATIONSHIP", relationship);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           await Beneficiary.update(
@@ -3423,7 +3497,12 @@ export default function (args: RequestBody, db: any) {
       menu.state("deathClaimDate", {
         run: async () => {
           let dateOfDeath = menu.val;
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           // convert ddmmyyyy to valid date
@@ -3460,7 +3539,12 @@ export default function (args: RequestBody, db: any) {
       menu.state("payNow", {
         run: async () => {
           console.log("* PAY NOW");
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           if (!user) {
@@ -3491,7 +3575,12 @@ export default function (args: RequestBody, db: any) {
       menu.state("payNowPremiumPin", {
         run: async () => {
           const pin = parseInt(menu.val);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           if (isNaN(pin)) {
@@ -3546,7 +3635,12 @@ export default function (args: RequestBody, db: any) {
           const bronzeLastExpenseBenefit = "UGX 1,000,000";
           const silverLastExpenseBenefit = "UGX 1,500,000";
           const goldLastExpenseBenefit = "UGX 2,000,000";
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
           try {
             if (user) {
@@ -3615,7 +3709,12 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const policyIndex = Number(menu.val) - 1;
           try {
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+           const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
             const policies = await findPolicyByUser(user.user_id)
             const selectedPolicy = policies[policyIndex];
@@ -3730,7 +3829,12 @@ export default function (args: RequestBody, db: any) {
             "Northern Region",
           ];
 
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+          console.log("USER");
+          const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
 
           console.log("REGION", region, regions[region - 1]);
           const userHospital = await UserHospital.findOne({
@@ -3738,6 +3842,7 @@ export default function (args: RequestBody, db: any) {
               user_id: user.user_id,
             },
           });
+          console.log("USER HOSPITAL", userHospital);
 
           if (userHospital) {
             await UserHospital.update(
@@ -3759,13 +3864,21 @@ export default function (args: RequestBody, db: any) {
           }
 
           const user_hospital_region = userHospital.hospital_region;
-          const hospitalList = await Hospitals.findAll();
-
-          console.log("HOSPITAL LIST", hospitalList.length);
-          //console.log("HOSPITAL LIST", hospitalList)
-          const hospitalListByRegion = hospitalList.filter(
-            (hospital) => hospital.region === user_hospital_region
+          const hospitalListByRegion = await Hospitals.findAll(
+            {
+              where: {
+                region: user_hospital_region,
+              },
+            },
+            { raw: true }
           );
+          console.log("HOSPITAL LIST BY REGION", hospitalListByRegion);
+          
+
+    
+          // const hospitalListByRegion = hospitalList.filter(
+          //   (hospital) => hospital.region === user_hospital_region
+          // );
 
           console.log("HOSPITAL LIST BY REGION", hospitalListByRegion);
 
@@ -3791,7 +3904,11 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const district = menu.val;
           console.log("DISTRICT val", district);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+          const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
 
 
           const userHospital = await UserHospital.findOne({
@@ -3841,7 +3958,11 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         run: async () => {
           const distictInput = menu.val;
           console.log("DISTRICT INPUT", distictInput);
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+          const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
 
 
           const userHospital = await UserHospital.findOne({
@@ -3894,7 +4015,12 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
       menu.state("selectHospital.search", {
         run: async () => {
           const hospitalName = menu.val;
-          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
+          const user = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+
 
 
           const userHospital = await UserHospital.findOne({
@@ -3961,10 +4087,8 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         run: async () => {
           //ask if they want to change hospital or see details
           menu.con(`1. See Details
-                2. Change Hospital
-
-                0. Back
-                00. Main Menu`);
+                    2. Change Hospital
+                    0. Back  00. Main Menu`);
         },
         next: {
           "1": "myHospital",

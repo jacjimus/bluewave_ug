@@ -642,7 +642,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spousePhone = menu.val;
                     console.log("SPOUSE Phone", spousePhone);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     if (spousePhone.charAt(0) == "+") {
                         spousePhone = spousePhone.substring(1);
                     }
@@ -1905,7 +1909,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let otherPhone = menu.val;
                     console.log("SPOUSE Phone", otherPhone);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     //uganda phone number validation
                     if (otherPhone.charAt(0) == "0") {
                         otherPhone = otherPhone.substring(1);
@@ -2429,7 +2437,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const gender = menu.val.toString() == "1" ? "M" : "F";
                     console.log("GENDER", gender);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2457,7 +2469,11 @@ function default_1(args, db) {
             menu.state("updateBeneficiaryDob", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const spouse_dob = menu.val;
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     // convert ddmmyyyy to valid date
                     let day = spouse_dob.substring(0, 2);
                     let month = spouse_dob.substring(2, 4);
@@ -2535,7 +2551,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let child_name = menu.val;
                     console.log("CHILD NAME", child_name);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2563,7 +2583,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const gender = menu.val.toString() == "1" ? "M" : "F";
                     console.log("GENDER", gender);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2596,7 +2620,11 @@ function default_1(args, db) {
                     let year = child_dob.substring(4, 8);
                     let date = new Date(Number(year), Number(month) - 1, Number(day));
                     console.log("DATE OF BIRTH", date);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2663,7 +2691,11 @@ function default_1(args, db) {
             //============CANCEL POLICY=================
             menu.state("cancelPolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     if (user) {
                         const policy = yield findPolicyByUser(user.user_id);
                         console.log("POLICY: ", policy);
@@ -2691,7 +2723,11 @@ function default_1(args, db) {
             //cancel policy pin
             menu.state("cancelPolicyPin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const policy = yield Policy.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2713,7 +2749,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const to = args.phoneNumber;
                     let today = new Date();
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let policy;
                     if (user) {
                         policy = yield Policy.findOne({
@@ -2742,7 +2782,11 @@ function default_1(args, db) {
             //my insurance policy
             menu.state("myInsurancePolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let policies = yield Policy.findAll({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2805,7 +2849,11 @@ function default_1(args, db) {
             //renewPolicy
             menu.state("renewPolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const policy = yield Policy.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2912,7 +2960,11 @@ function default_1(args, db) {
             });
             menu.state("deathClaimPhoneNumber", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const nextOfKinPhoneNumber = menu.val;
                     yield Beneficiary.findOne({
                         where: {
@@ -2939,7 +2991,11 @@ function default_1(args, db) {
             });
             menu.state("deathClaimName", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const deceasedName = menu.val;
                     console.log("DECEASED NAME", deceasedName);
                     const firstName = deceasedName.split(" ")[0];
@@ -2964,7 +3020,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const relationship = menu.val;
                     console.log("RELATIONSHIP", relationship);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     yield Beneficiary.update({ relationship: relationship }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: "NEXTOFKIN" } });
                     menu.con(`Enter Date of death in the format DDMMYYYY e.g 01011990"
 
@@ -2981,7 +3041,11 @@ function default_1(args, db) {
             menu.state("deathClaimDate", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let dateOfDeath = menu.val;
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     // convert ddmmyyyy to valid date
                     let day = dateOfDeath.substring(0, 2);
                     let month = dateOfDeath.substring(2, 4);
@@ -3006,7 +3070,11 @@ function default_1(args, db) {
             menu.state("payNow", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     console.log("* PAY NOW");
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     if (!user) {
                         menu.end("User not found");
                         return;
@@ -3029,7 +3097,11 @@ function default_1(args, db) {
             menu.state("payNowPremiumPin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const pin = parseInt(menu.val);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     if (isNaN(pin)) {
                         menu.end("Invalid PIN");
                         return;
@@ -3059,7 +3131,11 @@ function default_1(args, db) {
                     const bronzeLastExpenseBenefit = "UGX 1,000,000";
                     const silverLastExpenseBenefit = "UGX 1,500,000";
                     const goldLastExpenseBenefit = "UGX 2,000,000";
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     try {
                         if (user) {
                             const policies = yield Policy.findAll({
@@ -3116,7 +3192,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const policyIndex = Number(menu.val) - 1;
                     try {
-                        const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                        const user = yield User.findOne({
+                            where: {
+                                phone_number: args.phoneNumber,
+                            },
+                        });
                         const policies = yield findPolicyByUser(user.user_id);
                         const selectedPolicy = policies[policyIndex];
                         if (!selectedPolicy) {
@@ -3195,13 +3275,19 @@ function default_1(args, db) {
                         "West Nile Region",
                         "Northern Region",
                     ];
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    console.log("USER");
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     console.log("REGION", region, regions[region - 1]);
                     const userHospital = yield UserHospital.findOne({
                         where: {
                             user_id: user.user_id,
                         },
                     });
+                    console.log("USER HOSPITAL", userHospital);
                     if (userHospital) {
                         yield UserHospital.update({
                             hospital_region: regions[region - 1],
@@ -3219,10 +3305,15 @@ function default_1(args, db) {
                         });
                     }
                     const user_hospital_region = userHospital.hospital_region;
-                    const hospitalList = yield Hospitals.findAll();
-                    console.log("HOSPITAL LIST", hospitalList.length);
-                    //console.log("HOSPITAL LIST", hospitalList)
-                    const hospitalListByRegion = hospitalList.filter((hospital) => hospital.region === user_hospital_region);
+                    const hospitalListByRegion = yield Hospitals.findAll({
+                        where: {
+                            region: user_hospital_region,
+                        },
+                    }, { raw: true });
+                    console.log("HOSPITAL LIST BY REGION", hospitalListByRegion);
+                    // const hospitalListByRegion = hospitalList.filter(
+                    //   (hospital) => hospital.region === user_hospital_region
+                    // );
                     console.log("HOSPITAL LIST BY REGION", hospitalListByRegion);
                     // if district exists, list district for user to choose
                     let districtList = hospitalListByRegion.map((hospital) => hospital.district);
@@ -3241,7 +3332,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const district = menu.val;
                     console.log("DISTRICT val", district);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const userHospital = yield UserHospital.findOne({
                         where: {
                             user_id: user.user_id,
@@ -3276,7 +3371,11 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const distictInput = menu.val;
                     console.log("DISTRICT INPUT", distictInput);
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const userHospital = yield UserHospital.findOne({
                         where: {
                             user_id: user.user_id,
@@ -3307,7 +3406,11 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
             menu.state("selectHospital.search", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const hospitalName = menu.val;
-                    const user = yield (0, getAirtelUser_1.getUserByPhoneNumber)(args.phoneNumber, 2);
+                    const user = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     const userHospital = yield UserHospital.findOne({
                         where: {
                             user_id: user.user_id,
@@ -3349,10 +3452,8 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     //ask if they want to change hospital or see details
                     menu.con(`1. See Details
-                2. Change Hospital
-
-                0. Back
-                00. Main Menu`);
+                    2. Change Hospital
+                    0. Back  00. Main Menu`);
                 }),
                 next: {
                     "1": "myHospital",
