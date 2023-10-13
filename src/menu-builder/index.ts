@@ -176,7 +176,7 @@ export default function (args: RequestBody, db: any) {
           );
         },
         next: {
-          "1": "buyForSelf",
+          "1": "buyforself",
           "2": "buyForFamily",
           "3": "buyForOthers",
           "4": "makeClaim",
@@ -202,7 +202,7 @@ export default function (args: RequestBody, db: any) {
           );
         },
         next: {
-          "1": "buyForSelf",
+          "1": "buyforself",
           "2": "buyForFamily",
           "3": "buyForOthers",
           "4": "makeClaim",
@@ -216,7 +216,7 @@ export default function (args: RequestBody, db: any) {
       //=================BUY FOR SELF=================
      
 
-      menu.state("buyForSelf", {
+      menu.state("buyforself", {
         run: async () => {
           menu.con(
             "Buy for self " +
@@ -228,15 +228,15 @@ export default function (args: RequestBody, db: any) {
           );
         },
         next: {
-          "1": "buyForSelf.coverType",
-          "2": "buyForSelf.coverType",
-          "3": "buyForSelf.coverType",
+          "1": "buyforself.covertype",
+          "2": "buyforself.covertype",
+          "3": "buyforself.covertype",
           "0": "account",
           "00": "account",
         },
       });
       
-      menu.state("buyForSelf.coverType", {
+      menu.state("buyforself.covertype", {
         run: async () => {
           let coverType = menu.val;
           const date = new Date();

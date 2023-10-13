@@ -163,7 +163,7 @@ function default_1(args, db) {
                         "\n8. FAQs");
                 }),
                 next: {
-                    "1": "buyForSelf",
+                    "1": "buyforself",
                     "2": "buyForFamily",
                     "3": "buyForOthers",
                     "4": "makeClaim",
@@ -186,7 +186,7 @@ function default_1(args, db) {
                         "\n8. FAQs");
                 },
                 next: {
-                    "1": "buyForSelf",
+                    "1": "buyforself",
                     "2": "buyForFamily",
                     "3": "buyForOthers",
                     "4": "makeClaim",
@@ -197,7 +197,7 @@ function default_1(args, db) {
                 },
             });
             //=================BUY FOR SELF=================
-            menu.state("buyForSelf", {
+            menu.state("buyforself", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     menu.con("Buy for self " +
                         "\n1. Mini – UGX 10,000" +
@@ -207,14 +207,14 @@ function default_1(args, db) {
                         "\n00. Main Menu");
                 }),
                 next: {
-                    "1": "buyForSelf.coverType",
-                    "2": "buyForSelf.coverType",
-                    "3": "buyForSelf.coverType",
+                    "1": "buyforself.covertype",
+                    "2": "buyforself.covertype",
+                    "3": "buyforself.covertype",
                     "0": "account",
                     "00": "account",
                 },
             });
-            menu.state("buyForSelf.coverType", {
+            menu.state("buyforself.covertype", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val;
                     const date = new Date();
