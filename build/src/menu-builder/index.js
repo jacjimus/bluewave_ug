@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const lang_1 = __importDefault(require("./lang"));
 const configs_1 = __importDefault(require("./configs"));
-const ussd_builder_1 = __importDefault(require("ussd-builder"));
+const ussd_menu_builder_1 = __importDefault(require("ussd-menu-builder"));
 const sendSMS_1 = __importDefault(require("../services/sendSMS"));
 const uuid_1 = require("uuid");
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -65,7 +65,7 @@ const findPendingPolicyByUser = (user) => __awaiter(void 0, void 0, void 0, func
         },
     });
 });
-let menu = new ussd_builder_1.default();
+let menu = new ussd_menu_builder_1.default();
 function default_1(args, db) {
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
         try {
@@ -166,7 +166,6 @@ function default_1(args, db) {
             //=================BUY FOR SELF=================
             menu.state("buyForSelf", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    console.log("* BUY FOR SELF", user);
                     menu.con("Buy for self " +
                         "\n1. Mini – UGX 10,000" +
                         "\n2. Midi - UGX 14,000" +
@@ -1841,7 +1840,9 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val.toString();
                     console.log("COVER TYPE", coverType);
-                    let { user_id, partner_id, total_member_number } = user;
+                    let { user_id, partner_id, total_member_number } = yield User.findOne({
+                        where: { phone_number: args.phoneNumber },
+                    });
                     let date = new Date();
                     let day = date.getDate() - 1;
                     if (coverType == "1") {
@@ -1932,7 +1933,7 @@ function default_1(args, db) {
                     console.log("OTHER POLICY", otherPolicy);
                     otherPolicy.bought_for = newUser.user_id;
                     yield otherPolicy.save();
-                    const { user_id, phone_number, first_name, last_name, total_member_number, } = user;
+                    const { user_id, phone_number, first_name, last_name, total_member_number, } = newUser;
                     console.log(" ========= USER total_member_number========", total_member_number);
                     const { policy_type, beneficiary, bought_for } = otherPolicy;
                     console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for);
@@ -3011,7 +3012,11 @@ function default_1(args, db) {
                         menu.end("You have no pending policies");
                         return;
                     }
-                    const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount, membership_id, } = user;
+                    const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount, membership_id, } = yield Policy.findOne({
+                        where: {
+                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                        },
+                    });
                     let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, selectedPolicy.policy_id, phone_number, selectedPolicy.premium, membership_id, "UG", "UGX");
                     if (paymentStatus.code === 200) {
                         const message = `Paid UGX ${selectedPolicy.policy_deduction_amount} for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on ${selectedPolicy.policy_end_date.toDateString()}`;

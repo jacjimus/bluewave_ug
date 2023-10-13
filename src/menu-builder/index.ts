@@ -1,7 +1,7 @@
 import { RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
-import UssdMenu from "ussd-builder";
+import UssdMenu from "ussd-menu-builder";
 import sendSMS from "../services/sendSMS";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
