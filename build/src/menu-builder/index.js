@@ -275,22 +275,20 @@ function default_1(args, db) {
                         premium = 18000;
                         installmentType = 2;
                     }
-                    return { period, installmentType, sumInsured, premium };
                 }
+                return { period, installmentType, sumInsured, premium };
             }
             menu.state("buyForSelf.paymentOption", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const paymentOption = parseInt(menu.val);
-                    if (user) {
-                        const { policy_type } = yield findPolicyByUser(args.phoneNumber);
-                        let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
-                        if (premium) {
-                            menu.con(`Pay UGX ${premium} payable ${period}.
+                    const { policy_type } = yield findPolicyByUser(args.phoneNumber);
+                    let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
+                    if (premium) {
+                        menu.con(`Pay UGX ${premium} payable ${period}.
             Terms&Conditions - www.airtel.com
             Enter PIN to Agree and Pay 
             \n0 .Back
              00 .Main Menu`);
-                        }
                     }
                 }),
                 next: {
@@ -303,18 +301,37 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     try {
                         const userPin = Number(menu.val);
+                        const { user_id, phone_number, pin, policy_type, policy_id, membership_id, first_name, last_name } = yield findPolicyByUser(args.phoneNumber);
                         const selected = args.text;
                         const input = selected.trim();
                         const digits = input.split("*").map((digit) => parseInt(digit, 10));
                         let paymentOption = Number(digits[digits.length - 2]);
                         console.log("PAYMENT OPTION", paymentOption);
-                        // if (user) {
-                        //   const { user_id, phone_number, partner_id, membership_id, pin } =
-                        //     user;
-                        //   if (userPin != pin && userPin != membership_id) {
-                        //     menu.end("Invalid PIN");
-                        //   }
-                        const { user_id, phone_number, policy_type, policy_id, membership_id } = yield findPolicyByUser(args.phoneNumber);
+                        const existingUser = yield User.findOne({
+                            where: {
+                                phone_number: phone_number,
+                            },
+                        });
+                        // create user
+                        if (!existingUser) {
+                            const user = yield User.create({
+                                user_id: user_id,
+                                phone_number: phone_number,
+                                membership_id: membership_id,
+                                pin: Math.floor(1000 + Math.random() * 9000),
+                                first_name: first_name,
+                                middle_name: last_name,
+                                last_name: last_name,
+                                name: `${first_name} ${last_name}`,
+                                total_member_number: "M",
+                                partner_id: 2,
+                                role: "user",
+                            });
+                            //   // WELCOME SMS
+                            const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+                            yield (0, sendSMS_1.default)(user.phone_number, message);
+                            console.log(" === USER ====", user);
+                        }
                         if (policy_id == null) {
                             menu.end("Sorry, you have no policy to buy for self");
                         }
@@ -403,7 +420,6 @@ function default_1(args, db) {
             //============  BUY FOR FAMILY ===================
             menu.state("buyForFamily", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    console.log("* BUY FOR FAMILY", user.phoneNumber);
                     menu.con("Buy for family " +
                         "\n1. Self + Spouse or Child" +
                         "\n2. Self + Spouse + 1 Child" +
@@ -464,7 +480,28 @@ function default_1(args, db) {
                         menu.end("Invalid option");
                     }
                     console.log("MEMBER NUMBER", member_number);
-                    yield User.update({ total_member_number: member_number }, { where: { phone_number: args.phoneNumber } });
+                    let existingUser = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
+                    existingUser.total_member_number = member_number;
+                    yield existingUser.save();
+                    if (!existingUser) {
+                        yield User.create({
+                            user_id: (0, uuid_1.v4)(),
+                            phone_number: args.phoneNumber,
+                            membership_id: Math.floor(100000 + Math.random() * 900000),
+                            pin: Math.floor(1000 + Math.random() * 9000),
+                            first_name: "",
+                            middle_name: "",
+                            last_name: "",
+                            name: "",
+                            total_member_number: member_number,
+                            partner_id: 2,
+                            role: "user",
+                        });
+                    }
                     if (member_number == "M+1") {
                         menu.con(`
               1. Mini – UGX 20,000
@@ -532,7 +569,12 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val;
                     console.log("FAMILY COVER TYPE", coverType);
-                    if (user) {
+                    let existingUser = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
+                    if (existingUser) {
                         //let { user_id, partner_id } = user;
                         let date = new Date();
                         let day = date.getDate() - 1;
@@ -545,8 +587,9 @@ function default_1(args, db) {
                         else if (coverType == "3") {
                             coverType = "BIGGIE";
                         }
+                        console.log("EXISTING USER", existingUser);
                         yield Policy.create({
-                            user_id: (0, uuid_1.v4)(),
+                            user_id: existingUser.user_id,
                             policy_id: (0, uuid_1.v4)(),
                             policy_type: coverType,
                             beneficiary: "FAMILY",
@@ -558,11 +601,9 @@ function default_1(args, db) {
                             country_code: "UGA",
                             currency_code: "UGX",
                             product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+                            cover_type: coverType,
+                            total_member_number: existingUser.total_member_number,
                         });
-                        // await User.update(
-                        //   { cover_type: coverType },
-                        //   { where: { phone_number: args.phoneNumber } }
-                        // );
                         menu.con("\nEnter atleast Name of spouse or 1 child" +
                             "\n0.Back" +
                             "\n00.Main Menu");
@@ -578,8 +619,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spouse = menu.val;
                     console.log("SPOUSE NAME", spouse);
-                    // if (user) {
-                    //   let { user_id, total_member_number } = user;
+                    let existingUser = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     let beneficiary = {
                         beneficiary_id: (0, uuid_1.v4)(),
                         full_name: spouse,
@@ -587,8 +631,8 @@ function default_1(args, db) {
                         middle_name: spouse.split(" ")[1],
                         last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
                         relationship: "SPOUSE",
-                        member_number: "M+1",
-                        user_id: (0, uuid_1.v4)(),
+                        member_number: existingUser.total_member_number,
+                        user_id: existingUser.user_id,
                     };
                     let newBeneficiary = yield Beneficiary.create(beneficiary);
                     console.log("new beneficiary selfSpouse", newBeneficiary);
@@ -615,12 +659,15 @@ function default_1(args, db) {
                     if (current_beneficiary) {
                         menu.con("Beneficiary already exists");
                     }
-                    const { user_id, partner_id, cover_type, phone_number, first_name, last_name, total_member_number, } = user;
+                    const { user_id, partner_id, phone_number, first_name, last_name, total_member_number, } = yield User.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     console.log(" ========= USER total_member_number========", total_member_number);
                     yield Beneficiary.update({ phone_number: spousePhone }, { where: { user_id: user_id, relationship: "SPOUSE" } });
-                    console.log(" ==========  COVER TYPE ==========", cover_type);
-                    const { policy_type, beneficiary, bought_for } = yield findPolicyByUser(user === null || user === void 0 ? void 0 : user.user_id);
-                    console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for);
+                    const { policy_type, beneficiary, bought_for, cover_type } = yield findPolicyByUser(user === null || user === void 0 ? void 0 : user.user_id);
+                    console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for, cover_type);
                     if (bought_for !== null) {
                         yield User.update({ phone_number: spousePhone }, { where: { user_id: bought_for } });
                     }
@@ -938,16 +985,17 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const paymentOption = Number(menu.val);
                     console.log("PAYMENT OPTION", paymentOption);
-                    const { user_id, cover_type, total_member_number } = user;
-                    let coverType = cover_type;
-                    const { policy_id } = yield findPolicyByUser(user === null || user === void 0 ? void 0 : user.user_id);
-                    console.log("COVER TYPE", coverType);
+                    const { policy_id, user_id, cover_type, total_member_number } = yield Policy.findOne({
+                        where: {
+                            phone_number: args.phoneNumber,
+                        },
+                    });
                     console.log("====== Total_member_number ====  ", total_member_number);
                     if (policy_id == null) {
                         menu.end("Sorry, you have no policy to buy for family");
                     }
                     let sum_insured, si, premium = 0, installment_type = 0, period = "monthly", last_expense_insured = 0, lei, yearly_premium = 0;
-                    if (coverType == "MINI") {
+                    if (cover_type == "MINI") {
                         lei = "1M";
                         si = "1.5M";
                         if (paymentOption == 1) {
@@ -1043,7 +1091,7 @@ function default_1(args, db) {
                             }
                         }
                     }
-                    else if (coverType == "MIDI") {
+                    else if (cover_type == "MIDI") {
                         si = "3M";
                         lei = "1.5M";
                         if (paymentOption == 1) {
@@ -1138,7 +1186,7 @@ function default_1(args, db) {
                             }
                         }
                     }
-                    else if (coverType == "BIGGIE") {
+                    else if (cover_type == "BIGGIE") {
                         si = "5M";
                         lei = "2M";
                         if (paymentOption == 1) {
@@ -1251,6 +1299,7 @@ function default_1(args, db) {
                     try {
                         const userKyc = yield (0, getAirtelUser_1.getAirtelUser)(args.phoneNumber, "UG", "UGX", 2);
                         console.log("=========  USER KYC ===========", userKyc);
+                        const user = yield User.update({ first_name: userKyc.first_name, last_name: userKyc.last_name }, { where: { phone_number: args.phoneNumber } });
                         const userPin = Number(menu.val);
                         const selected = args.text;
                         const input = selected.trim();
@@ -1258,9 +1307,6 @@ function default_1(args, db) {
                         let paymentOption = Number(digits[digits.length - 2]);
                         const { user_id, phone_number, partner_id, membership_id, pin, total_member_number, cover_type, } = user;
                         let coverType = cover_type;
-                        if (userPin != pin && userPin != membership_id) {
-                            menu.end("Invalid PIN");
-                        }
                         const { policy_type, policy_id, beneficiary, bought_for } = yield findPolicyByUser(user === null || user === void 0 ? void 0 : user.user_id);
                         if (policy_id == null) {
                             menu.end("Sorry, you have no policy to buy for family");
@@ -1600,6 +1646,9 @@ function default_1(args, db) {
                             last_expense_insured: last_expense_insured,
                             policy_start_date: new Date(),
                             policy_end_date: policy_end_date,
+                            first_name: userKyc.first_name,
+                            last_name: userKyc.last_name,
+                            phone_number: phone_number,
                         }, { where: { user_id: user_id } });
                         let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, policy_id, phone_number, premium, membership_id, "UG", "UGX");
                         //let paymentStatus =  await initiateConsent(newPolicy.policy_type,newPolicy.policy_start_date, newPolicy.policy_end_date, phone_number, newPolicy.policy_deduction_amount , newPolicy.premium)

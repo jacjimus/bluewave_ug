@@ -299,14 +299,15 @@ export default function (args: RequestBody, db: any) {
             installmentType = 2;
           }
       
+        }
         return { period, installmentType, sumInsured, premium };
-      }
     }
 
       menu.state("buyForSelf.paymentOption", {
         run: async () => {
           const paymentOption = parseInt(menu.val);
-          if (user) {
+          
+          
             const { policy_type } = await findPolicyByUser(args.phoneNumber);
 
             let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
@@ -316,7 +317,7 @@ export default function (args: RequestBody, db: any) {
             Enter PIN to Agree and Pay 
             \n0 .Back
              00 .Main Menu`);
-          }
+          
         }
         },
         next: {
@@ -331,6 +332,13 @@ export default function (args: RequestBody, db: any) {
           try {
             const userPin = Number(menu.val);
 
+            const {user_id, phone_number,pin, policy_type,
+               policy_id, membership_id,
+               first_name,last_name } = await findPolicyByUser(
+              args.phoneNumber
+            );
+
+          
             const selected = args.text;
 
             const input = selected.trim();
@@ -339,17 +347,34 @@ export default function (args: RequestBody, db: any) {
             let paymentOption = Number(digits[digits.length - 2]);
             console.log("PAYMENT OPTION", paymentOption);
 
-            // if (user) {
-            //   const { user_id, phone_number, partner_id, membership_id, pin } =
-            //     user;
+        const existingUser = await User.findOne({
+          where: {
+            phone_number: phone_number,
+          },
+        });
 
-            //   if (userPin != pin && userPin != membership_id) {
-            //     menu.end("Invalid PIN");
-            //   }
 
-              const {user_id, phone_number, policy_type, policy_id, membership_id } = await findPolicyByUser(
-                args.phoneNumber
-              );
+              // create user
+              if(!existingUser){
+              const user = await User.create({
+                user_id: user_id,
+                phone_number: phone_number,
+                membership_id: membership_id,
+                pin:  Math.floor(1000 + Math.random() * 9000),
+                first_name: first_name,
+                middle_name: last_name,
+                last_name: last_name,
+                name: `${first_name} ${last_name}`,
+                total_member_number: "M",
+                partner_id: 2,
+                role: "user",
+              });
+                //   // WELCOME SMS
+              const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+               await sendSMS(user.phone_number, message);
+              console.log(" === USER ====", user);
+            }
+
 
               if (policy_id == null) {
                 menu.end("Sorry, you have no policy to buy for self");
@@ -467,7 +492,7 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("buyForFamily", {
         run: async () => {
-          console.log("* BUY FOR FAMILY", user.phoneNumber);
+         
 
           menu.con(
             "Buy for family " +
@@ -530,10 +555,30 @@ export default function (args: RequestBody, db: any) {
           }
           console.log("MEMBER NUMBER", member_number);
 
-          await User.update(
-            { total_member_number: member_number },
-            { where: { phone_number: args.phoneNumber } }
-          );
+          let existingUser = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+          existingUser.total_member_number = member_number;
+         await existingUser.save();
+
+          if(!existingUser){
+          await User.create({
+            user_id: uuidv4(),
+            phone_number: args.phoneNumber,
+            membership_id: Math.floor(100000 + Math.random() * 900000),
+            pin:  Math.floor(1000 + Math.random() * 9000),
+            first_name: "",
+            middle_name: "",
+            last_name: "",
+            name: "",
+            total_member_number: member_number,
+            partner_id: 2,
+            role: "user",
+          });     
+        }
+
           if (member_number == "M+1") {
             menu.con(`
               1. Mini – UGX 20,000
@@ -596,7 +641,12 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let coverType = menu.val;
           console.log("FAMILY COVER TYPE", coverType);
-          if (user) {
+          let existingUser = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+          if (existingUser) {
             //let { user_id, partner_id } = user;
             let date = new Date();
             let day = date.getDate() - 1;
@@ -608,9 +658,11 @@ export default function (args: RequestBody, db: any) {
             } else if (coverType == "3") {
               coverType = "BIGGIE";
             }
+            
 
+            console.log("EXISTING USER", existingUser);
             await Policy.create({
-              user_id: uuidv4(),
+              user_id: existingUser.user_id,
               policy_id: uuidv4(),
               policy_type: coverType,
               beneficiary: "FAMILY",
@@ -626,12 +678,11 @@ export default function (args: RequestBody, db: any) {
               country_code: "UGA",
               currency_code: "UGX",
               product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+              cover_type:  coverType,
+              total_member_number: existingUser.total_member_number,
             });
 
-            // await User.update(
-            //   { cover_type: coverType },
-            //   { where: { phone_number: args.phoneNumber } }
-            // );
+  
 
             menu.con(
               "\nEnter atleast Name of spouse or 1 child" +
@@ -651,9 +702,11 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let spouse = menu.val;
           console.log("SPOUSE NAME", spouse);
-
-          // if (user) {
-          //   let { user_id, total_member_number } = user;
+          let existingUser = await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
 
             let beneficiary = {
               beneficiary_id: uuidv4(),
@@ -662,8 +715,8 @@ export default function (args: RequestBody, db: any) {
               middle_name: spouse.split(" ")[1],
               last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
               relationship: "SPOUSE",
-              member_number: "M+1",
-              user_id: uuidv4(),
+              member_number: existingUser.total_member_number,
+              user_id: existingUser.user_id,
             };
 
             let newBeneficiary = await Beneficiary.create(beneficiary);
@@ -700,12 +753,15 @@ export default function (args: RequestBody, db: any) {
           const {
             user_id,
             partner_id,
-            cover_type,
             phone_number,
             first_name,
             last_name,
             total_member_number,
-          } = user;
+          } =  await User.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
           console.log(
             " ========= USER total_member_number========",
             total_member_number
@@ -714,15 +770,16 @@ export default function (args: RequestBody, db: any) {
             { phone_number: spousePhone },
             { where: { user_id: user_id, relationship: "SPOUSE" } }
           );
-          console.log(" ==========  COVER TYPE ==========", cover_type);
+         
 
-          const { policy_type, beneficiary, bought_for } =
+          const { policy_type, beneficiary, bought_for, cover_type } =
             await findPolicyByUser(user?.user_id);
           console.log(
             " ========= USER policy_type========",
             policy_type,
             beneficiary,
-            bought_for
+            bought_for,
+            cover_type
           );
           if (bought_for !== null) {
             await User.update(
@@ -1061,11 +1118,15 @@ export default function (args: RequestBody, db: any) {
           const paymentOption = Number(menu.val);
           console.log("PAYMENT OPTION", paymentOption);
 
-          const { user_id, cover_type, total_member_number } = user;
-          let coverType = cover_type;
+          
+        
 
-          const { policy_id } = await findPolicyByUser(user?.user_id);
-          console.log("COVER TYPE", coverType);
+          const { policy_id , user_id, cover_type, total_member_number } = await Policy.findOne({
+            where: {
+              phone_number: args.phoneNumber,
+            },
+          });
+         
           console.log("====== Total_member_number ====  ", total_member_number);
 
           if (policy_id == null) {
@@ -1079,7 +1140,7 @@ export default function (args: RequestBody, db: any) {
             last_expense_insured: number = 0,
             lei: string,
             yearly_premium: number = 0;
-          if (coverType == "MINI") {
+          if (cover_type == "MINI") {
             lei = "1M";
             si = "1.5M";
             if (paymentOption == 1) {
@@ -1174,7 +1235,7 @@ export default function (args: RequestBody, db: any) {
                 last_expense_insured = 1000000;
               }
             }
-          } else if (coverType == "MIDI") {
+          } else if (cover_type == "MIDI") {
             si = "3M";
             lei = "1.5M";
             if (paymentOption == 1) {
@@ -1269,7 +1330,7 @@ export default function (args: RequestBody, db: any) {
                 last_expense_insured = 1500000;
               }
             }
-          } else if (coverType == "BIGGIE") {
+          } else if (cover_type == "BIGGIE") {
             si = "5M";
             lei = "2M";
             if (paymentOption == 1) {
@@ -1389,6 +1450,11 @@ export default function (args: RequestBody, db: any) {
               2
             );
             console.log("=========  USER KYC ===========", userKyc);
+
+            const user = await User.update(
+              {first_name: userKyc.first_name, last_name: userKyc.last_name},
+              { where: { phone_number: args.phoneNumber } }
+            )
             const userPin = Number(menu.val);
 
             const selected = args.text;
@@ -1409,10 +1475,7 @@ export default function (args: RequestBody, db: any) {
             } = user;
 
             let coverType = cover_type;
-            if (userPin != pin && userPin != membership_id) {
-              menu.end("Invalid PIN");
-            }
-
+           
             const { policy_type, policy_id, beneficiary, bought_for } =
               await findPolicyByUser(user?.user_id);
 
@@ -1768,6 +1831,10 @@ export default function (args: RequestBody, db: any) {
                 last_expense_insured: last_expense_insured,
                 policy_start_date: new Date(),
                 policy_end_date: policy_end_date,
+                first_name: userKyc.first_name,
+                last_name: userKyc.last_name,
+                phone_number: phone_number,
+
               },
               { where: { user_id: user_id } }
             );
