@@ -2827,14 +2827,14 @@ function default_1(args, db) {
             });
             //================== MAKE CLAIM ===================
             menu.state("makeClaim", {
-                run: () => __awaiter(this, void 0, void 0, function* () {
-                    console.log("* MAKE CLAIM", args.phoneNumber);
+                run: () => {
+                    console.log("* MAKE CLAIM");
                     menu.con("Make Claim " +
                         "\n1. Inpatient Claim" +
                         "\n2. Death Claim" +
                         "\n0. Back" +
                         "\n00. Main Menu");
-                }),
+                },
                 next: {
                     "1": "inpatientClaim",
                     "2": "deathClaim",
@@ -2851,7 +2851,6 @@ function default_1(args, db) {
                             phone_number: args.phoneNumber,
                         },
                     });
-                    console.log("USER", user);
                     const { policy_id, policy_type, beneficiary, sum_insured, last_expense_insured, } = yield Policy.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
@@ -2896,7 +2895,7 @@ function default_1(args, db) {
                 }),
                 next: {
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("deathClaim", {
@@ -2905,14 +2904,14 @@ function default_1(args, db) {
                 }),
                 next: {
                     "*\\d+": "deathClaimPhoneNumber",
-                    "0": "account",
-                    "00": "insurance",
+                    "0": "inpatientClaim",
+                    "00": "account",
                 },
             });
             menu.state("deathClaimPhoneNumber", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const nextOfKinPhoneNumber = menu.val;
-                    const nextOfKin = yield Beneficiary.findOne({
+                    yield Beneficiary.findOne({
                         where: {
                             user_id: user === null || user === void 0 ? void 0 : user.user_id,
                             beneficiary_type: "NEXTOFKIN",
@@ -2931,8 +2930,8 @@ function default_1(args, db) {
                 }),
                 next: {
                     "*\\w+": "deathClaimName",
-                    "0": "account",
-                    "00": "insurance",
+                    "0": "deathClaim",
+                    "00": "account",
                 },
             });
             menu.state("deathClaimName", {
@@ -2953,7 +2952,7 @@ function default_1(args, db) {
                 }),
                 next: {
                     "*\\w+": "deathClaimRelationship",
-                    "0": "account",
+                    "0": "deathClaimName",
                     "00": "insurance",
                 },
             });
@@ -2971,13 +2970,12 @@ function default_1(args, db) {
                 next: {
                     "*\\w+": "deathClaimDate",
                     "0": "account",
-                    "00": "insurance",
+                    "00": "account",
                 },
             });
             menu.state("deathClaimDate", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let dateOfDeath = menu.val;
-                    console.log("DATE OF DEATH", dateOfDeath);
                     // convert ddmmyyyy to valid date
                     let day = dateOfDeath.substring(0, 2);
                     let month = dateOfDeath.substring(2, 4);
@@ -2994,8 +2992,8 @@ function default_1(args, db) {
                     yield (0, sendSMS_1.default)(user.phone_number, sms);
                 }),
                 next: {
-                    "0": "account",
-                    "00": "insurance",
+                    "0": "deathClaimRelationship",
+                    "00": "account",
                 },
             });
             //==================PAY NOW===================
@@ -3155,7 +3153,7 @@ function default_1(args, db) {
             //===================CHOOSE HOSPITAL===================
             menu.state("chooseHospital", {
                 run: () => {
-                    console.log("* CHOOSE HOSPITAL", user.phone_number);
+                    console.log("* CHOOSE HOSPITAL");
                     const regions = [
                         "Central Region",
                         "Western Region",

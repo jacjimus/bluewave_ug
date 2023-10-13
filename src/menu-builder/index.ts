@@ -16,7 +16,7 @@ import { payNowPremium } from "./menus/payNow";
 import { makeClaim } from "./menus/makeClaim";
 import { termsAndConditions } from "./menus/termsAndConditions";
 import { displayFaqsMenu } from "./menus/faqs";
-import {getAirtelUser, getUserByPhoneNumber } from "../services/getAirtelUser";
+import { getAirtelUser, getUserByPhoneNumber } from "../services/getAirtelUser";
 import { airtelMoney } from "../services/payment";
 import { db } from "../models/db";
 
@@ -106,14 +106,14 @@ export default function (args: RequestBody, db: any) {
 
       // ===============SET MENU STATES============
 
-     // user = await getUserByPhoneNumber( args.phoneNumber, 2);
+      // user = await getUserByPhoneNumber( args.phoneNumber, 2);
       // userHospital = await UserHospital.findOne({
       //   where: {
       //     user_id: user.user_id,
       //   },
       // });
       //hospitalList = await Hospitals.findAll();
-     // pending_policy = findPendingPolicyByUser(user);
+      // pending_policy = findPendingPolicyByUser(user);
 
       menu.startState({
         run: async () => {
@@ -123,14 +123,14 @@ export default function (args: RequestBody, db: any) {
 
           menu.con(
             "Ddwaliro Care" +
-              "\n1. Buy for self" +
-              "\n2. Buy (family)" +
-              "\n3. Buy (others)" +
-              "\n4. Make Claim" +
-              "\n5. My Policy" +
-              "\n6. View Hospital" +
-              "\n7. Terms & Conditions" +
-              "\n8. FAQs"
+            "\n1. Buy for self" +
+            "\n2. Buy (family)" +
+            "\n3. Buy (others)" +
+            "\n4. Make Claim" +
+            "\n5. My Policy" +
+            "\n6. View Hospital" +
+            "\n7. Terms & Conditions" +
+            "\n8. FAQs"
           );
         },
         next: {
@@ -146,17 +146,17 @@ export default function (args: RequestBody, db: any) {
       });
 
       menu.state("account", {
-        run:  () => {
+        run: () => {
           menu.con(
             "Medical cover" +
-              "\n1. Buy for self" +
-              "\n2. Buy (family)" +
-              "\n3. Buy (others)" +
-              "\n4. Make Claim" +
-              "\n5. My Policy" +
-              "\n6. View Hospital" +
-              "\n7. Terms & Conditions" +
-              "\n8. FAQs"
+            "\n1. Buy for self" +
+            "\n2. Buy (family)" +
+            "\n3. Buy (others)" +
+            "\n4. Make Claim" +
+            "\n5. My Policy" +
+            "\n6. View Hospital" +
+            "\n7. Terms & Conditions" +
+            "\n8. FAQs"
           );
         },
         next: {
@@ -174,28 +174,28 @@ export default function (args: RequestBody, db: any) {
       //=================BUY FOR SELF=================
       menu.state("buyForSelf", {
         run: () => {
-        
+
           menu.con(
             "Buy for self " +
-              "\n1. Mini – UGX 10,000" +
-              "\n2. Midi - UGX 14,000" +
-              "\n3. Biggie – UGX 18,000" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n1. Mini – UGX 10,000" +
+            "\n2. Midi - UGX 14,000" +
+            "\n3. Biggie – UGX 18,000" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
           "*\\d+": "buyForSelf.coverType",
-           "00": "account",
+          "00": "account",
           "0": "account",
         },
       });
       menu.state("buyForSelf.coverType", {
         run: async () => {
           let coverType = menu.val;
-          
+
           let userData = await getAirtelUser(args.phoneNumber, "UG", "UGX", 2);
-          
+
           console.log("USER", userData);
           const date = new Date();
           const day = date.getDate() - 1;
@@ -216,44 +216,44 @@ export default function (args: RequestBody, db: any) {
             premium = "18,000";
             yearly_premium = "208,000";
           }
-          
-                  
-              const {  msisdn, first_name, last_name } = userData;
-                  console.log(" ======= USER =========", userData);
-            let policy = await Policy.create({
-              user_id: uuidv4(),
-              first_name: first_name,
-              last_name: last_name,
-              phone_number: msisdn,
-              membership_id: Math.floor(100000 + Math.random() * 900000),
-              policy_id: uuidv4(),
-              policy_type: coverType,
-              beneficiary: "SELF",
-              policy_status: "pending",
-              policy_start_date: new Date(),
-              policy_end_date: new Date(
-                date.getFullYear() + 1,
-                date.getMonth(),
-                day
-                ),
-                policy_deduction_day: day * 1,
-                partner_id: 2,
-                country_code: "UGA",
-                currency_code: "UGX",
-                product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-              });
-              user_policy = policy;
-              if(premium && yearly_premium){
-                menu.con(`Inpatient cover for ${msisdn},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
+
+
+          const { msisdn, first_name, last_name } = userData;
+          console.log(" ======= USER =========", userData);
+          let policy = await Policy.create({
+            user_id: uuidv4(),
+            first_name: first_name,
+            last_name: last_name,
+            phone_number: msisdn,
+            membership_id: Math.floor(100000 + Math.random() * 900000),
+            policy_id: uuidv4(),
+            policy_type: coverType,
+            beneficiary: "SELF",
+            policy_status: "pending",
+            policy_start_date: new Date(),
+            policy_end_date: new Date(
+              date.getFullYear() + 1,
+              date.getMonth(),
+              day
+            ),
+            policy_deduction_day: day * 1,
+            partner_id: 2,
+            country_code: "UGA",
+            currency_code: "UGX",
+            product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+          });
+          user_policy = policy;
+          if (premium && yearly_premium) {
+            menu.con(`Inpatient cover for ${msisdn},${first_name.toUpperCase()} ${last_name.toUpperCase()} UGX ${sum_insured} a year 
                 PAY
                 1-UGX ${premium} monthly
                 2-UGX ${yearly_premium} yearly
                 
                 0. Back 00. Main Menu`);
-              }
-         
-            
-          },
+          }
+
+
+        },
         next: {
           "*\\d+": "buyForSelf.paymentOption",
           "0": "buyForSelf",
@@ -263,13 +263,13 @@ export default function (args: RequestBody, db: any) {
 
       function calculatePaymentOptions(policyType, paymentOption) {
         let period, installmentType, sumInsured, premium;
-      
+
         if (policyType === "MINI") {
           period = "yearly";
           installmentType = 1;
           sumInsured = 1500000;
           premium = 120000;
-      
+
           if (paymentOption === 1) {
             period = "monthly";
             premium = 10000;
@@ -280,7 +280,7 @@ export default function (args: RequestBody, db: any) {
           installmentType = 1;
           sumInsured = 3000000;
           premium = 167000;
-      
+
           if (paymentOption === 1) {
             period = "monthly";
             premium = 14000;
@@ -291,33 +291,33 @@ export default function (args: RequestBody, db: any) {
           installmentType = 1;
           sumInsured = 5000000;
           premium = 208000;
-      
+
           if (paymentOption === 1) {
             period = "monthly";
             premium = 18000;
             installmentType = 2;
           }
-      
+
         }
         return { period, installmentType, sumInsured, premium };
-    }
+      }
 
       menu.state("buyForSelf.paymentOption", {
         run: async () => {
           const paymentOption = parseInt(menu.val);
-          
-          
-            const { policy_type } = await findPolicyByUser(args.phoneNumber);
 
-            let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
-            if(premium){
+
+          const { policy_type } = await findPolicyByUser(args.phoneNumber);
+
+          let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
+          if (premium) {
             menu.con(`Pay UGX ${premium} payable ${period}.
             Terms&Conditions - www.airtel.com
             Enter PIN to Agree and Pay 
             \n0 .Back
              00 .Main Menu`);
-          
-        }
+
+          }
         },
         next: {
           "*\\d+": "buyForSelf.confirm",
@@ -331,13 +331,13 @@ export default function (args: RequestBody, db: any) {
           try {
             const userPin = Number(menu.val);
 
-            const {user_id, phone_number,pin, policy_type,
-               policy_id, membership_id,
-               first_name,last_name } = await findPolicyByUser(
-              args.phoneNumber
-            );
+            const { user_id, phone_number, pin, policy_type,
+              policy_id, membership_id,
+              first_name, last_name } = await findPolicyByUser(
+                args.phoneNumber
+              );
 
-          
+
             const selected = args.text;
 
             const input = selected.trim();
@@ -346,20 +346,20 @@ export default function (args: RequestBody, db: any) {
             let paymentOption = Number(digits[digits.length - 2]);
             console.log("PAYMENT OPTION", paymentOption);
 
-        const existingUser = await User.findOne({
-          where: {
-            phone_number: phone_number,
-          },
-        });
+            const existingUser = await User.findOne({
+              where: {
+                phone_number: phone_number,
+              },
+            });
 
 
-              // create user
-              if(!existingUser){
+            // create user
+            if (!existingUser) {
               const user = await User.create({
                 user_id: user_id,
                 phone_number: phone_number,
                 membership_id: membership_id,
-                pin:  Math.floor(1000 + Math.random() * 9000),
+                pin: Math.floor(1000 + Math.random() * 9000),
                 first_name: first_name,
                 middle_name: last_name,
                 last_name: last_name,
@@ -368,117 +368,117 @@ export default function (args: RequestBody, db: any) {
                 partner_id: 2,
                 role: "user",
               });
-                //   // WELCOME SMS
+              //   // WELCOME SMS
               const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
-               await sendSMS(user.phone_number, message);
+              await sendSMS(user.phone_number, message);
               console.log(" === USER ====", user);
             }
 
 
-              if (policy_id == null) {
-                menu.end("Sorry, you have no policy to buy for self");
+            if (policy_id == null) {
+              menu.end("Sorry, you have no policy to buy for self");
+            }
+            let sum_insured: number,
+              premium: number = 0,
+              installment_type: number = 0,
+              period: string = "monthly",
+              last_expense_insured: number = 0,
+              si: string,
+              lei: string,
+              frequency: string;
+            if (policy_type == "MINI") {
+              period = "yearly";
+              installment_type = 1;
+              sum_insured = 1500000;
+              si = "1.5M";
+              premium = 120000;
+              last_expense_insured = 1000000;
+              lei = "1M";
+              if (paymentOption == 1) {
+                period = "monthly";
+                premium = 10000;
+                installment_type = 2;
               }
-              let sum_insured: number,
-                premium: number = 0,
-                installment_type: number = 0,
-                period: string = "monthly",
-                last_expense_insured: number = 0,
-                si: string,
-                lei: string,
-                frequency: string;
-              if (policy_type == "MINI") {
-                period = "yearly";
-                installment_type = 1;
-                sum_insured = 1500000;
-                si = "1.5M";
-                premium = 120000;
-                last_expense_insured = 1000000;
-                lei = "1M";
-                if (paymentOption == 1) {
-                  period = "monthly";
-                  premium = 10000;
-                  installment_type = 2;
-                }
-              } else if (policy_type == "MIDI") {
-                period = "yearly";
-                installment_type = 1;
-                sum_insured = 3000000;
-                si = "3M";
-                premium = 167000;
-                last_expense_insured = 1500000;
-                lei = "1.5M";
-
-                if (paymentOption == 1) {
-                  period = "monthly";
-                  premium = 14000;
-                  installment_type = 2;
-                }
-              } else if (policy_type == "BIGGIE") {
-                period = "yearly";
-                installment_type = 1;
-                sum_insured = 5000000;
-                si = "5M";
-                premium = 208000;
-                last_expense_insured = 2000000;
-                lei = "2M";
-                if (paymentOption == 1) {
-                  period = "monthly";
-                  premium = 18000;
-                  installment_type = 2;
-                }
-              }
+            } else if (policy_type == "MIDI") {
+              period = "yearly";
+              installment_type = 1;
+              sum_insured = 3000000;
+              si = "3M";
+              premium = 167000;
+              last_expense_insured = 1500000;
+              lei = "1.5M";
 
               if (paymentOption == 1) {
-                frequency = "month";
-              } else {
-                frequency = "year";
+                period = "monthly";
+                premium = 14000;
+                installment_type = 2;
               }
+            } else if (policy_type == "BIGGIE") {
+              period = "yearly";
+              installment_type = 1;
+              sum_insured = 5000000;
+              si = "5M";
+              premium = 208000;
+              last_expense_insured = 2000000;
+              lei = "2M";
+              if (paymentOption == 1) {
+                period = "monthly";
+                premium = 18000;
+                installment_type = 2;
+              }
+            }
 
-              const policy_end_date = new Date(
-                new Date().setFullYear(new Date().getFullYear() + 1)
-              );
+            if (paymentOption == 1) {
+              frequency = "month";
+            } else {
+              frequency = "year";
+            }
 
-              let policy = await Policy.update(
-                {
-                  policy_deduction_amount: premium,
-                  policy_pending_premium: premium,
-                  sum_insured: sum_insured,
-                  premium: premium,
-                  installment_type: installment_type,
-                  installment_order: 1,
-                  last_expense_insured: last_expense_insured,
-                  policy_end_date: policy_end_date,
-                  policy_start_date: new Date(),
-                },
-                { where: { phone_number : args.phoneNumber } }
-              );
+            const policy_end_date = new Date(
+              new Date().setFullYear(new Date().getFullYear() + 1)
+            );
 
-           
+            let policy = await Policy.update(
+              {
+                policy_deduction_amount: premium,
+                policy_pending_premium: premium,
+                sum_insured: sum_insured,
+                premium: premium,
+                installment_type: installment_type,
+                installment_order: 1,
+                last_expense_insured: last_expense_insured,
+                policy_end_date: policy_end_date,
+                policy_start_date: new Date(),
+              },
+              { where: { phone_number: args.phoneNumber } }
+            );
 
-              let paymentStatus = await airtelMoney(
-                user_id,
-                2,
-                policy_id,
-                phone_number,
-                premium,
-                membership_id,
-                "UG",
-                "UGX"
-              );
 
-              console.log("PAYMENT STATUS", paymentStatus);
-              if (paymentStatus.code === 200) {
-                let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
+
+            let paymentStatus = await airtelMoney(
+              user_id,
+              2,
+              policy_id,
+              phone_number,
+              premium,
+              membership_id,
+              "UG",
+              "UGX"
+            );
+
+            console.log("PAYMENT STATUS", paymentStatus);
+            if (paymentStatus.code === 200) {
+              let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${si}) and Funeral (UGX ${lei}) for a year. 
                         Pay UGX ${premium} every ${frequency} to stay covered`;
-                await sendSMS(phone_number, congratText);
+              await sendSMS(phone_number, congratText);
 
-                menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
+              menu.end(`Congratulations! You are now covered for Inpatient benefit of UGX ${si} and Funeral benefit of UGX ${lei}.
                            Cover valid till ${policy_end_date.toDateString()}`);
-              } else {
-                menu.end(`Sorry, your payment was not successful. 
+            } else {
+              menu.end(`Sorry, your payment was not successful. 
                         \n0. Back \n00. Main Menu`);
-              }
-          
+            }
+
           } catch (error) {
             console.error("Confirmation Error:", error);
             menu.end("An error occurred. Please try again later.");
@@ -490,17 +490,17 @@ export default function (args: RequestBody, db: any) {
       //============  BUY FOR FAMILY ===================
 
       menu.state("buyForFamily", {
-        run:  () => {
-         
+        run: () => {
+
 
           menu.con(
             "Buy for family " +
-              "\n1. Self + Spouse or Child" +
-              "\n2. Self + Spouse + 1 Child" +
-              "\n3. Self + Spouse + 2 Children" +
-              "\n01. Next" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n1. Self + Spouse or Child" +
+            "\n2. Self + Spouse + 1 Child" +
+            "\n3. Self + Spouse + 2 Children" +
+            "\n01. Next" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
@@ -517,11 +517,11 @@ export default function (args: RequestBody, db: any) {
         run: () => {
           menu.con(
             "Buy for family " +
-              "\n4. Self + Spouse + 3 Child" +
-              "\n5. Self + Spouse + 4 Child" +
-              "\n6. Self + Spouse + 5 Children" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n4. Self + Spouse + 3 Child" +
+            "\n5. Self + Spouse + 4 Child" +
+            "\n6. Self + Spouse + 5 Children" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
@@ -560,23 +560,23 @@ export default function (args: RequestBody, db: any) {
             },
           });
           existingUser.total_member_number = member_number;
-         await existingUser.save();
+          await existingUser.save();
 
-          if(!existingUser){
-          await User.create({
-            user_id: uuidv4(),
-            phone_number: args.phoneNumber,
-            membership_id: Math.floor(100000 + Math.random() * 900000),
-            pin:  Math.floor(1000 + Math.random() * 9000),
-            first_name: "",
-            middle_name: "",
-            last_name: "",
-            name: "",
-            total_member_number: member_number,
-            partner_id: 2,
-            role: "user",
-          });     
-        }
+          if (!existingUser) {
+            await User.create({
+              user_id: uuidv4(),
+              phone_number: args.phoneNumber,
+              membership_id: Math.floor(100000 + Math.random() * 900000),
+              pin: Math.floor(1000 + Math.random() * 9000),
+              first_name: "",
+              middle_name: "",
+              last_name: "",
+              name: "",
+              total_member_number: member_number,
+              partner_id: 2,
+              role: "user",
+            });
+          }
 
           if (member_number == "M+1") {
             menu.con(`
@@ -657,7 +657,7 @@ export default function (args: RequestBody, db: any) {
             } else if (coverType == "3") {
               coverType = "BIGGIE";
             }
-            
+
 
             console.log("EXISTING USER", existingUser);
             await Policy.create({
@@ -677,14 +677,14 @@ export default function (args: RequestBody, db: any) {
               country_code: "UGA",
               currency_code: "UGX",
               product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-              cover_type:  coverType,
+              cover_type: coverType,
               total_member_number: existingUser.total_member_number,
             });
 
             menu.con(
               "\nEnter atleast Name of spouse or 1 child" +
-                "\n0.Back" +
-                "\n00.Main Menu"
+              "\n0.Back" +
+              "\n00.Main Menu"
             );
           }
         },
@@ -705,25 +705,25 @@ export default function (args: RequestBody, db: any) {
             },
           });
 
-            let beneficiary = {
-              beneficiary_id: uuidv4(),
-              full_name: spouse,
-              first_name: spouse.split(" ")[0],
-              middle_name: spouse.split(" ")[1],
-              last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
-              relationship: "SPOUSE",
-              member_number: existingUser.total_member_number,
-              user_id: existingUser.user_id,
-            };
+          let beneficiary = {
+            beneficiary_id: uuidv4(),
+            full_name: spouse,
+            first_name: spouse.split(" ")[0],
+            middle_name: spouse.split(" ")[1],
+            last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
+            relationship: "SPOUSE",
+            member_number: existingUser.total_member_number,
+            user_id: existingUser.user_id,
+          };
 
-            let newBeneficiary = await Beneficiary.create(beneficiary);
-            console.log("new beneficiary selfSpouse", newBeneficiary);
-            menu.con(
-              "\nEnter Phone of spouse (or Main member, if dependent is child)" +
-                "\n0.Back" +
-                "\n00.Main Menu"
-            );
-          
+          let newBeneficiary = await Beneficiary.create(beneficiary);
+          console.log("new beneficiary selfSpouse", newBeneficiary);
+          menu.con(
+            "\nEnter Phone of spouse (or Main member, if dependent is child)" +
+            "\n0.Back" +
+            "\n00.Main Menu"
+          );
+
         },
         next: {
           "*\\d+": "buyForFamily.selfSpousePhoneNumber",
@@ -754,7 +754,7 @@ export default function (args: RequestBody, db: any) {
             first_name,
             last_name,
             total_member_number,
-          } =  await User.findOne({
+          } = await User.findOne({
             where: {
               phone_number: args.phoneNumber,
             },
@@ -767,7 +767,7 @@ export default function (args: RequestBody, db: any) {
             { phone_number: spousePhone },
             { where: { user_id: user_id, relationship: "SPOUSE" } }
           );
-         
+
 
           const { policy_type, beneficiary, bought_for, cover_type } =
             await findPolicyByUser(user?.user_id);
@@ -1115,15 +1115,15 @@ export default function (args: RequestBody, db: any) {
           const paymentOption = Number(menu.val);
           console.log("PAYMENT OPTION", paymentOption);
 
-          
-        
 
-          const { policy_id , user_id, cover_type, total_member_number } = await Policy.findOne({
+
+
+          const { policy_id, user_id, cover_type, total_member_number } = await Policy.findOne({
             where: {
               phone_number: args.phoneNumber,
             },
           });
-         
+
           console.log("====== Total_member_number ====  ", total_member_number);
 
           if (policy_id == null) {
@@ -1449,7 +1449,7 @@ export default function (args: RequestBody, db: any) {
             console.log("=========  USER KYC ===========", userKyc);
 
             const user = await User.update(
-              {first_name: userKyc.first_name, last_name: userKyc.last_name},
+              { first_name: userKyc.first_name, last_name: userKyc.last_name },
               { where: { phone_number: args.phoneNumber } }
             )
             const userPin = Number(menu.val);
@@ -1472,7 +1472,7 @@ export default function (args: RequestBody, db: any) {
             } = user;
 
             let coverType = cover_type;
-           
+
             const { policy_type, policy_id, beneficiary, bought_for } =
               await findPolicyByUser(user?.user_id);
 
@@ -1903,16 +1903,16 @@ export default function (args: RequestBody, db: any) {
       //=================BUY FOR OTHERS=================
       //buyForOthers
       menu.state("buyForOthers", {
-        run:  () => {
-         
+        run: () => {
+
           menu.con(
             "Buy for others " +
-              "\n1. Other " +
-              "\n2. Other + Spouse or Child" +
-              "\n3. Other + Spouse + 1 Children" +
-              "\n01. Next" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n1. Other " +
+            "\n2. Other + Spouse or Child" +
+            "\n3. Other + Spouse + 1 Children" +
+            "\n01. Next" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
@@ -1925,15 +1925,15 @@ export default function (args: RequestBody, db: any) {
       });
 
       menu.state("buyForOthers.next", {
-        run:  () => {
+        run: () => {
           menu.con(
             "Buy for others " +
-              "\n4. Other + Spouse + 2 Children" +
-              "\n5. Other + Spouse + 3 Children" +
-              "\n6. Other + Spouse + 4 Children" +
-              "\n7. Other + Spouse + 5 Children" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n4. Other + Spouse + 2 Children" +
+            "\n5. Other + Spouse + 3 Children" +
+            "\n6. Other + Spouse + 4 Children" +
+            "\n7. Other + Spouse + 5 Children" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
@@ -1968,38 +1968,38 @@ export default function (args: RequestBody, db: any) {
             menu.end("Invalid option");
           }
 
-         
+
           let existingUser = await User.findOne({
             where: {
               phone_number: args.phoneNumber,
             },
           });
           existingUser.total_member_number = member_number;
-         await existingUser.save();
+          await existingUser.save();
 
-          if(!existingUser){
-          await User.create({
-            user_id: uuidv4(),
-            phone_number: args.phoneNumber,
-            membership_id: Math.floor(100000 + Math.random() * 900000),
-            pin:  Math.floor(1000 + Math.random() * 9000),
-            first_name: "",
-            middle_name: "",
-            last_name: "",
-            name: "",
-            total_member_number: member_number,
-            partner_id: 2,
-            role: "user",
-          });     
-        }
+          if (!existingUser) {
+            await User.create({
+              user_id: uuidv4(),
+              phone_number: args.phoneNumber,
+              membership_id: Math.floor(100000 + Math.random() * 900000),
+              pin: Math.floor(1000 + Math.random() * 9000),
+              first_name: "",
+              middle_name: "",
+              last_name: "",
+              name: "",
+              total_member_number: member_number,
+              partner_id: 2,
+              role: "user",
+            });
+          }
           if (member_number == "M") {
             menu.con(
               "Buy for Other" +
-                "\n1. Mini – UGX 10,000" +
-                "\n2. Midi - UGX 14,000" +
-                "\n3. Biggie – UGX 18,000" +
-                "\n0.Back" +
-                "\n00.Main Menu"
+              "\n1. Mini – UGX 10,000" +
+              "\n2. Midi - UGX 14,000" +
+              "\n3. Biggie – UGX 18,000" +
+              "\n0.Back" +
+              "\n00.Main Menu"
             );
           } else if (member_number == "M+1") {
             menu.con(`
@@ -2100,8 +2100,8 @@ export default function (args: RequestBody, db: any) {
 
           menu.con(
             "\nEnter atleast Name of spouse or 1 child" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
@@ -2532,15 +2532,15 @@ export default function (args: RequestBody, db: any) {
 
           menu.con(
             "My Account" +
-              "\n1. Policy Status" +
-              "\n2. Pay Now" +
-              "\n3. Renew Policy" +
-              "\n4. Update My Profile (KYC)" +
-              "\n5. Cancel Policy" +
-              "\n6. Add Dependant" +
-              "\n7. My Hospital" +
-              "\n0. Back" +
-              "\n00. Main Menu"
+            "\n1. Policy Status" +
+            "\n2. Pay Now" +
+            "\n3. Renew Policy" +
+            "\n4. Update My Profile (KYC)" +
+            "\n5. Cancel Policy" +
+            "\n6. Add Dependant" +
+            "\n7. My Hospital" +
+            "\n0. Back" +
+            "\n00. Main Menu"
           );
         },
         next: {
@@ -2705,10 +2705,10 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           menu.con(
             "Add Dependant " +
-              "\n1. Update Spouse" +
-              "\n2. Add Child" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n1. Update Spouse" +
+            "\n2. Add Child" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
         next: {
@@ -2933,7 +2933,7 @@ export default function (args: RequestBody, db: any) {
           let date = new Date(Number(year), Number(month) - 1, Number(day));
           console.log("DATE OF BIRTH", date);
 
-          const user = await getUserByPhoneNumber(args.phoneNumber,2);
+          const user = await getUserByPhoneNumber(args.phoneNumber, 2);
 
           let beneficiary = await Beneficiary.findAll({
             where: {
@@ -3019,13 +3019,12 @@ export default function (args: RequestBody, db: any) {
             if (policy) {
               // 1. Cancel Policy
               menu.con(
-                `Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${
-                  policy.policy_end_date
+                `Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date
                 }\n` +
-                  // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
-                  // `   Remaining: UGX ${policy.sum_insured}\n` +
-                  // `   Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n` +
-                  "\n1. Cancel Policy"
+                // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
+                // `   Remaining: UGX ${policy.sum_insured}\n` +
+                // `   Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n` +
+                "\n1. Cancel Policy"
               );
             } else {
               menu.con("Your policy is INACTIVE\n0 Buy cover");
@@ -3128,9 +3127,9 @@ export default function (args: RequestBody, db: any) {
           if (policies.length === 0) {
             menu.con(
               "You have no policies\n" +
-                "1. Buy cover\n" +
-                "0. Back\n" +
-                "00. Main Menu"
+              "1. Buy cover\n" +
+              "0. Back\n" +
+              "00. Main Menu"
             );
             return;
           }
@@ -3175,10 +3174,10 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           menu.con(
             "Manage auto-renew " +
-              "\n1. Activate auto-renew" +
-              "\n2. Deactivate auto-renew" +
-              "\n0.Back" +
-              "\n00.Main Menu"
+            "\n1. Activate auto-renew" +
+            "\n2. Deactivate auto-renew" +
+            "\n0.Back" +
+            "\n00.Main Menu"
           );
         },
       });
@@ -3204,8 +3203,8 @@ export default function (args: RequestBody, db: any) {
 
           menu.con(
             `Your ${policy.policy_type.toUpperCase()} cover expires on ${policy.policy_end_date.toDateString()}.\n` +
-              `   Pending amount : UGX ${policy.policy_pending_premium}\n` +
-              "\n1. Renew Policy"
+            `   Pending amount : UGX ${policy.policy_pending_premium}\n` +
+            "\n1. Renew Policy"
           );
         },
         next: {
@@ -3218,15 +3217,15 @@ export default function (args: RequestBody, db: any) {
       //================== MAKE CLAIM ===================
 
       menu.state("makeClaim", {
-        run: async () => {
-          console.log("* MAKE CLAIM", args.phoneNumber);
+        run: () => {
+          console.log("* MAKE CLAIM");
 
           menu.con(
             "Make Claim " +
-              "\n1. Inpatient Claim" +
-              "\n2. Death Claim" +
-              "\n0. Back" +
-              "\n00. Main Menu"
+            "\n1. Inpatient Claim" +
+            "\n2. Death Claim" +
+            "\n0. Back" +
+            "\n00. Main Menu"
           );
         },
         next: {
@@ -3247,7 +3246,7 @@ export default function (args: RequestBody, db: any) {
               phone_number: args.phoneNumber,
             },
           });
-          console.log("USER", user);
+
           const {
             policy_id,
             policy_type,
@@ -3292,9 +3291,8 @@ export default function (args: RequestBody, db: any) {
             claim_date: new Date(),
             claim_status: "pending",
             partner_id: user.partner_id,
-            claim_description: `${claim_type} ID: ${claimId} for Member ID: ${
-              user.membership_id
-            }  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
+            claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id
+              }  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
             claim_type: claim_type,
             claim_amount: claim_amount,
           });
@@ -3306,7 +3304,7 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
@@ -3316,8 +3314,8 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "*\\d+": "deathClaimPhoneNumber",
-          "0": "account",
-          "00": "insurance",
+          "0": "inpatientClaim",
+          "00": "account",
         },
       });
 
@@ -3325,7 +3323,7 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const nextOfKinPhoneNumber = menu.val;
 
-          const nextOfKin = await Beneficiary.findOne({
+          await Beneficiary.findOne({
             where: {
               user_id: user?.user_id,
               beneficiary_type: "NEXTOFKIN",
@@ -3346,8 +3344,8 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "*\\w+": "deathClaimName",
-          "0": "account",
-          "00": "insurance",
+          "0": "deathClaim",
+          "00": "account",
         },
       });
 
@@ -3376,7 +3374,7 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "*\\w+": "deathClaimRelationship",
-          "0": "account",
+          "0": "deathClaimName",
           "00": "insurance",
         },
       });
@@ -3400,14 +3398,13 @@ export default function (args: RequestBody, db: any) {
         next: {
           "*\\w+": "deathClaimDate",
           "0": "account",
-          "00": "insurance",
+          "00": "account",
         },
       });
 
       menu.state("deathClaimDate", {
         run: async () => {
           let dateOfDeath = menu.val;
-          console.log("DATE OF DEATH", dateOfDeath);
 
           // convert ddmmyyyy to valid date
           let day = dateOfDeath.substring(0, 2);
@@ -3433,8 +3430,8 @@ export default function (args: RequestBody, db: any) {
           await sendSMS(user.phone_number, sms);
         },
         next: {
-          "0": "account",
-          "00": "insurance",
+          "0": "deathClaimRelationship",
+          "00": "account",
         },
       });
 
@@ -3496,7 +3493,7 @@ export default function (args: RequestBody, db: any) {
           } = await Policy.findOne({
             where: {
               user_id: user?.user_id,
-  
+
             },
           });
 
@@ -3512,9 +3509,8 @@ export default function (args: RequestBody, db: any) {
           );
 
           if (paymentStatus.code === 200) {
-            const message = `Paid UGX ${
-              selectedPolicy.policy_deduction_amount
-            } for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on ${selectedPolicy.policy_end_date.toDateString()}`;
+            const message = `Paid UGX ${selectedPolicy.policy_deduction_amount
+              } for ${selectedPolicy.policy_type.toUpperCase()} cover. Your next payment will be due on ${selectedPolicy.policy_end_date.toDateString()}`;
             menu.end(message);
           } else {
             menu.end("Payment failed. Please try again");
@@ -3539,9 +3535,9 @@ export default function (args: RequestBody, db: any) {
               if (policies.length === 0) {
                 menu.con(
                   "You have no policies\n" +
-                    "1. Buy cover\n" +
-                    "0. Back\n" +
-                    "00. Main Menu"
+                  "1. Buy cover\n" +
+                  "0. Back\n" +
+                  "00. Main Menu"
                 );
                 return;
               }
@@ -3566,11 +3562,9 @@ export default function (args: RequestBody, db: any) {
                     break;
                 }
 
-                policyInfo += `${
-                  i + 1
-                }. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${
-                  policy.policy_end_date
-                }\n`;
+                policyInfo += `${i + 1
+                  }. ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date
+                  }\n`;
                 // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
                 // `   Remaining: UGX ${policy.sum_insured}\n` +
                 // `   Last Expense Per Person Benefit: ${benefit}\n\n`;
@@ -3652,9 +3646,8 @@ export default function (args: RequestBody, db: any) {
             );
 
             if (payment.code === 200) {
-              const message = `Your request for ${selectedPolicy.policy_type.toUpperCase()} ${selectedPolicy.beneficiary.toUpperCase()}, UGX ${
-                selectedPolicy.premium
-              } has been received and will be processed shortly. Please enter your Airtel Money PIN when asked.`;
+              const message = `Your request for ${selectedPolicy.policy_type.toUpperCase()} ${selectedPolicy.beneficiary.toUpperCase()}, UGX ${selectedPolicy.premium
+                } has been received and will be processed shortly. Please enter your Airtel Money PIN when asked.`;
               menu.end(message);
             } else {
               menu.end("Payment failed. Please try again");
@@ -3675,7 +3668,7 @@ export default function (args: RequestBody, db: any) {
       //===================CHOOSE HOSPITAL===================
       menu.state("chooseHospital", {
         run: () => {
-          console.log("* CHOOSE HOSPITAL", user.phone_number);
+          console.log("* CHOOSE HOSPITAL");
 
           const regions = [
             "Central Region",
@@ -3832,7 +3825,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
           // RANDOM HOSPITAL
           const randomHospital =
             hospitalsByDistrict[
-              Math.floor(Math.random() * hospitalsByDistrict.length)
+            Math.floor(Math.random() * hospitalsByDistrict.length)
             ];
 
           menu.con(
