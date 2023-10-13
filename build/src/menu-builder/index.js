@@ -207,7 +207,9 @@ function default_1(args, db) {
                         "\n00.Main Menu");
                 },
                 next: {
-                    "*\\d+": "buyForSelf.coverType",
+                    "1": "buyForSelf.coverType",
+                    "2": "buyForSelf.coverType",
+                    "3": "buyForSelf.coverType",
                     "00": "account",
                     "0": "account",
                 },
@@ -277,7 +279,8 @@ function default_1(args, db) {
                     }
                 }),
                 next: {
-                    "*\\d+": "buyForSelf.paymentOption",
+                    "1": "buyForSelf.paymentOption",
+                    "2": "buyForSelf.paymentOption",
                     "0": "buyForSelf",
                     "00": "account",
                 },
