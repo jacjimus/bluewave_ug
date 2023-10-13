@@ -237,8 +237,8 @@ function default_1(args, db) {
                 }),
                 next: {
                     "*\\d+": "buyForSelf.paymentOption",
-                    "0": "account",
-                    "00": "insurance",
+                    "0": "buyForSelf",
+                    "00": "account",
                 },
             });
             function calculatePaymentOptions(policyType, paymentOption) {
@@ -293,8 +293,8 @@ function default_1(args, db) {
                 }),
                 next: {
                     "*\\d+": "buyForSelf.confirm",
-                    "0": "account",
-                    "00": "insurance",
+                    "0": "buyForSelf.paymentOption",
+                    "00": "account",
                 },
             });
             menu.state("buyForSelf.confirm", {
@@ -419,7 +419,7 @@ function default_1(args, db) {
             //=================BUY FOR FAMILY=================
             //============  BUY FOR FAMILY ===================
             menu.state("buyForFamily", {
-                run: () => __awaiter(this, void 0, void 0, function* () {
+                run: () => {
                     menu.con("Buy for family " +
                         "\n1. Self + Spouse or Child" +
                         "\n2. Self + Spouse + 1 Child" +
@@ -427,7 +427,7 @@ function default_1(args, db) {
                         "\n01. Next" +
                         "\n0.Back" +
                         "\n00.Main Menu");
-                }),
+                },
                 next: {
                     "1": "buyForFamily.selfSpouseCover",
                     "2": "buyForFamily.selfSpouseCover",
@@ -438,14 +438,14 @@ function default_1(args, db) {
                 },
             });
             menu.state("buyForFamily.next", {
-                run: () => __awaiter(this, void 0, void 0, function* () {
+                run: () => {
                     menu.con("Buy for family " +
                         "\n4. Self + Spouse + 3 Child" +
                         "\n5. Self + Spouse + 4 Child" +
                         "\n6. Self + Spouse + 5 Children" +
                         "\n0.Back" +
                         "\n00.Main Menu");
-                }),
+                },
                 next: {
                     "4": "buyForFamily.selfSpouseCover",
                     "5": "buyForFamily.selfSpouseCover",
@@ -561,8 +561,8 @@ function default_1(args, db) {
                 }),
                 next: {
                     "*\\d+": "buyForFamily.selfSpouseCoverType",
-                    "0": "account",
-                    "00": "insurance",
+                    "0": "buyForFamily",
+                    "00": "account",
                 },
             });
             menu.state("buyForFamily.selfSpouseCoverType", {

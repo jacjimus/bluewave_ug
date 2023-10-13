@@ -256,8 +256,8 @@ export default function (args: RequestBody, db: any) {
           },
         next: {
           "*\\d+": "buyForSelf.paymentOption",
-          "0": "account",
-          "00": "insurance",
+          "0": "buyForSelf",
+          "00": "account",
         },
       });
 
@@ -321,8 +321,8 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "*\\d+": "buyForSelf.confirm",
-          "0": "account",
-          "00": "insurance",
+          "0": "buyForSelf.paymentOption",
+          "00": "account",
         },
       });
 
@@ -490,7 +490,7 @@ export default function (args: RequestBody, db: any) {
       //============  BUY FOR FAMILY ===================
 
       menu.state("buyForFamily", {
-        run: async () => {
+        run:  () => {
          
 
           menu.con(
@@ -514,7 +514,7 @@ export default function (args: RequestBody, db: any) {
       });
 
       menu.state("buyForFamily.next", {
-        run: async () => {
+        run: () => {
           menu.con(
             "Buy for family " +
               "\n4. Self + Spouse + 3 Child" +
@@ -631,8 +631,8 @@ export default function (args: RequestBody, db: any) {
         },
         next: {
           "*\\d+": "buyForFamily.selfSpouseCoverType",
-          "0": "account",
-          "00": "insurance",
+          "0": "buyForFamily",
+          "00": "account",
         },
       });
 
@@ -680,8 +680,6 @@ export default function (args: RequestBody, db: any) {
               cover_type:  coverType,
               total_member_number: existingUser.total_member_number,
             });
-
-  
 
             menu.con(
               "\nEnter atleast Name of spouse or 1 child" +
