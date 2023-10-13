@@ -655,6 +655,7 @@ export default function (args: RequestBody, db: any) {
 
             console.log("EXISTING USER", existingUser);
             await Policy.create({
+              phone_number:args.phoneNumber,
               user_id: existingUser.user_id,
               policy_id: uuidv4(),
               policy_type: coverType,
@@ -769,14 +770,16 @@ export default function (args: RequestBody, db: any) {
           );
 
 
-          const { policy_type, beneficiary, bought_for, cover_type } =
-            await findPolicyByUser(user?.user_id);
+          const { beneficiary, bought_for, policy_type } = await findPolicyByUser(
+            args.phoneNumber
+          );
+            
           console.log(
             " ========= USER policy_type========",
-            policy_type,
+          
             beneficiary,
             bought_for,
-            cover_type
+            policy_type
           );
           if (bought_for !== null) {
             await User.update(
@@ -793,7 +796,7 @@ export default function (args: RequestBody, db: any) {
             last_expense_insured: number = 0,
             lei: string;
           let paymentOption = 1;
-          let coverType = cover_type;
+          let coverType = policy_type;
           if (coverType == "MINI") {
             lei = "1M";
             si = "1.5M";
@@ -1118,7 +1121,7 @@ export default function (args: RequestBody, db: any) {
 
 
 
-          const { policy_id, user_id, cover_type, total_member_number } = await Policy.findOne({
+          const { policy_id, user_id, policy_type,total_member_number } = await Policy.findOne({
             where: {
               phone_number: args.phoneNumber,
             },
@@ -1137,7 +1140,7 @@ export default function (args: RequestBody, db: any) {
             last_expense_insured: number = 0,
             lei: string,
             yearly_premium: number = 0;
-          if (cover_type == "MINI") {
+          if (policy_type == "MINI") {
             lei = "1M";
             si = "1.5M";
             if (paymentOption == 1) {
@@ -1232,7 +1235,7 @@ export default function (args: RequestBody, db: any) {
                 last_expense_insured = 1000000;
               }
             }
-          } else if (cover_type == "MIDI") {
+          } else if (policy_type == "MIDI") {
             si = "3M";
             lei = "1.5M";
             if (paymentOption == 1) {
@@ -1327,7 +1330,7 @@ export default function (args: RequestBody, db: any) {
                 last_expense_insured = 1500000;
               }
             }
-          } else if (cover_type == "BIGGIE") {
+          } else if (policy_type == "BIGGIE") {
             si = "5M";
             lei = "2M";
             if (paymentOption == 1) {
@@ -1447,11 +1450,13 @@ export default function (args: RequestBody, db: any) {
               2
             );
             console.log("=========  USER KYC ===========", userKyc);
+            console.log("=========  USER args ===========", args.phoneNumber );
 
             const user = await User.update(
               { first_name: userKyc.first_name, last_name: userKyc.last_name },
               { where: { phone_number: args.phoneNumber } }
             )
+            console.log("=========  USER ===========", user);
             const userPin = Number(menu.val);
 
             const selected = args.text;
@@ -1469,7 +1474,11 @@ export default function (args: RequestBody, db: any) {
               pin,
               total_member_number,
               cover_type,
-            } = user;
+            } = await User.findOne({
+              where: {
+                phone_number: args.phoneNumber,
+              },
+            });
 
             let coverType = cover_type;
 
