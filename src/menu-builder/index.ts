@@ -44,21 +44,51 @@ const findPolicyByUser = async (phone_number: any) => {
   return policies[policies.length - 1];
 };
 
-const findPendingPolicyByUser = async (user) => {
+const findPendingPolicyByUser = async (existingUser) => {
   return await Policy.findOne({
     where: {
-      user_id: user?.user_id,
+      user_id: existingUser?.user_id,
       policy_status: "pending",
     },
   });
 };
 
+let sessions = {};
+
 let menu = new UssdMenu();
+menu.sessionConfig({
+  start: (sessionId, callback)=> {
+      // initialize current session if it doesn't exist
+      // this is called by menu.run()
+      if(!(sessionId in sessions)) sessions[sessionId] = {};
+      callback();
+  },
+  end: (sessionId, callback) =>{
+      // clear current session
+      // this is called by menu.end()
+      delete sessions[sessionId];
+      callback();
+  },
+  set: (sessionId, key, value, callback) => {
+      // store key-value pair in current session
+      sessions[sessionId][key] = value;
+      callback();
+  },
+  get: (sessionId, key, callback)=> {
+    // retrieve value by key in current session
+    let value = sessions[sessionId][key];
+    callback(null, value);
+
+}
+});
+
+
 
 export default function (args: RequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
    
+    
 
       if (args.phoneNumber.charAt(0) == "+") {
         args.phoneNumber = args.phoneNumber.substring(1);
@@ -109,12 +139,14 @@ export default function (args: RequestBody, db: any) {
       //hospitalList = await Hospitals.findAll();
       // pending_policy = findPendingPolicyByUser(user);
 
+    
+
       menu.startState({
         run: async () => {
           console.log(" ===========================");
           console.log(" ******** START MENU *******");
           console.log(" ===========================");
-
+         
           menu.con(
             "Ddwaliro Care" +
             "\n1. Buy for self" +
@@ -142,7 +174,7 @@ export default function (args: RequestBody, db: any) {
       menu.state("account", {
         run: () => {
           menu.con(
-            "Medical cover" +
+            "Ddwaliro Care" +
             "\n1. Buy for self" +
             "\n2. Buy (family)" +
             "\n3. Buy (others)" +
@@ -188,9 +220,10 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let coverType = menu.val;
 
-          let userData = await getAirtelUser(args.phoneNumber, "UG", "UGX", 2);
+          let userData = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', userData)
 
-          console.log("USER", userData);
+          console.log("USER DATA SESSION", userData);
           const date = new Date();
           const day = date.getDate() - 1;
           let sum_insured: any, premium: any, yearly_premium: any;
@@ -300,7 +333,6 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const paymentOption = parseInt(menu.val);
 
-
           const { policy_type } = await findPolicyByUser(args.phoneNumber);
 
           let { period, installmentType, sumInsured, premium } = calculatePaymentOptions(policy_type, paymentOption);
@@ -340,11 +372,11 @@ export default function (args: RequestBody, db: any) {
             let paymentOption = Number(digits[digits.length - 2]);
             console.log("PAYMENT OPTION", paymentOption);
 
-            const existingUser = await User.findOne({
-              where: {
-                phone_number: phone_number,
-              },
-            });
+            
+
+      let existingUser = await menu.session.get('user')
+      console.log("EXISTING USER", existingUser);
+
 
 
             // create user
@@ -547,12 +579,8 @@ export default function (args: RequestBody, db: any) {
             menu.end("Invalid option");
           }
           console.log("MEMBER NUMBER", member_number);
-
-          let existingUser = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
           existingUser.total_member_number = member_number;
           await existingUser.save();
 
@@ -634,11 +662,10 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let coverType = menu.val;
           console.log("FAMILY COVER TYPE", coverType);
-          let existingUser = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
           if (existingUser) {
             //let { user_id, partner_id } = user;
             let date = new Date();
@@ -653,7 +680,6 @@ export default function (args: RequestBody, db: any) {
             }
 
 
-            console.log("EXISTING USER", existingUser);
             await Policy.create({
               phone_number:args.phoneNumber,
               user_id: existingUser.user_id,
@@ -694,11 +720,9 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let spouse = menu.val;
           console.log("SPOUSE NAME", spouse);
-          let existingUser = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
           let beneficiary = {
             beneficiary_id: uuidv4(),
@@ -731,12 +755,9 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let spousePhone = menu.val;
           console.log("SPOUSE Phone", spousePhone);
-          const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
           if (spousePhone.charAt(0) == "+") {
             spousePhone = spousePhone.substring(1);
@@ -745,7 +766,7 @@ export default function (args: RequestBody, db: any) {
             where: { phone_number: spousePhone },
           });
           if (current_beneficiary) {
-            menu.con("Beneficiary already exists");
+            menu.con("Beneficiary already exists, enter another phone number");
           }
 
           const {
@@ -755,11 +776,7 @@ export default function (args: RequestBody, db: any) {
             first_name,
             last_name,
             total_member_number,
-          } = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          } = existingUser
           console.log(
             " ========= USER total_member_number========",
             total_member_number
@@ -1118,9 +1135,6 @@ export default function (args: RequestBody, db: any) {
           const paymentOption = Number(menu.val);
           console.log("PAYMENT OPTION", paymentOption);
 
-
-
-
           const { policy_id, user_id, policy_type,total_member_number } = await Policy.findOne({
             where: {
               phone_number: args.phoneNumber,
@@ -1452,11 +1466,10 @@ export default function (args: RequestBody, db: any) {
             console.log("=========  USER KYC ===========", userKyc);
             console.log("=========  USER args ===========", args.phoneNumber );
 
-            const user = await User.update(
+          await User.update(
               { first_name: userKyc.first_name, last_name: userKyc.last_name },
               { where: { phone_number: args.phoneNumber } }
             )
-            console.log("=========  USER ===========", user);
             const userPin = Number(menu.val);
 
             const selected = args.text;
@@ -1465,6 +1478,9 @@ export default function (args: RequestBody, db: any) {
             const digits = input.split("*").map((digit) => parseInt(digit, 10));
 
             let paymentOption = Number(digits[digits.length - 2]);
+            let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
             const {
               user_id,
@@ -1474,16 +1490,12 @@ export default function (args: RequestBody, db: any) {
               pin,
               total_member_number,
               cover_type,
-            } = await User.findOne({
-              where: {
-                phone_number: args.phoneNumber,
-              },
-            });
+            } = existingUser
 
             let coverType = cover_type;
 
             const { policy_type, policy_id, beneficiary, bought_for } =
-              await findPolicyByUser(user?.user_id);
+              await findPolicyByUser(existingUser?.user_id);
 
             if (policy_id == null) {
               menu.end("Sorry, you have no policy to buy for family");
@@ -1888,7 +1900,7 @@ export default function (args: RequestBody, db: any) {
 
             console.log("PAYMENT STATUS", paymentStatus);
             if (paymentStatus.code === 200) {
-              await user.update({
+              await   User.update({
                 cover_type: null,
                 total_member_number: null,
               });
@@ -1977,12 +1989,11 @@ export default function (args: RequestBody, db: any) {
             menu.end("Invalid option");
           }
 
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
+          //let existingUser = await menu.session.get('user')
 
-          let existingUser = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          console.log("USER DATA SESSION", existingUser);
           existingUser.total_member_number = member_number;
           await existingUser.save();
 
@@ -2068,9 +2079,11 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let coverType = menu.val.toString();
           console.log("COVER TYPE", coverType);
-          let { user_id, partner_id, total_member_number } = await User.findOne({
-            where: { phone_number: args.phoneNumber },
-          });
+
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
+          let { user_id, partner_id, total_member_number } =existingUser
           let date = new Date();
           let day = date.getDate() - 1;
 
@@ -2132,11 +2145,9 @@ export default function (args: RequestBody, db: any) {
           let otherPhone = menu.val;
           console.log("SPOUSE Phone", otherPhone);
 
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
 
           //uganda phone number validation
@@ -2175,7 +2186,7 @@ export default function (args: RequestBody, db: any) {
             nationality: "UGANDA",
             phone_number: otherPhone,
             role: "user",
-            partner_id: user.partner_id,
+            partner_id: existingUser.partner_id,
           });
 
           console.log("NEW USER", newUser);
@@ -2183,7 +2194,7 @@ export default function (args: RequestBody, db: any) {
           await sendSMS(otherPhone, message);
 
           let otherPolicy = await Policy.findOne({
-            where: { user_id: user?.user_id, beneficiary: "OTHERS" },
+            where: { user_id: existingUser?.user_id, beneficiary: "OTHERS" },
           });
 
           console.log("OTHER POLICY", otherPolicy);
@@ -2745,17 +2756,14 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const gender = menu.val.toString() == "1" ? "M" : "F";
           console.log("GENDER", gender);
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
 
-
+          console.log("USER DATA SESSION", existingUser);
 
           let beneficiary = await Beneficiary.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               relationship: "SPOUSE",
             },
           });
@@ -2769,7 +2777,7 @@ export default function (args: RequestBody, db: any) {
           beneficiary.gender = gender;
           await beneficiary.save();
 
-          console.log("USER: ", user);
+     
 
           menu.con(`Enter your spouse's date of birth in the format DDMMYYYY e.g 01011990
             0. Back
@@ -2786,12 +2794,9 @@ export default function (args: RequestBody, db: any) {
       menu.state("updateBeneficiaryDob", {
         run: async () => {
           const spouse_dob = menu.val;
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
 
           // convert ddmmyyyy to valid date
@@ -2803,7 +2808,7 @@ export default function (args: RequestBody, db: any) {
 
           let beneficiary = await Beneficiary.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               relationship: "SPOUSE",
             },
           });
@@ -2817,7 +2822,7 @@ export default function (args: RequestBody, db: any) {
 
           const policy = await Policy.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               beneficiary: "FAMILY",
             },
           });
@@ -2825,13 +2830,13 @@ export default function (args: RequestBody, db: any) {
           console.log("POLICY: ", policy);
 
           let arr_member = await fetchMemberStatusData({
-            member_no: user.arr_member_number,
-            unique_profile_id: user.membership_id + "",
+            member_no: existingUser.arr_member_number,
+            unique_profile_id: existingUser.membership_id + "",
           });
           console.log("arr_member", arr_member);
           if (arr_member.code == 200) {
             await registerDependant({
-              member_no: user.arr_member_number,
+              member_no: existingUser.arr_member_number,
               surname: beneficiary.last_name,
               first_name: beneficiary.first_name,
               other_names: beneficiary.middle_name || beneficiary.last_name,
@@ -2852,7 +2857,7 @@ export default function (args: RequestBody, db: any) {
               health_plan: "AIRTEL_" + policy?.policy_type,
               policy_start_date: policy.policy_start_date,
               policy_end_date: policy.policy_end_date,
-              unique_profile_id: user.membership_id + "-01",
+              unique_profile_id: existingUser.membership_id + "-01",
             });
           }
           menu.con(
@@ -2882,17 +2887,18 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let child_name = menu.val;
           console.log("CHILD NAME", child_name);
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
+
+          console.log("USER DATA SESSION", existingUser);
+
+
 
 
 
           let beneficiary = await Beneficiary.findAll({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               relationship: "CHILD",
             },
           });
@@ -2901,7 +2907,7 @@ export default function (args: RequestBody, db: any) {
 
           let newChildDep = await Beneficiary.create({
             beneficiary_id: uuidv4(),
-            user_id: user?.user_id,
+            user_id: existingUser?.user_id,
             full_name: child_name,
             first_name: child_name.split(" ")[0],
             middle_name: child_name.split(" ")[1],
@@ -2923,16 +2929,13 @@ export default function (args: RequestBody, db: any) {
           const gender = menu.val.toString() == "1" ? "M" : "F";
           console.log("GENDER", gender);
 
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
           let beneficiary = await Beneficiary.findAll({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               relationship: "CHILD",
             },
           });
@@ -2948,8 +2951,6 @@ export default function (args: RequestBody, db: any) {
 
           beneficiary.gender = gender;
           await beneficiary.save();
-
-          console.log("USER: ", user);
 
           menu.con(
             `Enter child's date of birth in the format DDMMYYYY e.g 01011990`
@@ -2974,16 +2975,14 @@ export default function (args: RequestBody, db: any) {
           let date = new Date(Number(year), Number(month) - 1, Number(day));
           console.log("DATE OF BIRTH", date);
 
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
 
           let beneficiary = await Beneficiary.findAll({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               relationship: "CHILD",
             },
           });
@@ -3000,7 +2999,7 @@ export default function (args: RequestBody, db: any) {
 
           const policy = await Policy.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               beneficiary: "FAMILY",
             },
           });
@@ -3008,14 +3007,14 @@ export default function (args: RequestBody, db: any) {
           console.log("POLICY: ", policy);
 
           let arr_member = await fetchMemberStatusData({
-            member_no: user.arr_member_number,
-            unique_profile_id: user.membership_id + "",
+            member_no: existingUser.arr_member_number,
+            unique_profile_id: existingUser.membership_id + "",
           });
           console.log("arr_member", arr_member);
           let arr_dep_reg;
           if (arr_member.code == 200) {
             arr_dep_reg = await registerDependant({
-              member_no: user.arr_member_number,
+              member_no: existingUser.arr_member_number,
               surname: beneficiary.last_name,
               first_name: beneficiary.first_name,
               other_names: beneficiary.middle_name || beneficiary.last_name,
@@ -3024,7 +3023,7 @@ export default function (args: RequestBody, db: any) {
               email: "dependant@bluewave.insure",
               pri_dep: "25",
               family_title: "25", //4 spouse // 3 -principal // 25 - child
-              tel_no: user.phone_number,
+              tel_no: existingUser.phone_number,
               next_of_kin: {
                 surname: "",
                 first_name: "",
@@ -3036,7 +3035,7 @@ export default function (args: RequestBody, db: any) {
               health_plan: "AIRTEL_" + policy?.policy_type,
               policy_start_date: policy.policy_start_date,
               policy_end_date: policy.policy_end_date,
-              unique_profile_id: user.membership_id + "-02",
+              unique_profile_id: existingUser.membership_id + "-02",
             });
             beneficiary.dependant_member_number = arr_dep_reg.member_no;
             await beneficiary.save();
@@ -3058,15 +3057,15 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("cancelPolicy", {
         run: async () => {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
+
+          console.log("USER DATA SESSION", existingUser);
 
 
-          if (user) {
-            const policy = await findPolicyByUser(user.user_id)
+
+          if (existingUser) {
+            const policy = await findPolicyByUser(existingUser.user_id)
             console.log("POLICY: ", policy);
             if (policy) {
               // 1. Cancel Policy
@@ -3095,16 +3094,14 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("cancelPolicyPin", {
         run: async () => {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
 
           const policy = await Policy.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
             },
           });
           let today = new Date();
@@ -3126,23 +3123,18 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const to = args.phoneNumber;
           let today = new Date();
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
 
-
+          console.log("USER DATA SESSION", existingUser);
 
           let policy: any;
-          if (user) {
+          if (existingUser) {
             policy = await Policy.findOne({
               where: {
-                user_id: user?.user_id,
+                user_id: existingUser?.user_id,
               },
             });
           }
-
           console.log("POLICY: ", policy);
           if (policy) {
             // 1. Cancel Policy
@@ -3152,7 +3144,7 @@ export default function (args: RequestBody, db: any) {
           }
           const message = `You CANCELLED your Medical cover cover. Your Policy will expire on ${today} and you will not be covered. Dial *187*7*1# to reactivate.`;
 
-          const sms = await sendSMS(to, message);
+            await sendSMS(to, message);
 
           menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *185*7*6# to reactivate.
             0.Back     00.Main Menu`);
@@ -3166,24 +3158,22 @@ export default function (args: RequestBody, db: any) {
       //my insurance policy
       menu.state("myInsurancePolicy", {
         run: async () => {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
 
+          console.log("USER DATA SESSION", existingUser);
 
           let policies = await Policy.findAll({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
             },
           });
 
-          console.log("====USER ===  ", user?.user_id);
+     
 
           let otherPolicies = await Policy.findAll({
             where: {
-              bought_for: user?.user_id,
+              bought_for: existingUser?.user_id,
             },
           });
 
@@ -3259,16 +3249,13 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("renewPolicy", {
         run: async () => {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
           const policy = await Policy.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               installment: "2",
             },
           });
@@ -3321,11 +3308,10 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           let claim_type = menu.val.toString();
 
-          let user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
+
+          console.log("USER DATA SESSION", existingUser);
 
           const {
             policy_id,
@@ -3335,7 +3321,7 @@ export default function (args: RequestBody, db: any) {
             last_expense_insured,
           } = await Policy.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               policy_status: "paid",
             },
           });
@@ -3353,7 +3339,7 @@ export default function (args: RequestBody, db: any) {
 
           let userClaim = await Claim.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               claim_type: claim_type,
               claim_status: "paid",
             },
@@ -3367,11 +3353,11 @@ export default function (args: RequestBody, db: any) {
           const newClaim = await Claim.create({
             claim_number: claimId,
             policy_id: policy_id,
-            user_id: user?.user_id,
+            user_id: existingUser?.user_id,
             claim_date: new Date(),
             claim_status: "pending",
-            partner_id: user.partner_id,
-            claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id
+            partner_id: existingUser.partner_id,
+            claim_description: `${claim_type} ID: ${claimId} for Member ID: ${existingUser.membership_id
               }  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
             claim_type: claim_type,
             claim_amount: claim_amount,
@@ -3401,25 +3387,23 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("deathClaimPhoneNumber", {
         run: async () => {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
 
           const nextOfKinPhoneNumber = menu.val;
 
           await Beneficiary.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
               beneficiary_type: "NEXTOFKIN",
             },
           });
 
           const newKin = await Beneficiary.create({
             beneficiary_id: uuidv4(),
-            user_id: user?.user_id,
+            user_id: existingUser?.user_id,
             phone_number: nextOfKinPhoneNumber,
             beneficiary_type: "NEXTOFKIN",
           });
@@ -3438,11 +3422,9 @@ export default function (args: RequestBody, db: any) {
 
       menu.state("deathClaimName", {
         run: async () => {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await menu.session.get('user')
+
+          console.log("USER DATA SESSION", existingUser);
 
 
           const deceasedName = menu.val;
@@ -3460,7 +3442,7 @@ export default function (args: RequestBody, db: any) {
               middle_name: middleName,
               last_name: lastName,
             },
-            { where: { user_id: user?.user_id, beneficiary_type: "NEXTOFKIN" } }
+            { where: { user_id: existingUser?.user_id, beneficiary_type: "NEXTOFKIN" } }
           );
 
           menu.con(`Enter your Relationship to the deceased
@@ -3477,17 +3459,14 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const relationship = menu.val;
           console.log("RELATIONSHIP", relationship);
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+            let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
 
           await Beneficiary.update(
             { relationship: relationship },
-            { where: { user_id: user?.user_id, beneficiary_type: "NEXTOFKIN" } }
+            { where: { user_id: existingUser?.user_id, beneficiary_type: "NEXTOFKIN" } }
           );
 
           menu.con(`Enter Date of death in the format DDMMYYYY e.g 01011990"
@@ -3506,12 +3485,9 @@ export default function (args: RequestBody, db: any) {
       menu.state("deathClaimDate", {
         run: async () => {
           let dateOfDeath = menu.val;
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+            let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
 
           // convert ddmmyyyy to valid date
@@ -3526,7 +3502,7 @@ export default function (args: RequestBody, db: any) {
 
           await Beneficiary.update(
             { date_of_death: dateOfDeath, age: thisYear - date.getFullYear() },
-            { where: { user_id: user?.user_id, beneficiary_type: "NEXTOFKIN" } }
+            { where: { user_id: existingUser?.user_id, beneficiary_type: "NEXTOFKIN" } }
           );
 
           menu.con(`Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107
@@ -3535,7 +3511,7 @@ export default function (args: RequestBody, db: any) {
 
           const sms = `Your claim have been submitted. Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107 `;
 
-          await sendSMS(user.phone_number, sms);
+          await sendSMS(existingUser.phone_number, sms);
         },
         next: {
           "0": "deathClaimRelationship",
@@ -3548,20 +3524,18 @@ export default function (args: RequestBody, db: any) {
       menu.state("payNow", {
         run: async () => {
           console.log("* PAY NOW");
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
+
+          console.log("USER DATA SESSION", existingUser);
 
 
-
-          if (!user) {
+          if (!existingUser) {
             menu.end("User not found");
             return;
           }
 
-          const policy = await findPendingPolicyByUser(user);
+          const policy = await findPendingPolicyByUser(existingUser);
 
           if (!policy) {
             menu.end("You have no pending policies");
@@ -3584,12 +3558,9 @@ export default function (args: RequestBody, db: any) {
       menu.state("payNowPremiumPin", {
         run: async () => {
           const pin = parseInt(menu.val);
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+            let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
 
           if (isNaN(pin)) {
@@ -3597,7 +3568,7 @@ export default function (args: RequestBody, db: any) {
             return;
           }
 
-          const selectedPolicy = await findPendingPolicyByUser(user)
+          const selectedPolicy = await findPendingPolicyByUser(existingUser)
 
           if (!selectedPolicy) {
             menu.end("You have no pending policies");
@@ -3613,7 +3584,7 @@ export default function (args: RequestBody, db: any) {
             membership_id,
           } = await Policy.findOne({
             where: {
-              user_id: user?.user_id,
+              user_id: existingUser?.user_id,
 
             },
           });
@@ -3644,18 +3615,15 @@ export default function (args: RequestBody, db: any) {
           const bronzeLastExpenseBenefit = "UGX 1,000,000";
           const silverLastExpenseBenefit = "UGX 1,500,000";
           const goldLastExpenseBenefit = "UGX 2,000,000";
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+            let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
           try {
-            if (user) {
+            if (existingUser) {
               const policies = await Policy.findAll({
                 where: {
-                  user_id: user?.user_id,
+                  user_id: existingUser?.user_id,
                 },
               });
 
@@ -3718,14 +3686,11 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const policyIndex = Number(menu.val) - 1;
           try {
-           const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+            let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
-            const policies = await findPolicyByUser(user.user_id)
+            const policies = await findPolicyByUser(existingUser.user_id)
             const selectedPolicy = policies[policyIndex];
 
             if (!selectedPolicy) {
@@ -3760,12 +3725,12 @@ export default function (args: RequestBody, db: any) {
               menu.end("Failed to update policy");
             }
 
-            const userId = user?.user_id;
-            const phoneNumber = user.phone_number;
-            const partner_id = user.partner_id;
+            const userId = existingUser?.user_id;
+            const phoneNumber = existingUser.phone_number;
+            const partner_id = existingUser.partner_id;
             const policy_id = selectedPolicy.policy_id;
             const amount = selectedPolicy.policy_deduction_amount;
-            const reference = user.membership_id;
+            const reference = existingUser.membership_id;
 
             const payment: any = await airtelMoney(
               userId,
@@ -3839,16 +3804,14 @@ export default function (args: RequestBody, db: any) {
           ];
 
           console.log("USER");
-          const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+          let existingUser = await findUserByPhoneNumber(args.phoneNumber);
+          menu.session.set('user', existingUser)
 
+          console.log("USER DATA SESSION", existingUser);
           console.log("REGION", region, regions[region - 1]);
           const userHospital = await UserHospital.findOne({
             where: {
-              user_id: user.user_id,
+              user_id: existingUser.user_id,
             },
           });
           console.log("USER HOSPITAL", userHospital);
@@ -3860,14 +3823,14 @@ export default function (args: RequestBody, db: any) {
               },
               {
                 where: {
-                  user_id: user.user_id,
+                  user_id: existingUser.user_id,
                 },
               }
             );
           } else {
             await UserHospital.create({
               user_hospital_id: uuidv4(),
-              user_id: user.user_id,
+              user_id: existingUser.user_id,
               hospital_region: regions[region - 1],
             });
           }
@@ -3913,16 +3876,13 @@ export default function (args: RequestBody, db: any) {
         run: async () => {
           const district = menu.val;
           console.log("DISTRICT val", district);
-          const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+           let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
           const userHospital = await UserHospital.findOne({
             where: {
-              user_id: user.user_id,
+              user_id: existingUser.user_id,
             },
           });
 
@@ -3967,16 +3927,13 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         run: async () => {
           const distictInput = menu.val;
           console.log("DISTRICT INPUT", distictInput);
-          const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+           let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
           const userHospital = await UserHospital.findOne({
             where: {
-              user_id: user.user_id,
+              user_id: existingUser.user_id,
             },
           });
 
@@ -4024,17 +3981,14 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
       menu.state("selectHospital.search", {
         run: async () => {
           const hospitalName = menu.val;
-          const user = await User.findOne({
-            where: {
-              phone_number: args.phoneNumber,
-            },
-          });
+           let existingUser = await menu.session.get('user')
 
+          console.log("USER DATA SESSION", existingUser);
 
 
           const userHospital = await UserHospital.findOne({
             where: {
-              user_id: user.user_id,
+              user_id: existingUser.user_id,
             },
           });
 

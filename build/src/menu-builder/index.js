@@ -51,15 +51,41 @@ const findPolicyByUser = (phone_number) => __awaiter(void 0, void 0, void 0, fun
     });
     return policies[policies.length - 1];
 });
-const findPendingPolicyByUser = (user) => __awaiter(void 0, void 0, void 0, function* () {
+const findPendingPolicyByUser = (existingUser) => __awaiter(void 0, void 0, void 0, function* () {
     return yield Policy.findOne({
         where: {
-            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
             policy_status: "pending",
         },
     });
 });
+let sessions = {};
 let menu = new ussd_menu_builder_1.default();
+menu.sessionConfig({
+    start: (sessionId, callback) => {
+        // initialize current session if it doesn't exist
+        // this is called by menu.run()
+        if (!(sessionId in sessions))
+            sessions[sessionId] = {};
+        callback();
+    },
+    end: (sessionId, callback) => {
+        // clear current session
+        // this is called by menu.end()
+        delete sessions[sessionId];
+        callback();
+    },
+    set: (sessionId, key, value, callback) => {
+        // store key-value pair in current session
+        sessions[sessionId][key] = value;
+        callback();
+    },
+    get: (sessionId, key, callback) => {
+        // retrieve value by key in current session
+        let value = sessions[sessionId][key];
+        callback(null, value);
+    }
+});
 function default_1(args, db) {
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
         try {
@@ -134,7 +160,7 @@ function default_1(args, db) {
             });
             menu.state("account", {
                 run: () => {
-                    menu.con("Medical cover" +
+                    menu.con("Ddwaliro Care" +
                         "\n1. Buy for self" +
                         "\n2. Buy (family)" +
                         "\n3. Buy (others)" +
@@ -174,8 +200,9 @@ function default_1(args, db) {
             menu.state("buyForSelf.coverType", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val;
-                    let userData = yield (0, getAirtelUser_1.getAirtelUser)(args.phoneNumber, "UG", "UGX", 2);
-                    console.log("USER", userData);
+                    let userData = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', userData);
+                    console.log("USER DATA SESSION", userData);
                     const date = new Date();
                     const day = date.getDate() - 1;
                     let sum_insured, premium, yearly_premium;
@@ -299,11 +326,8 @@ function default_1(args, db) {
                         const digits = input.split("*").map((digit) => parseInt(digit, 10));
                         let paymentOption = Number(digits[digits.length - 2]);
                         console.log("PAYMENT OPTION", paymentOption);
-                        const existingUser = yield User.findOne({
-                            where: {
-                                phone_number: phone_number,
-                            },
-                        });
+                        let existingUser = yield menu.session.get('user');
+                        console.log("EXISTING USER", existingUser);
                         // create user
                         if (!existingUser) {
                             const user = yield User.create({
@@ -472,11 +496,8 @@ function default_1(args, db) {
                         menu.end("Invalid option");
                     }
                     console.log("MEMBER NUMBER", member_number);
-                    let existingUser = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
                     existingUser.total_member_number = member_number;
                     yield existingUser.save();
                     if (!existingUser) {
@@ -561,11 +582,8 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val;
                     console.log("FAMILY COVER TYPE", coverType);
-                    let existingUser = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     if (existingUser) {
                         //let { user_id, partner_id } = user;
                         let date = new Date();
@@ -579,8 +597,8 @@ function default_1(args, db) {
                         else if (coverType == "3") {
                             coverType = "BIGGIE";
                         }
-                        console.log("EXISTING USER", existingUser);
                         yield Policy.create({
+                            phone_number: args.phoneNumber,
                             user_id: existingUser.user_id,
                             policy_id: (0, uuid_1.v4)(),
                             policy_type: coverType,
@@ -611,11 +629,8 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spouse = menu.val;
                     console.log("SPOUSE NAME", spouse);
-                    let existingUser = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     let beneficiary = {
                         beneficiary_id: (0, uuid_1.v4)(),
                         full_name: spouse,
@@ -642,11 +657,8 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let spousePhone = menu.val;
                     console.log("SPOUSE Phone", spousePhone);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     if (spousePhone.charAt(0) == "+") {
                         spousePhone = spousePhone.substring(1);
                     }
@@ -654,23 +666,19 @@ function default_1(args, db) {
                         where: { phone_number: spousePhone },
                     });
                     if (current_beneficiary) {
-                        menu.con("Beneficiary already exists");
+                        menu.con("Beneficiary already exists, enter another phone number");
                     }
-                    const { user_id, partner_id, phone_number, first_name, last_name, total_member_number, } = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    const { user_id, partner_id, phone_number, first_name, last_name, total_member_number, } = existingUser;
                     console.log(" ========= USER total_member_number========", total_member_number);
                     yield Beneficiary.update({ phone_number: spousePhone }, { where: { user_id: user_id, relationship: "SPOUSE" } });
-                    const { policy_type, beneficiary, bought_for, cover_type } = yield findPolicyByUser(user === null || user === void 0 ? void 0 : user.user_id);
-                    console.log(" ========= USER policy_type========", policy_type, beneficiary, bought_for, cover_type);
+                    const { beneficiary, bought_for, policy_type } = yield findPolicyByUser(args.phoneNumber);
+                    console.log(" ========= USER policy_type========", beneficiary, bought_for, policy_type);
                     if (bought_for !== null) {
                         yield User.update({ phone_number: spousePhone }, { where: { user_id: bought_for } });
                     }
                     let sum_insured, period, installment_type, si, premium = 0, yearly_premium = 0, last_expense_insured = 0, lei;
                     let paymentOption = 1;
-                    let coverType = cover_type;
+                    let coverType = policy_type;
                     if (coverType == "MINI") {
                         lei = "1M";
                         si = "1.5M";
@@ -982,7 +990,7 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const paymentOption = Number(menu.val);
                     console.log("PAYMENT OPTION", paymentOption);
-                    const { policy_id, user_id, cover_type, total_member_number } = yield Policy.findOne({
+                    const { policy_id, user_id, policy_type, total_member_number } = yield Policy.findOne({
                         where: {
                             phone_number: args.phoneNumber,
                         },
@@ -992,7 +1000,7 @@ function default_1(args, db) {
                         menu.end("Sorry, you have no policy to buy for family");
                     }
                     let sum_insured, si, premium = 0, installment_type = 0, period = "monthly", last_expense_insured = 0, lei, yearly_premium = 0;
-                    if (cover_type == "MINI") {
+                    if (policy_type == "MINI") {
                         lei = "1M";
                         si = "1.5M";
                         if (paymentOption == 1) {
@@ -1088,7 +1096,7 @@ function default_1(args, db) {
                             }
                         }
                     }
-                    else if (cover_type == "MIDI") {
+                    else if (policy_type == "MIDI") {
                         si = "3M";
                         lei = "1.5M";
                         if (paymentOption == 1) {
@@ -1183,7 +1191,7 @@ function default_1(args, db) {
                             }
                         }
                     }
-                    else if (cover_type == "BIGGIE") {
+                    else if (policy_type == "BIGGIE") {
                         si = "5M";
                         lei = "2M";
                         if (paymentOption == 1) {
@@ -1296,15 +1304,18 @@ function default_1(args, db) {
                     try {
                         const userKyc = yield (0, getAirtelUser_1.getAirtelUser)(args.phoneNumber, "UG", "UGX", 2);
                         console.log("=========  USER KYC ===========", userKyc);
-                        const user = yield User.update({ first_name: userKyc.first_name, last_name: userKyc.last_name }, { where: { phone_number: args.phoneNumber } });
+                        console.log("=========  USER args ===========", args.phoneNumber);
+                        yield User.update({ first_name: userKyc.first_name, last_name: userKyc.last_name }, { where: { phone_number: args.phoneNumber } });
                         const userPin = Number(menu.val);
                         const selected = args.text;
                         const input = selected.trim();
                         const digits = input.split("*").map((digit) => parseInt(digit, 10));
                         let paymentOption = Number(digits[digits.length - 2]);
-                        const { user_id, phone_number, partner_id, membership_id, pin, total_member_number, cover_type, } = user;
+                        let existingUser = yield menu.session.get('user');
+                        console.log("USER DATA SESSION", existingUser);
+                        const { user_id, phone_number, partner_id, membership_id, pin, total_member_number, cover_type, } = existingUser;
                         let coverType = cover_type;
-                        const { policy_type, policy_id, beneficiary, bought_for } = yield findPolicyByUser(user === null || user === void 0 ? void 0 : user.user_id);
+                        const { policy_type, policy_id, beneficiary, bought_for } = yield findPolicyByUser(existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id);
                         if (policy_id == null) {
                             menu.end("Sorry, you have no policy to buy for family");
                         }
@@ -1679,7 +1690,7 @@ function default_1(args, db) {
                         }
                         console.log("PAYMENT STATUS", paymentStatus);
                         if (paymentStatus.code === 200) {
-                            yield user.update({
+                            yield User.update({
                                 cover_type: null,
                                 total_member_number: null,
                             });
@@ -1765,11 +1776,10 @@ function default_1(args, db) {
                     else {
                         menu.end("Invalid option");
                     }
-                    let existingUser = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    //let existingUser = await menu.session.get('user')
+                    console.log("USER DATA SESSION", existingUser);
                     existingUser.total_member_number = member_number;
                     yield existingUser.save();
                     if (!existingUser) {
@@ -1858,9 +1868,9 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let coverType = menu.val.toString();
                     console.log("COVER TYPE", coverType);
-                    let { user_id, partner_id, total_member_number } = yield User.findOne({
-                        where: { phone_number: args.phoneNumber },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
+                    let { user_id, partner_id, total_member_number } = existingUser;
                     let date = new Date();
                     let day = date.getDate() - 1;
                     if (coverType == "1") {
@@ -1909,11 +1919,8 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let otherPhone = menu.val;
                     console.log("SPOUSE Phone", otherPhone);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     //uganda phone number validation
                     if (otherPhone.charAt(0) == "0") {
                         otherPhone = otherPhone.substring(1);
@@ -1944,13 +1951,13 @@ function default_1(args, db) {
                         nationality: "UGANDA",
                         phone_number: otherPhone,
                         role: "user",
-                        partner_id: user.partner_id,
+                        partner_id: existingUser.partner_id,
                     });
                     console.log("NEW USER", newUser);
                     const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id} and Ddwaliro PIN: ${newUser.pin}. Dial *187*7*6# to access your account.`;
                     yield (0, sendSMS_1.default)(otherPhone, message);
                     let otherPolicy = yield Policy.findOne({
-                        where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary: "OTHERS" },
+                        where: { user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id, beneficiary: "OTHERS" },
                     });
                     console.log("OTHER POLICY", otherPolicy);
                     otherPolicy.bought_for = newUser.user_id;
@@ -2437,14 +2444,12 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const gender = menu.val.toString() == "1" ? "M" : "F";
                     console.log("GENDER", gender);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             relationship: "SPOUSE",
                         },
                     });
@@ -2454,7 +2459,6 @@ function default_1(args, db) {
                     console.log("BENEFICIARY: ", beneficiary);
                     beneficiary.gender = gender;
                     yield beneficiary.save();
-                    console.log("USER: ", user);
                     menu.con(`Enter your spouse's date of birth in the format DDMMYYYY e.g 01011990
             0. Back
             00. Main Menu
@@ -2469,11 +2473,8 @@ function default_1(args, db) {
             menu.state("updateBeneficiaryDob", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const spouse_dob = menu.val;
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     // convert ddmmyyyy to valid date
                     let day = spouse_dob.substring(0, 2);
                     let month = spouse_dob.substring(2, 4);
@@ -2482,7 +2483,7 @@ function default_1(args, db) {
                     console.log("DATE OF BIRTH", date);
                     let beneficiary = yield Beneficiary.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             relationship: "SPOUSE",
                         },
                     });
@@ -2492,19 +2493,19 @@ function default_1(args, db) {
                     console.log("BENEFICIARY: ", beneficiary);
                     const policy = yield Policy.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             beneficiary: "FAMILY",
                         },
                     });
                     console.log("POLICY: ", policy);
                     let arr_member = yield (0, aar_1.fetchMemberStatusData)({
-                        member_no: user.arr_member_number,
-                        unique_profile_id: user.membership_id + "",
+                        member_no: existingUser.arr_member_number,
+                        unique_profile_id: existingUser.membership_id + "",
                     });
                     console.log("arr_member", arr_member);
                     if (arr_member.code == 200) {
                         yield (0, aar_1.registerDependant)({
-                            member_no: user.arr_member_number,
+                            member_no: existingUser.arr_member_number,
                             surname: beneficiary.last_name,
                             first_name: beneficiary.first_name,
                             other_names: beneficiary.middle_name || beneficiary.last_name,
@@ -2525,7 +2526,7 @@ function default_1(args, db) {
                             health_plan: "AIRTEL_" + (policy === null || policy === void 0 ? void 0 : policy.policy_type),
                             policy_start_date: policy.policy_start_date,
                             policy_end_date: policy.policy_end_date,
-                            unique_profile_id: user.membership_id + "-01",
+                            unique_profile_id: existingUser.membership_id + "-01",
                         });
                     }
                     menu.con(`Your spouse ${beneficiary.full_name} profile has been updated successfully
@@ -2551,21 +2552,19 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let child_name = menu.val;
                     console.log("CHILD NAME", child_name);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             relationship: "CHILD",
                         },
                     });
                     console.log("BENEFICIARY CHILD GENDER: ", beneficiary);
                     let newChildDep = yield Beneficiary.create({
                         beneficiary_id: (0, uuid_1.v4)(),
-                        user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                        user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         full_name: child_name,
                         first_name: child_name.split(" ")[0],
                         middle_name: child_name.split(" ")[1],
@@ -2583,14 +2582,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const gender = menu.val.toString() == "1" ? "M" : "F";
                     console.log("GENDER", gender);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             relationship: "CHILD",
                         },
                     });
@@ -2601,7 +2597,6 @@ function default_1(args, db) {
                     console.log("BENEFICIARY: ", beneficiary);
                     beneficiary.gender = gender;
                     yield beneficiary.save();
-                    console.log("USER: ", user);
                     menu.con(`Enter child's date of birth in the format DDMMYYYY e.g 01011990`);
                 }),
                 next: {
@@ -2620,14 +2615,11 @@ function default_1(args, db) {
                     let year = child_dob.substring(4, 8);
                     let date = new Date(Number(year), Number(month) - 1, Number(day));
                     console.log("DATE OF BIRTH", date);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     let beneficiary = yield Beneficiary.findAll({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             relationship: "CHILD",
                         },
                     });
@@ -2639,20 +2631,20 @@ function default_1(args, db) {
                     console.log("BENEFICIARY: ", beneficiary);
                     const policy = yield Policy.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             beneficiary: "FAMILY",
                         },
                     });
                     console.log("POLICY: ", policy);
                     let arr_member = yield (0, aar_1.fetchMemberStatusData)({
-                        member_no: user.arr_member_number,
-                        unique_profile_id: user.membership_id + "",
+                        member_no: existingUser.arr_member_number,
+                        unique_profile_id: existingUser.membership_id + "",
                     });
                     console.log("arr_member", arr_member);
                     let arr_dep_reg;
                     if (arr_member.code == 200) {
                         arr_dep_reg = yield (0, aar_1.registerDependant)({
-                            member_no: user.arr_member_number,
+                            member_no: existingUser.arr_member_number,
                             surname: beneficiary.last_name,
                             first_name: beneficiary.first_name,
                             other_names: beneficiary.middle_name || beneficiary.last_name,
@@ -2661,7 +2653,7 @@ function default_1(args, db) {
                             email: "dependant@bluewave.insure",
                             pri_dep: "25",
                             family_title: "25",
-                            tel_no: user.phone_number,
+                            tel_no: existingUser.phone_number,
                             next_of_kin: {
                                 surname: "",
                                 first_name: "",
@@ -2673,7 +2665,7 @@ function default_1(args, db) {
                             health_plan: "AIRTEL_" + (policy === null || policy === void 0 ? void 0 : policy.policy_type),
                             policy_start_date: policy.policy_start_date,
                             policy_end_date: policy.policy_end_date,
-                            unique_profile_id: user.membership_id + "-02",
+                            unique_profile_id: existingUser.membership_id + "-02",
                         });
                         beneficiary.dependant_member_number = arr_dep_reg.member_no;
                         yield beneficiary.save();
@@ -2691,13 +2683,11 @@ function default_1(args, db) {
             //============CANCEL POLICY=================
             menu.state("cancelPolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
-                    if (user) {
-                        const policy = yield findPolicyByUser(user.user_id);
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
+                    if (existingUser) {
+                        const policy = yield findPolicyByUser(existingUser.user_id);
                         console.log("POLICY: ", policy);
                         if (policy) {
                             // 1. Cancel Policy
@@ -2723,14 +2713,11 @@ function default_1(args, db) {
             //cancel policy pin
             menu.state("cancelPolicyPin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const policy = yield Policy.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         },
                     });
                     let today = new Date();
@@ -2749,16 +2736,13 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const to = args.phoneNumber;
                     let today = new Date();
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     let policy;
-                    if (user) {
+                    if (existingUser) {
                         policy = yield Policy.findOne({
                             where: {
-                                user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                                user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             },
                         });
                     }
@@ -2770,7 +2754,7 @@ function default_1(args, db) {
                         yield policy.save();
                     }
                     const message = `You CANCELLED your Medical cover cover. Your Policy will expire on ${today} and you will not be covered. Dial *187*7*1# to reactivate.`;
-                    const sms = yield (0, sendSMS_1.default)(to, message);
+                    yield (0, sendSMS_1.default)(to, message);
                     menu.con(`Your policy will expire on ${today}  and will not be renewed. Dial *185*7*6# to reactivate.
             0.Back     00.Main Menu`);
                 }),
@@ -2782,20 +2766,17 @@ function default_1(args, db) {
             //my insurance policy
             menu.state("myInsurancePolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
                     let policies = yield Policy.findAll({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         },
                     });
-                    console.log("====USER ===  ", user === null || user === void 0 ? void 0 : user.user_id);
                     let otherPolicies = yield Policy.findAll({
                         where: {
-                            bought_for: user === null || user === void 0 ? void 0 : user.user_id,
+                            bought_for: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         },
                     });
                     console.log("OTHER POLICIES: ", otherPolicies);
@@ -2849,14 +2830,11 @@ function default_1(args, db) {
             //renewPolicy
             menu.state("renewPolicy", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const policy = yield Policy.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             installment: "2",
                         },
                     });
@@ -2896,14 +2874,12 @@ function default_1(args, db) {
             menu.state("inpatientClaim", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let claim_type = menu.val.toString();
-                    let user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
                     const { policy_id, policy_type, beneficiary, sum_insured, last_expense_insured, } = yield Policy.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             policy_status: "paid",
                         },
                     });
@@ -2920,7 +2896,7 @@ function default_1(args, db) {
                     }
                     let userClaim = yield Claim.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             claim_type: claim_type,
                             claim_status: "paid",
                         },
@@ -2932,11 +2908,11 @@ function default_1(args, db) {
                     const newClaim = yield Claim.create({
                         claim_number: claimId,
                         policy_id: policy_id,
-                        user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                        user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         claim_date: new Date(),
                         claim_status: "pending",
-                        partner_id: user.partner_id,
-                        claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
+                        partner_id: existingUser.partner_id,
+                        claim_description: `${claim_type} ID: ${claimId} for Member ID: ${existingUser.membership_id}  ${policy_type.toUpperCase()} ${beneficiary.toUpperCase()} policy`,
                         claim_type: claim_type,
                         claim_amount: claim_amount,
                     });
@@ -2960,21 +2936,18 @@ function default_1(args, db) {
             });
             menu.state("deathClaimPhoneNumber", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const nextOfKinPhoneNumber = menu.val;
                     yield Beneficiary.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                             beneficiary_type: "NEXTOFKIN",
                         },
                     });
                     const newKin = yield Beneficiary.create({
                         beneficiary_id: (0, uuid_1.v4)(),
-                        user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                        user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         phone_number: nextOfKinPhoneNumber,
                         beneficiary_type: "NEXTOFKIN",
                     });
@@ -2991,11 +2964,8 @@ function default_1(args, db) {
             });
             menu.state("deathClaimName", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const deceasedName = menu.val;
                     console.log("DECEASED NAME", deceasedName);
                     const firstName = deceasedName.split(" ")[0];
@@ -3006,7 +2976,7 @@ function default_1(args, db) {
                         first_name: firstName,
                         middle_name: middleName,
                         last_name: lastName,
-                    }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: "NEXTOFKIN" } });
+                    }, { where: { user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id, beneficiary_type: "NEXTOFKIN" } });
                     menu.con(`Enter your Relationship to the deceased
                    0.Back 00.Main Menu `);
                 }),
@@ -3020,12 +2990,9 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const relationship = menu.val;
                     console.log("RELATIONSHIP", relationship);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
-                    yield Beneficiary.update({ relationship: relationship }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: "NEXTOFKIN" } });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
+                    yield Beneficiary.update({ relationship: relationship }, { where: { user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id, beneficiary_type: "NEXTOFKIN" } });
                     menu.con(`Enter Date of death in the format DDMMYYYY e.g 01011990"
 
 
@@ -3041,11 +3008,8 @@ function default_1(args, db) {
             menu.state("deathClaimDate", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     let dateOfDeath = menu.val;
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     // convert ddmmyyyy to valid date
                     let day = dateOfDeath.substring(0, 2);
                     let month = dateOfDeath.substring(2, 4);
@@ -3054,12 +3018,12 @@ function default_1(args, db) {
                     console.log("date", date);
                     let thisYear = new Date().getFullYear();
                     dateOfDeath = date.toISOString().split("T")[0];
-                    yield Beneficiary.update({ date_of_death: dateOfDeath, age: thisYear - date.getFullYear() }, { where: { user_id: user === null || user === void 0 ? void 0 : user.user_id, beneficiary_type: "NEXTOFKIN" } });
+                    yield Beneficiary.update({ date_of_death: dateOfDeath, age: thisYear - date.getFullYear() }, { where: { user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id, beneficiary_type: "NEXTOFKIN" } });
                     menu.con(`Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107
                    0.Back 00.Main Menu
           `);
                     const sms = `Your claim have been submitted. Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107 `;
-                    yield (0, sendSMS_1.default)(user.phone_number, sms);
+                    yield (0, sendSMS_1.default)(existingUser.phone_number, sms);
                 }),
                 next: {
                     "0": "deathClaimRelationship",
@@ -3070,16 +3034,14 @@ function default_1(args, db) {
             menu.state("payNow", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     console.log("* PAY NOW");
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
-                    if (!user) {
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
+                    if (!existingUser) {
                         menu.end("User not found");
                         return;
                     }
-                    const policy = yield findPendingPolicyByUser(user);
+                    const policy = yield findPendingPolicyByUser(existingUser);
                     if (!policy) {
                         menu.end("You have no pending policies");
                         return;
@@ -3097,23 +3059,20 @@ function default_1(args, db) {
             menu.state("payNowPremiumPin", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const pin = parseInt(menu.val);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     if (isNaN(pin)) {
                         menu.end("Invalid PIN");
                         return;
                     }
-                    const selectedPolicy = yield findPendingPolicyByUser(user);
+                    const selectedPolicy = yield findPendingPolicyByUser(existingUser);
                     if (!selectedPolicy) {
                         menu.end("You have no pending policies");
                         return;
                     }
                     const { user_id, phone_number, partner_id, policy_id, policy_deduction_amount, membership_id, } = yield Policy.findOne({
                         where: {
-                            user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                            user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                         },
                     });
                     let paymentStatus = yield (0, payment_1.airtelMoney)(user_id, partner_id, selectedPolicy.policy_id, phone_number, selectedPolicy.premium, membership_id, "UG", "UGX");
@@ -3131,16 +3090,13 @@ function default_1(args, db) {
                     const bronzeLastExpenseBenefit = "UGX 1,000,000";
                     const silverLastExpenseBenefit = "UGX 1,500,000";
                     const goldLastExpenseBenefit = "UGX 2,000,000";
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     try {
-                        if (user) {
+                        if (existingUser) {
                             const policies = yield Policy.findAll({
                                 where: {
-                                    user_id: user === null || user === void 0 ? void 0 : user.user_id,
+                                    user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id,
                                 },
                             });
                             if (policies.length === 0) {
@@ -3192,12 +3148,9 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const policyIndex = Number(menu.val) - 1;
                     try {
-                        const user = yield User.findOne({
-                            where: {
-                                phone_number: args.phoneNumber,
-                            },
-                        });
-                        const policies = yield findPolicyByUser(user.user_id);
+                        let existingUser = yield menu.session.get('user');
+                        console.log("USER DATA SESSION", existingUser);
+                        const policies = yield findPolicyByUser(existingUser.user_id);
                         const selectedPolicy = policies[policyIndex];
                         if (!selectedPolicy) {
                             throw new Error("Invalid policy selection");
@@ -3215,12 +3168,12 @@ function default_1(args, db) {
                         if (!updatedPolicy) {
                             menu.end("Failed to update policy");
                         }
-                        const userId = user === null || user === void 0 ? void 0 : user.user_id;
-                        const phoneNumber = user.phone_number;
-                        const partner_id = user.partner_id;
+                        const userId = existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id;
+                        const phoneNumber = existingUser.phone_number;
+                        const partner_id = existingUser.partner_id;
                         const policy_id = selectedPolicy.policy_id;
                         const amount = selectedPolicy.policy_deduction_amount;
-                        const reference = user.membership_id;
+                        const reference = existingUser.membership_id;
                         const payment = yield (0, payment_1.airtelMoney)(userId, partner_id, policy_id, phoneNumber, amount, reference, "UG", "UGX");
                         if (payment.code === 200) {
                             const message = `Your request for ${selectedPolicy.policy_type.toUpperCase()} ${selectedPolicy.beneficiary.toUpperCase()}, UGX ${selectedPolicy.premium} has been received and will be processed shortly. Please enter your Airtel Money PIN when asked.`;
@@ -3276,15 +3229,13 @@ function default_1(args, db) {
                         "Northern Region",
                     ];
                     console.log("USER");
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
+                    menu.session.set('user', existingUser);
+                    console.log("USER DATA SESSION", existingUser);
                     console.log("REGION", region, regions[region - 1]);
                     const userHospital = yield UserHospital.findOne({
                         where: {
-                            user_id: user.user_id,
+                            user_id: existingUser.user_id,
                         },
                     });
                     console.log("USER HOSPITAL", userHospital);
@@ -3293,14 +3244,14 @@ function default_1(args, db) {
                             hospital_region: regions[region - 1],
                         }, {
                             where: {
-                                user_id: user.user_id,
+                                user_id: existingUser.user_id,
                             },
                         });
                     }
                     else {
                         yield UserHospital.create({
                             user_hospital_id: (0, uuid_1.v4)(),
-                            user_id: user.user_id,
+                            user_id: existingUser.user_id,
                             hospital_region: regions[region - 1],
                         });
                     }
@@ -3332,14 +3283,11 @@ function default_1(args, db) {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const district = menu.val;
                     console.log("DISTRICT val", district);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const userHospital = yield UserHospital.findOne({
                         where: {
-                            user_id: user.user_id,
+                            user_id: existingUser.user_id,
                         },
                     });
                     const user_hospital_region = userHospital.hospital_region;
@@ -3371,14 +3319,11 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const distictInput = menu.val;
                     console.log("DISTRICT INPUT", distictInput);
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const userHospital = yield UserHospital.findOne({
                         where: {
-                            user_id: user.user_id,
+                            user_id: existingUser.user_id,
                         },
                     });
                     const user_hospital_region = userHospital.hospital_region;
@@ -3406,14 +3351,11 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
             menu.state("selectHospital.search", {
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     const hospitalName = menu.val;
-                    const user = yield User.findOne({
-                        where: {
-                            phone_number: args.phoneNumber,
-                        },
-                    });
+                    let existingUser = yield menu.session.get('user');
+                    console.log("USER DATA SESSION", existingUser);
                     const userHospital = yield UserHospital.findOne({
                         where: {
-                            user_id: user.user_id,
+                            user_id: existingUser.user_id,
                         },
                     });
                     const user_hospital_region = userHospital.hospital_region;
