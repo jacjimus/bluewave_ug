@@ -13,20 +13,22 @@ const selfMenu = async (args, db) => {
         name: "MINI",
         sum_insured: "1.5M",
         premium: "10,000",
-        yearly_premium: "120,000"
+        yearly_premium: "120,000",
+        last_expense_insured: "1M"
     },
     {
         name: "MIDI",
         sum_insured: "3M",
         premium: "14,000",
-        yearly_premium: "167,000"
+        yearly_premium: "167,000",
+        last_expense_insured: "1.5M"
     },
     {
         name: "BIGGIE",
         sum_insured: "5M",
         premium: "18,000",
-        yearly_premium: "208,000"
-
+        yearly_premium: "208,000",
+        last_expense_insured: "2M"
     }];
     // Note: userText is the last item selected by the user
     console.log("ALL STEPS", allSteps);
@@ -110,7 +112,7 @@ const selfMenu = async (args, db) => {
             });
             const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
             await sendSMS(fullPhone, message);
-        }else{
+        } else {
             existingUser = await db.users.create({
                 user_id: uuidv4(),
                 phone_number: phone,
@@ -150,7 +152,7 @@ const selfMenu = async (args, db) => {
             policy_pending_premium: parseAmount(selectedPolicyType.premium),
             sum_insured: parseAmount(selectedPolicyType.sum_insured),
             premium: parseAmount(selectedPolicyType.premium),
-            last_expense_insured: installment_type == 1 ? parseAmount(selectedPolicyType.sum_insured) : parseAmount(selectedPolicyType.sum_insured) / 12,
+            last_expense_insured: installment_type == 1 ? parseAmount(selectedPolicyType.last_expense_insured) : parseAmount(selectedPolicyType.last_expense_insured) / 12,
             policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
             policy_start_date: new Date(),
             membership_id: Math.floor(100000 + Math.random() * 900000),
@@ -180,8 +182,7 @@ const selfMenu = async (args, db) => {
         );
 
         if (paymentStatus.code === 200) {
-            let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${selectedPolicyType.sum_insured}) and Funeral (UGX ${selectedPolicyType.sum_insured}) for a year. 
-                    Pay UGX ${selectedPolicyType.premium} every ${period} to stay covered`;
+            let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${selectedPolicyType.sum_insured}) and Funeral (UGX ${selectedPolicyType.sum_insured}) for a year. Pay UGX ${selectedPolicyType.premium} every ${period} to stay covered`;
             await sendSMS(fullPhone, congratText);
 
             response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.sum_insured}.
