@@ -100,11 +100,11 @@ app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/documents", generalRoutes);
 app.use("/api/v1/logs", logRoutes);
-app.use(errorHandler);
 
 // USSD ROUTE
 app.use("/api/v1/ussd", ussdRoutes);
 
+app.use(errorHandler);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

@@ -234,7 +234,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         }
     ];
     if (currentStep == 1) {
-        let coversList = covers.map((cover, index) => {
+        let coversList = covers.slice(0, 3).map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`;
         }).join("");
         response = "CON Buy for Others" + coversList;
@@ -251,10 +251,10 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         response = "CON " + selectedCover.name + packages;
     }
     else if (currentStep == 3) {
-        response = "CON Enter atleast Name of Other or 1 child";
+        response = "CON Enter atleast Name of Other or 1 child\n";
     }
     else if (currentStep == 4) {
-        response = "CON Enter Phone number for Other";
+        response = "CON Enter Phone number for Other\n";
     }
     else if (currentStep == 5) {
         let otherName = allSteps[3];

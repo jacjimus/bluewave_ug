@@ -527,7 +527,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         }
     ];
     if (currentStep == 1) {
-        const coversList = covers.map((cover, index) => {
+        const coversList = covers.slice(0, 3).map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`;
         }).join("");
         response = "CON Buy for family " + coversList;
