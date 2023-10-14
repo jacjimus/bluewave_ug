@@ -1,8 +1,9 @@
 import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import sendSMS from "../../services/sendSMS";
-import { calculatePaymentOptions } from "../../services/utils";
+import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser"
+import { all } from 'axios';
 
 const familyMenu = async (args, db) => {
     let { phoneNumber, text, response,
@@ -559,6 +560,139 @@ const familyMenu = async (args, db) => {
             `\n2-UGX ${selectedPackage?.payment_options[1].yearly_premium} yearly`
         response = coverText;
     }
+    else if (currentStep == 6) {
+        const selectedCover = covers[parseInt(allSteps[1]) - 1];
+        const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
+
+        let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
+        let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
+
+        response = `CON Pay UGX ${premium} ${period}` +
+            `\nTerms&Conditions - www.airtel.com` +
+            `\nEnter PIN to Agree and Pay`
+    }
+    else if (currentStep == 7) {
+        let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+        let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+        let phone = phoneNumber?.replace('+', "")?.substring(3);
+        let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+
+        console.log("SELECTED POLICY TYPE", selectedPolicyType);
+
+        if (existingUser) {
+
+
+
+            const user = await db.users.findOne({
+                where: {
+                    phone_number: phone,
+                },
+            });
+
+            if (!user) {
+                existingUser = await db.users.create({
+                    user_id: uuidv4(),
+                    phone_number: phone,
+                    membership_id: Math.floor(100000 + Math.random() * 900000),
+                    pin: Math.floor(1000 + Math.random() * 9000),
+                    first_name: existingUser.first_name,
+                    last_name: existingUser.last_name,
+                    name: `${existingUser.first_name} ${existingUser.last_name}`,
+                    total_member_number: selectedPolicyType.code_name,
+                    partner_id: 2,
+                    role: "user",
+                });
+                console.log("USER DOES NOT EXIST", user);
+                const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
+                await sendSMS(fullPhone, message);
+            }
+            else {
+                existingUser = user;
+            }
+
+        } else {
+            existingUser = await db.users.create({
+                user_id: uuidv4(),
+                phone_number: phone,
+                membership_id: Math.floor(100000 + Math.random() * 900000),
+                pin: Math.floor(1000 + Math.random() * 9000),
+                first_name: "Test",
+                last_name: "User",
+                name: `Test User`,
+                total_member_number: "M",
+                partner_id: 2,
+                role: "user",
+            });
+        }
+
+        const spouse = allSteps[2];
+
+        let beneficiary = {
+            beneficiary_id: uuidv4(),
+            full_name: spouse,
+            first_name: spouse.split(" ")[0],
+            middle_name: spouse.split(" ")[1],
+            last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
+            relationship: "SPOUSE",
+            member_number: selectedPolicyType.code_name,
+            user_id: existingUser.user_id,
+        };
+
+        let newBeneficiary = await Beneficiary.create(beneficiary);
+
+        let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+        let policyType = selectedPackage.code_name;
+        let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+
+        let policyObject = {
+            policy_id: uuidv4(),
+            installment_type,
+            policy_type: policyType,
+            policy_deduction_amount: parseAmount(selectedPackage.premium),
+            policy_pending_premium: parseAmount(selectedPackage.premium),
+            sum_insured: parseAmount(selectedPackage.sum_insured),
+            premium: parseAmount(selectedPackage.premium),
+            last_expense_insured: parseAmount(selectedPackage.last_expense_insured),
+            policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
+            policy_start_date: new Date(),
+            membership_id: Math.floor(100000 + Math.random() * 900000),
+            beneficiary: "FAMILY",
+            policy_status: "pending",
+            policy_deduction_day: new Date().getDate() - 1,
+            partner_id: 2,
+            country_code: "UGA",
+            currency_code: "UGX",
+            product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+            user_id: existingUser.user_id,
+            phone_number: phone,
+            total_member_number: selectedPolicyType.code_name,
+        }
+
+        let policy = await db.policies.create(policyObject);
+
+        // create payment
+        let paymentStatus = await airtelMoney(
+            existingUser.user_id,
+            2,
+            policy.policy_id,
+            phone,
+            policy.policy_deduction_amount,
+            existingUser.membership_id,
+            "UG",
+            "UGX"
+        );
+
+
+        if (paymentStatus.code === 200) {
+
+            response = `END Congratulations! Your family is now covered for Inpatient benefit of UGX ${selectedPackage.premium} and Funeral benefit of UGX ${selectedPackage.last_expense_insured}.
+                       Cover valid till ${policyObject.policy_end_date.toDateString()}`;
+        } else {
+            response = `END Sorry, your payment was not successful. 
+                    \n0. Back \n00. Main Menu`;
+        }
+    }
+
 
     return response;
 }

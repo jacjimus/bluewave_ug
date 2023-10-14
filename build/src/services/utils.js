@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculatePaymentOptions = exports.generateClaimId = exports.generatePolicyNumber = exports.generateQuotationNumber = exports.globalSearch = exports.isValidEmail = exports.getRandomInt = exports.isValidKenyanPhoneNumber = void 0;
+exports.parseAmount = exports.calculatePaymentOptions = exports.generateClaimId = exports.generatePolicyNumber = exports.generateQuotationNumber = exports.globalSearch = exports.isValidEmail = exports.getRandomInt = exports.isValidKenyanPhoneNumber = void 0;
 function isValidKenyanPhoneNumber(phoneNumber) {
     const kenyanPhoneNumberRegex = /^(\+?254|0)[17]\d{8}$/;
     return kenyanPhoneNumberRegex.test(phoneNumber);
@@ -115,3 +115,16 @@ function calculatePaymentOptions(policyType, paymentOption) {
     return { period, installmentType, sumInsured, premium };
 }
 exports.calculatePaymentOptions = calculatePaymentOptions;
+const parseAmount = (amount) => {
+    amount = amount.replace(/,/g, "");
+    if (amount.includes("K")) {
+        return parseInt(amount) * 1000;
+    }
+    else if (amount.includes("M")) {
+        return parseInt(amount) * 1000000;
+    }
+    else {
+        return parseInt(amount);
+    }
+};
+exports.parseAmount = parseAmount;

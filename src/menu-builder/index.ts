@@ -20,6 +20,7 @@ import { db } from "../models/db";
 import { buyForOthers } from "./menus/buyForOthers";
 import selfMenu from "./menus/selfMenu";
 import familyMenu from "./menus/familyMenu";
+import faqsMenu from "./menus/faqsMenu";
 
 require("dotenv").config();
 
@@ -98,7 +99,11 @@ export default function (args: RequestBody, db: any) {
       }
       else if (firstStep == "2") {
         response = await familyMenu(params, db);
+      }else if (firstStep == "8") {
+        response = await faqsMenu(params);
+
       }
+
       resolve(response);
 
 

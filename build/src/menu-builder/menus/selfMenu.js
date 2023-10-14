@@ -140,27 +140,15 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         let policy_type = selectedPolicyType.name;
         let installment_type = parseInt(allSteps[2]);
         let period = installment_type == 1 ? "yearly" : "monthly";
-        const parseAmount = (amount) => {
-            amount = amount.replace(/,/g, "");
-            if (amount.includes("K")) {
-                return parseInt(amount) * 1000;
-            }
-            else if (amount.includes("M")) {
-                return parseInt(amount) * 1000000;
-            }
-            else {
-                return parseInt(amount);
-            }
-        };
         let policyObject = {
             policy_id: (0, uuid_1.v4)(),
-            installment_type: installment_type,
+            installment_type: installment_type == 1 ? 2 : 1,
             policy_type: policy_type,
-            policy_deduction_amount: parseAmount(selectedPolicyType.premium),
-            policy_pending_premium: parseAmount(selectedPolicyType.premium),
-            sum_insured: parseAmount(selectedPolicyType.sum_insured),
-            premium: parseAmount(selectedPolicyType.premium),
-            last_expense_insured: installment_type == 1 ? parseAmount(selectedPolicyType.last_expense_insured) : parseAmount(selectedPolicyType.last_expense_insured) / 12,
+            policy_deduction_amount: (0, utils_1.parseAmount)(selectedPolicyType.premium),
+            policy_pending_premium: (0, utils_1.parseAmount)(selectedPolicyType.premium),
+            sum_insured: (0, utils_1.parseAmount)(selectedPolicyType.sum_insured),
+            premium: (0, utils_1.parseAmount)(selectedPolicyType.premium),
+            last_expense_insured: (0, utils_1.parseAmount)(selectedPolicyType.last_expense_insured),
             policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
             policy_start_date: new Date(),
             membership_id: Math.floor(100000 + Math.random() * 900000),
@@ -178,8 +166,6 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         // create payment
         let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
         if (paymentStatus.code === 200) {
-            let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${selectedPolicyType.sum_insured}) and Funeral (UGX ${selectedPolicyType.last_expense_insured}) for a year. Pay UGX ${selectedPolicyType.premium} every ${period} to stay covered`;
-            yield (0, sendSMS_1.default)(fullPhone, congratText);
             response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.
                        Cover valid till ${policy.policy_end_date.toDateString()}`;
         }

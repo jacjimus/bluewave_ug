@@ -130,3 +130,14 @@ export function calculatePaymentOptions(policyType: string, paymentOption: numbe
 
   return { period, installmentType, sumInsured, premium };
 }
+
+export const parseAmount = (amount) => {
+  amount = amount.replace(/,/g, "");
+  if (amount.includes("K")) {
+    return parseInt(amount) * 1000;
+  } else if (amount.includes("M")) {
+    return parseInt(amount) * 1000000;
+  } else {
+    return parseInt(amount);
+  }
+}

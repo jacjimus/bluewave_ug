@@ -83,6 +83,7 @@ const updateUserPolicyStatus = (policy, amount, installment_order, installment_t
 // }
 // POST and GET request handler
 router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         if (req.method === "POST" || req.method === "GET") {
             const { transaction } = req.body;
@@ -108,9 +109,8 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
             const beneficiary = yield Beneficiary.findOne({ where: { user_id } });
             const to = user.phone_number;
             const policyType = policy.policy_type.toUpperCase();
-            const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
+            const period = policy.installment_type == 1 ? "yearly" : "monthly";
             if (status_code === "TS") {
-                yield (0, sendSMS_1.default)(to, paymentMessage);
                 let registerAARUser, updatePremiumData, updatedPolicy, installment;
                 if (!user.arr_member_number) {
                     registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy, beneficiary, airtel_money_id);
@@ -170,6 +170,15 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 console.log("=== INSTALLMENT ===", installment);
                 console.log("=== REGISTERED AAR USER ===", registerAARUser);
                 console.log("=== UPDATED PREMIUM DATA ===", updatePremiumData);
+                //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
+                // Cover valid till <date>
+                const members = (_a = user.total_member_number) === null || _a === void 0 ? void 0 : _a.match(/\d+(\.\d+)?/g);
+                let familyText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
+                let selfText = `Congratulations! You are covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
+                // let othersText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${policy.sum_insured} and Funeral benefit of ${policy.last_expense_insured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
+                // let congratText = policy.beneficiary == "SELF" ? selfText : policy.beneficiary == "FAMILY" ? familyText : othersText;
+                let congratText = policy.beneficiary == "SELF" ? selfText : familyText;
+                yield (0, sendSMS_1.default)(to, congratText);
                 return res.status(200).json({
                     code: 200,
                     message: "Payment record created successfully"

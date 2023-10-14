@@ -5,7 +5,7 @@ import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
-import { registerPrincipal, updatePremium , fetchMemberStatusData} from "../services/aar"
+import { registerPrincipal, updatePremium, fetchMemberStatusData } from "../services/aar"
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -110,7 +110,7 @@ router.all("/callback", async (req, res) => {
       let policy = await Policy.findAll({ where: { policy_id } });
 
       // latest policy
-      policy =  policy[policy.length - 1];
+      policy = policy[policy.length - 1];
 
 
 
@@ -124,30 +124,30 @@ router.all("/callback", async (req, res) => {
       const beneficiary = await Beneficiary.findOne({ where: { user_id } });
       const to = user.phone_number;
       const policyType = policy.policy_type.toUpperCase();
-      
-      const paymentMessage = `Dear ${user.first_name}, you have successfully bought ${policyType} Medical cover for ${user.phone_number}. Inpatient cover UGX ${policy.sum_insured}. Go to My Account to ADD details`;
+      const period = policy.installment_type == 1 ? "yearly" : "monthly";
+
 
       if (status_code === "TS") {
-        await sendSMS(to, paymentMessage);
-        let registerAARUser:any, updatePremiumData:any, updatedPolicy:any, installment:any;
+
+        let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
         if (!user.arr_member_number) {
           registerAARUser = await registerPrincipal(user, policy, beneficiary, airtel_money_id);
           console.log("AAR USER", registerAARUser);
           if (registerAARUser.code == 200) {
-                 user.arr_member_number = registerAARUser.member_no;
-               await  user.save();
+            user.arr_member_number = registerAARUser.member_no;
+            await user.save();
             updatePremiumData = await updatePremium(user, policy, airtel_money_id);
-           console.log("AAR UPDATE PREMIUM", updatePremiumData);
+            console.log("AAR UPDATE PREMIUM", updatePremiumData);
           }
-         
+
         }
         if (user.arr_member_number) {
-          const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number , unique_profile_id: user.membership_id + ""});
+          const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
           console.log("MEMBER STATUS", memberStatus);
           policy.arr_policy_number = memberStatus.policy_no;
         }
 
-      const payment = await Payment.create({
+        const payment = await Payment.create({
           payment_amount: amount,
           payment_type: "airtel money stk push",
           user_id,
@@ -190,18 +190,32 @@ router.all("/callback", async (req, res) => {
         updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
 
         // AAR renewal
-       
-        console.log("=== PAYMENT ===",payment)
-        console.log("=== TRANSACTION === ",transactionData)
-        console.log("=== UPDATED POLICY ===",updatedPolicy)
-        console.log("=== INSTALLMENT ===",installment)
-        console.log("=== REGISTERED AAR USER ===",registerAARUser)
-        console.log("=== UPDATED PREMIUM DATA ===",updatePremiumData)
+
+        console.log("=== PAYMENT ===", payment)
+        console.log("=== TRANSACTION === ", transactionData)
+        console.log("=== UPDATED POLICY ===", updatedPolicy)
+        console.log("=== INSTALLMENT ===", installment)
+        console.log("=== REGISTERED AAR USER ===", registerAARUser)
+        console.log("=== UPDATED PREMIUM DATA ===", updatePremiumData)
+
+        //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
+
+        // Cover valid till <date>
+
+        const members = user.total_member_number?.match(/\d+(\.\d+)?/g);
+        let familyText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
+        let selfText = `Congratulations! You are covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
+        // let othersText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${policy.sum_insured} and Funeral benefit of ${policy.last_expense_insured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
+
+        // let congratText = policy.beneficiary == "SELF" ? selfText : policy.beneficiary == "FAMILY" ? familyText : othersText;
+        let congratText = policy.beneficiary == "SELF" ? selfText : familyText;
+        await sendSMS(to, congratText);
 
 
-        return res.status(200).json({ 
+        return res.status(200).json({
           code: 200,
-          message: "Payment record created successfully" });
+          message: "Payment record created successfully"
+        });
       } else {
         await Payment.create({
           payment_amount: amount,

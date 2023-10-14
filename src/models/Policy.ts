@@ -156,6 +156,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.NUMBER,
             allowNull: true
         },
+        total_member_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     },
 
         { timestamps: true },)
