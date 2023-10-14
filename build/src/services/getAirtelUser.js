@@ -63,16 +63,16 @@ exports.getUserByPhoneNumber = getUserByPhoneNumber;
 function getAirtelUser(phoneNumber, country, currency, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const userExists = yield User.findOne({
-                where: {
-                    phone_number: phoneNumber,
-                    partner_id: partner_id,
-                },
-            });
-            if (userExists) {
-                console.log("User exists");
-                return userExists;
-            }
+            // const userExists = await User.findOne({
+            //   where: {
+            //     phone_number: phoneNumber,
+            //     partner_id: partner_id,
+            //   },
+            // });
+            // if (userExists) {
+            //   console.log("User exists");
+            //   return userExists;
+            // }
             // Making an API call only if the user doesn't exist
             const token = yield (0, auth_1.default)(partner_id);
             const headers = {
@@ -82,12 +82,15 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             };
+            phoneNumber = phoneNumber.replace("+", "");
+            // remove the first 3 characters
+            phoneNumber = phoneNumber.substring(3);
             const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
             const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
             console.log("GET_USER_URL", GET_USER_URL);
-            const response = yield axios_1.default.get(GET_USER_URL, { headers });
-            console.log("RESPONSE KYC", response.data);
-            return response.data.data;
+            const { data } = yield axios_1.default.get(GET_USER_URL, { headers });
+            console.log("RESPONSE KYC", data);
+            return data === null || data === void 0 ? void 0 : data.data;
             // if (response && response.data) {
             //   const userData = response.data.data;
             //   const user = await User.create({

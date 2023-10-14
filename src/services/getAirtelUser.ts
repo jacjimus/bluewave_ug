@@ -19,7 +19,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
     // if not found, create a new user
     if (!userData) {
-  
+
       const user = await User.create({
         user_id: uuidv4(),
         membership_id: generateMembershipId(),
@@ -45,10 +45,10 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
       await sendSMS(user.phone_number, message);
 
       console.log("USER FOR AIRTEL API", user);
-      
+
     }
 
-    return userData;  
+    return userData;
   } catch (error) {
     console.error(error);
   }
@@ -62,18 +62,18 @@ async function getAirtelUser(
   partner_id: number
 ) {
   try {
-    
-    const userExists = await User.findOne({
-      where: {
-        phone_number: phoneNumber,
-        partner_id: partner_id,
-      },
-    });
 
-    if (userExists) {
-      console.log("User exists");
-      return userExists;
-    }
+    // const userExists = await User.findOne({
+    //   where: {
+    //     phone_number: phoneNumber,
+    //     partner_id: partner_id,
+    //   },
+    // });
+
+    // if (userExists) {
+    //   console.log("User exists");
+    //   return userExists;
+    // }
 
     // Making an API call only if the user doesn't exist
     const token = await authToken(partner_id);
@@ -85,14 +85,18 @@ async function getAirtelUser(
       Authorization: `Bearer ${token}`,
     };
 
+    phoneNumber = phoneNumber.replace("+", "");
+    // remove the first 3 characters
+    phoneNumber = phoneNumber.substring(3);
+
     const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
     console.log("GET_USER_URL", GET_USER_URL);
 
-    const response = await axios.get(GET_USER_URL, { headers });
-    console.log("RESPONSE KYC", response.data);
-    return response.data.data;
+    const { data } = await axios.get(GET_USER_URL, { headers });
+    console.log("RESPONSE KYC", data);
+    return data?.data;
 
     // if (response && response.data) {
     //   const userData = response.data.data;
@@ -133,22 +137,22 @@ async function getAirtelUser(
 
 
 function generateMembershipId() {
- 
-    while (true) {
-      const membershipId = Math.floor(100000 + Math.random() * 900000);
 
-    
-      const user =  User.findOne({
-        where: {
-          membership_id: membershipId,
-        },
-      });
+  while (true) {
+    const membershipId = Math.floor(100000 + Math.random() * 900000);
 
-      if (!user) {
-        return membershipId; 
-      }
+
+    const user = User.findOne({
+      where: {
+        membership_id: membershipId,
+      },
+    });
+
+    if (!user) {
+      return membershipId;
     }
-  
+  }
+
 }
 
 function generatePIN() {

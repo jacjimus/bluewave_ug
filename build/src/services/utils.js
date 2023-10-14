@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateClaimId = exports.generatePolicyNumber = exports.generateQuotationNumber = exports.globalSearch = exports.isValidEmail = exports.getRandomInt = exports.isValidKenyanPhoneNumber = void 0;
+exports.calculatePaymentOptions = exports.generateClaimId = exports.generatePolicyNumber = exports.generateQuotationNumber = exports.globalSearch = exports.isValidEmail = exports.getRandomInt = exports.isValidKenyanPhoneNumber = void 0;
 function isValidKenyanPhoneNumber(phoneNumber) {
     const kenyanPhoneNumberRegex = /^(\+?254|0)[17]\d{8}$/;
     return kenyanPhoneNumberRegex.test(phoneNumber);
@@ -73,3 +73,45 @@ function generateClaimId() {
     return claimId;
 }
 exports.generateClaimId = generateClaimId;
+function calculatePaymentOptions(policyType, paymentOption) {
+    let period, installmentType, sumInsured, premium;
+    console.log("POLICY TYPE", policyType);
+    if (policyType === "MINI") {
+        period = "yearly";
+        installmentType = 1;
+        sumInsured = 1500000;
+        premium = 120000;
+        if (paymentOption === 1) {
+            period = "monthly";
+            premium = 10000;
+            installmentType = 2;
+        }
+    }
+    else if (policyType === "MIDI") {
+        period = "yearly";
+        installmentType = 1;
+        sumInsured = 3000000;
+        premium = 167000;
+        if (paymentOption === 1) {
+            period = "monthly";
+            premium = 14000;
+            installmentType = 2;
+        }
+    }
+    else if (policyType === "BIGGIE") {
+        period = "yearly";
+        installmentType = 1;
+        sumInsured = 5000000;
+        premium = 208000;
+        if (paymentOption === 1) {
+            period = "monthly";
+            premium = 18000;
+            installmentType = 2;
+        }
+    }
+    else {
+        return {};
+    }
+    return { period, installmentType, sumInsured, premium };
+}
+exports.calculatePaymentOptions = calculatePaymentOptions;
