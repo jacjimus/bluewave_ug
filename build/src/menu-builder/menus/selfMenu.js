@@ -115,6 +115,20 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
             yield (0, sendSMS_1.default)(fullPhone, message);
         }
+        else {
+            existingUser = yield db.users.create({
+                user_id: (0, uuid_1.v4)(),
+                phone_number: phone,
+                membership_id: Math.floor(100000 + Math.random() * 900000),
+                pin: Math.floor(1000 + Math.random() * 9000),
+                first_name: "Test",
+                last_name: "User",
+                name: `Test User`,
+                total_member_number: "M",
+                partner_id: 2,
+                role: "user",
+            });
+        }
         // create policy
         let policy_type = selectedPolicyType.name;
         let installment_type = parseInt(allSteps[2]);

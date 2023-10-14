@@ -110,6 +110,19 @@ const selfMenu = async (args, db) => {
             });
             const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
             await sendSMS(fullPhone, message);
+        }else{
+            existingUser = await db.users.create({
+                user_id: uuidv4(),
+                phone_number: phone,
+                membership_id: Math.floor(100000 + Math.random() * 900000),
+                pin: Math.floor(1000 + Math.random() * 9000),
+                first_name: "Test",
+                last_name: "User",
+                name: `Test User`,
+                total_member_number: "M",
+                partner_id: 2,
+                role: "user",
+            });
         }
 
         // create policy
