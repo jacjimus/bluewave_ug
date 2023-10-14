@@ -34,7 +34,7 @@ const selfMenu = async (args, db) => {
         switch (userText) {
             case "1":
                 const covers = coverTypes.map((coverType, index) => {
-                    return `\n${index + 1}. ${coverType.name} – UGX ${coverType.sum_insured}`
+                    return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`
                 }
                 ).join("");
 
@@ -88,7 +88,7 @@ const selfMenu = async (args, db) => {
     else if (currentStep === 4) {
         let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-        let phone = phoneNumber?.substring(3);
+        let phone = phoneNumber?.replace('+', "")?.substring(3);
         let fullPhone = `+${phoneNumber}`
         console.log("POLICY TYPE PATRICK", selectedPolicyType);
         // console.log("EXISTING USER", existingUser);

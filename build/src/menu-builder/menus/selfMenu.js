@@ -18,6 +18,7 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const utils_1 = require("../../services/utils");
 const getAirtelUser_1 = require("../../services/getAirtelUser");
 const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     let { phoneNumber, text, response, currentStep, previousStep, userText, allSteps } = args;
     const coverTypes = [{
             name: "MINI",
@@ -43,7 +44,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         switch (userText) {
             case "1":
                 const covers = coverTypes.map((coverType, index) => {
-                    return `\n${index + 1}. ${coverType.name} – UGX ${coverType.sum_insured}`;
+                    return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`;
                 }).join("");
                 response = "CON Buy for self " + covers;
                 break;
@@ -92,7 +93,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
     else if (currentStep === 4) {
         let existingUser = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-        let phone = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.substring(3);
+        let phone = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
         let fullPhone = `+${phoneNumber}`;
         console.log("POLICY TYPE PATRICK", selectedPolicyType);
         // console.log("EXISTING USER", existingUser);
