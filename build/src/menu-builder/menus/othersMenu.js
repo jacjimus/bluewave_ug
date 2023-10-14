@@ -237,7 +237,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let coversList = covers.map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`;
         }).join("");
-        response = `CON Buy for Others ${coversList}`;
+        response = "CON Buy for Others" + coversList;
     }
     else if (currentStep == 2) {
         let selectedCover = covers[parseInt(userText) - 1];
@@ -372,7 +372,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             currency_code: "UGX",
             product_id: "d18424d6-5316-4e12-9826-302b866a380c",
             user_id: existingUser.user_id,
-            phone_number: phone,
+            phone_number: phoneNumber,
             total_member_number: selectedPolicyType.code_name,
             bought_for: otherUser.user_id
         };

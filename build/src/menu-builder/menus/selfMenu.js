@@ -160,7 +160,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             currency_code: "UGX",
             product_id: "d18424d6-5316-4e12-9826-302b866a380c",
             user_id: existingUser.user_id,
-            phone_number: phone,
+            phone_number: phoneNumber,
         };
         let policy = yield db.policies.create(policyObject);
         // create payment
