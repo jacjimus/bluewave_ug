@@ -94,7 +94,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         let existingUser = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
         let phone = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
-        let fullPhone = `+${phoneNumber}`;
+        let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
         console.log("POLICY TYPE PATRICK", selectedPolicyType);
         // console.log("EXISTING USER", existingUser);
         // create user
@@ -132,6 +132,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             }
         };
         let policyObject = {
+            policy_id: (0, uuid_1.v4)(),
             installment_type: installment_type,
             policy_type: policy_type,
             policy_deduction_amount: parseAmount(selectedPolicyType.premium),

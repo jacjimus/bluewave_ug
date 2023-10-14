@@ -89,7 +89,7 @@ const selfMenu = async (args, db) => {
         let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
         let phone = phoneNumber?.replace('+', "")?.substring(3);
-        let fullPhone = `+${phoneNumber}`
+        let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
         console.log("POLICY TYPE PATRICK", selectedPolicyType);
         // console.log("EXISTING USER", existingUser);
 
@@ -130,6 +130,7 @@ const selfMenu = async (args, db) => {
         }
 
         let policyObject = {
+            policy_id: uuidv4(),
             installment_type: installment_type,
             policy_type: policy_type,
             policy_deduction_amount: parseAmount(selectedPolicyType.premium),
