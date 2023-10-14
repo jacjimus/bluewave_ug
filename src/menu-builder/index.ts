@@ -66,12 +66,7 @@ export default function (args: RequestBody, db: any) {
       let allSteps = text.split("*");
       let currentStep = allSteps.length;
       let previousStep = currentStep - 1;
-
-
-
-      if (args.phoneNumber.charAt(0) == "+") {
-        args.phoneNumber = args.phoneNumber.substring(1);
-      }
+      let userText = allSteps[allSteps.length - 1];
 
       if (text == "") {
         response = "CON Ddwaliro Care" +
@@ -85,9 +80,10 @@ export default function (args: RequestBody, db: any) {
           "\n8. FAQs"
       }
       else if (currentStep == 1) {
+        console.log("STEP 1");
         switch (text) {
           case "1":
-            response = "Buy for self " +
+            response = "CON Buy for self " +
               "\n1. Mini – UGX 10,000" +
               "\n2. Midi - UGX 14,000" +
               "\n3. Biggie – UGX 18,000"
@@ -102,19 +98,19 @@ export default function (args: RequestBody, db: any) {
               "\n01. Next"
             break;
           case "3":
-            response = await "Buy for others " +
+            response = "CON Buy for others " +
               "\n1. Other " +
               "\n2. Other + Spouse or Child" +
               "\n3. Other + Spouse + 1 Children" +
               "\n01. Next"
             break;
           case "4":
-            response = "Make Claim " +
+            response = "CON Make Claim " +
               "\n1. Inpatient Claim" +
               "\n2. Death Claim"
             break;
           case "5":
-            response = "My Account" +
+            response = "CON My Account" +
               "\n1. Policy Status" +
               "\n2. Pay Now" +
               "\n3. Renew Policy" +
@@ -132,16 +128,16 @@ export default function (args: RequestBody, db: any) {
               "West Nile Region",
               "Northern Region",
             ];
-
+            response = "CON "
             regions.forEach((region, index) => {
               response += `${index + 1}. ${region}\n`;
             });
             break;
           case "7":
-            response = 'To view Medical cover Terms &Conditions Visit www.tclink.com '
+            response = 'END To view Medical cover Terms &Conditions Visit www.tclink.com '
             break;
           case "8":
-            response = "FAQs " +
+            response = "CON FAQs " +
               "\n1. Eligibility" +
               "\n2. Mini cover" +
               "\n3. Midi Cover" +
@@ -155,6 +151,47 @@ export default function (args: RequestBody, db: any) {
             break;
           default:
             response = "END " + languages[configs.default_lang].generic.invalid_option;
+            break;
+        }
+      }
+      else if (currentStep == 2) {
+        let coverType = "";
+        let sum_insured = "";
+        let premium = "";
+        let yearly_premium = "";
+        switch (userText) {
+          case "1":
+            coverType = "MINI";
+            sum_insured = "1.5M"
+            premium = "10,000";
+            yearly_premium = "120,000";
+            response = `CON Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year` +
+              "\nPAY:" +
+              `\n1-UGX ${premium} monthly` +
+              `\n2-UGX ${yearly_premium} yearly`
+            break;
+          case "2":
+            coverType = "MIDI";
+            sum_insured = "3M"
+            premium = "14,000";
+            yearly_premium = "167,000";
+            response = `CON Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year` +
+              "\nPAY" +
+              `\n1-UGX ${premium} monthly` +
+              `\n2-UGX ${yearly_premium} yearly`
+            break;
+          case "3":
+            coverType = "BIGGIE";
+            sum_insured = "5M"
+            premium = "18,000";
+            yearly_premium = "208,000";
+            response = `CON Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year` +
+              "\nPAY" +
+              `\n1-UGX ${premium} monthly` +
+              `\n2-UGX ${yearly_premium} yearly`
+            break;
+          default:
+            response = "END Invalid option";
             break;
         }
       }
