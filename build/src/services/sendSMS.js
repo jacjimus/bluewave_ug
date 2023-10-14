@@ -18,8 +18,6 @@ const africastalking = AfricasTalking({
 });
 function sendSMS(phoneNumber, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        //add +256 to the phone number 
-        phoneNumber = "+256" + phoneNumber;
         console.log("PHONE NUMBER", phoneNumber, "MESSAGE", message);
         const sms = africastalking.SMS;
         const options = {
