@@ -64,14 +64,14 @@ const selfMenu = async (args, db) => {
 
         switch (userText) {
             case "1":
-                response = `CON Pay UGX ${options.premium} payable ${options.period}.
+                response = `CON Pay UGX ${options.premium} ${options.period}.
         Terms&Conditions - www.airtel.com
         Enter PIN to Agree and Pay 
         \n0 .Back
          00 .Main Menu`;
                 break;
             case "2":
-                response = `CON Pay UGX ${options.premium} payable ${options.period}.
+                response = `CON Pay UGX ${options.premium} ${options.period}.
         Terms&Conditions - www.airtel.com
         Enter PIN to Agree and Pay 
         \n0 .Back
@@ -190,10 +190,10 @@ const selfMenu = async (args, db) => {
         );
 
         if (paymentStatus.code === 200) {
-            let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${selectedPolicyType.sum_insured}) and Funeral (UGX ${selectedPolicyType.sum_insured}) for a year. Pay UGX ${selectedPolicyType.premium} every ${period} to stay covered`;
+            let congratText = `Congratulations! You bought Mini cover for Inpatient (UGX ${selectedPolicyType.sum_insured}) and Funeral (UGX ${selectedPolicyType.last_expense_insured}) for a year. Pay UGX ${selectedPolicyType.premium} every ${period} to stay covered`;
             await sendSMS(fullPhone, congratText);
 
-            response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.sum_insured}.
+            response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.
                        Cover valid till ${policy.policy_end_date.toDateString()}`;
         } else {
             response = `END Sorry, your payment was not successful. 

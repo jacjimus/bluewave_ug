@@ -1519,7 +1519,7 @@ export function buyForFamily(menu: any, args: any, db: any): void {
           console.log("LAST EXPENSE INSURED", last_expense_insured);
           console.log("YEARLY PREMIUM", yearly_premium);
 
-          menu.con(`Pay UGX ${premium} payable ${period}.
+          menu.con(`Pay UGX ${premium}  ${period}.
                   Terms&Conditions - www.airtel.com
                   Enter PIN to Agree and Pay
                   0.Back
