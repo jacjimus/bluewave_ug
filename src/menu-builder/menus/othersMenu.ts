@@ -222,11 +222,16 @@ const othersMenu = async (args, db) => {
     ];
 
     if (currentStep == 1) {
-        let coversList = covers.slice(0,3).map((cover, index) => {
-            return `\n${index + 1}. ${cover.name}`
-        }).join("")
+        // let coversList = covers.slice(0,3).map((cover, index) => {
+        //     return `\n${index + 1}. ${cover.name}`
+        // }).join("")
 
-        response = "CON Buy for Others" + coversList
+        // response = "CON Buy for Others" + coversList
+        response = "CON Buy for others " +
+        "\n1. Other " +
+        "\n2. Other + Spouse or Child" +
+        "\n3. Other + Spouse + 1 Children" +
+        "\n01. Next"
 
     } else if (currentStep == 2) {
         let selectedCover = covers[parseInt(userText) - 1];

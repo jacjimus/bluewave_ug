@@ -525,10 +525,16 @@ const familyMenu = async (args, db) => {
     ];
 
     if (currentStep == 1) {
-        const coversList = covers.slice(0,3).map((cover, index) => {
-            return `\n${index + 1}. ${cover.name}`
-        }).join("");
-        response = "CON Buy for family " + coversList;
+        // const coversList = covers.slice(0,3).map((cover, index) => {
+        //     return `\n${index + 1}. ${cover.name}`
+        // }).join("");
+        // response = "CON Buy for family " + coversList;
+
+        response =  "CON Buy for family " +
+        "\n1. Self + Spouse or Child" +
+        "\n2. Self + Spouse + 1 Child" +
+        "\n3. Self + Spouse + 2 Children" +
+        "\n01. Next"
     }
     else if (currentStep == 2) {
         const selectedCover = covers[parseInt(userText) - 1];
