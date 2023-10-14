@@ -541,7 +541,7 @@ const familyMenu = async (args, db) => {
         }
         ).join("");
 
-        response = `CON ${selectedCover.name} ${packages}`
+        response = "CON " + selectedCover.name + packages
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of spouse or 1 child\n"

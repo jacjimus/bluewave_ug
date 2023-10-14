@@ -248,7 +248,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let packages = selectedCover.packages.map((cover, index) => {
             return `\n${index + 1}. ${cover.name} – UGX ${cover.premium}`;
         }).join("");
-        response = `CON ${selectedCover.name} ${packages}`;
+        response = "CON " + selectedCover.name + packages;
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of Other or 1 child";

@@ -541,7 +541,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         const packages = selectedCover.packages.map((coverType, index) => {
             return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`;
         }).join("");
-        response = `CON ${selectedCover.name} ${packages}`;
+        response = "CON " + selectedCover.name + packages;
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of spouse or 1 child\n";
