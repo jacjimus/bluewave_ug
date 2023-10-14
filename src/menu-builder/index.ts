@@ -20,6 +20,7 @@ import selfMenu from "./menus/selfMenu";
 import familyMenu from "./menus/familyMenu";
 import faqsMenu from "./menus/faqsMenu";
 import termsAndConditions from "./menus/termsMenu";
+import othersMenu from "./menus/othersMenu";
 
 require("dotenv").config();
 
@@ -98,9 +99,11 @@ export default function (args: RequestBody, db: any) {
       }
       else if (firstStep == "2") {
         response = await familyMenu(params, db);
-        
-        
-      }else if (firstStep == "7") {
+      }
+      else if (firstStep == "3") {
+        response = await othersMenu(params, db);
+      }
+      else if (firstStep == "7") {
         response = await termsAndConditions(params);
 
       } else if (firstStep == "8") {

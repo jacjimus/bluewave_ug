@@ -5,9 +5,7 @@ import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser";
 
 const selfMenu = async (args, db) => {
-    let { phoneNumber, text, response,
-        currentStep, previousStep, userText, allSteps
-    } = args;
+    let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
     const coverTypes = [{
         name: "MINI",
@@ -178,7 +176,7 @@ const selfMenu = async (args, db) => {
         );
 
         if (paymentStatus.code === 200) {
-   
+
             response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.
                        Cover valid till ${policy.policy_end_date.toDateString()}`;
         } else {

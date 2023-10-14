@@ -19,7 +19,7 @@ const utils_1 = require("../../services/utils");
 const getAirtelUser_1 = require("../../services/getAirtelUser");
 const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    let { phoneNumber, text, response, currentStep, previousStep, userText, allSteps } = args;
+    let { phoneNumber, response, currentStep, userText, allSteps } = args;
     const coverTypes = [{
             name: "MINI",
             sum_insured: "1.5M",

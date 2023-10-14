@@ -19,6 +19,8 @@ const db_1 = require("../models/db");
 const selfMenu_1 = __importDefault(require("./menus/selfMenu"));
 const familyMenu_1 = __importDefault(require("./menus/familyMenu"));
 const faqsMenu_1 = __importDefault(require("./menus/faqsMenu"));
+const termsMenu_1 = __importDefault(require("./menus/termsMenu"));
+const othersMenu_1 = __importDefault(require("./menus/othersMenu"));
 require("dotenv").config();
 const Session = db_1.db.sessions;
 const User = db_1.db.users;
@@ -83,6 +85,12 @@ function default_1(args, db) {
             }
             else if (firstStep == "2") {
                 response = yield (0, familyMenu_1.default)(params, db);
+            }
+            else if (firstStep == "3") {
+                response = yield (0, othersMenu_1.default)(params, db);
+            }
+            else if (firstStep == "7") {
+                response = yield (0, termsMenu_1.default)(params);
             }
             else if (firstStep == "8") {
                 response = yield (0, faqsMenu_1.default)(params);

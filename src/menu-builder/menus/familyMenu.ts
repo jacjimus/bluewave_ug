@@ -17,7 +17,7 @@ const familyMenu = async (args, db) => {
     // covers for family
     const covers = [
         {
-            name: "Self + Spouse or Child",
+            name: "Self+Spouse or Child",
             code_name: "M+1",
             packages: [
                 {
@@ -101,7 +101,7 @@ const familyMenu = async (args, db) => {
 
             ],
         }, {
-            name: "Self + Spouse + 1 Child",
+            name: "Self+Spouse+1 Child",
             code_name: "M+2",
             packages: [
                 {
@@ -186,7 +186,7 @@ const familyMenu = async (args, db) => {
             ],
         },
         {
-            name: "Self + Spouse + 2 Children",
+            name: "Self+Spouse+2 Children",
             code_name: "M+3",
             packages: [
                 {
@@ -270,7 +270,7 @@ const familyMenu = async (args, db) => {
 
             ],
         }, {
-            name: "Self + Spouse + 3 Children",
+            name: "Self+Spouse+3 Children",
             code_name: "M+4",
             packages: [
                 {
@@ -354,7 +354,7 @@ const familyMenu = async (args, db) => {
 
             ],
         }, {
-            name: "Self + Spouse + 4 Children",
+            name: "Self+Spouse+4 Children",
             code_name: "M+5",
             packages: [
                 {
@@ -438,7 +438,7 @@ const familyMenu = async (args, db) => {
 
             ],
         }, {
-            name: "Self + Spouse + 5 Children",
+            name: "Self+Spouse+5 Children",
             code_name: "M+6",
             packages: [
                 {
