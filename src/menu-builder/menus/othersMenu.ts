@@ -240,11 +240,21 @@ const othersMenu = async (args, db) => {
             return response;
         }
 
-        let packages = selectedCover.packages.map((cover, index) => {
-            return `\n${index + 1}. ${cover.name} – UGX ${cover.premium}`
-        }).join("");
+        // let packages = selectedCover.packages.map((cover, index) => {
+        //     return `\n${index + 1}. ${cover.name} – UGX ${cover.premium}`
+        // }).join("");
 
-        response = "CON " + selectedCover.name  + packages
+       // response = "CON " + selectedCover.name  + packages
+
+      response=  "CON Buy for Other" +
+       "\n1. Mini – UGX 10,000" +
+       "\n2. Midi - UGX 14,000" +
+       "\n3. Biggie – UGX 18,000" +
+       "\n0.Back" +
+       "\n00.Main Menu"
+     
+
+        
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of Other or 1 child\n"

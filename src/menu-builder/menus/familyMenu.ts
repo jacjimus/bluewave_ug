@@ -537,17 +537,27 @@ const familyMenu = async (args, db) => {
         "\n01. Next"
     }
     else if (currentStep == 2) {
-        const selectedCover = covers[parseInt(userText) - 1];
-        if (!selectedCover) {
-            response = "END Invalid option";
-            return response;
-        }
-        const packages = selectedCover.packages.map((coverType, index) => {
-            return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`
-        }
-        ).join("");
+        // const selectedCover = covers[parseInt(userText) - 1];
+        // if (!selectedCover) {
+        //     response = "END Invalid option";
+        //     return response;
+        // }
+        // const packages = selectedCover.packages.map((coverType, index) => {
+        //     return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`
+        // }
+        // ).join("");
 
-        response = "CON " + selectedCover.name + packages
+        // response = "CON " + selectedCover.name + packages
+
+        response = "CON Buy for Other" +
+        "\n1. Mini – UGX 20,000" +
+        "\n2. Midi - UGX 28,000" +
+        "\n3. Biggie – UGX 35,000" +
+        "\n0.Back" +
+        "\n00.Main Menu"
+      
+
+        
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of spouse or 1 child\n"
