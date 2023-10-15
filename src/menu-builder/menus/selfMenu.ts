@@ -34,7 +34,7 @@ const selfMenu = async (args, db) => {
         switch (userText) {
             case "1":
                 const covers = coverTypes.map((coverType, index) => {
-                    return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`
+                    return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
                 }
                 ).join("");
 

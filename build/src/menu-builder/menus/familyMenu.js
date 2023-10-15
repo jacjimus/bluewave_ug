@@ -23,6 +23,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
     const User = db.users;
+    console.log("CURRENT STEP", currentStep);
     // covers for family
     const covers = [
         {
@@ -527,33 +528,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         }
     ];
     if (currentStep == 1) {
-        // const coversList = covers.slice(0,3).map((cover, index) => {
-        //     return `\n${index + 1}. ${cover.name}`
-        // }).join("");
-        // response = "CON Buy for family " + coversList;
-        response = "CON Buy for family " +
-            "\n1. Self + Spouse or Child" +
-            "\n2. Self + Spouse + 1 Child" +
-            "\n3. Self + Spouse + 2 Children" +
-            "\n01. Next";
+        const coversList = covers.slice(0, 3).map((cover, index) => {
+            return `\n${index + 1}. ${cover.name}`;
+        }).join("");
+        response = "CON Buy for family " + coversList;
     }
     else if (currentStep == 2) {
-        // const selectedCover = covers[parseInt(userText) - 1];
-        // if (!selectedCover) {
-        //     response = "END Invalid option";
-        //     return response;
-        // }
-        // const packages = selectedCover.packages.map((coverType, index) => {
-        //     return `\n${index + 1}. ${coverType.name} – UGX ${coverType.premium}`
-        // }
-        // ).join("");
-        // response = "CON " + selectedCover.name + packages
-        response = "CON Buy for Other" +
-            "\n1. Mini – UGX 20,000" +
-            "\n2. Midi - UGX 28,000" +
-            "\n3. Biggie – UGX 35,000" +
-            "\n0.Back" +
-            "\n00.Main Menu";
+        const selectedCover = covers[parseInt(userText) - 1];
+        if (!selectedCover) {
+            response = "END Invalid option";
+            return response;
+        }
+        const packages = selectedCover.packages.map((coverType, index) => {
+            return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`;
+        }).join("");
+        response = "CON " + selectedCover.name + packages;
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of spouse or 1 child\n";
@@ -567,8 +556,8 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         console.log("SELECTED COVER", selectedPackage);
         let coverText = `CON Inpatient cover for ${args.phoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
             "\nPAY:" +
-            `\n1-UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[0].premium} monthly` +
-            `\n2-UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[1].yearly_premium} yearly`;
+            `\n1. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[0].premium} monthly` +
+            `\n2. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[1].yearly_premium} yearly`;
         response = coverText;
     }
     else if (currentStep == 6) {

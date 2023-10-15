@@ -234,15 +234,10 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         }
     ];
     if (currentStep == 1) {
-        // let coversList = covers.slice(0,3).map((cover, index) => {
-        //     return `\n${index + 1}. ${cover.name}`
-        // }).join("")
-        // response = "CON Buy for Others" + coversList
-        response = "CON Buy for others " +
-            "\n1. Other " +
-            "\n2. Other + Spouse or Child" +
-            "\n3. Other + Spouse + 1 Children" +
-            "\n01. Next";
+        let coversList = covers.slice(0, 3).map((cover, index) => {
+            return `\n${index + 1}. ${cover.name}`;
+        }).join("");
+        response = "CON Buy for Others" + coversList;
     }
     else if (currentStep == 2) {
         let selectedCover = covers[parseInt(userText) - 1];
@@ -250,16 +245,10 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             response = "END Invalid option";
             return response;
         }
-        // let packages = selectedCover.packages.map((cover, index) => {
-        //     return `\n${index + 1}. ${cover.name} – UGX ${cover.premium}`
-        // }).join("");
-        // response = "CON " + selectedCover.name  + packages
-        response = "CON Buy for Other" +
-            "\n1. Mini – UGX 10,000" +
-            "\n2. Midi - UGX 14,000" +
-            "\n3. Biggie – UGX 18,000" +
-            "\n0.Back" +
-            "\n00.Main Menu";
+        let packages = selectedCover.packages.map((cover, index) => {
+            return `\n${index + 1}. ${cover.name} at UGX ${cover.premium}`;
+        }).join("");
+        response = "CON " + selectedCover.name + packages;
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of Other or 1 child\n";
