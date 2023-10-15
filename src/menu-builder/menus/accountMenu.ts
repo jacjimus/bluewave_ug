@@ -2,6 +2,7 @@ import sendSMS from "../../services/sendSMS";
 import { registerDependant, fetchMemberStatusData } from "../../services/aar";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
+import { Op } from "sequelize";
 
 const accountMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -17,7 +18,7 @@ const accountMenu = async (args: any, db: any) => {
     });
 
     let policyMessages = policies.map((policy: any, index: number) => {
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.sum_insured} is ${policy.status} and paid to ${new Date(policy.policy_end_date).toDateString()}`
+        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.sum_insured} is ${policy.policy_status} and paid to ${new Date(policy.nstallment_date).toDateString()}`
     });
 
 
@@ -136,7 +137,7 @@ const accountMenu = async (args: any, db: any) => {
     } else if (currentStep == 4) {
         const user = await db.users.findOne({
             where: {
-                phone_number: phoneNumber
+                [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
             }
         });
         const nextOfKinDetails = {

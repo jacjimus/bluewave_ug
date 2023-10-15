@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const uuid_1 = require("uuid");
 const payment_1 = require("../../services/payment");
+const sequelize_1 = require("sequelize");
 const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
@@ -26,7 +27,7 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
         }
     });
     let policyMessages = policies.map((policy, index) => {
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.sum_insured} is ${policy.status} and paid to ${new Date(policy.policy_end_date).toDateString()}`;
+        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.sum_insured} is ${policy.policy_status} and paid to ${new Date(policy.nstallment_date).toDateString()}`;
     });
     if (currentStep == 1) {
         response = "CON My Account" +
@@ -138,7 +139,7 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
     else if (currentStep == 4) {
         const user = yield db.users.findOne({
             where: {
-                phone_number: phoneNumber
+                [sequelize_1.Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
             }
         });
         const nextOfKinDetails = {

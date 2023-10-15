@@ -52,6 +52,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true
         },
+        claim_death_date: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
     });
     Claim.belongsTo(sequelize.models.policy, {
         foreignKey: "policy_id",

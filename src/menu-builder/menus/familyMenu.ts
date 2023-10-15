@@ -658,6 +658,7 @@ const familyMenu = async (args, db) => {
                 last_expense_insured: parseAmount(selectedPackage.last_expense_insured),
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
                 policy_start_date: new Date(),
+                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : new Date(),
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 beneficiary: "FAMILY",
                 policy_status: "pending",
