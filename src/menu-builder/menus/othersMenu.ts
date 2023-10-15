@@ -226,13 +226,13 @@ const othersMenu = async (args, db) => {
             return `\n${index + 1}. ${cover.name}`
         }).join("")
 
-        response = "CON Buy for Others" + coversList
+        response = "CON Buy for Others" + coversList + "\n0. Back";
 
 
     } else if (currentStep == 2) {
         let selectedCover = covers[parseInt(userText) - 1];
         if (!selectedCover) {
-            response = "END Invalid option";
+            response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
             return response;
         }
 
@@ -240,7 +240,7 @@ const othersMenu = async (args, db) => {
             return `\n${index + 1}. ${cover.name} at UGX ${cover.premium}`
         }).join("");
 
-        response = "CON " + selectedCover.name + packages
+        response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
 
 
@@ -260,7 +260,7 @@ const othersMenu = async (args, db) => {
         response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCover.sum_insured} a year` +
             "\nPAY:" +
             `\n1-UGX ${selectedCover.premium} monthly` +
-            `\n2-UGX ${selectedCover.yearly_premium} yearly`
+            `\n2-UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 6) {
         const selectedCover = covers[parseInt(allSteps[1]) - 1];
@@ -269,7 +269,7 @@ const othersMenu = async (args, db) => {
 
         response = `CON Pay UGX ${selectedCover.premium} ${period}.` +
             `\nTerms&Conditions - www.airtel.com` +
-            `\nEnter 1 to Agree and Pay `
+            `\nEnter 1 to Agree and Pay ` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 7) {
         if (userText == "1") {

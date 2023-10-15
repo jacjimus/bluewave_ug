@@ -33,7 +33,7 @@ const claimMenu = async (args, db) => {
                 });
 
                 if (!policy) {
-                    response = "END No policy found";
+                    response = "CON No policy found" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
 
@@ -54,7 +54,7 @@ const claimMenu = async (args, db) => {
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
                 break;
             case "2":
-                response = "CON Enter phone of next of Kin e.g 0759608107"
+                response = "CON Enter phone of next of Kin e.g 0759608107" 
                 break;
         }
     }
@@ -93,7 +93,7 @@ const claimMenu = async (args, db) => {
         });
 
         if (!policy) {
-            response = "END No policy found";
+            response = "CON No policy found" + "\n0. Back \n00. Main Menu";
             return response;
         }
 
@@ -122,7 +122,7 @@ const claimMenu = async (args, db) => {
         });
 
         if (!beneficiary) {
-            response = "END No beneficiary found";
+            response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
             return response;
         }
 

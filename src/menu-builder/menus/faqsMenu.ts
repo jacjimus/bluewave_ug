@@ -48,8 +48,10 @@ const faqsMenu = async (args) => {
     if (userText === '0' || currentStep === 1) {
         response = "CON FAQs" +
             faqs.map((faq, index) => {
-                return `\n${index + 1}. ${faq.question}`
-            }).join("")
+                return `\n${index + 1}. ${faq.question}` 
+            }).join("") +
+            "\n0. Back" +
+            "\n00. Main Menu"
 
     }
 

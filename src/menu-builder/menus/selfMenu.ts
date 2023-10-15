@@ -37,20 +37,20 @@ const selfMenu = async (args, db) => {
                 }
                 ).join("");
 
-                response = "CON Buy for self " + covers
+                response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
                 break;
         }
     }
     else if (currentStep === 2) {
         let coverType = coverTypes[parseInt(userText) - 1];
         if (!coverType) {
-            response = "END Invalid option";
+            response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
             return response;
         }
         response = `CON Inpatient cover for ${args.phoneNumber}, UGX ${coverType.sum_insured} a year` +
             "\nPAY:" +
             `\n1-UGX ${coverType.premium} monthly` +
-            `\n2-UGX ${coverType.yearly_premium} yearly`
+            `\n2-UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep === 3) {
         let paymentOption = parseInt(userText);
@@ -59,7 +59,7 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nEnter 1 to Agree and Pay`;
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nEnter 1 to Agree and Pay \n0. Back \n00. Main Menu`;
 
     }
     else if (currentStep === 4) {
