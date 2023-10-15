@@ -28,8 +28,7 @@ const selfMenu = async (args, db) => {
         yearly_premium: "208,000",
         last_expense_insured: "2M"
     }];
-    // Note: userText is the last item selected by the user
-    console.log("ALL STEPS", allSteps);
+
     if (currentStep === 1) {
         switch (userText) {
             case "1":
@@ -60,11 +59,7 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}.
-        Terms&Conditions - www.airtel.com
-        Enter 1 to Agree and Pay 
-        \n0 .Back
-         00 .Main Menu`;
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nEnter 1 to Agree and Pay`;
 
     }
     else if (currentStep === 4) {

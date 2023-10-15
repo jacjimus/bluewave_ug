@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         hospital_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: true
         },
         hospital_name: {

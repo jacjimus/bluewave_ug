@@ -23,6 +23,7 @@ const termsMenu_1 = __importDefault(require("./menus/termsMenu"));
 const othersMenu_1 = __importDefault(require("./menus/othersMenu"));
 const claimMenu_1 = __importDefault(require("./menus/claimMenu"));
 const accountMenu_1 = __importDefault(require("./menus/accountMenu"));
+const hospitalMenu_1 = __importDefault(require("./menus/hospitalMenu"));
 require("dotenv").config();
 const Session = db_1.db.sessions;
 const User = db_1.db.users;
@@ -98,7 +99,7 @@ function default_1(args, db) {
                 response = yield (0, accountMenu_1.default)(params, db);
             }
             else if (firstStep == "6") {
-                response = "CON Enter your location";
+                response = yield (0, hospitalMenu_1.default)(params, db);
             }
             else if (firstStep == "7") {
                 response = yield (0, termsMenu_1.default)(params);

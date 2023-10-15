@@ -23,6 +23,7 @@ import termsAndConditions from "./menus/termsMenu";
 import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
+import hospitalMenu from "./menus/hospitalMenu";
 
 require("dotenv").config();
 
@@ -112,7 +113,7 @@ export default function (args: RequestBody, db: any) {
         response = await accountMenu(params, db);
       }
       else if (firstStep == "6") {
-        response = "CON Enter your location";
+        response = await hospitalMenu(params, db);
       }
       else if (firstStep == "7") {
         response = await termsAndConditions(params);
