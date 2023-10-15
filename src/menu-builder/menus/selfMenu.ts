@@ -10,23 +10,32 @@ const selfMenu = async (args, db) => {
     const coverTypes = [{
         name: "MINI",
         sum_insured: "1.5M",
+        sumInsured: 1500000,
         premium: "10,000",
         yearly_premium: "120,000",
-        last_expense_insured: "1M"
+        yearPemium: 120000,
+        last_expense_insured: "1M",
+        lastExpenseInsured: 1000000
     },
     {
         name: "MIDI",
         sum_insured: "3M",
+        sumInsured: 1500000,
         premium: "14,000",
         yearly_premium: "167,000",
-        last_expense_insured: "1.5M"
+        yearPemium: 167000,
+        last_expense_insured: "1.5M",
+        lastExpenseInsured: 1500000
     },
     {
         name: "BIGGIE",
         sum_insured: "5M",
+        sumInsured: 1500000,
         premium: "18,000",
         yearly_premium: "208,000",
-        last_expense_insured: "2M"
+        yearPemium: 208000,
+        last_expense_insured: "2M",
+        lastExpenseInsured: 2000000
     }];
 
     if (currentStep === 1) {
@@ -47,7 +56,8 @@ const selfMenu = async (args, db) => {
             response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
             return response;
         }
-        response = `CON Inpatient cover for ${args.phoneNumber}, UGX ${coverType.sum_insured} a year` +
+        let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
+        response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
             "\nPAY:" +
             `\n1-UGX ${coverType.premium} monthly` +
             `\n2-UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -122,6 +132,9 @@ const selfMenu = async (args, db) => {
 
             let ultimatePremium = calculatePaymentOptions(policy_type, installment_type);
             console.log("ULTIMATE PREMIUM", ultimatePremium);
+ //next month minus 1 day
+             let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
+
 
 
             let policyObject = {
@@ -130,13 +143,13 @@ const selfMenu = async (args, db) => {
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: ultimatePremium.premium,
-                sum_insured: parseAmount(selectedPolicyType.sum_insured),
+                sum_insured: selectedPolicyType.sumInsured,
                 premium: ultimatePremium.premium,
-                yearly_premium: parseAmount(selectedPolicyType.yearly_premium),
-                last_expense_insured: parseAmount(selectedPolicyType.last_expense_insured),
+                yearly_premium: selectedPolicyType.yearPemium,
+                last_expense_insured: selectedPolicyType.lastExpenseInsured,
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
                 policy_start_date: new Date(),
-                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : new Date(),
+                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 beneficiary: "SELF",
                 policy_status: "pending",
@@ -147,6 +160,7 @@ const selfMenu = async (args, db) => {
                 product_id: "d18424d6-5316-4e12-9826-302b866a380c",
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
+                
             }
             console.log("POLICY OBJECT", policyObject);
 

@@ -555,7 +555,8 @@ const familyMenu = async (args, db) => {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     console.log("SELECTED COVER", selectedPackage)
-    let coverText = `CON Inpatient cover for ${args.phoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
+    let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
+    let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
       "\nPAY:" +
       `\n1. UGX ${selectedPackage?.payment_options[0].premium} monthly` +
       `\n2. UGX ${selectedPackage?.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -649,6 +650,10 @@ const familyMenu = async (args, db) => {
       let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
       console.log("ULTIMATE PREMIUM", ultimatePremium);
 
+      //next month minus 1 day
+      let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
+
+
       let policyObject = {
         policy_id: uuidv4(),
         installment_type,
@@ -661,7 +666,7 @@ const familyMenu = async (args, db) => {
         last_expense_insured: parseAmount(selectedPackage.last_expense_insured),
         policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
         policy_start_date: new Date(),
-        installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : new Date(),
+        installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         beneficiary: "FAMILY",
         policy_status: "pending",

@@ -132,12 +132,58 @@ export function calculatePaymentOptions(policyType: string, paymentOption: numbe
 }
 
 export const parseAmount = (amount) => {
-  amount = amount.replace(/,/g, "");
-  if (amount.includes("K")) {
-    return parseInt(amount) * 1000;
-  } else if (amount.includes("M")) {
-    return parseInt(amount) * 1000000;
+  // Remove commas and any trailing white spaces
+  amount = amount.replace(/,/g, "").trim();
+
+  if (amount.includes("M")) {
+    // Check if it's in millions (e.g., 1.5M)
+    const parts = amount.split("M");
+    if (parts.length === 2) {
+      const wholePart = parseInt(parts[0]);
+      const decimalPart = parseFloat(`0.${parts[1]}`);
+      return (wholePart + decimalPart) * 1000000;
+    }
+  } else if (amount.includes("K")) {
+    // Check if it's in thousands (e.g., 3500K or 3.5M)
+    const parts = amount.split("K");
+    if (parts.length === 2) {
+      const wholePart = parseInt(parts[0]);
+      const decimalPart = parseFloat(`0.${parts[1]}`);
+      return (wholePart + decimalPart) * 1000;
+    }
   } else {
+    // Handle other formats, like plain integers
     return parseInt(amount);
   }
+  return NaN; // Return NaN for unsupported formats
 }
+
+export const formatAmount=(number: number)=> {
+  const formattedNumber = (number / 1000000).toFixed(1);
+  return formattedNumber + "M";
+}
+
+
+    //   const proration_benefit_table = {
+    //     '1-3months': 10,
+    //     '4-6months': 40,
+    //     '7-9months': 60,
+    //     '10-11months': 80,
+    //     '12months': 100
+    // };
+
+    export const calculateProrationPercentage=(installments: number) =>{
+      if (installments >= 1 && installments <= 3) {
+          return 10;
+      } else if (installments >= 4 && installments <= 6) {
+          return 40;
+      } else if (installments >= 7 && installments <= 9) {
+          return 60;
+      } else if (installments >= 10 && installments <= 11) {
+          return 80;
+      } else if (installments === 12) {
+          return 100;
+      } else {
+          return 0;
+      }
+  }

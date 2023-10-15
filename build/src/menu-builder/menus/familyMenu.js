@@ -18,7 +18,7 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const utils_1 = require("../../services/utils");
 const getAirtelUser_1 = require("../../services/getAirtelUser");
 const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     let { phoneNumber, text, response, currentStep, previousStep, userText, allSteps } = args;
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
@@ -554,7 +554,8 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         const selectedCover = covers[parseInt(allSteps[1]) - 1];
         const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
         console.log("SELECTED COVER", selectedPackage);
-        let coverText = `CON Inpatient cover for ${args.phoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
+        let userPhoneNumber = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
+        let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
             "\nPAY:" +
             `\n1. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[0].premium} monthly` +
             `\n2. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -573,7 +574,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         if (userText == "1") {
             let existingUser = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-            let phone = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
+            let phone = (_b = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _b === void 0 ? void 0 : _b.substring(3);
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             console.log("SELECTED POLICY TYPE", selectedPolicyType);
             if (existingUser) {
@@ -634,6 +635,8 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
             let ultimatePremium = (0, utils_1.parseAmount)(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
             console.log("ULTIMATE PREMIUM", ultimatePremium);
+            //next month minus 1 day
+            let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type,
@@ -646,7 +649,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 last_expense_insured: (0, utils_1.parseAmount)(selectedPackage.last_expense_insured),
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
                 policy_start_date: new Date(),
-                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : new Date(),
+                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 beneficiary: "FAMILY",
                 policy_status: "pending",

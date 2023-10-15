@@ -362,6 +362,9 @@ const othersMenu = async (args, db) => {
       // };
 
       let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+      
+      let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
+
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -375,7 +378,7 @@ const othersMenu = async (args, db) => {
         last_expense_insured: parseAmount(selectedPolicyType.last_expense_insured),
         policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
         policy_start_date: new Date(),
-        installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : new Date(),
+        installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         beneficiary: "OTHER",
         policy_status: "pending",

@@ -3,6 +3,7 @@ import { registerDependant, fetchMemberStatusData } from "../../services/aar";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";
+import { calculateProrationPercentage, formatAmount } from "../../services/utils";
 
 const accountMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -18,10 +19,13 @@ const accountMenu = async (args: any, db: any) => {
     });
 
     let policyMessages = policies.map((policy: any, index: number) => {
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium} is ${policy.policy_status} and paid to ${new Date(policy.installment_date).toDateString()}`
+        //10000  to 10,000
+        
+        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
     });
-
-
+  
+   
+  
 
     if (currentStep == 1) {
         response = "CON My Account" +
@@ -49,8 +53,8 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 else {
                     response = "CON PAY" +
-                        `\n1-UGX ${unpaidPolicies[0].premium}  monthly` +
-                        `\n2-UGX ${unpaidPolicies[0].yearly_premium}  yearly`
+                        `\n1-UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
+                        `\n2-UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
                 }
                 break;
             case "3":
@@ -83,10 +87,18 @@ const accountMenu = async (args: any, db: any) => {
                 if (userText == "1" && policies.length > 1) {
                     response = `CON ${policyMessages[1]}\n1. Next`
                 } else if (userText == "1" && policies.length == 1) {
-                    response = `END Your outstanding premium is UGX ${policies[0].premium
-                        }\nYour available inpatient limit is UGX ${policies[0].sum_insured
-                        } and Funeral expense of UGX ${policies[0].last_expense_insured
+                    if(policies[0].installment_type == 1){
+                        response = `END Your available inpatient limit is UGX ${formatAmount(policies[0].sum_insured)
+                        } and Funeral expense of UGX ${formatAmount(policies[0].last_expense_insured)
                         }`
+
+                    }else{
+                          let proratedPercentage = calculateProrationPercentage(policies[0].installment_order)
+                    response = `END Your outstanding premium is UGX ${policies[0].premium.toLocaleString()
+                        }\nYour available inpatient limit is UGX ${formatAmount(policies[0].sum_insured /  proratedPercentage)
+                        } and Funeral expense of UGX ${formatAmount(policies[0].last_expense_insured / proratedPercentage)
+                        }`
+                    }
                 }
                 break;
             case "2":

@@ -19,6 +19,7 @@ const sendSMS_1 = __importDefault(require("../services/sendSMS"));
 const db_1 = require("../models/db");
 const uuid_1 = require("uuid");
 const aar_1 = require("../services/aar");
+const utils_1 = require("../services/utils");
 const Transaction = db_1.db.transactions;
 const Payment = db_1.db.payments;
 const Policy = db_1.db.policies;
@@ -56,7 +57,7 @@ const updateUserPolicyStatus = (policy, amount, installment_order, installment_t
     console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type);
     let date = new Date();
     amount = parseInt(amount);
-    let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
+    let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, date.getDay() - 3);
     policy.policy_status = "paid";
     policy.policy_paid_date = new Date();
     if (installment_order == 12) {
@@ -67,8 +68,10 @@ const updateUserPolicyStatus = (policy, amount, installment_order, installment_t
         policy.installment_order = installment_order;
         policy.installment_alert_date = installment_alert_date;
     }
-    policy.policy_paid_amount += amount;
-    policy.policy_pending_premium -= amount;
+    if (policy.policy_paid_amount !== policy.premium) {
+        policy.policy_paid_amount += amount;
+        policy.policy_pending_premium -= amount;
+    }
     console.log("UPDATE STATUS WAS CALLED", policy);
     yield policy.save();
     return policy;
@@ -173,20 +176,21 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
                 // Cover valid till <date>
                 const members = (_d = policy.total_member_number) === null || _d === void 0 ? void 0 : _d.match(/\d+(\.\d+)?/g);
-                function formatSumInsured(number) {
-                    const formattedNumber = (number / 1000000).toFixed(1);
-                    return formattedNumber + "M";
-                }
-                const sumInsured = formatSumInsured(policy.sum_insured);
-                const lastExpenseInsured = formatSumInsured(policy.last_expense_insured);
+                console.log("MEMBERS", members, policy.total_member_number);
+                const sumInsured = (0, utils_1.formatAmount)(policy.sum_insured);
+                const lastExpenseInsured = (0, utils_1.formatAmount)(policy.last_expense_insured);
                 console.log("SUM INSURED", sumInsured);
                 console.log("LAST EXPENSE INSURED", lastExpenseInsured);
-                let familyText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
-                let selfText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
-                // let othersText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${policy.sum_insured} and Funeral benefit of ${policy.last_expense_insured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
-                console.log("FAMILY TEXT", familyText);
-                // let congratText = policy.beneficiary == "SELF" ? selfText : policy.beneficiary == "FAMILY" ? familyText : othersText;
-                let congratText = policy.beneficiary == "SELF" ? selfText : familyText;
+                const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+                let congratText = "";
+                if (policy.beneficiary == "FAMILY") {
+                    congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+                }
+                else if (policy.beneficiary == "SELF")
+                    congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+                else if (policy.beneficiary == "OTHER") {
+                    congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
+                }
                 yield (0, sendSMS_1.default)(to, congratText);
                 return res.status(200).json({
                     code: 200,

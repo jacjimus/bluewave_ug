@@ -18,28 +18,37 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const utils_1 = require("../../services/utils");
 const getAirtelUser_1 = require("../../services/getAirtelUser");
 const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
     const coverTypes = [{
             name: "MINI",
             sum_insured: "1.5M",
+            sumInsured: 1500000,
             premium: "10,000",
             yearly_premium: "120,000",
-            last_expense_insured: "1M"
+            yearPemium: 120000,
+            last_expense_insured: "1M",
+            lastExpenseInsured: 1000000
         },
         {
             name: "MIDI",
             sum_insured: "3M",
+            sumInsured: 1500000,
             premium: "14,000",
             yearly_premium: "167,000",
-            last_expense_insured: "1.5M"
+            yearPemium: 167000,
+            last_expense_insured: "1.5M",
+            lastExpenseInsured: 1500000
         },
         {
             name: "BIGGIE",
             sum_insured: "5M",
+            sumInsured: 1500000,
             premium: "18,000",
             yearly_premium: "208,000",
-            last_expense_insured: "2M"
+            yearPemium: 208000,
+            last_expense_insured: "2M",
+            lastExpenseInsured: 2000000
         }];
     if (currentStep === 1) {
         switch (userText) {
@@ -57,7 +66,8 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
             return response;
         }
-        response = `CON Inpatient cover for ${args.phoneNumber}, UGX ${coverType.sum_insured} a year` +
+        let userPhoneNumber = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
+        response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
             "\nPAY:" +
             `\n1-UGX ${coverType.premium} monthly` +
             `\n2-UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -73,7 +83,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         if (userText == "1") {
             let existingUser = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-            let phone = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
+            let phone = (_b = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _b === void 0 ? void 0 : _b.substring(3);
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             // create user
             if (existingUser) {
@@ -123,19 +133,21 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             let period = installment_type == 1 ? "yearly" : "monthly";
             let ultimatePremium = (0, utils_1.calculatePaymentOptions)(policy_type, installment_type);
             console.log("ULTIMATE PREMIUM", ultimatePremium);
+            //next month minus 1 day
+            let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type: installment_type == 1 ? 2 : 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: ultimatePremium.premium,
-                sum_insured: (0, utils_1.parseAmount)(selectedPolicyType.sum_insured),
+                sum_insured: selectedPolicyType.sumInsured,
                 premium: ultimatePremium.premium,
-                yearly_premium: (0, utils_1.parseAmount)(selectedPolicyType.yearly_premium),
-                last_expense_insured: (0, utils_1.parseAmount)(selectedPolicyType.last_expense_insured),
+                yearly_premium: selectedPolicyType.yearPemium,
+                last_expense_insured: selectedPolicyType.lastExpenseInsured,
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
                 policy_start_date: new Date(),
-                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : new Date(),
+                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 beneficiary: "SELF",
                 policy_status: "pending",
