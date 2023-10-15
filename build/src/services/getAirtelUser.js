@@ -48,7 +48,7 @@ function getUserByPhoneNumber(phoneNumber, partner_id) {
                     partner_id: partner_id,
                 });
                 // WELCOME SMS
-                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
                 yield (0, sendSMS_1.default)(user.phone_number, message);
                 console.log("USER FOR AIRTEL API", user);
             }
@@ -113,7 +113,7 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
             //     partner_id: partner_id,
             //   });
             //   // WELCOME SMS
-            //   const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id} and Ddwaliro PIN: ${user.pin}. Dial *185*4*4# to access your account.`;
+            //   const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
             //   await sendSMS(user.phone_number, message);
             //   console.log("USER FOR AIRTEL API", user);
             //   return user ? user : null;

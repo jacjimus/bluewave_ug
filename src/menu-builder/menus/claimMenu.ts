@@ -21,9 +21,10 @@ const claimMenu = async (args, db) => {
                 let claim_type = "Inpatient Claim";
                 let user = await db.users.findOne({
                     where: {
-                        phone_number: args.phoneNumber,
+                        phone_number: args.phoneNumber.replace('+', "")?.substring(3),
                     },
                 });
+                console.log("USER ID", user.user_id);
 
                 const policy = await db.policies.findOne({
                     where: {
@@ -31,6 +32,8 @@ const claimMenu = async (args, db) => {
                         policy_status: "paid",
                     },
                 });
+
+                console.log("POLICY", policy);
 
                 if (!policy) {
                     response = "CON No policy found" + "\n0. Back \n00. Main Menu";

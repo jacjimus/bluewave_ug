@@ -300,7 +300,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                         role: "user",
                     });
                     console.log("USER DOES NOT EXIST", user);
-                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
+                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
                     yield (0, sendSMS_1.default)(fullPhone, message);
                 }
                 else {
@@ -701,7 +701,7 @@ exports.default = othersMenu;
           });
 
           console.log("NEW USER", newUser);
-          const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id} and Ddwaliro PIN: ${newUser.pin}. Dial *187*7*6# to access your account.`;
+          const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id}. Dial *187*7*6# to access your account.`;
           await sendSMS(otherPhone, message);
 
           let otherPolicy = await Policy.findOne({

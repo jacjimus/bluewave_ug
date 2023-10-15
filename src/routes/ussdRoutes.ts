@@ -122,7 +122,7 @@ router.all("/callback", async (req, res) => {
       }
 
       const beneficiary = await Beneficiary.findOne({ where: { user_id } });
-      const to = user.phone_number;
+      const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
       const policyType = policy.policy_type.toUpperCase();
       const period = policy.installment_type == 1 ? "yearly" : "monthly";
 

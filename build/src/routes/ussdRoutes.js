@@ -83,7 +83,7 @@ const updateUserPolicyStatus = (policy, amount, installment_order, installment_t
 // }
 // POST and GET request handler
 router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b, _c, _d;
     try {
         if (req.method === "POST" || req.method === "GET") {
             const { transaction } = req.body;
@@ -107,7 +107,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 return res.status(404).json({ message: "Policy not found" });
             }
             const beneficiary = yield Beneficiary.findOne({ where: { user_id } });
-            const to = user.phone_number;
+            const to = ((_a = user.phone_number) === null || _a === void 0 ? void 0 : _a.startsWith("7")) ? `+256${user.phone_number}` : ((_b = user.phone_number) === null || _b === void 0 ? void 0 : _b.startsWith("0")) ? `+256${user.phone_number.substring(1)}` : ((_c = user.phone_number) === null || _c === void 0 ? void 0 : _c.startsWith("+")) ? user.phone_number : `+256${user.phone_number}`;
             const policyType = policy.policy_type.toUpperCase();
             const period = policy.installment_type == 1 ? "yearly" : "monthly";
             if (status_code === "TS") {
@@ -172,7 +172,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 console.log("=== UPDATED PREMIUM DATA ===", updatePremiumData);
                 //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
                 // Cover valid till <date>
-                const members = (_a = user.total_member_number) === null || _a === void 0 ? void 0 : _a.match(/\d+(\.\d+)?/g);
+                const members = (_d = user.total_member_number) === null || _d === void 0 ? void 0 : _d.match(/\d+(\.\d+)?/g);
                 let familyText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
                 let selfText = `Congratulations! You are covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
                 // let othersText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${policy.sum_insured} and Funeral benefit of ${policy.last_expense_insured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;

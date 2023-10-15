@@ -596,7 +596,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                         role: "user",
                     });
                     console.log("USER DOES NOT EXIST", user);
-                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
+                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
                     yield (0, sendSMS_1.default)(fullPhone, message);
                 }
                 else {

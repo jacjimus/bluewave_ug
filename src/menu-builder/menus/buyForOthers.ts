@@ -303,10 +303,11 @@ export function buyForOthers(menu: any, args: any, db: any): void {
             phone_number: otherPhone,
             role: "user",
             partner_id: existingUser.partner_id,
+          
           });
 
           console.log("NEW USER", newUser);
-          const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id} and Ddwaliro PIN: ${newUser.pin}. Dial *187*7*6# to access your account.`;
+          const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id}. Dial *187*7*6# to access your account.`;
           await sendSMS(otherPhone, message);
 
           let otherPolicy = await Policy.findOne({

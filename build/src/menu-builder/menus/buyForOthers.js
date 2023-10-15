@@ -288,7 +288,7 @@ function buyForOthers(menu, args, db) {
                 partner_id: existingUser.partner_id,
             });
             console.log("NEW USER", newUser);
-            const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id} and Ddwaliro PIN: ${newUser.pin}. Dial *187*7*6# to access your account.`;
+            const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id}. Dial *187*7*6# to access your account.`;
             yield (0, sendSMS_1.default)(otherPhone, message);
             let otherPolicy = yield Policy.findOne({
                 where: { user_id: existingUser === null || existingUser === void 0 ? void 0 : existingUser.user_id, beneficiary: "OTHERS" },

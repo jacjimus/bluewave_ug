@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("../../services/utils");
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
     let { response, currentStep, userText, allSteps } = args;
     if (currentStep === 1) {
         response = "CON Make Claim " +
@@ -31,15 +31,17 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 let claim_type = "Inpatient Claim";
                 let user = yield db.users.findOne({
                     where: {
-                        phone_number: args.phoneNumber,
+                        phone_number: (_a = args.phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3),
                     },
                 });
+                console.log("USER ID", user.user_id);
                 const policy = yield db.policies.findOne({
                     where: {
                         user_id: user.user_id,
                         policy_status: "paid",
                     },
                 });
+                console.log("POLICY", policy);
                 if (!policy) {
                     response = "CON No policy found" + "\n0. Back \n00. Main Menu";
                     return response;
@@ -122,8 +124,8 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
             return response;
         }
-        const beneficiaryPhone = ((_a = beneficiary.phone_number) === null || _a === void 0 ? void 0 : _a.startsWith('+')) ? beneficiary.phone_number : `+${beneficiary.phone_number}`;
-        const userPhone = ((_b = user.phone_number) === null || _b === void 0 ? void 0 : _b.startsWith('+')) ? user.phone_number : `+${user.phone_number}`;
+        const beneficiaryPhone = ((_b = beneficiary.phone_number) === null || _b === void 0 ? void 0 : _b.startsWith('+')) ? beneficiary.phone_number : `+${beneficiary.phone_number}`;
+        const userPhone = ((_c = user.phone_number) === null || _c === void 0 ? void 0 : _c.startsWith('+')) ? user.phone_number : `+${user.phone_number}`;
         const sms = 'Your claim documents have been received. Your claim is being processed.';
         yield (0, sendSMS_1.default)(beneficiaryPhone || userPhone, sms);
         response = `END Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`;
