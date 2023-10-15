@@ -395,21 +395,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '75,000',
                     sum_insured: '3M',
                     last_expense_insured: '1.5M',
-                    year_premium: '750,000',
+                    year_premium: '860,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '75,000',
-                            yearly_premium: '750,000',
+                            yearly_premium: '860,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '750,000',
-                            yearly_premium: '750,000',
+                            premium: '860,000',
+                            yearly_premium: '860,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -421,21 +421,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '93,000',
                     sum_insured: '5M',
                     last_expense_insured: '2M',
-                    year_premium: '930,000',
+                    year_premium: '1,060,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '93,000',
-                            yearly_premium: '930,000',
+                            yearly_premium: '1,060,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '930,000',
-                            yearly_premium: '930,000',
+                            premium: '1,060,000',
+                            yearly_premium: '1,060,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -478,21 +478,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '88,000',
                     sum_insured: '3M',
                     last_expense_insured: '1.5M',
-                    year_premium: '880,000',
+                    year_premium: '1,010,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '88,000',
-                            yearly_premium: '880,000',
+                            yearly_premium: '1,010,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '880,000',
-                            yearly_premium: '880,000',
+                            premium: '1,010,000',
+                            yearly_premium: '1,010,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -504,21 +504,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '108,000',
                     sum_insured: '5M',
                     last_expense_insured: '2M',
-                    year_premium: '1,080,000',
+                    year_premium: '1,238,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '108,000',
-                            yearly_premium: '1,080,000',
+                            yearly_premium: '1,238,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '1,080,000',
-                            yearly_premium: '1,080,000',
+                            premium: '1,238,000',
+                            yearly_premium: '1,238,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
