@@ -27,7 +27,7 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
         }
     });
     let policyMessages = policies.map((policy, index) => {
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.sum_insured} is ${policy.policy_status} and paid to ${new Date(policy.nstallment_date).toDateString()}`;
+        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium} is ${policy.policy_status} and paid to ${new Date(policy.installment_date).toDateString()}`;
     });
     if (currentStep == 1) {
         response = "CON My Account" +

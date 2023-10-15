@@ -154,7 +154,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 //        Cover valid till ${policy.policy_end_date.toDateString()}`;
             }
             else {
-                response = `END Sorry, your payment was not successful. 
+                response = `CON Sorry, your payment was not successful. 
                     \n0. Back \n00. Main Menu`;
             }
         }

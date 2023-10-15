@@ -666,7 +666,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment";
             }
             else {
-                response = `END Sorry, your payment was not successful. 
+                response = `CON Sorry, your payment was not successful. 
                     \n0. Back \n00. Main Menu`;
             }
         }

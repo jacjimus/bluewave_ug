@@ -694,7 +694,7 @@ const familyMenu = async (args, db) => {
 
                 response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
             } else {
-                response = `END Sorry, your payment was not successful. 
+                response = `CON Sorry, your payment was not successful. 
                     \n0. Back \n00. Main Menu`;
             }
         } else {

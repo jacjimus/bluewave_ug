@@ -164,7 +164,7 @@ const selfMenu = async (args, db) => {
                 // response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.
                 //        Cover valid till ${policy.policy_end_date.toDateString()}`;
             } else {
-                response = `END Sorry, your payment was not successful. 
+                response = `CON Sorry, your payment was not successful. 
                     \n0. Back \n00. Main Menu`;
             }
         } else {
