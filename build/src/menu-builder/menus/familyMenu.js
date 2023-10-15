@@ -567,7 +567,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let period = selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[parseInt(userText) - 1].period;
         response = `CON Pay UGX ${premium} ${period}` +
             `\nTerms&Conditions - www.airtel.com` +
-            `\n. Enter 1 to Agree and Pay` + "\n0. Back \n00. Main Menu";
+            `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
     }
     else if (currentStep == 7) {
         if (userText == "1") {

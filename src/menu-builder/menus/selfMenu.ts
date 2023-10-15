@@ -59,7 +59,7 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nEnter 1 to Agree and Pay \n0. Back \n00. Main Menu`;
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
 
     }
     else if (currentStep === 4) {

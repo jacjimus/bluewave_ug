@@ -269,7 +269,7 @@ const othersMenu = async (args, db) => {
 
     response = `CON Pay UGX ${selectedCover.premium} ${period}.` +
       `\nTerms&Conditions - www.airtel.com` +
-      `\nEnter 1 to Agree and Pay ` + "\n0. Back \n00. Main Menu";
+      `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
     if (userText == "1") {

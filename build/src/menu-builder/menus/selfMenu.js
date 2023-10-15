@@ -67,7 +67,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
         let policy_type = selectedPolicyType.name;
         let options = (0, utils_1.calculatePaymentOptions)(policy_type, paymentOption);
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nEnter 1 to Agree and Pay \n0. Back \n00. Main Menu`;
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
     }
     else if (currentStep === 4) {
         if (userText == "1") {
