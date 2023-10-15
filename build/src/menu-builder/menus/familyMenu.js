@@ -145,7 +145,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '40,000',
                     sum_insured: '3M',
                     last_expense_insured: '1.5M',
-                    year_premium: '400,000',
+                    year_premium: '467,000',
                     payment_options: [
                         {
                             name: 'Monthly',
@@ -158,8 +158,8 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '400,000',
-                            yearly_premium: '400,000',
+                            premium: '467,000',
+                            yearly_premium: '467,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -171,21 +171,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '50,000',
                     sum_insured: '5M',
                     last_expense_insured: '2M',
-                    year_premium: '500,000',
+                    year_premium: '577,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '50,000',
-                            yearly_premium: '500,000',
+                            yearly_premium: '577,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '500,000',
-                            yearly_premium: '500,000',
+                            premium: '577,000',
+                            yearly_premium: '577,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -229,21 +229,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '50,000',
                     sum_insured: '3M',
                     last_expense_insured: '1.5M',
-                    year_premium: '467,000',
+                    year_premium: '590,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '50,000',
-                            yearly_premium: '467,000',
+                            yearly_premium: '590,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '467,000',
-                            yearly_premium: '467,000',
+                            premium: '590,000',
+                            yearly_premium: '590,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -255,21 +255,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '65,000',
                     sum_insured: '5M',
                     last_expense_insured: '2M',
-                    year_premium: '650,000',
+                    year_premium: '740,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '65,000',
-                            yearly_premium: '650,000',
+                            yearly_premium: '740,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '650,000',
-                            yearly_premium: '650,000',
+                            premium: '740,000',
+                            yearly_premium: '740,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -312,21 +312,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '63,000',
                     sum_insured: '3M',
                     last_expense_insured: '1.5M',
-                    year_premium: '590,000',
+                    year_premium: '720,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '63,000',
-                            yearly_premium: '590,000',
+                            yearly_premium: '720,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '590,000',
-                            yearly_premium: '590,000',
+                            premium: '720,000',
+                            yearly_premium: '720,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -338,21 +338,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     premium: '77,000',
                     sum_insured: '5M',
                     last_expense_insured: '2M',
-                    year_premium: '770,000',
+                    year_premium: '885,000',
                     payment_options: [
                         {
                             name: 'Monthly',
                             code_name: 'monthly',
                             premium: '77,000',
-                            yearly_premium: '770,000',
+                            yearly_premium: '885,000',
                             installment_type: 1,
                             period: 'monthly'
                         },
                         {
                             name: 'Yearly',
                             code_name: 'yearly',
-                            premium: '770,000',
-                            yearly_premium: '770,000',
+                            premium: '885,000',
+                            yearly_premium: '885,000',
                             installment_type: 2,
                             period: 'yearly'
                         }
@@ -531,18 +531,18 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         const coversList = covers.map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`;
         }).join("");
-        response = "CON Buy for family " + coversList;
+        response = "CON Buy for family " + coversList + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 2) {
         const selectedCover = covers[parseInt(userText) - 1];
         if (!selectedCover) {
-            response = "END Invalid option";
+            response = "END Invalid option" + "\n0. Back \n00. Main Menu";
             return response;
         }
         const packages = selectedCover.packages.map((coverType, index) => {
             return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`;
         }).join("");
-        response = "CON " + selectedCover.name + packages;
+        response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of spouse or 1 child\n";
@@ -557,7 +557,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let coverText = `CON Inpatient cover for ${args.phoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
             "\nPAY:" +
             `\n1. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[0].premium} monthly` +
-            `\n2. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[1].yearly_premium} yearly`;
+            `\n2. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
         response = coverText;
     }
     else if (currentStep == 6) {
@@ -567,7 +567,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let period = selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[parseInt(userText) - 1].period;
         response = `CON Pay UGX ${premium} ${period}` +
             `\nTerms&Conditions - www.airtel.com` +
-            `\n. Enter 1 to Agree and Pay`;
+            `\n. Enter 1 to Agree and Pay` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 7) {
         if (userText == "1") {

@@ -41,7 +41,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                     },
                 });
                 if (!policy) {
-                    response = "END No policy found";
+                    response = "CON No policy found" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
                 const claimId = (0, utils_1.generateClaimId)();
@@ -95,7 +95,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         if (!policy) {
-            response = "END No policy found";
+            response = "CON No policy found" + "\n0. Back \n00. Main Menu";
             return response;
         }
         const claimId = (0, utils_1.generateClaimId)();
@@ -119,7 +119,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         if (!beneficiary) {
-            response = "END No beneficiary found";
+            response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
             return response;
         }
         const beneficiaryPhone = ((_a = beneficiary.phone_number) === null || _a === void 0 ? void 0 : _a.startsWith('+')) ? beneficiary.phone_number : `+${beneficiary.phone_number}`;

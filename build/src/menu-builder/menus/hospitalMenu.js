@@ -22,7 +22,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
             "\n3. Nothern" +
             "\n4. Eastern" +
             "\n5. West Nile" +
-            "\n6. Karamoja";
+            "\n6. Karamoja" + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 2) {
         response = "CON Type your district e.g Kampala";
@@ -40,7 +40,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
         });
         // if no hospitals are found, return an error message
         if (hospitals.length == 0) {
-            response = "END No district found";
+            response = "CON No district found" + "\n0. Back \n00. Main Menu";
         }
         else {
             // if hospitals are found, return a list of unique districts
@@ -140,7 +140,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
         response = `CON You have selected ${hospital.hospital_name} as your preferred facility.Below are the Hospital details` +
             `\nHospital Name: ${hospital.hospital_name}` +
             `\nContact Number: ${hospital.hospital_contact}` +
-            `\nLocation: ${hospital.hospital_address}`;
+            `\nLocation: ${hospital.hospital_address}` + "\n0. Back \n00. Main Menu";
     }
     return response;
 });

@@ -57,7 +57,9 @@ const faqsMenu = (args) => __awaiter(void 0, void 0, void 0, function* () {
         response = "CON FAQs" +
             faqs.map((faq, index) => {
                 return `\n${index + 1}. ${faq.question}`;
-            }).join("");
+            }).join("") +
+            "\n0. Back" +
+            "\n00. Main Menu";
     }
     else if (currentStep >= 2 && parseInt(userText) > 0) {
         let faq = faqs[parseInt(userText) - 1];

@@ -56,13 +56,31 @@ menu.sessionConfig({
 function default_1(args, db) {
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
         try {
-            const { phoneNumber, text, sessionId, serviceCode } = args;
+            let { phoneNumber, text, sessionId, serviceCode } = args;
+            // check if the userText is '0' and remove 2 responses from the menu starting from the '0'.
+            // This is to avoid the user from going back to the main menu when they are in the submenus.
+            // check also if the userText is '00' set the text to empty string
             let response = "";
             let allSteps = text.split("*");
+            let main = allSteps.indexOf("00");
+            if (main > -1) {
+                allSteps = [];
+                text = "";
+            }
+            const handleBack = () => {
+                let index = allSteps.indexOf("0");
+                if (index > -1) {
+                    allSteps.splice(index - 1, 2);
+                    return handleBack();
+                }
+                return;
+            };
+            handleBack();
             let firstStep = allSteps[0];
             let currentStep = allSteps.length;
             let previousStep = currentStep - 1;
             let userText = allSteps[allSteps.length - 1];
+            console.log("allStepsAfter", allSteps);
             const params = {
                 phoneNumber,
                 text,
