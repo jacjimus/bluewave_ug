@@ -222,12 +222,12 @@ const othersMenu = async (args, db) => {
     ];
 
     if (currentStep == 1) {
-        let coversList = covers.slice(0,3).map((cover, index) => {
+        let coversList = covers.slice(0, 3).map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`
         }).join("")
 
         response = "CON Buy for Others" + coversList
-       
+
 
     } else if (currentStep == 2) {
         let selectedCover = covers[parseInt(userText) - 1];
@@ -240,10 +240,10 @@ const othersMenu = async (args, db) => {
             return `\n${index + 1}. ${cover.name} at UGX ${cover.premium}`
         }).join("");
 
-       response = "CON " + selectedCover.name  + packages
-     
+        response = "CON " + selectedCover.name + packages
 
-        
+
+
     }
     else if (currentStep == 3) {
         response = "CON Enter atleast Name of Other or 1 child\n"
@@ -269,145 +269,150 @@ const othersMenu = async (args, db) => {
 
         response = `CON Pay UGX ${selectedCover.premium} ${period}.` +
             `\nTerms&Conditions - www.airtel.com` +
-            `\nEnter PIN to Agree and Pay`
+            `\nEnter 1 to Agree and Pay `
     }
     else if (currentStep == 7) {
-        let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
-        let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-        let phone = phoneNumber?.replace('+', "")?.substring(3);
-        let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+        if (userText == "1") {
+            let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+            let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+            let phone = phoneNumber?.replace('+', "")?.substring(3);
+            let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
-        console.log("SELECTED POLICY TYPE", selectedPolicyType);
+            console.log("SELECTED POLICY TYPE", selectedPolicyType);
 
-        if (existingUser) {
+            if (existingUser) {
 
 
 
-            const user = await db.users.findOne({
-                where: {
-                    phone_number: phone,
-                },
-            });
+                const user = await db.users.findOne({
+                    where: {
+                        phone_number: phone,
+                    },
+                });
 
-            if (!user) {
+                if (!user) {
+                    existingUser = await db.users.create({
+                        user_id: uuidv4(),
+                        phone_number: phone,
+                        membership_id: Math.floor(100000 + Math.random() * 900000),
+                        pin: Math.floor(1000 + Math.random() * 9000),
+                        first_name: existingUser.first_name,
+                        last_name: existingUser.last_name,
+                        name: `${existingUser.first_name} ${existingUser.last_name}`,
+                        total_member_number: selectedPolicyType.code_name,
+                        partner_id: 2,
+                        role: "user",
+                    });
+                    console.log("USER DOES NOT EXIST", user);
+                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
+                    await sendSMS(fullPhone, message);
+                }
+                else {
+                    existingUser = user;
+                }
+
+            } else {
                 existingUser = await db.users.create({
                     user_id: uuidv4(),
                     phone_number: phone,
                     membership_id: Math.floor(100000 + Math.random() * 900000),
                     pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: existingUser.first_name,
-                    last_name: existingUser.last_name,
-                    name: `${existingUser.first_name} ${existingUser.last_name}`,
-                    total_member_number: selectedPolicyType.code_name,
+                    first_name: "Test",
+                    last_name: "User",
+                    name: `Test User`,
+                    total_member_number: "M",
                     partner_id: 2,
                     role: "user",
                 });
-                console.log("USER DOES NOT EXIST", user);
-                const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} and Ddwaliro PIN: ${existingUser.pin}. Dial *185*4*4# to access your account.`;
-                await sendSMS(fullPhone, message);
-            }
-            else {
-                existingUser = user;
             }
 
-        } else {
-            existingUser = await db.users.create({
-                user_id: uuidv4(),
-                phone_number: phone,
-                membership_id: Math.floor(100000 + Math.random() * 900000),
-                pin: Math.floor(1000 + Math.random() * 9000),
-                first_name: "Test",
-                last_name: "User",
-                name: `Test User`,
-                total_member_number: "M",
-                partner_id: 2,
-                role: "user",
+            let otherUser = await db.users.findOne({
+                where: {
+                    phone_number: allSteps[4],
+                },
             });
-        }
+            if (!otherUser) {
 
-        let otherUser = await db.users.findOne({
-            where: {
-                phone_number: allSteps[4],
-            },
-        });
-        if (!otherUser) {
-
-            let otherData = {
-                user_id: uuidv4(),
-                phone_number: allSteps[4],
-                membership_id: Math.floor(100000 + Math.random() * 900000),
-                pin: Math.floor(1000 + Math.random() * 9000),
-                first_name: allSteps[3],
-                last_name: allSteps[3],
-                name: `${allSteps[3]} ${allSteps[3]}`,
-                total_member_number: selectedPolicyType.code_name,
-                partner_id: 2,
-                role: "user",
+                let otherData = {
+                    user_id: uuidv4(),
+                    phone_number: allSteps[4],
+                    membership_id: Math.floor(100000 + Math.random() * 900000),
+                    pin: Math.floor(1000 + Math.random() * 9000),
+                    first_name: allSteps[3],
+                    last_name: allSteps[3],
+                    name: `${allSteps[3]} ${allSteps[3]}`,
+                    total_member_number: selectedPolicyType.code_name,
+                    partner_id: 2,
+                    role: "user",
+                }
+                otherUser = await db.users.create(otherData);
             }
-            otherUser = await db.users.create(otherData);
-        }
 
-        const spouse = allSteps[2];
+            const spouse = allSteps[2];
 
-        // let beneficiary = {
-        //     beneficiary_id: uuidv4(),
-        //     full_name: spouse,
-        //     first_name: spouse.split(" ")[0],
-        //     middle_name: spouse.split(" ")[1],
-        //     last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
-        //     relationship: "SPOUSE",
-        //     member_number: selectedPolicyType.code_name,
-        //     user_id: existingUser.user_id,
-        // };
-    
-        let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+            // let beneficiary = {
+            //     beneficiary_id: uuidv4(),
+            //     full_name: spouse,
+            //     first_name: spouse.split(" ")[0],
+            //     middle_name: spouse.split(" ")[1],
+            //     last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
+            //     relationship: "SPOUSE",
+            //     member_number: selectedPolicyType.code_name,
+            //     user_id: existingUser.user_id,
+            // };
 
-        let policyObject = {
-            policy_id: uuidv4(),
-            installment_type,
-            policy_type: selectedPolicyType.code_name,
-            policy_deduction_amount: parseAmount(selectedPolicyType.premium),
-            policy_pending_premium: parseAmount(selectedPolicyType.premium),
-            sum_insured: parseAmount(selectedPolicyType.sum_insured),
-            premium: parseAmount(selectedPolicyType.premium),
-            last_expense_insured: parseAmount(selectedPolicyType.last_expense_insured),
-            policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
-            policy_start_date: new Date(),
-            membership_id: Math.floor(100000 + Math.random() * 900000),
-            beneficiary: "OTHER",
-            policy_status: "pending",
-            policy_deduction_day: new Date().getDate() - 1,
-            partner_id: 2,
-            country_code: "UGA",
-            currency_code: "UGX",
-            product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-            user_id: existingUser.user_id,
-            phone_number: phoneNumber,
-            total_member_number: selectedPolicyType.code_name,
-            bought_for: otherUser.user_id
-        }
+            let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
 
-        let policy = await db.policies.create(policyObject);
+            let policyObject = {
+                policy_id: uuidv4(),
+                installment_type,
+                policy_type: selectedPolicyType.code_name,
+                policy_deduction_amount: parseAmount(selectedPolicyType.premium),
+                policy_pending_premium: parseAmount(selectedPolicyType.premium),
+                sum_insured: parseAmount(selectedPolicyType.sum_insured),
+                premium: parseAmount(selectedPolicyType.premium),
+                yearly_premium: parseAmount(selectedPolicyType.yearly_premium),
+                last_expense_insured: parseAmount(selectedPolicyType.last_expense_insured),
+                policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
+                policy_start_date: new Date(),
+                membership_id: Math.floor(100000 + Math.random() * 900000),
+                beneficiary: "OTHER",
+                policy_status: "pending",
+                policy_deduction_day: new Date().getDate() - 1,
+                partner_id: 2,
+                country_code: "UGA",
+                currency_code: "UGX",
+                product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+                user_id: existingUser.user_id,
+                phone_number: phoneNumber,
+                total_member_number: selectedPolicyType.code_name,
+                bought_for: otherUser.user_id
+            }
 
-        // create payment
-        let paymentStatus = await airtelMoney(
-            existingUser.user_id,
-            2,
-            policy.policy_id,
-            phone,
-            policy.policy_deduction_amount,
-            existingUser.membership_id,
-            "UG",
-            "UGX"
-        );
+            let policy = await db.policies.create(policyObject);
+
+            // create payment
+            let paymentStatus = await airtelMoney(
+                existingUser.user_id,
+                2,
+                policy.policy_id,
+                phone,
+                policy.policy_deduction_amount,
+                existingUser.membership_id,
+                "UG",
+                "UGX"
+            );
 
 
-        if (paymentStatus.code === 200) {
-
-            response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
-        } else {
-            response = `END Sorry, your payment was not successful. 
+            if (paymentStatus.code === 200) {
+                response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
+                // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
+            } else {
+                response = `END Sorry, your payment was not successful. 
                     \n0. Back \n00. Main Menu`;
+            }
+        } else {
+            response = "END Sorry to see you go. Dial *185*7*6# to access your account.";
         }
     }
 

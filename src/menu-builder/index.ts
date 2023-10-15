@@ -21,6 +21,8 @@ import familyMenu from "./menus/familyMenu";
 import faqsMenu from "./menus/faqsMenu";
 import termsAndConditions from "./menus/termsMenu";
 import othersMenu from "./menus/othersMenu";
+import claimMenu from "./menus/claimMenu";
+import accountMenu from "./menus/accountMenu";
 
 require("dotenv").config();
 
@@ -102,6 +104,15 @@ export default function (args: RequestBody, db: any) {
       }
       else if (firstStep == "3") {
         response = await othersMenu(params, db);
+      }
+      else if (firstStep == "4") {
+        response = await claimMenu(params, db);
+      }
+      else if (firstStep == "5") {
+        response = await accountMenu(params, db);
+      }
+      else if (firstStep == "6") {
+        response = "CON Enter your location";
       }
       else if (firstStep == "7") {
         response = await termsAndConditions(params);

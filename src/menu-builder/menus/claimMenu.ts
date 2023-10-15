@@ -1,5 +1,6 @@
 import { all } from "axios";
 import { generateClaimId } from "../../services/utils";
+import sendSMS from "../../services/sendSMS";
 
 
 
@@ -53,7 +54,7 @@ const claimMenu = async (args, db) => {
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
                 break;
             case "2":
-                response = "CON Enter Name of deceased"
+                response = "CON Enter phone of next of Kin e.g 0759608107"
                 break;
         }
     }
@@ -61,24 +62,24 @@ const claimMenu = async (args, db) => {
         response = "CON Enter your Relationship to the deceased"
     }
     else if (currentStep === 4) {
-        response = "CON Enter Date of death in the format DDMMYYYY e.g 01011990"
+        response = "CON Enter Name of deceased"
     }
     else if (currentStep === 5) {
+        response = "CON Enter Date of death in the format DDMMYYYY e.g 01011990"
+    }
+    else if (currentStep === 6) {
         const deathData = {
-            claim: allSteps[1],
-            relationship: allSteps[2],
-            // convert ddmmyyyy to valid date
-            day: userText.substring(0, 2),
-            month: userText.substring(2, 4),
-            year: userText.substring(4, 8),
-            date_of_death: ''
+            nextOfKinPhoneNumber: allSteps[2].startsWith('0') ? allSteps[2].substring(1) : allSteps[2],
+            relationship: allSteps[3],
+            deceasedName: allSteps[4],
+            dateOfDeath: allSteps[5],
         }
 
         // CREATE CLAIM
         let claim_type = "Death Claim";
         let user = await db.users.findOne({
             where: {
-                phone_number: args.phoneNumber,
+                phone_number: deathData.nextOfKinPhoneNumber,
             },
         });
 
@@ -108,14 +109,36 @@ const claimMenu = async (args, db) => {
             claim_type: claim_type,
             claim_amount: policy.sum_insured,
         });
-       
+
+        // update beneficiary
+        const beneficiary = await db.beneficiaries.findOne({
+            where: {
+                user_id: user.user_id,
+                beneficiary_type: "NEXTOFKIN",
+            },
+        });
+
+        if (!beneficiary) {
+            response = "END No beneficiary found";
+            return response;
+        }
+
+        const beneficiaryPhone = beneficiary.phone_number?.startsWith('+') ? beneficiary.phone_number : `+${beneficiary.phone_number}`;
+        const userPhone = user.phone_number?.startsWith('+') ? user.phone_number : `+${user.phone_number}`;
+
+        const sms = 'Your claim documents have been received. Your claim is being processed.';
+        await sendSMS(beneficiaryPhone || userPhone, sms);
+
+        response = `END Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`;
     }
-   
 
 
-return response
+
+    return response
 
 }
+
+export default claimMenu;
 
 /*
 

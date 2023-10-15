@@ -77,7 +77,7 @@ interface PrincipalRegistration {
   surname: string;
   first_name: string;
   other_names: string;
-  gender: string;
+  gender: number;
   dob: string;
   pri_dep: string;
   family_title: string;
@@ -130,7 +130,7 @@ async function registerPrincipal(user: any, policy: any, beneficiary: any, airte
     surname: user.last_name,
     first_name: user.first_name,
     other_names: user.middle_name || user.last_name,
-    gender: "M",//user.gender == 'M' ? "1" : "2",
+    gender: 1,
     dob: randomDateOfBirth(),//user.date_of_birth,
     pri_dep: "24",
     family_title: "24",
@@ -181,7 +181,7 @@ const registrationMembData: PrincipalRegistration = {
   surname: "james",
   first_name: "Odo",
   other_names: "doe",
-  gender: "1",
+  gender: 1,
   dob: "2000-09-09",
   pri_dep: "24",
   family_title: "24",
@@ -296,7 +296,7 @@ interface DependantRegistration {
   surname: string;
   first_name: string;
   other_names: string;
-  gender: string;
+  gender: number,
   dob: string;
   pri_dep: string;
   family_title: string;
