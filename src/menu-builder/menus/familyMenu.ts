@@ -526,7 +526,7 @@ const familyMenu = async (args, db) => {
     ];
 
     if (currentStep == 1) {
-        const coversList = covers.slice(0, 3).map((cover, index) => {
+        const coversList = covers.map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`
         }).join("");
         response = "CON Buy for family " + coversList;

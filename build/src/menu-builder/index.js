@@ -21,6 +21,8 @@ const familyMenu_1 = __importDefault(require("./menus/familyMenu"));
 const faqsMenu_1 = __importDefault(require("./menus/faqsMenu"));
 const termsMenu_1 = __importDefault(require("./menus/termsMenu"));
 const othersMenu_1 = __importDefault(require("./menus/othersMenu"));
+const claimMenu_1 = __importDefault(require("./menus/claimMenu"));
+const accountMenu_1 = __importDefault(require("./menus/accountMenu"));
 require("dotenv").config();
 const Session = db_1.db.sessions;
 const User = db_1.db.users;
@@ -88,6 +90,15 @@ function default_1(args, db) {
             }
             else if (firstStep == "3") {
                 response = yield (0, othersMenu_1.default)(params, db);
+            }
+            else if (firstStep == "4") {
+                response = yield (0, claimMenu_1.default)(params, db);
+            }
+            else if (firstStep == "5") {
+                response = yield (0, accountMenu_1.default)(params, db);
+            }
+            else if (firstStep == "6") {
+                response = "CON Enter your location";
             }
             else if (firstStep == "7") {
                 response = yield (0, termsMenu_1.default)(params);

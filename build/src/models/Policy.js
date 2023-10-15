@@ -86,6 +86,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.NUMBER,
             allowNull: true
         },
+        yearly_premium: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
         sum_insured: {
             type: DataTypes.NUMBER,
             allowNull: true

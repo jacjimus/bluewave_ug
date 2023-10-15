@@ -704,7 +704,7 @@ export default function (args: RequestBody, db: any) {
               surname: beneficiary.last_name,
               first_name: beneficiary.first_name,
               other_names: beneficiary.middle_name || beneficiary.last_name,
-              gender: beneficiary.gender == "M" ? "1" : "2",
+              gender: 1,
               dob: date.toISOString().split("T")[0],
               email: "dependant@bluewave.insure",
               pri_dep: "25",

@@ -222,7 +222,7 @@ const othersMenu = async (args, db) => {
     ];
 
     if (currentStep == 1) {
-        let coversList = covers.slice(0, 3).map((cover, index) => {
+        let coversList = covers.map((cover, index) => {
             return `\n${index + 1}. ${cover.name}`
         }).join("")
 
