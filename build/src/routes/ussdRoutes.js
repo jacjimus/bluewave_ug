@@ -125,7 +125,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 if (user.arr_member_number) {
                     const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
                     console.log("MEMBER STATUS", memberStatus);
-                    policy.arr_policy_number = memberStatus.policy_no;
+                    policy.arr_policy_number = memberStatus === null || memberStatus === void 0 ? void 0 : memberStatus.policy_no;
                 }
                 const payment = yield Payment.create({
                     payment_amount: amount,
@@ -172,10 +172,19 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 console.log("=== UPDATED PREMIUM DATA ===", updatePremiumData);
                 //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
                 // Cover valid till <date>
-                const members = (_d = user.total_member_number) === null || _d === void 0 ? void 0 : _d.match(/\d+(\.\d+)?/g);
-                let familyText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
-                let selfText = `Congratulations! You are covered for Inpatient benefit of UGX ${policy.sum_insured} and Funeral benefit of UGX ${policy.last_expense_insured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
+                const members = (_d = policy.total_member_number) === null || _d === void 0 ? void 0 : _d.match(/\d+(\.\d+)?/g);
+                function formatSumInsured(number) {
+                    const formattedNumber = (number / 1000000).toFixed(1);
+                    return formattedNumber + "M";
+                }
+                const sumInsured = formatSumInsured(policy.sum_insured);
+                const lastExpenseInsured = formatSumInsured(policy.last_expense_insured);
+                console.log("SUM INSURED", sumInsured);
+                console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+                let familyText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
+                let selfText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${policy.policy_end_date.toDateString()}`;
                 // let othersText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${policy.sum_insured} and Funeral benefit of ${policy.last_expense_insured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
+                console.log("FAMILY TEXT", familyText);
                 // let congratText = policy.beneficiary == "SELF" ? selfText : policy.beneficiary == "FAMILY" ? familyText : othersText;
                 let congratText = policy.beneficiary == "SELF" ? selfText : familyText;
                 yield (0, sendSMS_1.default)(to, congratText);

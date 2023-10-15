@@ -38,7 +38,6 @@ const accountMenu = async (args: any, db: any) => {
                 response = policies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no policies"
                 break;
             case "2":
-
                 const unpaidPolicies = await db.policies.findAll({
                     where: {
                         phone_number: phoneNumber,

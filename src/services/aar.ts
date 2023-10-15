@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../models/db';
+import  dotenv from 'dotenv';
 
 const User = db.users;
 
@@ -21,10 +22,12 @@ async function arr_uganda_login() {
       maxBodyLength: Infinity,
       url: 'http://airtelapi.aar-insurance.ug:82/api/auth/airtel/login',
       data: {
-        "username": 'airtel',
-        "password": '#$a!rtel$',
+        "username": process.env.AAR_UGANDA_UAT_USERNAME,
+        "password": process.env.AAR_UGANDA_UAT_PASSWORD,
       }
     };
+
+
 
     console.log("CONFIG", config);
 

@@ -62,20 +62,24 @@ function default_1(args, db) {
             // check also if the userText is '00' set the text to empty string
             let response = "";
             let allSteps = text.split("*");
-            let main = allSteps.indexOf("00");
-            if (main > -1) {
+            if (allSteps[allSteps.length - 1] == "00") {
                 allSteps = [];
                 text = "";
             }
-            const handleBack = () => {
-                let index = allSteps.indexOf("0");
+            const handleBack = (arr) => {
+                let index = arr.indexOf("0");
                 if (index > -1) {
                     allSteps.splice(index - 1, 2);
-                    return handleBack();
+                    return handleBack(allSteps);
                 }
-                return;
+                // find the last index of '00' and return the array from that index
+                let index2 = arr.lastIndexOf("00");
+                if (index2 > -1) {
+                    return allSteps = allSteps.slice(index2 + 1);
+                }
+                return allSteps;
             };
-            handleBack();
+            allSteps = handleBack(allSteps);
             let firstStep = allSteps[0];
             let currentStep = allSteps.length;
             let previousStep = currentStep - 1;

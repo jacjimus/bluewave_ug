@@ -121,14 +121,16 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             let policy_type = selectedPolicyType.name;
             let installment_type = parseInt(allSteps[2]);
             let period = installment_type == 1 ? "yearly" : "monthly";
+            let ultimatePremium = (0, utils_1.calculatePaymentOptions)(policy_type, installment_type);
+            console.log("ULTIMATE PREMIUM", ultimatePremium);
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type: installment_type == 1 ? 2 : 1,
                 policy_type: policy_type,
-                policy_deduction_amount: (0, utils_1.parseAmount)(selectedPolicyType.premium),
-                policy_pending_premium: (0, utils_1.parseAmount)(selectedPolicyType.premium),
+                policy_deduction_amount: ultimatePremium.premium,
+                policy_pending_premium: ultimatePremium.premium,
                 sum_insured: (0, utils_1.parseAmount)(selectedPolicyType.sum_insured),
-                premium: (0, utils_1.parseAmount)(selectedPolicyType.premium),
+                premium: ultimatePremium.premium,
                 yearly_premium: (0, utils_1.parseAmount)(selectedPolicyType.yearly_premium),
                 last_expense_insured: (0, utils_1.parseAmount)(selectedPolicyType.last_expense_insured),
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
@@ -145,9 +147,10 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
             };
+            console.log("POLICY OBJECT", policyObject);
             let policy = yield db.policies.create(policyObject);
             // create payment
-            let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
+            let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
             if (paymentStatus.code === 200) {
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
                 // response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.

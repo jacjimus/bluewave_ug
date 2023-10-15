@@ -120,14 +120,18 @@ const selfMenu = async (args, db) => {
             let installment_type = parseInt(allSteps[2]);
             let period = installment_type == 1 ? "yearly" : "monthly";
 
+            let ultimatePremium = calculatePaymentOptions(policy_type, installment_type);
+            console.log("ULTIMATE PREMIUM", ultimatePremium);
+
+
             let policyObject = {
                 policy_id: uuidv4(),
                 installment_type: installment_type == 1 ? 2 : 1,
                 policy_type: policy_type,
-                policy_deduction_amount: parseAmount(selectedPolicyType.premium),
-                policy_pending_premium: parseAmount(selectedPolicyType.premium),
+                policy_deduction_amount: ultimatePremium.premium,
+                policy_pending_premium: ultimatePremium.premium,
                 sum_insured: parseAmount(selectedPolicyType.sum_insured),
-                premium: parseAmount(selectedPolicyType.premium),
+                premium: ultimatePremium.premium,
                 yearly_premium: parseAmount(selectedPolicyType.yearly_premium),
                 last_expense_insured: parseAmount(selectedPolicyType.last_expense_insured),
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
@@ -144,6 +148,7 @@ const selfMenu = async (args, db) => {
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
             }
+            console.log("POLICY OBJECT", policyObject);
 
             let policy = await db.policies.create(policyObject);
 
@@ -153,7 +158,7 @@ const selfMenu = async (args, db) => {
                 2,
                 policy.policy_id,
                 phone,
-                policy.policy_deduction_amount,
+                ultimatePremium.premium,
                 existingUser.membership_id,
                 "UG",
                 "UGX"
