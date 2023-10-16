@@ -62,6 +62,11 @@ function default_1(args, db) {
             // check also if the userText is '00' set the text to empty string
             let response = "";
             let allSteps = text.split("*");
+            // if the allsteps array includes '129' and '9902'  remove them from the array and set the text to empty string
+            if (allSteps.includes("129") && allSteps.includes("9902")) {
+                allSteps = [];
+                text = "";
+            }
             if (allSteps[allSteps.length - 1] == "00") {
                 allSteps = [];
                 text = "";
