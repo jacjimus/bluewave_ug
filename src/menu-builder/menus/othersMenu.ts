@@ -19,23 +19,29 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 1500000,
           premium: '10,000',
           yearly_premium: '120,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
         },
         {
           name: 'Midi',
           sum_insured: '3M',
+          sumInsured: 3000000,
           premium: '14,000',
           yearly_premium: '167,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured: 5000000,
           premium: '18,000',
           yearly_premium: '208,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }, {
@@ -49,23 +55,29 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 1500000,
           premium: '20,000',
           yearly_premium: '240,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
         },
         {
           name: 'Midi',
           sum_insured: '3M',
+          sumInsured: 3000000,
           premium: '28,000',
           yearly_premium: '322,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured: 5000000,
           premium: '35,000',
           yearly_premium: '400,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }, {
@@ -79,9 +91,12 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 1500000,
           premium: '30,000',
           yearly_premium: '360,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
+
         },
         {
           name: 'Midi',
@@ -89,13 +104,16 @@ const othersMenu = async (args, db) => {
           premium: '40,000',
           yearly_premium: '467,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured: 5000000,
           premium: '50,000',
           yearly_premium: '577,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }, {
@@ -109,23 +127,29 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 1500000,
           premium: '40,000',
           yearly_premium: '480,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
         },
         {
           name: 'Midi',
           sum_insured: '3M',
+          sumInsured: 3000000,
           premium: '50,000',
           yearly_premium: '590,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured: 5000000,
           premium: '65,000',
           yearly_premium: '740,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }, {
@@ -139,23 +163,29 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 6000000,
           premium: '50,000',
           yearly_premium: '600,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
         },
         {
           name: 'Midi',
           sum_insured: '3M',
+          sumInsured: 3000000,
           premium: '63,000',
           yearly_premium: '720,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured:5000000,
           premium: '77,000',
           yearly_premium: '885,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }, {
@@ -169,23 +199,29 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 1500000,
           premium: '60,000',
           yearly_premium: '720,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
         },
         {
           name: 'Midi',
           sum_insured: '3M',
+          sumInsured: 3000000,
           premium: '75,000',
           yearly_premium: '860,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured: 5000000,
           premium: '93,000',
           yearly_premium: '1060,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }, {
@@ -199,23 +235,29 @@ const othersMenu = async (args, db) => {
         {
           name: 'Mini',
           sum_insured: '1.5M',
+          sumInsured: 1500000,
           premium: '70,000',
           yearly_premium: '840,000',
           last_expense_insured: '1M',
+          lastExpenseInsured: 1000000
         },
         {
           name: 'Midi',
           sum_insured: '3M',
+          sumInsured: 3000000,
           premium: '88,000',
           yearly_premium: '1,010,000',
           last_expense_insured: '1.5M',
+          lastExpenseInsured: 1500000
         },
         {
           name: 'Biggie',
           sum_insured: '5M',
+          sumInsured: 5000000,
           premium: '108,000',
           yearly_premium: '1,238,000',
           last_expense_insured: '2M',
+          lastExpenseInsured: 2000000
         }
       ]
     }
@@ -362,20 +404,22 @@ const othersMenu = async (args, db) => {
       // };
 
       let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
-      
+
       let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
 
+      let policyType = selectedPolicyType.packages[parseInt(allSteps[5]) - 1];
+      console.log("POLICY TYPE", policyType)
 
       let policyObject = {
         policy_id: uuidv4(),
         installment_type,
-        policy_type: selectedPolicyType.code_name,
-        policy_deduction_amount: parseAmount(selectedPolicyType.premium),
-        policy_pending_premium: parseAmount(selectedPolicyType.premium),
-        sum_insured: parseAmount(selectedPolicyType.sum_insured),
-        premium: parseAmount(selectedPolicyType.premium),
-        yearly_premium: parseAmount(selectedPolicyType.yearly_premium),
-        last_expense_insured: parseAmount(selectedPolicyType.last_expense_insured),
+        policy_type: policyType.name.toUpperCase(),
+        policy_deduction_amount: parseAmount(policyType.premium),
+        policy_pending_premium:parseAmount(policyType.premium),
+        sum_insured: policyType.sumInsured,
+        premium: parseAmount(policyType.premium),
+        yearly_premium: parseAmount(policyType.yearly_premium),
+        last_expense_insured: policyType.lastExpenseInsured,
         policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
         policy_start_date: new Date(),
         installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
