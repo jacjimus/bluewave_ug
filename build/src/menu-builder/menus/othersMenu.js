@@ -302,7 +302,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let otherPhone = allSteps[4];
         let selectedCover = covers[parseInt(allSteps[1]) - 1];
         response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCover.sum_insured} a year` +
-            "\nPAY:" +
+            "\nPAY " +
             `\n1 UGX ${selectedCover.premium} monthly` +
             `\n2 UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }

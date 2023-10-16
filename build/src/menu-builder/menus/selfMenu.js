@@ -75,7 +75,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         }
         let userPhoneNumber = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
         response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
-            "\nPAY:" +
+            "\nPAY " +
             `\n1. UGX ${coverType.premium} monthly` +
             `\n2. UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }

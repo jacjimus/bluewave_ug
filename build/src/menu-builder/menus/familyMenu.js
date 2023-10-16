@@ -565,7 +565,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         console.log("SELECTED COVER", selectedPackage);
         let userPhoneNumber = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
         let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
-            "\nPAY:" +
+            "\nPAY " +
             `\n1. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[0].premium} monthly` +
             `\n2. UGX ${selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
         response = coverText;

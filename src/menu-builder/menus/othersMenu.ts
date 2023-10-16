@@ -300,7 +300,7 @@ const othersMenu = async (args, db) => {
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
 
     response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCover.sum_insured} a year` +
-      "\nPAY:" +
+      "\nPAY " +
       `\n1 UGX ${selectedCover.premium} monthly` +
       `\n2 UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
   }

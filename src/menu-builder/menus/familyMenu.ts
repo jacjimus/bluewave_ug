@@ -553,7 +553,7 @@ const familyMenu = async (args, db) => {
     ).join("");
 
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
-    
+
 
   }
   else if (currentStep == 3) {
@@ -568,7 +568,7 @@ const familyMenu = async (args, db) => {
     console.log("SELECTED COVER", selectedPackage)
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
-      "\nPAY:" +
+      "\nPAY " +
       `\n1. UGX ${selectedPackage?.payment_options[0].premium} monthly` +
       `\n2. UGX ${selectedPackage?.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     response = coverText;

@@ -52,7 +52,7 @@ const accountMenu = async (args: any, db: any) => {
                     response = "END You have no pending policies"
                 }
                 else {
-                    response = "CON PAY" +
+                    response = "CON PAY " +
                         `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
                         `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
                 }
