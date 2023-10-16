@@ -586,24 +586,21 @@ const familyMenu = async (args, db) => {
   }
   else if (currentStep == 7) {
     if (userText == "1") {
-      let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+      let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let phone = phoneNumber?.replace('+', "")?.substring(3);
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+      let existingUser = await db.users.findOne({
+        where: {
+          phone_number: phone,
+        },
+      });
 
       console.log("SELECTED POLICY TYPE", selectedPolicyType);
 
-      if (existingUser) {
-
-
-
-        const user = await db.users.findOne({
-          where: {
-            phone_number: phone,
-          },
-        });
-
-        if (!user) {
+      if (!existingUser && user) {
+       
+        console.log("USER FOUND", user, phone)
           existingUser = await db.users.create({
             user_id: uuidv4(),
             phone_number: phone,
@@ -619,12 +616,11 @@ const familyMenu = async (args, db) => {
           console.log("USER DOES NOT EXIST", user);
           const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
           await sendSMS(fullPhone, message);
-        }
-        else {
-          existingUser = user;
-        }
+        
 
       } else {
+
+       if(!existingUser && !user){
         existingUser = await db.users.create({
           user_id: uuidv4(),
           phone_number: phone,
@@ -639,6 +635,9 @@ const familyMenu = async (args, db) => {
         });
       }
 
+
+    }
+
       const spouse = allSteps[2];
 
       let beneficiary = {
@@ -652,7 +651,7 @@ const familyMenu = async (args, db) => {
         user_id: existingUser.user_id,
       };
 
-      let newBeneficiary = await Beneficiary.create(beneficiary);
+      await Beneficiary.create(beneficiary);
 
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let policyType = selectedPackage.code_name;

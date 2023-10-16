@@ -100,6 +100,8 @@ const selfMenu = async (args, db) => {
                     },
                 });
 
+                console.log("USER FOUND", user, phone);
+
                 if (!user) {
                     existingUser = await db.users.create({
                         user_id: uuidv4(),
@@ -121,7 +123,14 @@ const selfMenu = async (args, db) => {
                     existingUser = user;
                 }
             } else {
-                existingUser = await db.users.create({
+             existingUser = await db.users.findOne({
+                    where: {
+                      phone_number: phone,
+                    },
+                  });
+                  console.log("USER FOUND", existingUser, phone)
+                 if(!existingUser){
+                  existingUser = await db.users.create({
                     user_id: uuidv4(),
                     phone_number: phone,
                     membership_id: Math.floor(100000 + Math.random() * 900000),
@@ -132,7 +141,9 @@ const selfMenu = async (args, db) => {
                     total_member_number: "M",
                     partner_id: 2,
                     role: "user",
-                });
+                  });
+                }
+                
             }
 
             // create policy

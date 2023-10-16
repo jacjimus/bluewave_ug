@@ -99,6 +99,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                         phone_number: phone,
                     },
                 });
+                console.log("USER FOUND", user, phone);
                 if (!user) {
                     existingUser = yield db.users.create({
                         user_id: (0, uuid_1.v4)(),
@@ -121,18 +122,26 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 }
             }
             else {
-                existingUser = yield db.users.create({
-                    user_id: (0, uuid_1.v4)(),
-                    phone_number: phone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: "Test",
-                    last_name: "User",
-                    name: `Test User`,
-                    total_member_number: "M",
-                    partner_id: 2,
-                    role: "user",
+                existingUser = yield db.users.findOne({
+                    where: {
+                        phone_number: phone,
+                    },
                 });
+                console.log("USER FOUND", existingUser, phone);
+                if (!existingUser) {
+                    existingUser = yield db.users.create({
+                        user_id: (0, uuid_1.v4)(),
+                        phone_number: phone,
+                        membership_id: Math.floor(100000 + Math.random() * 900000),
+                        pin: Math.floor(1000 + Math.random() * 9000),
+                        first_name: "Test",
+                        last_name: "User",
+                        name: `Test User`,
+                        total_member_number: "M",
+                        partner_id: 2,
+                        role: "user",
+                    });
+                }
             }
             // create policy
             let policy_type = selectedPolicyType.name;
