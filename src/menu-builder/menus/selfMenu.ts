@@ -92,8 +92,6 @@ const selfMenu = async (args, db) => {
             // create user
             if (existingUser) {
 
-
-
                 const user = await db.users.findOne({
                     where: {
                         phone_number: phone,
