@@ -636,7 +636,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 member_number: selectedPolicyType.code_name,
                 user_id: existingUser.user_id,
             };
-            let newBeneficiary = yield Beneficiary.create(beneficiary);
+            yield Beneficiary.create(beneficiary);
             let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
             let policyType = selectedPackage.code_name;
             let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
