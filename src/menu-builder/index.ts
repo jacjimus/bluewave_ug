@@ -76,8 +76,8 @@ export default function (args: RequestBody, db: any) {
       let allSteps = text.split("*");
 
       // if the allsteps array includes '129' and '9902'  remove them from the array and retain the rest
-      if (allSteps.includes("129") && allSteps.includes("9902#")) {
-        allSteps = allSteps.filter((step) => step !== "129" && step !== "9902#");
+      if (allSteps.includes("129") && allSteps.includes("9902")) {
+        allSteps = allSteps.filter((step) => step !== "129" && step !== "9902");
         console.log("allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
