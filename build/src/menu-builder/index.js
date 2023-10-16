@@ -102,12 +102,12 @@ function default_1(args, db) {
             if (text == "") {
                 response = "CON Ddwaliro Care" +
                     "\n1. Buy for self" +
-                    "\n2. Buy (family)" +
-                    "\n3. Buy (others)" +
+                    "\n2. Buy family" +
+                    "\n3. Buy others" +
                     "\n4. Make Claim" +
                     "\n5. My Policy" +
                     "\n6. View Hospital" +
-                    "\n7. Terms & Conditions" +
+                    "\n7. Terms Conditions" +
                     "\n8. FAQs";
             }
             else if (firstStep == "1") {
