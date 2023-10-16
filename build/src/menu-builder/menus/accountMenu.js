@@ -57,8 +57,8 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                 }
                 else {
                     response = "CON PAY" +
-                        `\n1-UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
-                        `\n2-UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`;
+                        `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
+                        `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`;
                 }
                 break;
             case "3":

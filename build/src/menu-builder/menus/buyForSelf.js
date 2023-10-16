@@ -51,9 +51,9 @@ function buyForSelf(menu, args, db) {
     menu.state("buyforself", {
         run: () => __awaiter(this, void 0, void 0, function* () {
             menu.con("Buy for self " +
-                "\n1. Mini – UGX 10,000" +
-                "\n2. Midi - UGX 14,000" +
-                "\n3. Biggie – UGX 18,000" +
+                "\n1. Mini UGX 10,000" +
+                "\n2. Midi UGX 14,000" +
+                "\n3. Biggie UGX 18,000" +
                 "\n0. Back" +
                 "\n00. Main Menu");
         }),
@@ -99,8 +99,8 @@ function buyForSelf(menu, args, db) {
             menu.session.set('yearly_premium', yearly_premium);
             menu.con(`Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year 
             PAY
-            1-UGX ${premium} monthly
-            2-UGX ${yearly_premium} yearly
+            1 UGX ${premium} monthly
+            2 UGX ${yearly_premium} yearly
                       
             0. Back 00. Main Menu`);
         }),

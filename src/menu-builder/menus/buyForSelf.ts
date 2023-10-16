@@ -47,9 +47,9 @@ export function buyForSelf(menu: any, args: any, db: any): void {
     run: async () => {
       menu.con(
         "Buy for self " +
-        "\n1. Mini – UGX 10,000" +
-        "\n2. Midi - UGX 14,000" +
-        "\n3. Biggie – UGX 18,000" +
+        "\n1. Mini UGX 10,000" +
+        "\n2. Midi UGX 14,000" +
+        "\n3. Biggie UGX 18,000" +
         "\n0. Back" +
         "\n00. Main Menu"
       );
@@ -97,8 +97,8 @@ export function buyForSelf(menu: any, args: any, db: any): void {
 
       menu.con(`Inpatient cover for ${args.phoneNumber}, UGX ${sum_insured} a year 
             PAY
-            1-UGX ${premium} monthly
-            2-UGX ${yearly_premium} yearly
+            1 UGX ${premium} monthly
+            2 UGX ${yearly_premium} yearly
                       
             0. Back 00. Main Menu`);
     },

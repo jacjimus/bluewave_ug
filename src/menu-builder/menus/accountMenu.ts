@@ -53,8 +53,8 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 else {
                     response = "CON PAY" +
-                        `\n1-UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
-                        `\n2-UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
+                        `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
+                        `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
                 }
                 break;
             case "3":

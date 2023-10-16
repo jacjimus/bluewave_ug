@@ -181,7 +181,7 @@ const othersMenu = async (args, db) => {
         {
           name: 'Biggie',
           sum_insured: '5M',
-          sumInsured:5000000,
+          sumInsured: 5000000,
           premium: '77,000',
           yearly_premium: '885,000',
           last_expense_insured: '2M',
@@ -301,8 +301,8 @@ const othersMenu = async (args, db) => {
 
     response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCover.sum_insured} a year` +
       "\nPAY:" +
-      `\n1-UGX ${selectedCover.premium} monthly` +
-      `\n2-UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+      `\n1 UGX ${selectedCover.premium} monthly` +
+      `\n2 UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
   }
   else if (currentStep == 6) {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
@@ -405,7 +405,7 @@ const othersMenu = async (args, db) => {
 
       let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
 
-      let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
+      let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
       let policyType = selectedPolicyType.packages[parseInt(allSteps[5]) - 1];
       console.log("POLICY TYPE", policyType)
@@ -415,7 +415,7 @@ const othersMenu = async (args, db) => {
         installment_type,
         policy_type: policyType.name.toUpperCase(),
         policy_deduction_amount: parseAmount(policyType.premium),
-        policy_pending_premium:parseAmount(policyType.premium),
+        policy_pending_premium: parseAmount(policyType.premium),
         sum_insured: policyType.sumInsured,
         premium: parseAmount(policyType.premium),
         yearly_premium: parseAmount(policyType.yearly_premium),
@@ -598,52 +598,52 @@ export default othersMenu;
           if (member_number == "M") {
             menu.con(
               "Buy for Other" +
-              "\n1. Mini – UGX 10,000" +
+              "\n1. Mini UGX 10,000" +
               "\n2. Midi - UGX 14,000" +
-              "\n3. Biggie – UGX 18,000" +
+              "\n3. Biggie UGX 18,000" +
               "\n0.Back" +
               "\n00.Main Menu"
             );
           } else if (member_number == "M+1") {
             menu.con(`
-              1. Mini – UGX 20,000
-              2. Midi – UGX 28,000
-              3. Biggie – UGX 35,000
+              1. Mini UGX 20,000
+              2. Midi UGX 28,000
+              3. Biggie UGX 35,000
               0. Back
               00. Main Menu`);
           } else if (member_number == "M+2") {
             menu.con(`
-              1. Mini – UGX 30,000
-              2. Midi – UGX 40,000
-              3. Biggie – UGX 50,000
+              1. Mini UGX 30,000
+              2. Midi UGX 40,000
+              3. Biggie UGX 50,000
               0. Back
               00. Main Menu`);
           } else if (member_number == "M+3") {
             menu.con(`
-              1. Mini – UGX 40,000
-              2. Midi – UGX 50,000
-              3. Biggie – UGX 65,000
+              1. Mini UGX 40,000
+              2. Midi UGX 50,000
+              3. Biggie UGX 65,000
               0. Back
               00. Main Menu`);
           } else if (member_number == "M+4") {
             menu.con(`
-              1. Mini – UGX 50,000
-              2. Midi – UGX 63,000
-              3. Biggie – UGX 77,000
+              1. Mini UGX 50,000
+              2. Midi UGX 63,000
+              3. Biggie UGX 77,000
               0. Back
               00. Main Menu`);
           } else if (member_number == "M+5") {
             menu.con(`
-              1. Mini – UGX 60,000
-              2. Midi – UGX 75,000
-              3. Biggie – UGX 93,000
+              1. Mini UGX 60,000
+              2. Midi UGX 75,000
+              3. Biggie UGX 93,000
               0. Back
               00. Main Menu`);
           } else if (member_number == "M+6") {
             menu.con(`
-              1. Mini – UGX 70,000
-              2. Midi – UGX 88,000
-              3. Biggie – UGX 108,000
+              1. Mini UGX 70,000
+              2. Midi UGX 88,000
+              3. Biggie UGX 108,000
               0. Back
               00. Main Menu`);
           } else {
@@ -1119,8 +1119,8 @@ export default othersMenu;
 
           menu.con(`Inpatient Family cover for ${first_name.toUpperCase()} ${last_name.toUpperCase()} ${phone_number}, UGX ${si} 
                 PAY
-                1-UGX ${new Intl.NumberFormat().format(premium)} monthly
-                2-UGX ${new Intl.NumberFormat().format(yearly_premium)} yearly
+                1 UGX ${new Intl.NumberFormat().format(premium)} monthly
+                2 UGX ${new Intl.NumberFormat().format(yearly_premium)} yearly
                 0.Back
                 00.Main Menu`);
         },
