@@ -526,10 +526,20 @@ const familyMenu = async (args, db) => {
   ];
 
   if (currentStep == 1) {
-    const coversList = covers.map((cover, index) => {
-      return `\n${index + 1}. ${cover.name}`
-    }).join("");
-    response = "CON Buy for family " + coversList + "\n0. Back \n00. Main Menu";
+    // const coversList = covers.map((cover, index) => {
+    //   return `\n${index + 1}. ${cover.name}`
+    // }).join("");
+    // response = "CON Buy for family " + coversList + "\n0. Back \n00. Main Menu";
+
+    // create a raw menu with the cover types without looping
+    response = "CON Buy for family " +
+      "\n1. Self+Spouse or Child" +
+      "\n2. Self+Spouse+1 Child" +
+      "\n3. Self+Spouse+2 Children" +
+      "\n4. Self+Spouse+3 Children" +
+      "\n5. Self+Spouse+4 Children" +
+      "\n6. Self+Spouse+5 Children" +
+      "\n0. Back \n00. Main Menu";
   }
   else if (currentStep == 2) {
     const selectedCover = covers[parseInt(userText) - 1];
@@ -543,6 +553,7 @@ const familyMenu = async (args, db) => {
     ).join("");
 
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
+    
 
   }
   else if (currentStep == 3) {

@@ -41,14 +41,24 @@ const selfMenu = async (args, db) => {
     if (currentStep === 1) {
         switch (userText) {
             case "1":
-                const covers = coverTypes.map((coverType, index) => {
-                    return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
-                }
-                ).join("");
+                // const covers = coverTypes.map((coverType, index) => {
+                //     return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
+                // }
+                // ).join("");
+                
+                
+                // response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
 
-                response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
+                // create a raw menu with the cover types without looping
+                response = "CON Buy for self " +
+                    "\n1. MINI at UGX 10,000" +
+                    "\n2. MIDI at UGX 14,000" +
+                    "\n3. BIGGIE at UGX 18,000" +
+                    "\n0. Back \n00. Main Menu";
+
                 break;
-        }
+
+            }
     }
     else if (currentStep === 2) {
         let coverType = coverTypes[parseInt(userText) - 1];
@@ -59,8 +69,8 @@ const selfMenu = async (args, db) => {
         let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
         response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
             "\nPAY:" +
-            `\n1 UGX ${coverType.premium} monthly` +
-            `\n2 UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+            `\n1. UGX ${coverType.premium} monthly` +
+            `\n2. UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep === 3) {
         let paymentOption = parseInt(userText);
