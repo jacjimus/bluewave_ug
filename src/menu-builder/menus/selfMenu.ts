@@ -59,8 +59,8 @@ const selfMenu = async (args, db) => {
         let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
         response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
             "\nPAY:" +
-            `\n1-UGX ${coverType.premium} monthly` +
-            `\n2-UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+            `\n1 UGX ${coverType.premium} monthly` +
+            `\n2 UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep === 3) {
         let paymentOption = parseInt(userText);
