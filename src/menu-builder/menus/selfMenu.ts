@@ -198,16 +198,13 @@ const selfMenu = async (args, db) => {
             );
 
             // if (paymentStatus.code === 200) {
-                if(policy){
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
                 // response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.
                 //        Cover valid till ${policy.policy_end_date.toDateString()}`;
-            } else {
-                response = `CON Sorry, your payment was not successful. 
-                    \n0. Back \n00. Main Menu`;
-            }
+           
         } else {
-            response = "END Sorry to see you go. Dial *185*7*6# to access your account.";
+            response = `CON Sorry, your payment was not successful. 
+            \n0. Back \n00. Main Menu`;
         }
     }
 

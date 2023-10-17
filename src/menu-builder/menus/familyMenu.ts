@@ -706,16 +706,16 @@ const familyMenu = async (args, db) => {
       );
 
 
-      if (paymentStatus.code === 200) {
+     // if (paymentStatus.code === 200) {
 
         // response = `END Congratulations! Your family is now covered for Inpatient benefit of UGX ${selectedPackage.premium} and Funeral benefit of UGX ${selectedPackage.last_expense_insured}.
         //            Cover valid till ${policyObject.policy_end_date.toDateString()}`;
 
         response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
-      } else {
-        response = `CON Sorry, your payment was not successful. 
-                    \n0. Back \n00. Main Menu`;
-      }
+      // } else {
+      //   response = `CON Sorry, your payment was not successful. 
+      //               \n0. Back \n00. Main Menu`;
+      // }
     } else {
       response = "END Sorry to see you go. Dial *185*7*6# to access your account.";
     }
