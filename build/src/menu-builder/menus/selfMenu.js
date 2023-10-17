@@ -179,7 +179,8 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             let policy = yield db.policies.create(policyObject);
             // create payment
             let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
-            if (paymentStatus.code === 200) {
+            // if (paymentStatus.code === 200) {
+            if (policy) {
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
                 // response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.
                 //        Cover valid till ${policy.policy_end_date.toDateString()}`;
