@@ -19,6 +19,8 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const db_1 = require("../models/db");
 const uuid_1 = require("uuid");
 const sendSMS_1 = __importDefault(require("./sendSMS"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const User = db_1.db.users;
 function getUserByPhoneNumber(phoneNumber, partner_id) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -85,7 +87,7 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
             phoneNumber = phoneNumber.replace("+", "");
             // remove the first 3 characters
             phoneNumber = phoneNumber.substring(3);
-            const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
+            const AIRTEL_KYC_API_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PRO_AIRTEL_KYC_API_URL : process.env.AIRTEL_KYC_API_URL;
             const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
             console.log("GET_USER_URL", GET_USER_URL);
             const { data } = yield axios_1.default.get(GET_USER_URL, { headers });

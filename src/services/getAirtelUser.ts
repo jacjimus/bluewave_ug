@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import sendSMS from "./sendSMS";
+import dotenv from "dotenv";
+dotenv.config();
 
 const User = db.users;
 
@@ -89,7 +91,7 @@ async function getAirtelUser(
     // remove the first 3 characters
     phoneNumber = phoneNumber.substring(3);
 
-    const AIRTEL_KYC_API_URL = process.env.AIRTEL_KYC_API_URL;
+    const AIRTEL_KYC_API_URL =  process.env.ENVIROMENT == 'PROD' ? process.env.PRO_AIRTEL_KYC_API_URL:  process.env.AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
     console.log("GET_USER_URL", GET_USER_URL);
