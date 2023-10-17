@@ -91,6 +91,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         if (req.method === "POST" || req.method === "GET") {
             const { transaction } = req.body;
+            console.log("AIRTEL CALLBACK", transaction);
             const { id, status_code, message, airtel_money_id } = transaction;
             const transactionData = yield findTransactionById(id);
             if (!transactionData) {
@@ -100,6 +101,10 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
             const { policy_id, user_id, amount, partner_id } = transactionData;
             const user = yield Users.findOne({ where: { user_id } });
             let policy = yield Policy.findAll({ where: { policy_id } });
+            if (!user) {
+                console.log("User not found");
+                return res.status(404).json({ message: "User not found" });
+            }
             // latest policy
             policy = policy[policy.length - 1];
             console.log("======= POLICY =========", policy);

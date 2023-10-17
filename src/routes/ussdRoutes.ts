@@ -99,6 +99,7 @@ router.all("/callback", async (req, res) => {
   try {
     if (req.method === "POST" || req.method === "GET") {
       const { transaction } = req.body;
+      console.log("AIRTEL CALLBACK", transaction)
       const { id, status_code, message, airtel_money_id } = transaction;
 
       const transactionData = await findTransactionById(id);
@@ -112,6 +113,11 @@ router.all("/callback", async (req, res) => {
 
       const user = await Users.findOne({ where: { user_id } });
       let policy = await Policy.findAll({ where: { policy_id } });
+
+      if(!user){
+        console.log("User not found");
+        return res.status(404).json({ message: "User not found" });
+      }
 
       // latest policy
       policy = policy[policy.length - 1];
