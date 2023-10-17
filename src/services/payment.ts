@@ -35,8 +35,8 @@ async function getAuthToken(currency: string) {
     response = await axios.post(AIRTEL_PAYMENT_TOKEN_URL
       ,
       {
-        client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
-        client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
+        client_id: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
+        client_secret: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
         grant_type: 'client_credentials',
       },
       {
@@ -90,7 +90,7 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
   try {
     const token = await getAuthToken(currency);
     console.log('TOKEN ' + country, token);
-    const PAYMENT_URL = process.env.PROD_AIRTEL_PAYMENT_URL;
+    const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
 
     const paymentData = {
       reference: reference,

@@ -17,8 +17,8 @@ async function authToken(partner_id: number) {
                 break;
                 case 2:
                 inputBody = {
-                    client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
-                    client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
+                    client_id: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID: process.env.AIRTEL_UGX_CLIENT_ID,
+                    client_secret:process.env.ENVIROMENT == 'PROD' ?  process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
                 break;
@@ -35,7 +35,7 @@ async function authToken(partner_id: number) {
             Accept: '*/*',
         };
 
-        const AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL;
+        const AUTH_TOKEN_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL : process.env.AIRTEL_AUTH_TOKEN_URL;
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
 
         if (response.status === 200) {

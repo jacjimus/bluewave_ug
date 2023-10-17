@@ -30,6 +30,7 @@ db.transactions = require('./Transaction')(sequelize, DataTypes)
 db.installments = require('./Installment')(sequelize, DataTypes)
 db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 db.hospitals = require('./Hospital')(sequelize, DataTypes)
+db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
@@ -193,11 +194,11 @@ db.hospitals = require('./Hospital')(sequelize, DataTypes)
 
 
 //syncing the model
-// sequelize.sync().then(() => {
-//   console.log(`Database & tables created! time: ${new Date()}`)
-// }).catch((err) => {
-//   console.log(err)
-// })
+sequelize.sync().then(() => {
+  console.log(`Database & tables created! time: ${new Date()}`)
+}).catch((err) => {
+  console.log(err)
+})
 
 
 //exporting the module

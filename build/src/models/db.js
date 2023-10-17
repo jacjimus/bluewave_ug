@@ -27,6 +27,7 @@ exports.db.transactions = require('./Transaction')(sequelize, DataTypes);
 exports.db.installments = require('./Installment')(sequelize, DataTypes);
 exports.db.user_hospitals = require('./UserHospital')(sequelize, DataTypes);
 exports.db.hospitals = require('./Hospital')(sequelize, DataTypes);
+exports.db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes);
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
 //insert a test pdf to policy table, colunm policy_documents which id jsonb[]
@@ -159,10 +160,10 @@ exports.db.hospitals = require('./Hospital')(sequelize, DataTypes);
 //     console.log(err)
 //   })
 //syncing the model
-// sequelize.sync().then(() => {
-//   console.log(`Database & tables created! time: ${new Date()}`)
-// }).catch((err) => {
-//   console.log(err)
-// })
+sequelize.sync().then(() => {
+    console.log(`Database & tables created! time: ${new Date()}`);
+}).catch((err) => {
+    console.log(err);
+});
 //exporting the module
 module.exports = { db: exports.db };

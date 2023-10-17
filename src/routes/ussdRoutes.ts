@@ -13,6 +13,7 @@ const Payment = db.payments;
 const Policy = db.policies;
 const Users = db.users;
 const Beneficiary = db.beneficiaries;
+const PolicySchedule = db.policy_schedules;
 
 const router = express.Router();
 
@@ -107,10 +108,6 @@ router.all("/callback", async (req, res) => {
         return res.status(404).json({ message: "Transaction not found" });
       }
 
-      await transactionData.update({
-        status: "paid",
-      });
-
       const { policy_id, user_id, amount, partner_id } = transactionData;
 
       const user = await Users.findOne({ where: { user_id } });
@@ -118,8 +115,6 @@ router.all("/callback", async (req, res) => {
 
       // latest policy
       policy = policy[policy.length - 1];
-
-
 
       console.log("======= POLICY =========", policy);
 
@@ -135,6 +130,10 @@ router.all("/callback", async (req, res) => {
 
 
       if (status_code === "TS") {
+
+        await transactionData.update({
+          status: "paid",
+        });
 
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
         if (!user.arr_member_number) {
@@ -165,6 +164,86 @@ router.all("/callback", async (req, res) => {
           payment_metadata: req.body,
           partner_id,
         });
+
+        // policy schedule
+        //find policy schedule with policy id 
+        //if not found create new policy schedule
+     
+
+        let policySchedule = await db.policy_schedules.findOne({ where: { policy_id } });
+        console.log("POLICY SCHEDULE", policySchedule);
+
+        function calculateOutstandingPremiumForMonth(premium, month) {
+          // Calculate the outstanding premium for the month
+        
+          // eg jan 10,000, feb 20, 000, march 30,000
+          const outstandingPremium  = premium * (12 - month);
+        
+          // Return the outstanding premium
+          return outstandingPremium;
+
+        }
+        
+        if (!policySchedule) {
+          // If policy installment type is monthly, create 12 policy schedules
+          if (policy.installment_type == 2) {
+            // Get the policy start date
+            const policyStartDate = new Date(policy.policy_start_date);
+        
+            // Define an array to store the 12 policy schedules
+            const policySchedules = [];
+        
+            // Loop to create 12 monthly policy schedules
+            for (let i = 0; i < 12; i++) {
+              // Calculate the next due date
+              const nextDueDate = new Date(policyStartDate);
+              nextDueDate.setMonth(policyStartDate.getMonth() + i);
+        
+              // Calculate the reminder date (e.g., 5 days before the due date)
+              const reminderDate = new Date(nextDueDate);
+              reminderDate.setDate(reminderDate.getDate() - 5);
+        
+              // Create a new policy schedule object
+              const newPolicySchedule = {
+                policy_schedule_id: uuidv4(),
+                policy_id,
+                payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+                policy_start_date: policyStartDate,
+                next_payment_due_date: nextDueDate,
+                reminder_date: reminderDate,
+                premium: policy.premium,
+                outstanding_premium: calculateOutstandingPremiumForMonth(policy.premium, i)
+              };
+        
+              // Push the new policy schedule into the array
+              policySchedules.push(newPolicySchedule);
+            }
+        
+            // Insert all 12 policy schedules into your database
+            await PolicySchedule.bulkCreate(policySchedules);
+        
+            // Now you have 12 policy schedules for the monthly installment.
+          } else if(policy.installment_type == 1) {
+            // If the policy installment type is not monthly, create a single policy schedule
+            const newPolicySchedule = {
+              policy_schedule_id: uuidv4(),
+              policy_id,
+              payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+              policy_start_date: policy.policy_start_date,
+              next_payment_due_date: policy.policy_end_date,
+              reminder_date: policy.policy_end_date,
+              premium: policy.premium,
+              outstanding_premium: policy.premium
+            };
+        
+            // Insert the single policy schedule into your database
+            await PolicySchedule.create(newPolicySchedule);
+          }else{
+            console.log("POLICY INSTALLMENT TYPE NOT FOUND")
+          }
+        }
+        
+
 
         console.log("Payment record created successfully");
 

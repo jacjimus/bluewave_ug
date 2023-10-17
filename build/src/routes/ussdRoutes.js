@@ -25,6 +25,7 @@ const Payment = db_1.db.payments;
 const Policy = db_1.db.policies;
 const Users = db_1.db.users;
 const Beneficiary = db_1.db.beneficiaries;
+const PolicySchedule = db_1.db.policy_schedules;
 const router = express_1.default.Router();
 const handleUSSDRequest = (req, res, menuBuilder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -96,9 +97,6 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 console.log("Transaction not found");
                 return res.status(404).json({ message: "Transaction not found" });
             }
-            yield transactionData.update({
-                status: "paid",
-            });
             const { policy_id, user_id, amount, partner_id } = transactionData;
             const user = yield Users.findOne({ where: { user_id } });
             let policy = yield Policy.findAll({ where: { policy_id } });
@@ -114,6 +112,9 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
             const policyType = policy.policy_type.toUpperCase();
             const period = policy.installment_type == 1 ? "yearly" : "monthly";
             if (status_code === "TS") {
+                yield transactionData.update({
+                    status: "paid",
+                });
                 let registerAARUser, updatePremiumData, updatedPolicy, installment;
                 if (!user.arr_member_number) {
                     registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy, beneficiary, airtel_money_id);
@@ -141,6 +142,70 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     payment_metadata: req.body,
                     partner_id,
                 });
+                // policy schedule
+                //find policy schedule with policy id 
+                //if not found create new policy schedule
+                let policySchedule = yield db_1.db.policy_schedules.findOne({ where: { policy_id } });
+                console.log("POLICY SCHEDULE", policySchedule);
+                function calculateOutstandingPremiumForMonth(premium, month) {
+                    // Calculate the outstanding premium for the month
+                    // eg jan 10,000, feb 20, 000, march 30,000
+                    const outstandingPremium = premium * (12 - month);
+                    // Return the outstanding premium
+                    return outstandingPremium;
+                }
+                if (!policySchedule) {
+                    // If policy installment type is monthly, create 12 policy schedules
+                    if (policy.installment_type == 2) {
+                        // Get the policy start date
+                        const policyStartDate = new Date(policy.policy_start_date);
+                        // Define an array to store the 12 policy schedules
+                        const policySchedules = [];
+                        // Loop to create 12 monthly policy schedules
+                        for (let i = 0; i < 12; i++) {
+                            // Calculate the next due date
+                            const nextDueDate = new Date(policyStartDate);
+                            nextDueDate.setMonth(policyStartDate.getMonth() + i);
+                            // Calculate the reminder date (e.g., 5 days before the due date)
+                            const reminderDate = new Date(nextDueDate);
+                            reminderDate.setDate(reminderDate.getDate() - 5);
+                            // Create a new policy schedule object
+                            const newPolicySchedule = {
+                                policy_schedule_id: (0, uuid_1.v4)(),
+                                policy_id,
+                                payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+                                policy_start_date: policyStartDate,
+                                next_payment_due_date: nextDueDate,
+                                reminder_date: reminderDate,
+                                premium: policy.premium,
+                                outstanding_premium: calculateOutstandingPremiumForMonth(policy.premium, i)
+                            };
+                            // Push the new policy schedule into the array
+                            policySchedules.push(newPolicySchedule);
+                        }
+                        // Insert all 12 policy schedules into your database
+                        yield PolicySchedule.bulkCreate(policySchedules);
+                        // Now you have 12 policy schedules for the monthly installment.
+                    }
+                    else if (policy.installment_type == 1) {
+                        // If the policy installment type is not monthly, create a single policy schedule
+                        const newPolicySchedule = {
+                            policy_schedule_id: (0, uuid_1.v4)(),
+                            policy_id,
+                            payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+                            policy_start_date: policy.policy_start_date,
+                            next_payment_due_date: policy.policy_end_date,
+                            reminder_date: policy.policy_end_date,
+                            premium: policy.premium,
+                            outstanding_premium: policy.premium
+                        };
+                        // Insert the single policy schedule into your database
+                        yield PolicySchedule.create(newPolicySchedule);
+                    }
+                    else {
+                        console.log("POLICY INSTALLMENT TYPE NOT FOUND");
+                    }
+                }
                 console.log("Payment record created successfully");
                 if (policy.installment_order > 0 && policy.installment_order < 12 && policy.installment_type == 2) {
                     console.log("INSTALLMENT ORDER", policy.installment_order, policy.installment_type);
