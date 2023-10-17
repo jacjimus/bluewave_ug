@@ -28,8 +28,8 @@ function authToken(partner_id) {
                     break;
                 case 2:
                     inputBody = {
-                        client_id: process.env.AIRTEL_UGX_CLIENT_ID,
-                        client_secret: process.env.AIRTEL_UGX_CLIENT_SECRET,
+                        client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
+                        client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
                         grant_type: 'client_credentials',
                     };
                     break;
