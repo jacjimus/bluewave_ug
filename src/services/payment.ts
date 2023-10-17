@@ -5,8 +5,7 @@ import { db } from '../models/db';
 const User = db.users;
 const Transaction = db.transactions;
 
-const AIRTEL_PAYMENT_TOKEN_URL = process.env.AIRTEL_PAYMENT_TOKEN_URL;
-
+const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT='PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 async function getAuthToken(currency: string) {
   console.log('TOKEN COUNTRY CURRENCY', currency);
   try {

@@ -18,7 +18,7 @@ const uuid_1 = require("uuid");
 const db_1 = require("../models/db");
 const User = db_1.db.users;
 const Transaction = db_1.db.transactions;
-const AIRTEL_PAYMENT_TOKEN_URL = process.env.AIRTEL_PAYMENT_TOKEN_URL;
+const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT = 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 function getAuthToken(currency) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log('TOKEN COUNTRY CURRENCY', currency);
