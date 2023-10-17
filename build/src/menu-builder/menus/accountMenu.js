@@ -28,7 +28,6 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
         }
     });
     let policyMessages = policies.map((policy, index) => {
-        //10000  to 10,000
         return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`;
     });
     if (currentStep == 1) {

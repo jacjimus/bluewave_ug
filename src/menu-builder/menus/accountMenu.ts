@@ -19,7 +19,7 @@ const accountMenu = async (args: any, db: any) => {
     });
 
     let policyMessages = policies.map((policy: any, index: number) => {
-        //10000  to 10,000
+      
         
         return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
     });

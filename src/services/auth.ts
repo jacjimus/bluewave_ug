@@ -35,7 +35,7 @@ async function authToken(partner_id: number) {
             Accept: '*/*',
         };
 
-        const AUTH_TOKEN_URL = process.env.AIRTEL_AUTH_TOKEN_URL;
+        const AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL;
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
 
         if (response.status === 200) {
