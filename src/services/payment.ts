@@ -1,12 +1,15 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../models/db';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const User = db.users;
 const Transaction = db.transactions;
 
-const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT='PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
+const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT=='PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 async function getAuthToken(currency: string) {
+  console.log('AIRTEL PAYMENT TOKEN URL', AIRTEL_PAYMENT_TOKEN_URL)
   console.log('TOKEN COUNTRY CURRENCY', currency);
   try {
     let response: any;
@@ -31,6 +34,7 @@ async function getAuthToken(currency: string) {
         throw new Error(`Failed to get authentication token: ${response.statusText}`);
       }
     }
+    console.log('TOKEN COUNTRY CURRENCY', currency)
     response = await axios.post(AIRTEL_PAYMENT_TOKEN_URL
       ,
       {

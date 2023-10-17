@@ -16,11 +16,14 @@ exports.refundRecoveryTransaction = exports.inquireRecoveryTransaction = exports
 const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
 const db_1 = require("../models/db");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const User = db_1.db.users;
 const Transaction = db_1.db.transactions;
-const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT = 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
+const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 function getAuthToken(currency) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('AIRTEL PAYMENT TOKEN URL', AIRTEL_PAYMENT_TOKEN_URL);
         console.log('TOKEN COUNTRY CURRENCY', currency);
         try {
             let response;
@@ -42,6 +45,7 @@ function getAuthToken(currency) {
                     throw new Error(`Failed to get authentication token: ${response.statusText}`);
                 }
             }
+            console.log('TOKEN COUNTRY CURRENCY', currency);
             response = yield axios_1.default.post(AIRTEL_PAYMENT_TOKEN_URL, {
                 client_id: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
                 client_secret: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
