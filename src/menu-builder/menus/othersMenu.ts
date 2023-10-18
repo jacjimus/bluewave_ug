@@ -351,6 +351,7 @@ const othersMenu = async (args, db) => {
             total_member_number: selectedPolicyType.code_name,
             partner_id: 2,
             role: "user",
+            nationality: "UGANDA"
           });
           const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
           await sendSMS(fullPhone, message);

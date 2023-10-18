@@ -111,6 +111,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                     total_member_number: "M",
                     partner_id: 2,
                     role: "user",
+                    nationality: "UGANDA",
                 });
                 const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
                 yield (0, sendSMS_1.default)(fullPhone, message);

@@ -172,7 +172,7 @@ const calculateProrationPercentage = (installments) => {
         return 100;
     }
     else {
-        return 0;
+        return 10;
     }
 };
 exports.calculateProrationPercentage = calculateProrationPercentage;

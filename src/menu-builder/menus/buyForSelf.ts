@@ -210,6 +210,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
             total_member_number: "M",
             partner_id: 2,
             role: "user",
+            nationality: "UGANDA"
           });
           //   // WELCOME SMS
           const message = `Dear ${existingUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;

@@ -3,6 +3,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../models/db';
 import  dotenv from 'dotenv';
+import { calculateProrationPercentage } from './utils';
 
 const User = db.users;
 
@@ -230,8 +231,22 @@ async function updatePremium(data: any, policy: any, airtel_money_id: any) {
 
     console.log("updatePremium DATA", data, policy);
 
-    const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / 12;
-    const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / 12;
+    const payments = await db.payments.findAll({
+      where: {
+          policy_id: policy.policy_id,
+          payment_status: "paid"
+      }
+  });
+  console.log("PAYMENTS", payments.length)
+  let proratedPercentage = calculateProrationPercentage(payments.length)
+  console.log("PRORATED PERCENTAGE", proratedPercentage)
+
+    const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / proratedPercentage
+    const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / proratedPercentage
+    console.log("MAIN BENEFIT LIMIT", main_benefit_limit);
+    console.log("LAST EXPENSE LIMIT", last_expense_limit);
+
+    let premium_installment = payments.length + 1;
 
     const requestData: requestPremiumData = {
       member_no: data.arr_member_number,
@@ -240,12 +255,12 @@ async function updatePremium(data: any, policy: any, airtel_money_id: any) {
       health_option: "63",
       premium: policy.policy_deduction_amount,
       premium_type: policy.installment_type,
-      premium_installment: policy.installment_order,
+      premium_installment:  premium_installment,
       main_benefit_limit: main_benefit_limit,
       last_expense_limit: last_expense_limit,
       money_transaction_id: airtel_money_id
     };
-
+     console.log("REQUEST DATA AAR UPDATE PREMIUM", requestData);
     const config = {
       method: 'post',
       maxBodyLength: Infinity,

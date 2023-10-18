@@ -41,7 +41,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MINI",
                     premium: '20,000',
                     sum_insured: '1.5M',
+                    sumInsured: 1500000,
                     last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
                     year_premium: '240,000',
                     payment_options: [
                         {
@@ -67,7 +69,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MIDI",
                     premium: '28,000',
                     sum_insured: '3M',
+                    sumInsured: 3000000,
                     last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
                     year_premium: '322,000',
                     payment_options: [
                         {
@@ -93,7 +97,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "BIGGIE",
                     premium: '35,000',
                     sum_insured: '5M',
+                    sumInsured: 5000000,
                     last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
                     year_premium: '400,000',
                     payment_options: [
                         {
@@ -124,7 +130,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MINI",
                     premium: '30,000',
                     sum_insured: '1.5M',
+                    sumInsured: 1500000,
                     last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
                     year_premium: '360,000',
                     payment_options: [
                         {
@@ -150,7 +158,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MIDI",
                     premium: '40,000',
                     sum_insured: '3M',
+                    sumInsured: 3000000,
                     last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
                     year_premium: '467,000',
                     payment_options: [
                         {
@@ -176,7 +186,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "BIGGIE",
                     premium: '50,000',
                     sum_insured: '5M',
+                    sumInsured: 5000000,
                     last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
                     year_premium: '577,000',
                     payment_options: [
                         {
@@ -208,7 +220,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MINI",
                     premium: '40,000',
                     sum_insured: '1.5M',
+                    sumInsured: 1500000,
                     last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
                     year_premium: '480,000',
                     payment_options: [
                         {
@@ -234,7 +248,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MIDI",
                     premium: '50,000',
                     sum_insured: '3M',
+                    sumInsured: 3000000,
                     last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
                     year_premium: '590,000',
                     payment_options: [
                         {
@@ -260,7 +276,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "BIGGIE",
                     premium: '65,000',
                     sum_insured: '5M',
+                    sumInsured: 5000000,
                     last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
                     year_premium: '740,000',
                     payment_options: [
                         {
@@ -291,7 +309,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MINI",
                     premium: '50,000',
                     sum_insured: '1.5M',
+                    sumInsured: 1500000,
                     last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
                     year_premium: '600,000',
                     payment_options: [
                         {
@@ -317,7 +337,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MIDI",
                     premium: '63,000',
                     sum_insured: '3M',
+                    sumInsured: 3000000,
                     last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
                     year_premium: '720,000',
                     payment_options: [
                         {
@@ -343,7 +365,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "BIGGIE",
                     premium: '77,000',
                     sum_insured: '5M',
+                    sumInsured: 5000000,
                     last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
                     year_premium: '885,000',
                     payment_options: [
                         {
@@ -374,7 +398,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MINI",
                     premium: '60,000',
                     sum_insured: '1.5M',
+                    sumInsured: 1500000,
                     last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
                     year_premium: '720,000',
                     payment_options: [
                         {
@@ -400,7 +426,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MIDI",
                     premium: '75,000',
                     sum_insured: '3M',
+                    sumInsured: 3000000,
                     last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
                     year_premium: '860,000',
                     payment_options: [
                         {
@@ -426,7 +454,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "BIGGIE",
                     premium: '93,000',
                     sum_insured: '5M',
+                    sumInsured: 5000000,
                     last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
                     year_premium: '1,060,000',
                     payment_options: [
                         {
@@ -457,7 +487,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MINI",
                     premium: '70,000',
                     sum_insured: '1.5M',
+                    sumInsured: 1500000,
                     last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
                     year_premium: '840,000',
                     payment_options: [
                         {
@@ -483,7 +515,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "MIDI",
                     premium: '88,000',
                     sum_insured: '3M',
+                    sumInsured: 3000000,
                     last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
                     year_premium: '1,010,000',
                     payment_options: [
                         {
@@ -509,7 +543,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     code_name: "BIGGIE",
                     premium: '108,000',
                     sum_insured: '5M',
+                    sumInsured: 5000000,
                     last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
                     year_premium: '1,238,000',
                     payment_options: [
                         {
@@ -605,6 +641,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     total_member_number: selectedPolicyType.code_name,
                     partner_id: 2,
                     role: "user",
+                    nationality: "UGANDA"
                 });
                 console.log("USER DOES NOT EXIST", user);
                 const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
@@ -636,10 +673,10 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 policy_type: policyType,
                 policy_deduction_amount: ultimatePremium,
                 policy_pending_premium: ultimatePremium,
-                sum_insured: (0, utils_1.parseAmount)(selectedPackage.sum_insured),
+                sum_insured: selectedPackage.sumInsured,
                 premium: ultimatePremium,
                 yearly_premium: (0, utils_1.parseAmount)(selectedPackage.year_premium),
-                last_expense_insured: (0, utils_1.parseAmount)(selectedPackage.last_expense_insured),
+                last_expense_insured: selectedPackage.lastExpenseInsured,
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
                 policy_start_date: new Date(),
                 installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,

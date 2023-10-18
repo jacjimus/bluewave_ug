@@ -142,10 +142,11 @@ router.all("/callback", async (req, res) => {
         });
 
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
-        if (!user.arr_member_number) {
+        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+        if (memberStatus.code !== 200) {
           registerAARUser = await registerPrincipal(user, policy, beneficiary, airtel_money_id);
           console.log("AAR USER", registerAARUser);
-          if (registerAARUser.code == 200) {
+          if (registerAARUser.code == 200 || memberStatus.code == 200) {
             user.arr_member_number = registerAARUser.member_no;
             await user.save();
             updatePremiumData = await updatePremium(user, policy, airtel_money_id);
@@ -153,10 +154,12 @@ router.all("/callback", async (req, res) => {
           }
 
         }
-        if (user.arr_member_number) {
+        if (memberStatus.code == 200) {
           const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
           console.log("MEMBER STATUS", memberStatus);
           policy.arr_policy_number = memberStatus?.policy_no;
+          updatePremiumData = await updatePremium(user, policy, airtel_money_id);
+          console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
         }
 
         const payment = await Payment.create({

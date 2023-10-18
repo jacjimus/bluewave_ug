@@ -184,6 +184,6 @@ export const formatAmount=(number: number)=> {
       } else if (installments === 12) {
           return 100;
       } else {
-          return 0;
+          return 10;
       }
   }

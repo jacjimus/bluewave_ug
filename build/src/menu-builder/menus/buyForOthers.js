@@ -129,6 +129,7 @@ function buyForOthers(menu, args, db) {
                     total_member_number: member_number,
                     partner_id: 2,
                     role: "user",
+                    nationality: "UGANDA"
                 });
             }
             if (member_number == "M") {

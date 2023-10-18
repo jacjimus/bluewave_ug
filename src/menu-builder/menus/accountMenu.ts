@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
+import { all } from "axios";
 
 const accountMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -204,18 +205,64 @@ const accountMenu = async (args: any, db: any) => {
         }
     } else if (currentStep == 4) {
 
-        const user = await db.users.findOne({
+        const existingUser = await db.users.findOne({
             where: {
                 [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
             }
         });
+
+        let policies = await db.policies.findAll({
+            where: {
+                phone_number: smsPhone.replace("+", ""),
+                policy_status: "paid"
+            }
+        });
+if(policies.length == 0){
+    response = "END You have no paid policies"
+}
+       let myPolicy = policies[policies.length - 1]
         const nextOfKinDetails = {
             beneficiary_id: uuidv4(),
             name: allSteps[2],
             phone_number: userText,
-            user_id: user.user_id,
+            user_id: existingUser.user_id,
             bonus: allSteps[2],
         }
+
+        let arr_member = await fetchMemberStatusData({
+            member_no: existingUser.arr_member_number,
+            unique_profile_id: existingUser.membership_id + "",
+          });
+          console.log("arr_member", arr_member);
+          let dependant_first_name = allSteps[2].split(" ")[0];
+            let dependant_other_names = allSteps[2].split(" ")[1];
+                let dependant_surname = allSteps[2].split(" ")[2] || allSteps[2].split(" ")[1];
+          if (arr_member.code == 200) {
+            await registerDependant({
+              member_no: existingUser.arr_member_number,
+              surname: dependant_surname,
+              first_name: dependant_first_name,
+              other_names: dependant_other_names, 
+              gender: 1,
+              dob: "1990-01-01",
+              email: "dependant@bluewave.insure",
+              pri_dep: "25",
+              family_title: "4", //4 spouse // 3 -principal // 25 - child
+              tel_no:  userText,
+              next_of_kin: {
+                surname: "",
+                first_name: "",
+                other_names: "",
+                tel_no: "",
+              },
+              member_status: "1",
+              health_option: "63",
+              health_plan: "AIRTEL_" + myPolicy?.policy_type,
+              policy_start_date: myPolicy.policy_start_date,
+              policy_end_date: myPolicy.policy_end_date,
+              unique_profile_id: existingUser.membership_id + "-01",
+            });
+          }
 
 
 
