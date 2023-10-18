@@ -6,6 +6,13 @@ import { getAirtelUser } from "../../services/getAirtelUser";
 
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
+    let phone = phoneNumber?.replace('+', "")?.substring(3);
+    let existingUser = await db.users.findOne({
+        where: {
+          phone_number: phone,
+        },
+      });
+
 
     const coverTypes = [{
         name: "MINI",
@@ -79,59 +86,37 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions www.airtel.com\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
 
     }
     else if (currentStep === 4) {
         if (userText == "1") {
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-            let phone = phoneNumber?.replace('+', "")?.substring(3);
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
-
-            let existingUser = await db.users.findOne({
-                where: {
-                  phone_number: phone,
-                },
-              });
-
               
               if (!existingUser) {
-                
+                console.log("USER DOES NOT EXIST SELF");
                 let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
-        
-                if(user){
+                let membershipId = Math.floor(100000 + Math.random() * 900000);
+
                   existingUser = await db.users.create({
                     user_id: uuidv4(),
                     phone_number: phone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
+                    membership_id: membershipId,
                     pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: existingUser.first_name,
-                    last_name: existingUser.last_name,
-                    name: `${existingUser.first_name} ${existingUser.last_name}`,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    name: `${user.first_name} ${user.last_name}`,
                     total_member_number: "M",
                     partner_id: 2,
                     role: "user",
                   });
                  
-                  const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
+                  const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
                   await sendSMS(fullPhone, message);
-                }else{
-                  existingUser = await db.users.create({
-                    user_id: uuidv4(),
-                    phone_number: phone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: "Test",
-                    last_name: "User",
-                    name: `Test User`,
-                    total_member_number: "M",
-                    partner_id: 2,
-                    role: "user",
-                  });
-                }
                 
             }
-            console.log("EXISTING USER", existingUser);
+           // console.log("EXISTING USER", existingUser);
 
             // create policy
             let policy_type = selectedPolicyType.name;

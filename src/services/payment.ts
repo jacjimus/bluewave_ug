@@ -34,7 +34,7 @@ async function getAuthToken(currency: string) {
         throw new Error(`Failed to get authentication token: ${response.statusText}`);
       }
     }
-    console.log('TOKEN COUNTRY CURRENCY', currency)
+  
     response = await axios.post(AIRTEL_PAYMENT_TOKEN_URL
       ,
       {

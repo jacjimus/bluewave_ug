@@ -45,7 +45,6 @@ function getAuthToken(currency) {
                     throw new Error(`Failed to get authentication token: ${response.statusText}`);
                 }
             }
-            console.log('TOKEN COUNTRY CURRENCY', currency);
             response = yield axios_1.default.post(AIRTEL_PAYMENT_TOKEN_URL, {
                 client_id: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
                 client_secret: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
