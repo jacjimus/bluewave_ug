@@ -26,12 +26,12 @@ const accountMenu = async (args: any, db: any) => {
 
 
     let policyMessages = await policies.map((policy: any, index: number) => {
-       
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString() } is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
+
+        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
     });
-  
-   
-  
+
+
+
 
     if (currentStep == 1) {
         response = "CON My Account" +
@@ -67,14 +67,14 @@ const accountMenu = async (args: any, db: any) => {
 
 
                     // list all the pending policies
-                   response = "CON " + unpaidPolicies.map((policy: any, index: number) => {
+                    response = "CON " + unpaidPolicies.map((policy: any, index: number) => {
                         return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
                     }
                     ).join("");
                 }
                 break;
             case "3":
-                
+
                 const paidPolicies = await db.policies.findAll({
                     where: {
                         phone_number: smsPhone,
@@ -103,46 +103,47 @@ const accountMenu = async (args: any, db: any) => {
                 if (userText == "1" && policies.length > 1) {
                     response = `CON ${policyMessages[1]}\n1. Next`
                 } else if (userText == "1" && policies.length == 1) {
-                    if(policies[0].installment_type == 1){
+                    if (policies[0].installment_type == 1) {
                         response = `END Your available inpatient limit is UGX ${formatAmount(policies[0].sum_insured)
-                        } and Funeral expense of UGX ${formatAmount(policies[0].last_expense_insured)
-                        }`
-
-                    }else{
-                         console.log("POLICIES", policies[0].policy_id)
-                          const payments = await db.payments.findAll({
-                              where: {
-                                  policy_id: policies[0].policy_id,
-                                   payment_status: "paid"
-                              }
-                          });
-                          console.log("PAYMENTS", payments.length)
-                          let proratedPercentage = calculateProrationPercentage(payments.length)
-                          console.log("PRORATED PERCENTAGE", policies[0].sum_insured /  proratedPercentage)
-
-                          // add 3 months to the policy start date
-                          let policyStartDate = new Date(policies[0].policy_start_date)
-                          console.log("POLICY START DATE", policyStartDate)
-                            policyStartDate.setMonth(policyStartDate.getMonth() + payments.length)
-                            console.log("POLICY START DATE", policyStartDate)
-
-
-                          if(policyStartDate > new Date() && policies[0].installment_type == 2){
-                            response = `END Your available inpatient limit is UGX ${(policies[0].sum_insured /  proratedPercentage).toLocaleString()
-                            } and Funeral expense of UGX ${(policies[0].last_expense_insured / proratedPercentage).toLocaleString()
+                            } and Funeral expense of UGX ${formatAmount(policies[0].last_expense_insured)
                             }`
-                          }else{
+
+                    } else {
+                        console.log("POLICIES", policies[0].policy_id)
+                        const payments = await db.payments.findAll({
+                            where: {
+                                policy_id: policies[0].policy_id,
+                                payment_status: "paid"
+                            }
+                        });
+                        console.log("PAYMENTS", payments.length)
+                        let proratedPercentage = calculateProrationPercentage(payments.length)
+                        console.log("PRORATED PERCENTAGE", policies[0].sum_insured / proratedPercentage)
+
+                        // add 3 months to the policy start date
+                        let policyStartDate = new Date(policies[0].policy_start_date)
+                        console.log("POLICY START DATE", policyStartDate)
+                        policyStartDate.setMonth(policyStartDate.getMonth() + payments.length)
+                        console.log("POLICY START DATE", policyStartDate)
+
+
+                        if (policyStartDate > new Date() && policies[0].installment_type == 2) {
+                            response = `END Your available inpatient limit is UGX ${(policies[0].sum_insured / proratedPercentage).toLocaleString()
+                                } and Funeral expense of UGX ${(policies[0].last_expense_insured / proratedPercentage).toLocaleString()
+                                }`
+                        } else {
                             response = `END Your outstanding premium is UGX ${(policies[0].premium).toLocaleString()
-                            }\nYour available inpatient limit is UGX ${(policies[0].sum_insured /  proratedPercentage).toLocaleString()
-                            } and Funeral expense of UGX ${(policies[0].last_expense_insured / proratedPercentage).toLocaleString()
-                            }`
-                          }
-                  
-                   
+                                }\nYour available inpatient limit is UGX ${(policies[0].sum_insured / proratedPercentage).toLocaleString()
+                                } and Funeral expense of UGX ${(policies[0].last_expense_insured / proratedPercentage).toLocaleString()
+                                }`
+                        }
+
+
                     }
                 }
                 break;
             case "2":
+                console.log("allSteps", allSteps, allSteps[2]);
 
                 let unpaidPolicies = await db.policies.findAll({
                     where: {
@@ -151,57 +152,32 @@ const accountMenu = async (args: any, db: any) => {
                     }
                 });
                 // last 6 unpaid policies
+                const existingUser = await db.users.findOne({
+                    where: {
+                        phone_number: phoneNumber.replace("+", "").substring(3),
+                    }
+                });
+
                 unpaidPolicies = unpaidPolicies.slice(-6);
-                if (userText == "1") {
-   console.log("UNPAID POLICIES", unpaidPolicies[0])
-                     response = "CON PAY " +
-                        `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
-                        `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
 
+                let choosenPolicy = unpaidPolicies[allSteps[2] - 1];
+                console.log("CHOOSEN POLICY", choosenPolicy)
+                await airtelMoney(
+                    existingUser.user_id,
+                    2,
+                    choosenPolicy.policy_id,
+                    phoneNumber.replace("+", "").substring(3),
+                    choosenPolicy.premium,
+                    existingUser.membership_id,
+                    "UG",
+                    "UGX"
 
-                    // const user = await db.users.findOne({
-                    //     where: {
-                    //         phone_number: phoneNumber
-                    //     }
-                    // });
-                    // const policies = await db.policies.findAll({
-                    //     where: {
-                    //         phone_number: phoneNumber,
-                    //         policy_status: "pending"
-                    //     }
-                    // });
-                    // console.log("Policy", policies[0]);
-                    // await airtelMoney(user.user_id, 2, policies[0].policy_id, smsPhone, policies[0].premium, user.membership_id, "UG", "UGX");
-                    // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
-                } else if (userText == "2") {
+                );
+                response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
-                    response = "CON PAY " +
-                    `\n1 UGX ${unpaidPolicies[1].premium.toLocaleString()}  monthly` +
-                    `\n2 UGX ${unpaidPolicies[1].yearly_premium.toLocaleString()}  yearly`
-
-                }else if (userText == "3") {
-                        
-                        response = "CON PAY " +
-                        `\n1 UGX ${unpaidPolicies[2].premium.toLocaleString()}  monthly` +
-                        `\n2 UGX ${unpaidPolicies[2].yearly_premium.toLocaleString()}  yearly`
-                }else if (userText == "4") {
-                            
-                            response = "CON PAY " +
-                            `\n1 UGX ${unpaidPolicies[3].premium.toLocaleString()}  monthly` +
-                            `\n2 UGX ${unpaidPolicies[3].yearly_premium.toLocaleString()}  yearly`
-                }else if (userText == "5") {
-                                    
-                                    response = "CON PAY " +
-                                    `\n1 UGX ${unpaidPolicies[4].premium.toLocaleString()}  monthly` +
-                                    `\n2 UGX ${unpaidPolicies[4].yearly_premium.toLocaleString()}  yearly`
-                }else if (userText == "6") {
-
-                    response = "CON PAY " +
-                    `\n1 UGX ${unpaidPolicies[5].premium.toLocaleString()}  monthly` +
-                    `\n2 UGX ${unpaidPolicies[5].yearly_premium.toLocaleString()}  yearly`
-                }
                 break;
             case "3":
+
                 if (userText == "1") {
                     const user = await db.users.findOne({
                         where: {

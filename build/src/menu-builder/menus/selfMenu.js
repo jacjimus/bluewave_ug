@@ -88,19 +88,17 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
     }
     else if (currentStep === 4) {
         if (userText == "1") {
-            let existingUser = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let phone = (_b = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _b === void 0 ? void 0 : _b.substring(3);
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
-            // create user
-            if (existingUser) {
-                const user = yield db.users.findOne({
-                    where: {
-                        phone_number: phone,
-                    },
-                });
-                console.log("USER FOUND", user, phone);
-                if (!user) {
+            let existingUser = yield db.users.findOne({
+                where: {
+                    phone_number: phone,
+                },
+            });
+            if (!existingUser) {
+                let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
+                if (user) {
                     existingUser = yield db.users.create({
                         user_id: (0, uuid_1.v4)(),
                         phone_number: phone,
@@ -113,22 +111,10 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                         partner_id: 2,
                         role: "user",
                     });
-                    console.log("USER DOES NOT EXIST", user);
                     const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
                     yield (0, sendSMS_1.default)(fullPhone, message);
                 }
                 else {
-                    existingUser = user;
-                }
-            }
-            else {
-                existingUser = yield db.users.findOne({
-                    where: {
-                        phone_number: phone,
-                    },
-                });
-                console.log("USER FOUND", existingUser, phone);
-                if (!existingUser) {
                     existingUser = yield db.users.create({
                         user_id: (0, uuid_1.v4)(),
                         phone_number: phone,
@@ -143,12 +129,13 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                     });
                 }
             }
+            console.log("EXISTING USER", existingUser);
             // create policy
             let policy_type = selectedPolicyType.name;
             let installment_type = parseInt(allSteps[2]);
-            let period = installment_type == 1 ? "yearly" : "monthly";
+            // let period = installment_type == 1 ? "yearly" : "monthly";
             let ultimatePremium = (0, utils_1.calculatePaymentOptions)(policy_type, installment_type);
-            console.log("ULTIMATE PREMIUM", ultimatePremium);
+            //console.log("ULTIMATE PREMIUM", ultimatePremium);
             //next month minus 1 day
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
             let policyObject = {
@@ -178,7 +165,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             console.log("POLICY OBJECT", policyObject);
             let policy = yield db.policies.create(policyObject);
             // create payment
-            let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
+            yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
             // if (paymentStatus.code === 200) {
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
             // response = `END Congratulations! You are now covered for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.

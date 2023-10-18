@@ -300,52 +300,58 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     else if (currentStep == 5) {
         let otherName = allSteps[3];
         let otherPhone = allSteps[4];
+        let coverType = allSteps[2];
         let selectedCover = covers[parseInt(allSteps[1]) - 1];
-        response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCover.sum_insured} a year` +
+        let selectedCoverPackage = selectedCover.packages[coverType - 1];
+        response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
             "\nPAY " +
-            `\n1 UGX ${selectedCover.premium} monthly` +
-            `\n2 UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+            `\n1 UGX ${selectedCoverPackage.premium} monthly` +
+            `\n2 UGX ${selectedCoverPackage.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep == 6) {
         const selectedCover = covers[parseInt(allSteps[1]) - 1];
         let paymentOption = parseInt(userText);
         let period = paymentOption == 1 ? "monthly" : "yearly";
-        response = `CON Pay UGX ${selectedCover.premium} ${period}.` +
+        let coverType = allSteps[2];
+        console.log("COVER TYPE", coverType);
+        console.log("SELECTED COVER", selectedCover);
+        let selectedCoverPackage = selectedCover.packages[coverType - 1];
+        console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
+        let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
+        response = `CON Pay UGX ${ultimatePremium} ${period}.` +
             `\nTerms&Conditions - www.airtel.com` +
             `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
     }
     else if (currentStep == 7) {
         if (userText == "1") {
-            let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let phone = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
-            console.log("SELECTED POLICY TYPE", selectedPolicyType);
+            // console.log("SELECTED POLICY TYPE", selectedPolicyType);
             let existingUser = yield db.users.findOne({
                 where: {
                     phone_number: phone,
                 },
             });
-            console.log("USER FOUND", user, phone);
-            if (!existingUser && user) {
-                existingUser = yield db.users.create({
-                    user_id: (0, uuid_1.v4)(),
-                    phone_number: phone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: existingUser.first_name,
-                    last_name: existingUser.last_name,
-                    name: `${existingUser.first_name} ${existingUser.last_name}`,
-                    total_member_number: selectedPolicyType.code_name,
-                    partner_id: 2,
-                    role: "user",
-                });
-                console.log("USER DOES NOT EXIST", user);
-                const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
-                yield (0, sendSMS_1.default)(fullPhone, message);
-            }
-            else {
-                if (!existingUser && !user) {
+            if (!existingUser) {
+                let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
+                if (user) {
+                    existingUser = yield db.users.create({
+                        user_id: (0, uuid_1.v4)(),
+                        phone_number: phone,
+                        membership_id: Math.floor(100000 + Math.random() * 900000),
+                        pin: Math.floor(1000 + Math.random() * 9000),
+                        first_name: existingUser.first_name,
+                        last_name: existingUser.last_name,
+                        name: `${existingUser.first_name} ${existingUser.last_name}`,
+                        total_member_number: selectedPolicyType.code_name,
+                        partner_id: 2,
+                        role: "user",
+                    });
+                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
+                    yield (0, sendSMS_1.default)(fullPhone, message);
+                }
+                else {
                     existingUser = yield db.users.create({
                         user_id: (0, uuid_1.v4)(),
                         phone_number: phone,
@@ -365,10 +371,9 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     phone_number: allSteps[4].replace('0', ""),
                 },
             });
-            console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""));
+            //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
             if (!otherUser) {
                 let otherPhone = allSteps[4].replace('0', "");
-                console.log("OTHER PHONE", otherPhone);
                 let otherData = {
                     user_id: (0, uuid_1.v4)(),
                     phone_number: otherPhone,
@@ -384,18 +389,21 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 otherUser = yield db.users.create(otherData);
                 console.log("OTHER USER CREATED", otherUser);
             }
-            let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+            let paymentOption = parseInt(allSteps[5]);
+            let installment_type = paymentOption == 1 ? 2 : 1;
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
-            let policyType = selectedPolicyType.packages[parseInt(allSteps[5]) - 1];
-            console.log("POLICY TYPE", policyType);
+            let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+            console.log("POLICY TYPE USERTEXT 1", policyType);
+            let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
+            console.log("ULTIMATE PREMIUM", ultimatePremium);
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type,
                 policy_type: policyType.name.toUpperCase(),
-                policy_deduction_amount: (0, utils_1.parseAmount)(policyType.premium),
-                policy_pending_premium: (0, utils_1.parseAmount)(policyType.premium),
+                policy_deduction_amount: (0, utils_1.parseAmount)(ultimatePremium),
+                policy_pending_premium: (0, utils_1.parseAmount)(ultimatePremium),
                 sum_insured: policyType.sumInsured,
-                premium: (0, utils_1.parseAmount)(policyType.premium),
+                premium: (0, utils_1.parseAmount)(ultimatePremium),
                 yearly_premium: (0, utils_1.parseAmount)(policyType.yearly_premium),
                 last_expense_insured: policyType.lastExpenseInsured,
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
@@ -416,7 +424,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             };
             let policy = yield db.policies.create(policyObject);
             // create payment
-            let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
+            yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
             // if (paymentStatus.code === 200) {
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
             // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;

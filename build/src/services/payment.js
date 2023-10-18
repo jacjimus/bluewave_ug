@@ -81,8 +81,10 @@ function createTransaction(user_id, partner_id, policy_id, transactionId, amount
                 policy_id: policy_id,
                 partner_id: partner_id,
             });
-            console.log('TRANSACTION', transaction);
-            return transaction;
+            //console.log('NEW TRANSACTION', transaction);
+            if (transaction) {
+                return true;
+            }
         }
         catch (error) {
             throw new Error(`Failed to create a transaction: ${error.message}`);
@@ -128,9 +130,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             console.log('RESPONCE AIRTEL MONEY ' + country, response.data);
             if (response.data.status.code == '200') {
                 const transaction = response.data.data.transaction;
-                console.log('TRANSACTION', transaction);
-                let newTransaction = yield createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
-                console.log('NEW TRANSACTION', newTransaction);
+                yield createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
                 status.result = response.data.status;
                 return status;
             }

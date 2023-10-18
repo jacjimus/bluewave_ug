@@ -581,7 +581,6 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else if (currentStep == 7) {
         if (userText == "1") {
-            let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let phone = (_b = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _b === void 0 ? void 0 : _b.substring(3);
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
@@ -591,26 +590,26 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 },
             });
             console.log("SELECTED POLICY TYPE", selectedPolicyType);
-            if (!existingUser && user) {
-                console.log("USER FOUND", user, phone);
-                existingUser = yield db.users.create({
-                    user_id: (0, uuid_1.v4)(),
-                    phone_number: phone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: existingUser.first_name,
-                    last_name: existingUser.last_name,
-                    name: `${existingUser.first_name} ${existingUser.last_name}`,
-                    total_member_number: selectedPolicyType.code_name,
-                    partner_id: 2,
-                    role: "user",
-                });
-                console.log("USER DOES NOT EXIST", user);
-                const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
-                yield (0, sendSMS_1.default)(fullPhone, message);
-            }
-            else {
-                if (!existingUser && !user) {
+            if (!existingUser) {
+                let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
+                if (user) {
+                    existingUser = yield db.users.create({
+                        user_id: (0, uuid_1.v4)(),
+                        phone_number: phone,
+                        membership_id: Math.floor(100000 + Math.random() * 900000),
+                        pin: Math.floor(1000 + Math.random() * 9000),
+                        first_name: existingUser.first_name,
+                        last_name: existingUser.last_name,
+                        name: `${existingUser.first_name} ${existingUser.last_name}`,
+                        total_member_number: selectedPolicyType.code_name,
+                        partner_id: 2,
+                        role: "user",
+                    });
+                    console.log("USER DOES NOT EXIST", user);
+                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
+                    yield (0, sendSMS_1.default)(fullPhone, message);
+                }
+                else {
                     existingUser = yield db.users.create({
                         user_id: (0, uuid_1.v4)(),
                         phone_number: phone,
@@ -625,6 +624,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     });
                 }
             }
+            console.log("EXISTING USER", existingUser);
             const spouse = allSteps[2];
             let beneficiary = {
                 beneficiary_id: (0, uuid_1.v4)(),
