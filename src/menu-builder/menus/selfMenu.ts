@@ -84,50 +84,38 @@ const selfMenu = async (args, db) => {
     }
     else if (currentStep === 4) {
         if (userText == "1") {
-            let existingUser = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let phone = phoneNumber?.replace('+', "")?.substring(3);
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
-            // create user
-            if (existingUser) {
+            let existingUser = await db.users.findOne({
+                where: {
+                  phone_number: phone,
+                },
+              });
 
-                const user = await db.users.findOne({
-                    where: {
-                        phone_number: phone,
-                    },
-                });
-
-                console.log("USER FOUND", user, phone);
-
-                if (!user) {
-                    existingUser = await db.users.create({
-                        user_id: uuidv4(),
-                        phone_number: phone,
-                        membership_id: Math.floor(100000 + Math.random() * 900000),
-                        pin: Math.floor(1000 + Math.random() * 9000),
-                        first_name: existingUser.first_name,
-                        last_name: existingUser.last_name,
-                        name: `${existingUser.first_name} ${existingUser.last_name}`,
-                        total_member_number: "M",
-                        partner_id: 2,
-                        role: "user",
-                    });
-                    console.log("USER DOES NOT EXIST", user);
-                    const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
-                    await sendSMS(fullPhone, message);
-                }
-                else {
-                    existingUser = user;
-                }
-            } else {
-             existingUser = await db.users.findOne({
-                    where: {
-                      phone_number: phone,
-                    },
+              
+              if (!existingUser) {
+                
+                let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+        
+                if(user){
+                  existingUser = await db.users.create({
+                    user_id: uuidv4(),
+                    phone_number: phone,
+                    membership_id: Math.floor(100000 + Math.random() * 900000),
+                    pin: Math.floor(1000 + Math.random() * 9000),
+                    first_name: existingUser.first_name,
+                    last_name: existingUser.last_name,
+                    name: `${existingUser.first_name} ${existingUser.last_name}`,
+                    total_member_number: "M",
+                    partner_id: 2,
+                    role: "user",
                   });
-                  console.log("USER FOUND", existingUser, phone)
-                 if(!existingUser){
+                 
+                  const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
+                  await sendSMS(fullPhone, message);
+                }else{
                   existingUser = await db.users.create({
                     user_id: uuidv4(),
                     phone_number: phone,
@@ -143,18 +131,17 @@ const selfMenu = async (args, db) => {
                 }
                 
             }
+            console.log("EXISTING USER", existingUser);
 
             // create policy
             let policy_type = selectedPolicyType.name;
             let installment_type = parseInt(allSteps[2]);
-            let period = installment_type == 1 ? "yearly" : "monthly";
+            // let period = installment_type == 1 ? "yearly" : "monthly";
 
             let ultimatePremium = calculatePaymentOptions(policy_type, installment_type);
-            console.log("ULTIMATE PREMIUM", ultimatePremium);
- //next month minus 1 day
+            //console.log("ULTIMATE PREMIUM", ultimatePremium);
+            //next month minus 1 day
              let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
-
-
 
             let policyObject = {
                 policy_id: uuidv4(),
@@ -186,7 +173,7 @@ const selfMenu = async (args, db) => {
             let policy = await db.policies.create(policyObject);
 
             // create payment
-            let paymentStatus = await airtelMoney(
+           await airtelMoney(
                 existingUser.user_id,
                 2,
                 policy.policy_id,

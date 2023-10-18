@@ -586,7 +586,6 @@ const familyMenu = async (args, db) => {
   }
   else if (currentStep == 7) {
     if (userText == "1") {
-      let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let phone = phoneNumber?.replace('+', "")?.substring(3);
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -595,12 +594,14 @@ const familyMenu = async (args, db) => {
           phone_number: phone,
         },
       });
-
+      
       console.log("SELECTED POLICY TYPE", selectedPolicyType);
+      
+      if (!existingUser) {
+        
+        let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
 
-      if (!existingUser && user) {
-       
-        console.log("USER FOUND", user, phone)
+        if(user){
           existingUser = await db.users.create({
             user_id: uuidv4(),
             phone_number: phone,
@@ -616,27 +617,24 @@ const familyMenu = async (args, db) => {
           console.log("USER DOES NOT EXIST", user);
           const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
           await sendSMS(fullPhone, message);
+        }else{
+          existingUser = await db.users.create({
+            user_id: uuidv4(),
+            phone_number: phone,
+            membership_id: Math.floor(100000 + Math.random() * 900000),
+            pin: Math.floor(1000 + Math.random() * 9000),
+            first_name: "Test",
+            last_name: "User",
+            name: `Test User`,
+            total_member_number: "M",
+            partner_id: 2,
+            role: "user",
+          });
+        }
         
-
-      } else {
-
-       if(!existingUser && !user){
-        existingUser = await db.users.create({
-          user_id: uuidv4(),
-          phone_number: phone,
-          membership_id: Math.floor(100000 + Math.random() * 900000),
-          pin: Math.floor(1000 + Math.random() * 9000),
-          first_name: "Test",
-          last_name: "User",
-          name: `Test User`,
-          total_member_number: "M",
-          partner_id: 2,
-          role: "user",
-        });
-      }
-
-
     }
+
+      console.log("EXISTING USER", existingUser);
 
       const spouse = allSteps[2];
 

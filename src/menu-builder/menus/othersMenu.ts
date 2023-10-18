@@ -296,42 +296,50 @@ const othersMenu = async (args, db) => {
   else if (currentStep == 5) {
     let otherName = allSteps[3];
     let otherPhone = allSteps[4];
+    let coverType = allSteps[2];
 
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
+    let selectedCoverPackage = selectedCover.packages[coverType -1];
 
-    response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCover.sum_insured} a year` +
+    response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
       "\nPAY " +
-      `\n1 UGX ${selectedCover.premium} monthly` +
-      `\n2 UGX ${selectedCover.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+      `\n1 UGX ${selectedCoverPackage.premium} monthly` +
+      `\n2 UGX ${selectedCoverPackage.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
   }
   else if (currentStep == 6) {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     let paymentOption = parseInt(userText);
     let period = paymentOption == 1 ? "monthly" : "yearly";
+    let coverType = allSteps[2];
+    console.log("COVER TYPE", coverType);
+    console.log("SELECTED COVER", selectedCover);
+    let selectedCoverPackage = selectedCover.packages[coverType -1];
+    console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
+    let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
+  
 
-    response = `CON Pay UGX ${selectedCover.premium} ${period}.` +
+    response = `CON Pay UGX ${ultimatePremium} ${period}.` +
       `\nTerms&Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
     if (userText == "1") {
-      let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+      
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let phone = phoneNumber?.replace('+', "")?.substring(3);
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
-      console.log("SELECTED POLICY TYPE", selectedPolicyType);
+     // console.log("SELECTED POLICY TYPE", selectedPolicyType);
       let existingUser = await db.users.findOne({
         where: {
           phone_number: phone,
         },
       });
 
-      console.log("USER FOUND", user, phone);
+      if (!existingUser) {
+        let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
 
-     
-      if (!existingUser && user) {
-
+        if (user) {
           existingUser = await db.users.create({
             user_id: uuidv4(),
             phone_number: phone,
@@ -344,37 +352,36 @@ const othersMenu = async (args, db) => {
             partner_id: 2,
             role: "user",
           });
-          console.log("USER DOES NOT EXIST", user);
           const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${existingUser.membership_id} Dial *185*7*6# to access your account.`;
           await sendSMS(fullPhone, message);
 
-      } else {
-        if(!existingUser && !user){
-        existingUser = await db.users.create({
-          user_id: uuidv4(),
-          phone_number: phone,
-          membership_id: Math.floor(100000 + Math.random() * 900000),
-          pin: Math.floor(1000 + Math.random() * 9000),
-          first_name: "Test",
-          last_name: "User",
-          name: `Test User`,
-          total_member_number: "M",
-          partner_id: 2,
-          role: "user",
-        });
+        } else {
+          existingUser = await db.users.create({
+            user_id: uuidv4(),
+            phone_number: phone,
+            membership_id: Math.floor(100000 + Math.random() * 900000),
+            pin: Math.floor(1000 + Math.random() * 9000),
+            first_name: "Test",
+            last_name: "User",
+            name: `Test User`,
+            total_member_number: "M",
+            partner_id: 2,
+            role: "user",
+          });
+
+
+        }
       }
-    }
 
       let otherUser = await db.users.findOne({
         where: {
           phone_number: allSteps[4].replace('0', ""),
         },
       });
-      console.log("OTHER USER", otherUser,  allSteps[4].replace('0', ""))
+      //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
       if (!otherUser) {
         let otherPhone = allSteps[4].replace('0', "");
-        console.log("OTHER PHONE", otherPhone)
-
+    
         let otherData = {
           user_id: uuidv4(),
           phone_number: otherPhone,
@@ -393,21 +400,25 @@ const othersMenu = async (args, db) => {
       }
 
 
-      let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+      let paymentOption = parseInt(allSteps[5]);
+      let installment_type = paymentOption == 1 ? 2 : 1;
+
 
       let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
-      let policyType = selectedPolicyType.packages[parseInt(allSteps[5]) - 1];
-      console.log("POLICY TYPE", policyType)
+      let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+      console.log("POLICY TYPE USERTEXT 1", policyType)
+      let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
+   console.log("ULTIMATE PREMIUM", ultimatePremium)
 
       let policyObject = {
         policy_id: uuidv4(),
         installment_type,
         policy_type: policyType.name.toUpperCase(),
-        policy_deduction_amount: parseAmount(policyType.premium),
-        policy_pending_premium: parseAmount(policyType.premium),
+        policy_deduction_amount: parseAmount(ultimatePremium),
+        policy_pending_premium: parseAmount(ultimatePremium),
         sum_insured: policyType.sumInsured,
-        premium: parseAmount(policyType.premium),
+        premium: parseAmount(ultimatePremium),
         yearly_premium: parseAmount(policyType.yearly_premium),
         last_expense_insured: policyType.lastExpenseInsured,
         policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
@@ -430,7 +441,7 @@ const othersMenu = async (args, db) => {
       let policy = await db.policies.create(policyObject);
 
       // create payment
-      let paymentStatus = await airtelMoney(
+      await airtelMoney(
         existingUser.user_id,
         2,
         policy.policy_id,
@@ -443,15 +454,13 @@ const othersMenu = async (args, db) => {
 
 
       // if (paymentStatus.code === 200) {
-        response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
-        // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
+      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
+      // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
       // } else {
       //   response = `END Sorry, your payment was not successful.`
       // }
-    } 
-    else {
+    }else{
       response = `END Sorry, your payment was not successful`
-                 
     }
   }
 

@@ -45,29 +45,39 @@ const accountMenu = async (args: any, db: any) => {
         // console.log('User text', userText)
         switch (userText) {
             case "1":
-                response = policies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no policies"
+                response = policies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
                 break;
             case "2":
-                const unpaidPolicies = await db.policies.findAll({
+                console.log("phoneNumber", smsPhone);
+                let unpaidPolicies = await db.policies.findAll({
                     where: {
-                        phone_number: phoneNumber,
+                        phone_number: smsPhone.replace("+", ""),
                         policy_status: "pending"
                     }
                 });
+                // last 6 unpaid policies
+                unpaidPolicies = unpaidPolicies.slice(-6);
                 if (unpaidPolicies?.length === 0) {
                     response = "END You have no pending policies"
                 }
                 else {
-                    response = "CON PAY " +
-                        `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
-                        `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
+                    // response = "CON PAY " +
+                    //     `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
+                    //     `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
+
+
+                    // list all the pending policies
+                   response = "CON " + unpaidPolicies.map((policy: any, index: number) => {
+                        return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
+                    }
+                    ).join("");
                 }
                 break;
             case "3":
-                console.log("Policies", policies);
+                
                 const paidPolicies = await db.policies.findAll({
                     where: {
-                        phone_number: phoneNumber,
+                        phone_number: smsPhone,
                         policy_status: "paid"
                     }
                 });
@@ -134,21 +144,61 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "2":
 
+                let unpaidPolicies = await db.policies.findAll({
+                    where: {
+                        phone_number: smsPhone.replace("+", ""),
+                        policy_status: "pending"
+                    }
+                });
+                // last 6 unpaid policies
+                unpaidPolicies = unpaidPolicies.slice(-6);
                 if (userText == "1") {
-                    const user = await db.users.findOne({
-                        where: {
-                            phone_number: phoneNumber
-                        }
-                    });
-                    const policies = await db.policies.findAll({
-                        where: {
-                            phone_number: phoneNumber,
-                            policy_status: "pending"
-                        }
-                    });
-                    console.log("Policy", policies[0]);
-                    await airtelMoney(user.user_id, 2, policies[0].policy_id, smsPhone, policies[0].premium, user.membership_id, "UG", "UGX");
-                    response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
+   console.log("UNPAID POLICIES", unpaidPolicies[0])
+                     response = "CON PAY " +
+                        `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
+                        `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
+
+
+                    // const user = await db.users.findOne({
+                    //     where: {
+                    //         phone_number: phoneNumber
+                    //     }
+                    // });
+                    // const policies = await db.policies.findAll({
+                    //     where: {
+                    //         phone_number: phoneNumber,
+                    //         policy_status: "pending"
+                    //     }
+                    // });
+                    // console.log("Policy", policies[0]);
+                    // await airtelMoney(user.user_id, 2, policies[0].policy_id, smsPhone, policies[0].premium, user.membership_id, "UG", "UGX");
+                    // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
+                } else if (userText == "2") {
+
+                    response = "CON PAY " +
+                    `\n1 UGX ${unpaidPolicies[1].premium.toLocaleString()}  monthly` +
+                    `\n2 UGX ${unpaidPolicies[1].yearly_premium.toLocaleString()}  yearly`
+
+                }else if (userText == "3") {
+                        
+                        response = "CON PAY " +
+                        `\n1 UGX ${unpaidPolicies[2].premium.toLocaleString()}  monthly` +
+                        `\n2 UGX ${unpaidPolicies[2].yearly_premium.toLocaleString()}  yearly`
+                }else if (userText == "4") {
+                            
+                            response = "CON PAY " +
+                            `\n1 UGX ${unpaidPolicies[3].premium.toLocaleString()}  monthly` +
+                            `\n2 UGX ${unpaidPolicies[3].yearly_premium.toLocaleString()}  yearly`
+                }else if (userText == "5") {
+                                    
+                                    response = "CON PAY " +
+                                    `\n1 UGX ${unpaidPolicies[4].premium.toLocaleString()}  monthly` +
+                                    `\n2 UGX ${unpaidPolicies[4].yearly_premium.toLocaleString()}  yearly`
+                }else if (userText == "6") {
+
+                    response = "CON PAY " +
+                    `\n1 UGX ${unpaidPolicies[5].premium.toLocaleString()}  monthly` +
+                    `\n2 UGX ${unpaidPolicies[5].yearly_premium.toLocaleString()}  yearly`
                 }
                 break;
             case "3":
@@ -177,6 +227,7 @@ const accountMenu = async (args: any, db: any) => {
                 break;
         }
     } else if (currentStep == 4) {
+
         const user = await db.users.findOne({
             where: {
                 [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
