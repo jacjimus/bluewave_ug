@@ -333,6 +333,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         if (userText == "1") {
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
+            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
             if (!existingUser) {
                 let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
@@ -412,14 +413,13 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             // create payment
             yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
             // if (paymentStatus.code === 200) {
-            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
             // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
             // } else {
             //   response = `END Sorry, your payment was not successful.`
             // }
         }
         else {
-            response = `END Sorry, your payment was not successful`;
+            response = "END Thank you for using Ddwaliro Care";
         }
     }
     return response;

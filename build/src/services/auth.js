@@ -45,7 +45,9 @@ function authToken(partner_id) {
                 Accept: '*/*',
             };
             const AUTH_TOKEN_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL : process.env.AIRTEL_AUTH_TOKEN_URL;
+            console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL);
             const response = yield axios_1.default.post(AUTH_TOKEN_URL, inputBody, { headers });
+            console.log("RESPONSE", response);
             if (response.status === 200) {
                 const token = response.data.access_token;
                 return token;

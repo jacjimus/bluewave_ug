@@ -334,6 +334,7 @@ const othersMenu = async (args, db) => {
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
 
 
       if (!existingUser) {
@@ -439,13 +440,13 @@ const othersMenu = async (args, db) => {
 
 
       // if (paymentStatus.code === 200) {
-      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
+     
       // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
       // } else {
       //   response = `END Sorry, your payment was not successful.`
       // }
     } else {
-      response = `END Sorry, your payment was not successful`
+      response = "END Thank you for using Ddwaliro Care"
     }
   }
 
