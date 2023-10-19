@@ -278,7 +278,8 @@ const othersMenu = async (args, db) => {
     response = "CON Buy for Others" + coversList + "\n0. Back";
 
 
-  } else if (currentStep == 2) {
+  }
+   else if (currentStep == 2) {
     let selectedCover = covers[parseInt(userText) - 1];
     if (!selectedCover) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -338,6 +339,7 @@ const othersMenu = async (args, db) => {
 
 
       if (!existingUser) {
+        
         let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
         let membershipId = Math.floor(100000 + Math.random() * 900000);
 
@@ -426,17 +428,24 @@ const othersMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-      // create payment
-      await airtelMoney(
-        existingUser.user_id,
-        2,
-        policy.policy_id,
-        phone,
-        policy.policy_deduction_amount,
-        existingUser.membership_id,
-        "UG",
-        "UGX"
-      );
+
+      try {
+        // create payment
+        await airtelMoney(
+          existingUser.user_id,
+          2,
+          policy.policy_id,
+          phone,
+          policy.policy_deduction_amount,
+          existingUser.membership_id,
+          "UG",
+          "UGX"
+        );
+        
+      } catch (error) {
+        console.log("AIRTEL MONEY ERROR", error);
+        
+      }
 
 
       // if (paymentStatus.code === 200) {

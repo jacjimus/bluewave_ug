@@ -94,8 +94,9 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
 
   try {
     const token = await getAuthToken(currency);
-    console.log('TOKEN ' + country, token);
+    console.log('AIRTEL MONEY TOKEN ' + country, token);
     const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
+    console.log('PAYMENT URL ', PAYMENT_URL)
 
     const paymentData = {
       reference: reference,

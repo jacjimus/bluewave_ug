@@ -79,6 +79,7 @@ async function getAirtelUser(
 
     // Making an API call only if the user doesn't exist
     const token = await authToken(partner_id);
+    console.log("TOKEN I AM GETTING", token);
     const headers = {
       Accept: "*/*",
       "X-Country": country,
@@ -97,7 +98,7 @@ async function getAirtelUser(
     console.log("GET_USER_URL", GET_USER_URL);
 
     const { data } = await axios.get(GET_USER_URL, { headers });
-    console.log("RESPONSE KYC", data);
+    console.log("RESPONSE KYC", data.data);
     return data?.data;
 
     // if (response && response.data) {

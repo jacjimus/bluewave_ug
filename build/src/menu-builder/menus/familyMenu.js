@@ -694,8 +694,13 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
             };
             let policy = yield db.policies.create(policyObject);
-            // create payment
-            let paymentStatus = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
+            try {
+                // create payment
+                yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
+            }
+            catch (error) {
+                console.log("AIRTEL MONEY ERROR", error);
+            }
         }
         else {
             response = "END Thank you for using Ddwaliro Care";

@@ -714,9 +714,10 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-    
+    try {
+      
       // create payment
-      let paymentStatus = await airtelMoney(
+      await airtelMoney(
         existingUser.user_id,
         2,
         policy.policy_id,
@@ -726,6 +727,10 @@ const familyMenu = async (args, db) => {
         "UG",
         "UGX"
       );
+    } catch (error) {
+      console.log("AIRTEL MONEY ERROR", error);
+      
+    }
 
     } else {
       response = "END Thank you for using Ddwaliro Care"

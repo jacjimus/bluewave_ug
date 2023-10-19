@@ -101,6 +101,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
+                console.log("AIRTEL USER", user);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
                 existingUser = yield db.users.create({
                     user_id: (0, uuid_1.v4)(),
@@ -153,8 +154,13 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             };
             console.log("POLICY OBJECT", policyObject);
             let policy = yield db.policies.create(policyObject);
+            try {
+                yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
+            }
+            catch (error) {
+                console.log("AIRTEL MONEY ERROR", error);
+            }
             // create payment
-            yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
         }
         else {
             response = "END Thank you for using Ddwaliro Care";

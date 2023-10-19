@@ -90,6 +90,7 @@ const selfMenu = async (args, db) => {
 
     }
     else if (currentStep === 4) {
+        
         if (userText == "1") {
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
@@ -100,6 +101,7 @@ const selfMenu = async (args, db) => {
               if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+                console.log("AIRTEL USER", user);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
 
                   existingUser = await db.users.create({
@@ -161,17 +163,23 @@ const selfMenu = async (args, db) => {
 
             let policy = await db.policies.create(policyObject);
 
+            try {
+                await airtelMoney(
+                     existingUser.user_id,
+                     2,
+                     policy.policy_id,
+                     phone,
+                     ultimatePremium.premium,
+                     existingUser.membership_id,
+                     "UG",
+                     "UGX"
+                 );
+                
+            } catch (error) {
+                console.log("AIRTEL MONEY ERROR", error);
+                
+            }
             // create payment
-           await airtelMoney(
-                existingUser.user_id,
-                2,
-                policy.policy_id,
-                phone,
-                ultimatePremium.premium,
-                existingUser.membership_id,
-                "UG",
-                "UGX"
-            );
 
 
         } else{

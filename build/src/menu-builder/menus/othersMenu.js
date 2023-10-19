@@ -410,8 +410,13 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 bought_for: otherUser.user_id
             };
             let policy = yield db.policies.create(policyObject);
-            // create payment
-            yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
+            try {
+                // create payment
+                yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
+            }
+            catch (error) {
+                console.log("AIRTEL MONEY ERROR", error);
+            }
             // if (paymentStatus.code === 200) {
             // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
             // } else {

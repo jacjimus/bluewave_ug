@@ -100,8 +100,9 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
         };
         try {
             const token = yield getAuthToken(currency);
-            console.log('TOKEN ' + country, token);
+            console.log('AIRTEL MONEY TOKEN ' + country, token);
             const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
+            console.log('PAYMENT URL ', PAYMENT_URL);
             const paymentData = {
                 reference: reference,
                 subscriber: {
