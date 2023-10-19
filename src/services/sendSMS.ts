@@ -13,7 +13,7 @@ async function sendSMS(phoneNumber: string, message: string) {
 
     const sms = africastalking.SMS
     const options = {
-        from: "BLUEWAVE",
+        from: process.env.AFRICA_TALKING_SHORTCODE,
         to: phoneNumber,
         message: message
     }

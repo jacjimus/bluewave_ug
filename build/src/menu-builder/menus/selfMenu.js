@@ -39,7 +39,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         {
             name: "MIDI",
             sum_insured: "3M",
-            sumInsured: 1500000,
+            sumInsured: 3000000,
             premium: "14,000",
             yearly_premium: "167,000",
             yearPemium: 167000,
@@ -49,7 +49,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         {
             name: "BIGGIE",
             sum_insured: "5M",
-            sumInsured: 1500000,
+            sumInsured: 5000000,
             premium: "18,000",
             yearly_premium: "208,000",
             yearPemium: 208000,
