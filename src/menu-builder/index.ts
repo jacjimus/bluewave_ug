@@ -32,7 +32,7 @@ const Session = db.sessions;
 const User = db.users;
 const Policy = db.policies;
 const Beneficiary = db.beneficiaries;
-const Hospitals = db.hospitals;
+const Hospital = db.hospitals;
 const Claim = db.claims;
 const UserHospital = db.user_hospitals;
 

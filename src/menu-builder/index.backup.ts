@@ -25,7 +25,6 @@ const Session = db.sessions;
 const User = db.users;
 const Policy = db.policies;
 const Beneficiary = db.beneficiaries;
-const Hospitals = db.hospitals;
 const Claim = db.claims;
 const UserHospital = db.user_hospitals;
 
@@ -175,7 +174,7 @@ export default function (args: RequestBody, db: any) {
             "\n3. Buy (others)" +
             "\n4. Make Claim" +
             "\n5. My Policy" +
-            "\n6. View Hospital" +
+            "\n6. View db.hospitals" +
             "\n7. Terms & Conditions" +
             "\n8. FAQs"
           );
@@ -201,7 +200,7 @@ export default function (args: RequestBody, db: any) {
             "\n3. Buy (others)" +
             "\n4. Make Claim" +
             "\n5. My Policy" +
-            "\n6. View Hospital" +
+            "\n6. View db.hospitals" +
             "\n7. Terms & Conditions" +
             "\n8. FAQs"
           );
@@ -248,7 +247,7 @@ export default function (args: RequestBody, db: any) {
             "\n4. Update My Profile (KYC)" +
             "\n5. Cancel Policy" +
             "\n6. Add Dependant" +
-            "\n7. My Hospital" +
+            "\n7. My db.hospitals" +
             "\n0. Back" +
             "\n00. Main Menu"
           );
@@ -756,7 +755,7 @@ export default function (args: RequestBody, db: any) {
             if (policy) {
               // 1. Cancel Policy
               menu.con(
-                `Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date
+                `db.hospitals cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date
                 }\n` +
                 // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
                 // `   Remaining: UGX ${policy.sum_insured}\n` +
@@ -1286,7 +1285,7 @@ export default function (args: RequestBody, db: any) {
           }
 
           const user_hospital_region = userHospital.hospital_region;
-          const hospitalListByRegion = await Hospitals.findAll(
+          const hospitalListByRegion = await db.hospitals.findAll(
             {
               where: {
                 region: user_hospital_region,
@@ -1338,7 +1337,7 @@ export default function (args: RequestBody, db: any) {
 
           const user_hospital_region = userHospital.hospital_region;
 
-          const hospitalList = await Hospitals.findAll();
+          const hospitalList = await db.hospitals.findAll();
 
           const hospitalListByRegion = hospitalList.filter((hospital) =>
             hospital.region
@@ -1397,7 +1396,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
 
           const user_hospital_district = userHospital.hospital_district;
 
-          const hospitalList = await Hospitals.findAll();
+          const hospitalList = await db.hospitals.findAll();
 
           const hospitalsByRegion = hospitalList.filter(
             (hospital) =>
@@ -1419,7 +1418,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
             ];
 
           menu.con(
-            `Type your Hospital to search e.g ${randomHospital.hospital_name}`
+            `Type your db.hospitals to search e.g ${randomHospital.hospital_name}`
           );
         },
         next: {
@@ -1445,7 +1444,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
           const user_hospital_region = userHospital.hospital_region;
           const user_hospital_district = userHospital.hospital_district;
 
-          const hospitalList = await Hospitals.findAll();
+          const hospitalList = await db.hospitals.findAll();
 
           const hospitalsByRegion = hospitalList.filter(
             (hospital) =>
@@ -1486,7 +1485,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
           await userHospital.save();
 
           const hospitalInfo = `
-          You have selected ${hospital_name}\n as your preferred facility.Below are the Hospital details
+          You have selected ${hospital_name}\n as your preferred facility.Below are the db.hospitals details
           \nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
 
           menu.con(hospitalInfo);
@@ -1500,7 +1499,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
         run: async () => {
           //ask if they want to change hospital or see details
           menu.con(`1. See Details
-                    2. Change Hospital
+                    2. Change db.hospitals
                     0. Back  00. Main Menu`);
         },
         next: {
@@ -1516,7 +1515,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
           if (!UserHospital) {
             menu.end(`Sorry, you have not selected a hospital yet.
                       \nPlease select a hospital first.
-                      \n1. Select Hospital`);
+                      \n1. Select db.hospitals`);
           }
 
           console.log("hospitalDetails", UserHospital);
@@ -1527,9 +1526,9 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
             hospital_contact_person,
             hospital_contact,
           } = UserHospital;
-          const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
-          const message = `Congratulations, you have selected ${hospital_name} as your preferred Inpatient Hospital. Below are the Hospital details:
-                        Hospital Name: ${hospital_name}
+          const hospitalInfo = `db.hospitals: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
+          const message = `Congratulations, you have selected ${hospital_name} as your preferred Inpatient db.hospitals. Below are the db.hospitals details:
+                        db.hospitals Name: ${hospital_name}
                         Contact Number: ${hospital_contact}
                         Location: ${hospital_address}
                         Contact Person: ${hospital_contact_person}

@@ -21,7 +21,7 @@ const Policy = db_1.db.policies;
 const Beneficiary = db_1.db.beneficiaries;
 const Transaction = db_1.db.transactions;
 const Payment = db_1.db.payments;
-const Hospitals = db_1.db.hospitals;
+const Hospital = db_1.db.hospitals;
 const Claim = db_1.db.claims;
 const UserHospital = db_1.db.user_hospitals;
 function default_1(args, db) {

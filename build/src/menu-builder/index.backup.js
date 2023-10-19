@@ -31,7 +31,6 @@ const Session = db_1.db.sessions;
 const User = db_1.db.users;
 const Policy = db_1.db.policies;
 const Beneficiary = db_1.db.beneficiaries;
-const Hospitals = db_1.db.hospitals;
 const Claim = db_1.db.claims;
 const UserHospital = db_1.db.user_hospitals;
 const findPolicyByUser = (phone_number) => __awaiter(void 0, void 0, void 0, function* () {
@@ -158,7 +157,7 @@ function default_1(args, db) {
                         "\n3. Buy (others)" +
                         "\n4. Make Claim" +
                         "\n5. My Policy" +
-                        "\n6. View Hospital" +
+                        "\n6. View db.hospitals" +
                         "\n7. Terms & Conditions" +
                         "\n8. FAQs");
                 }),
@@ -181,7 +180,7 @@ function default_1(args, db) {
                         "\n3. Buy (others)" +
                         "\n4. Make Claim" +
                         "\n5. My Policy" +
-                        "\n6. View Hospital" +
+                        "\n6. View db.hospitals" +
                         "\n7. Terms & Conditions" +
                         "\n8. FAQs");
                 },
@@ -214,7 +213,7 @@ function default_1(args, db) {
                         "\n4. Update My Profile (KYC)" +
                         "\n5. Cancel Policy" +
                         "\n6. Add Dependant" +
-                        "\n7. My Hospital" +
+                        "\n7. My db.hospitals" +
                         "\n0. Back" +
                         "\n00. Main Menu");
                 },
@@ -619,7 +618,7 @@ function default_1(args, db) {
                         console.log("POLICY: ", policy);
                         if (policy) {
                             // 1. Cancel Policy
-                            menu.con(`Hospital cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
+                            menu.con(`db.hospitals cover ${policy.policy_type.toUpperCase()} ${policy.policy_status.toUpperCase()} to ${policy.policy_end_date}\n` +
                                 // `   Inpatient limit: UGX ${policy.sum_insured}\n` +
                                 // `   Remaining: UGX ${policy.sum_insured}\n` +
                                 // `   Last Expense Per Person Benefit: ${policy.last_expense_insured}\n\n` +
@@ -1008,7 +1007,7 @@ function default_1(args, db) {
                         });
                     }
                     const user_hospital_region = userHospital.hospital_region;
-                    const hospitalListByRegion = yield Hospitals.findAll({
+                    const hospitalListByRegion = yield db.hospitals.findAll({
                         where: {
                             region: user_hospital_region,
                         },
@@ -1043,7 +1042,7 @@ function default_1(args, db) {
                         },
                     });
                     const user_hospital_region = userHospital.hospital_region;
-                    const hospitalList = yield Hospitals.findAll();
+                    const hospitalList = yield db.hospitals.findAll();
                     const hospitalListByRegion = hospitalList.filter((hospital) => hospital.region
                         .toLowerCase()
                         .includes(user_hospital_region.toLowerCase()));
@@ -1084,7 +1083,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                     userHospital.hospital_district = distictInput;
                     yield userHospital.save();
                     const user_hospital_district = userHospital.hospital_district;
-                    const hospitalList = yield Hospitals.findAll();
+                    const hospitalList = yield db.hospitals.findAll();
                     const hospitalsByRegion = hospitalList.filter((hospital) => hospital.region.toLowerCase() ===
                         user_hospital_region.toLowerCase());
                     console.log("hospitalsByRegion", hospitalsByRegion);
@@ -1093,7 +1092,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                     console.log("hospitalsByDistrict", hospitalsByDistrict);
                     // RANDOM HOSPITAL
                     const randomHospital = hospitalsByDistrict[Math.floor(Math.random() * hospitalsByDistrict.length)];
-                    menu.con(`Type your Hospital to search e.g ${randomHospital.hospital_name}`);
+                    menu.con(`Type your db.hospitals to search e.g ${randomHospital.hospital_name}`);
                 }),
                 next: {
                     "*[a-zA-Z]+": "selectHospital.search",
@@ -1112,7 +1111,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                     });
                     const user_hospital_region = userHospital.hospital_region;
                     const user_hospital_district = userHospital.hospital_district;
-                    const hospitalList = yield Hospitals.findAll();
+                    const hospitalList = yield db.hospitals.findAll();
                     const hospitalsByRegion = hospitalList.filter((hospital) => hospital.region.toLowerCase() ===
                         user_hospital_region.toLowerCase());
                     //console.log('hospitalsByRegion', hospitalsByRegion);
@@ -1134,7 +1133,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                     userHospital.hospital_contact = hospital_contact;
                     yield userHospital.save();
                     const hospitalInfo = `
-          You have selected ${hospital_name}\n as your preferred facility.Below are the Hospital details
+          You have selected ${hospital_name}\n as your preferred facility.Below are the db.hospitals details
           \nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
                     menu.con(hospitalInfo);
                 }),
@@ -1146,7 +1145,7 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                 run: () => __awaiter(this, void 0, void 0, function* () {
                     //ask if they want to change hospital or see details
                     menu.con(`1. See Details
-                    2. Change Hospital
+                    2. Change db.hospitals
                     0. Back  00. Main Menu`);
                 }),
                 next: {
@@ -1161,13 +1160,13 @@ ${districtList.map((district, index) => `${district}`).join("\n")}
                     if (!UserHospital) {
                         menu.end(`Sorry, you have not selected a hospital yet.
                       \nPlease select a hospital first.
-                      \n1. Select Hospital`);
+                      \n1. Select db.hospitals`);
                     }
                     console.log("hospitalDetails", UserHospital);
                     const { hospital_name, hospital_address, hospital_contact_person, hospital_contact, } = UserHospital;
-                    const hospitalInfo = `Hospital: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
-                    const message = `Congratulations, you have selected ${hospital_name} as your preferred Inpatient Hospital. Below are the Hospital details:
-                        Hospital Name: ${hospital_name}
+                    const hospitalInfo = `db.hospitals: ${hospital_name}\nAddress: ${hospital_address}\nContact Person: ${hospital_contact_person}\nContact: ${hospital_contact}`;
+                    const message = `Congratulations, you have selected ${hospital_name} as your preferred Inpatient db.hospitals. Below are the db.hospitals details:
+                        db.hospitals Name: ${hospital_name}
                         Contact Number: ${hospital_contact}
                         Location: ${hospital_address}
                         Contact Person: ${hospital_contact_person}
