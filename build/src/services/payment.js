@@ -131,7 +131,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                 'X-Currency': currency,
                 Authorization: authBearer,
             };
-            const AIRTEL_PAYMENT_URL = 'https://openapiuat.airtel.africa/merchant/v1/payments/';
+            const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
             const response = yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
             console.log('RESPONCE AIRTEL MONEY ' + country, response.data);
             if (response.data.status.code == '200') {

@@ -131,7 +131,7 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
       Authorization: authBearer,
     };
 
-   const AIRTEL_PAYMENT_URL='https://openapiuat.airtel.africa/merchant/v1/payments/'
+   const AIRTEL_PAYMENT_URL='https://openapi.airtel.africa/merchant/v1/payments/'
     const response = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
     console.log('RESPONCE AIRTEL MONEY ' + country, response.data);
 
