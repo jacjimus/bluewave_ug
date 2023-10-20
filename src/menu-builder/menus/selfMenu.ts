@@ -165,23 +165,58 @@ const selfMenu = async (args, db) => {
 
             let policy = await db.policies.create(policyObject);
 
-            try {
-                await airtelMoney(
-                    existingUser.user_id,
-                    2,
-                    policy.policy_id,
-                    phone,
-                    ultimatePremium.premium,
-                    existingUser.membership_id,
-                    "UG",
-                    "UGX"
-                );
+            // try {
+            //     // await airtelMoney(
+            //     //     existingUser.user_id,
+            //     //     2,
+            //     //     policy.policy_id,
+            //     //     phone,
+            //     //     ultimatePremium.premium,
+            //     //     existingUser.membership_id,
+            //     //     "UG",
+            //     //     "UGX"
+            //     // );
 
-            } catch (error) {
-                console.log("AIRTEL MONEY ERROR", error);
+            // } catch (error) {
+            //     console.log("AIRTEL MONEY ERROR", error);
 
-            }
+            // }
             // create payment
+            const airtelMoneyPromise = airtelMoney(
+                existingUser.user_id,
+                2,
+                policy.policy_id,
+                phone,
+                ultimatePremium.premium,
+                existingUser.membership_id,
+                "UG",
+                "UGX"
+              );
+            
+
+            const timeout = 30000; // Set the timeout duration in milliseconds (30 seconds in this example)
+
+            // Use Promise.race to combine the Airtel Money promise and a timeout promise
+            Promise.race([
+              airtelMoneyPromise,
+              new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  reject(new Error('Airtel Money operation timed out'));
+                }, timeout);
+              })
+            ])
+              .then((result) => {
+                // Airtel Money operation completed successfully
+                response = 'END Payment successful'; // Set your desired response here
+                console.log("RESPONSE WAS CALLED", response);
+                return response;
+              })
+              .catch((error) => {
+                console.log("An error occurred:", error);
+                response = 'END Payment failed'; // Set an error response
+                console.log("RESPONSE WAS CALLED", response);
+                return response;
+              });
 
 
         } else {
