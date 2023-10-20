@@ -16,10 +16,10 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const termsAndConditions = (args) => __awaiter(void 0, void 0, void 0, function* () {
     let { phoneNumber, response } = args;
     phoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
-    const message = 'To view Medical cover Terms &Conditions Visit www.tclink.com ';
+    const message = 'To view Medical cover Terms &Conditions Visit https://rb.gy/g4hyk';
     const sms = yield (0, sendSMS_1.default)(phoneNumber, message);
     console.log("SMS", sms);
-    response = 'END Visit www.tclink.com to Terms & Conditions. A link will also be sent by SMS';
+    response = 'END Visit https://rb.gy/g4hyk to Terms & Conditions. A link will also be sent by SMS';
     return response;
 });
 exports.default = termsAndConditions;
