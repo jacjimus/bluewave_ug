@@ -90,9 +90,16 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (end_date) {
             dateFilters.createdAt = Object.assign(Object.assign({}, dateFilters.createdAt), { [Op.lte]: new Date(end_date) });
         }
+        if (!partner_id) {
+            return res.status(400).json({
+                code: 400, message: "Please provide a partner_id"
+            });
+        }
         // Create a dynamic where condition for searchable fields
         const whereCondition = Object.assign({ partner_id: partner_id }, dateFilters);
-        const policies = yield Policy.findAndCountAll({
+        // Calculate the offset for pagination
+        const offset = (page - 1) * limit;
+        const { count, rows } = yield Policy.findAndCountAll({
             where: whereCondition,
             order: [["id", "DESC"]],
             include: [
@@ -105,14 +112,14 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     as: "product",
                 },
             ],
-            offset: (page - 1) * limit,
-            limit: limit,
+            offset,
+            limit,
         });
-        if (!policies || policies.count === 0) {
+        if (!count || count === 0) {
             return res.status(404).json({ message: "No policies found" });
         }
         // Add paid premium and pending premium
-        const newPolicies = yield Promise.all(policies.rows.map((policy) => __awaiter(void 0, void 0, void 0, function* () {
+        const newPolicies = yield Promise.all(rows.map((policy) => __awaiter(void 0, void 0, void 0, function* () {
             policy.dataValues.total_premium = policy.premium;
             policy.dataValues.paid_premium = policy.policy_deduction_amount;
             policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
@@ -134,38 +141,28 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             }
             return policy;
         })));
-        //impletement search
+        // Implement search
         const searchResults = (0, utils_1.globalSearch)(newPolicies, filter);
-        console.log("SEARCH RESULTS", searchResults);
         // Calculate pagination information
-        const total = searchResults.length;
-        const totalPages = Math.ceil(total / limit);
+        const totalPages = Math.ceil(count / limit);
         const result = {
-            count: total,
-            totalPages: totalPages,
+            count,
+            totalPages,
             currentPage: page,
-            policies: searchResults
+            policies: searchResults,
         };
-        // await Log.create({
-        //   log_id: uuidv4(),
-        //   timestamp: new Date(),
-        //   message: `User ${req?.user_id} fetched policies`,
-        //   level: "info",
-        //   user: req?.user_id,
-        //   partner_id: req?.partner_id,
-        // });
         return res.status(200).json({
             result: {
                 code: 200,
                 message: "Policies fetched successfully",
-                count: total,
-                items: searchResults
+                count,
+                items: searchResults,
             },
         });
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
+        return res.status(500).json({ code: 500, message: "Internal server error", error });
     }
 });
 /**

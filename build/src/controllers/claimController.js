@@ -75,8 +75,12 @@ const getClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const filter = req.query.filter;
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
-    console.log("FILTER", filter);
     try {
+        if (!partner_id) {
+            return res.status(400).json({
+                code: 400, message: "Please provide a partner_id"
+            });
+        }
         let claim;
         const claimWhere = { partner_id: partner_id };
         // Add date filters to the 'claimWhere' object based on the provided start_date and end_date

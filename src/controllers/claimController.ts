@@ -73,8 +73,13 @@ const getClaims = async (req: any, res: any) => {
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
-    console.log("FILTER", filter);
     try {
+
+        if(!partner_id){
+            return res.status(400).json({
+                code: 400, message: "Please provide a partner_id"
+            });
+        }
         let claim: any;
         const claimWhere: any = { partner_id: partner_id };
 
