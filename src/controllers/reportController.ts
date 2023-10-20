@@ -1012,11 +1012,6 @@ const getPolicyExcelReportDownload = async (req, res) => {
 const handlePolicyDownload = (req, res) => {
   const { token } = req.query;
 
-  // Verify the token and get the file path
-  // This is where you check if the token is valid and retrieve the file path
-
-
-
   const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
 
   // Stream the file for download
@@ -1034,9 +1029,6 @@ const handlePolicyDownload = (req, res) => {
 
 const handleClaimDownload = (req, res) => {
   const { token } = req.query;
-
-  // Verify the token and get the file path
-  // This is where you check if the token is valid and retrieve the file path
 
   const filePath = path.join(__dirname, "uploads", "claim_report.xlsx");
 
@@ -1060,6 +1052,8 @@ const generatePolicyExcelReport = async (policies) => {
   // Define columns for data in Excel. Key must match data key
   worksheet.columns = [
     { header: "Product ID", key: "product_id", width: 20 },
+    { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
+    { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
     { header: "Product Name", key: "product_name", width: 20 },
@@ -1104,9 +1098,13 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Updated At", key: "updatedAt", width: 20 },
   ];
 
-  policies.forEach((policy) => {
+  policies.forEach(async(policy) => {
+ 
+  
     worksheet.addRow({
       policy_id: policy.policy_id,
+      airtel_money_id: policy.airtel_money_id,
+      bluewave_transaction_id: policy.bluewave_transaction_id,
       policy_date: moment(policy.policy_date).format("YYYY-MM-DD"),
       policy_number: policy.policy_number,
       policy_status: policy.policy_status,
@@ -1141,8 +1139,8 @@ const generatePolicyExcelReport = async (policies) => {
       createdAt: moment(policy.createdAt).format("YYYY-MM-DD"),
       updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
       policy_type: policy.policy_type,
-      full_name: `${policy.user.first_name} ${policy.user.last_name}`,
-      phone_number: policy.user.phone_number,
+      full_name: `${policy.user?.dataValues?.first_name} ${policy.user?.dataValues?.last_name}`,
+      phone_number: policy.user?.dataValues?.phone_number,
       product_name: policy.product.product_name,
     });
   });

@@ -836,8 +836,6 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
 // Download endpoint handler
 const handlePolicyDownload = (req, res) => {
     const { token } = req.query;
-    // Verify the token and get the file path
-    // This is where you check if the token is valid and retrieve the file path
     const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
     // Stream the file for download
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -846,8 +844,6 @@ const handlePolicyDownload = (req, res) => {
 };
 const handleClaimDownload = (req, res) => {
     const { token } = req.query;
-    // Verify the token and get the file path
-    // This is where you check if the token is valid and retrieve the file path
     const filePath = path.join(__dirname, "uploads", "claim_report.xlsx");
     // Stream the file for download
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -860,6 +856,8 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
     // Define columns for data in Excel. Key must match data key
     worksheet.columns = [
         { header: "Product ID", key: "product_id", width: 20 },
+        { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
+        { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
         { header: "Full Name", key: "full_name", width: 20 },
         { header: "Phone Number", key: "phone_number", width: 20 },
         { header: "Product Name", key: "product_name", width: 20 },
@@ -903,9 +901,12 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
         { header: "Created At", key: "createdAt", width: 20 },
         { header: "Updated At", key: "updatedAt", width: 20 },
     ];
-    policies.forEach((policy) => {
+    policies.forEach((policy) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c, _d, _e, _f;
         worksheet.addRow({
             policy_id: policy.policy_id,
+            airtel_money_id: policy.airtel_money_id,
+            bluewave_transaction_id: policy.bluewave_transaction_id,
             policy_date: moment(policy.policy_date).format("YYYY-MM-DD"),
             policy_number: policy.policy_number,
             policy_status: policy.policy_status,
@@ -936,11 +937,11 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             createdAt: moment(policy.createdAt).format("YYYY-MM-DD"),
             updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
             policy_type: policy.policy_type,
-            full_name: `${policy.user.first_name} ${policy.user.last_name}`,
-            phone_number: policy.user.phone_number,
+            full_name: `${(_b = (_a = policy.user) === null || _a === void 0 ? void 0 : _a.dataValues) === null || _b === void 0 ? void 0 : _b.first_name} ${(_d = (_c = policy.user) === null || _c === void 0 ? void 0 : _c.dataValues) === null || _d === void 0 ? void 0 : _d.last_name}`,
+            phone_number: (_f = (_e = policy.user) === null || _e === void 0 ? void 0 : _e.dataValues) === null || _f === void 0 ? void 0 : _f.phone_number,
             product_name: policy.product.product_name,
         });
-    });
+    }));
     return workbook;
 });
 /**
