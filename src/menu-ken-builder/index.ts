@@ -1325,7 +1325,7 @@ export default function handleUssd(args: RequestBody, db: any) {
               menu.con(
                 "Hospital cover of Kes 1M a year(100k per night, max 10 nights)" +
                 "Life cover of Kes 4M Funeral Benefit" +
-                "\n1. Cancel Policy"
+                "\n1. Cancel Policy" + "\n0. Back \n00. Main Menu"
               );
             } else {
               menu.con("Your policy is INACTIVE\n0 Buy cover");

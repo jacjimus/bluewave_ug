@@ -92,7 +92,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const policy = yield db.policies.findOne({
             where: {
-                user_id: user.user_id,
+                user_id: user && user.user_id,
                 policy_status: "paid",
             },
         });

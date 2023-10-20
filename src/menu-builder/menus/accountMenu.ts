@@ -83,7 +83,7 @@ const accountMenu = async (args: any, db: any) => {
                     }
                 });
                 if (paidPolicies.length > 0) {
-                    response = `CON ${policyMessages[0]}\n1. Cancel Policy`
+                    response = `CON ${policyMessages[0]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
                 }
                 else {
                     response = "END You have no policies"
