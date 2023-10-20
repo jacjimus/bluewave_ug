@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
-const aar_1 = require("../../services/aar");
 const uuid_1 = require("uuid");
 const payment_1 = require("../../services/payment");
 const sequelize_1 = require("sequelize");
@@ -199,40 +198,48 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
             user_id: existingUser.user_id,
             bonus: allSteps[2],
         };
-        let arr_member = yield (0, aar_1.fetchMemberStatusData)({
-            member_no: existingUser.arr_member_number,
-            unique_profile_id: existingUser.membership_id + "",
-        });
-        console.log("arr_member", arr_member);
-        let dependant_first_name = allSteps[2].split(" ")[0];
-        let dependant_other_names = allSteps[2].split(" ")[1];
-        let dependant_surname = allSteps[2].split(" ")[2] || allSteps[2].split(" ")[1];
-        if (arr_member.code == 200) {
-            yield (0, aar_1.registerDependant)({
-                member_no: existingUser.arr_member_number,
-                surname: dependant_surname,
-                first_name: dependant_first_name,
-                other_names: dependant_other_names,
-                gender: 1,
-                dob: "1990-01-01",
-                email: "dependant@bluewave.insure",
-                pri_dep: "25",
-                family_title: "4",
-                tel_no: userText,
-                next_of_kin: {
-                    surname: "",
-                    first_name: "",
-                    other_names: "",
-                    tel_no: "",
-                },
-                member_status: "1",
-                health_option: "63",
-                health_plan: "AIRTEL_" + (myPolicy === null || myPolicy === void 0 ? void 0 : myPolicy.policy_type),
-                policy_start_date: myPolicy.policy_start_date,
-                policy_end_date: myPolicy.policy_end_date,
-                unique_profile_id: existingUser.membership_id + "-01",
-            });
-        }
+        // let dependant
+        // let arr_member = await fetchMemberStatusData({
+        //     member_no: existingUser.arr_member_number,
+        //     unique_profile_id: existingUser.membership_id + "",
+        //   });
+        //   console.log("arr_member", arr_member);
+        //   let dependant_first_name = allSteps[2].split(" ")[0];
+        //     let dependant_other_names = allSteps[2].split(" ")[1];
+        //         let dependant_surname = allSteps[2].split(" ")[2] || allSteps[2].split(" ")[1];
+        //   if (arr_member.code == 200) {
+        //     dependant = await registerDependant({
+        //       member_no: existingUser.arr_member_number,
+        //       surname: dependant_surname,
+        //       first_name: dependant_first_name,
+        //       other_names: dependant_other_names, 
+        //       gender: 1,
+        //       dob: "1990-01-01",
+        //       email: "dependant@bluewave.insure",
+        //       pri_dep: "25",
+        //       family_title: "4", //4 spouse // 3 -principal // 25 - child
+        //       tel_no:  userText,
+        //       next_of_kin: {
+        //         surname: "",
+        //         first_name: "",
+        //         other_names: "",
+        //         tel_no: "",
+        //       },
+        //       member_status: "1",
+        //       health_option: "63",
+        //       health_plan: "AIRTEL_" + myPolicy?.policy_type,
+        //       policy_start_date: myPolicy.policy_start_date,
+        //       policy_end_date: myPolicy.policy_end_date,
+        //       unique_profile_id: existingUser.membership_id + "-01",
+        //     });
+        //   }
+        //   console.log("AAR DEPENDANT", dependant);
+        //   if (arr_member.code == 200) {
+        //      console.log("MEMBER STATUS", arr_member);
+        //      myPolicy.arr_policy_number = arr_member?.policy_no;
+        //    let  updatePremiumData = await updatePremium(dependant, myPolicy);
+        //      console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
+        //    }
         yield db.beneficiaries.create(nextOfKinDetails);
         const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`;
         yield (0, sendSMS_1.default)(smsPhone, sms);

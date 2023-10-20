@@ -110,9 +110,12 @@ router.all("/callback", async (req, res) => {
       }
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
+      console.log("TRANSACTION DATA", transactionData);
 
       const user = await Users.findOne({ where: { user_id } });
-      let policy = await Policy.findAll({ where: { policy_id } });
+      let policy = await db.policies.findOne({ where: { policy_id } });
+     // policy.sort((a, b) => a.policy_start_date - b.policy_start_date);
+        policy.airtel_money_id = airtel_money_id;
 
       if(!user){
         console.log("User not found");
@@ -120,16 +123,16 @@ router.all("/callback", async (req, res) => {
       }
 
       // latest policy
-      policy = policy[policy.length - 1];
+     // policy = policy[policy.length - 1];
 
       console.log("======= POLICY =========", policy);
 
-      if (!policy) {
+      if (!policy || !policy.airtel_money_id) {
         console.log("Policy not found");
         return res.status(404).json({ message: "Policy not found" });
       }
 
-      const beneficiary = await Beneficiary.findOne({ where: { user_id } });
+      const beneficiary = policy.beneficiary
       const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
       const policyType = policy.policy_type.toUpperCase();
       const period = policy.installment_type == 1 ? "yearly" : "monthly";
@@ -144,27 +147,26 @@ router.all("/callback", async (req, res) => {
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
         if (memberStatus.code !== 200) {
-          registerAARUser = await registerPrincipal(user, policy, beneficiary, airtel_money_id);
+          registerAARUser = await registerPrincipal(user, policy, beneficiary);
           console.log("AAR USER", registerAARUser);
           if (registerAARUser.code == 200 || memberStatus.code == 200) {
             user.arr_member_number = registerAARUser.member_no;
             await user.save();
-            updatePremiumData = await updatePremium(user, policy, airtel_money_id);
+            updatePremiumData = await updatePremium(user, policy);
             console.log("AAR UPDATE PREMIUM", updatePremiumData);
           }
 
         }
         if (memberStatus.code == 200) {
-          const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
           console.log("MEMBER STATUS", memberStatus);
           policy.arr_policy_number = memberStatus?.policy_no;
-          updatePremiumData = await updatePremium(user, policy, airtel_money_id);
+          updatePremiumData = await updatePremium(user, policy);
           console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
         }
 
         const payment = await Payment.create({
           payment_amount: amount,
-          payment_type: "airtel money stk push",
+          payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
           user_id,
           policy_id,
           payment_status: "paid",
@@ -178,7 +180,6 @@ router.all("/callback", async (req, res) => {
         //find policy schedule with policy id 
         //if not found create new policy schedule
      
-
         let policySchedule = await db.policy_schedules.findOne({ where: { policy_id } });
         console.log("POLICY SCHEDULE", policySchedule);
 
@@ -216,7 +217,7 @@ router.all("/callback", async (req, res) => {
               const newPolicySchedule = {
                 policy_schedule_id: uuidv4(),
                 policy_id,
-                payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+                payment_frequency: period,
                 policy_start_date: policyStartDate,
                 next_payment_due_date: nextDueDate,
                 reminder_date: reminderDate,
@@ -237,7 +238,7 @@ router.all("/callback", async (req, res) => {
             const newPolicySchedule = {
               policy_schedule_id: uuidv4(),
               policy_id,
-              payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+              payment_frequency: period,
               policy_start_date: policy.policy_start_date,
               next_payment_due_date: policy.policy_end_date,
               reminder_date: policy.policy_end_date,
@@ -252,7 +253,6 @@ router.all("/callback", async (req, res) => {
           }
         }
         
-
 
         console.log("Payment record created successfully");
 
@@ -284,18 +284,12 @@ router.all("/callback", async (req, res) => {
         }
         updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
 
-        // AAR renewal
-
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
         console.log("=== UPDATED POLICY ===", updatedPolicy)
         console.log("=== INSTALLMENT ===", installment)
         console.log("=== REGISTERED AAR USER ===", registerAARUser)
         console.log("=== UPDATED PREMIUM DATA ===", updatePremiumData)
-
-        //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
-
-        // Cover valid till <date>
 
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
         console.log("MEMBERS", members, policy.total_member_number);

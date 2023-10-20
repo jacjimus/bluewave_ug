@@ -90,7 +90,7 @@ const selfMenu = async (args, db) => {
 
     }
     else if (currentStep === 4) {
-        
+
         if (userText == "1") {
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 

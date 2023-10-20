@@ -20,15 +20,17 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const User = db_1.db.users;
 const Transaction = db_1.db.transactions;
-const AIRTEL_PAYMENT_TOKEN_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
+let AIRTEL_AUTH_TOKEN_URL = 'https://openapiuat.airtel.africa/auth/oauth2/token';
+//process.env.ENVIROMENT=='PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 function getAuthToken(currency) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('AIRTEL PAYMENT TOKEN URL', AIRTEL_PAYMENT_TOKEN_URL);
-        console.log('TOKEN COUNTRY CURRENCY', currency);
+        // console.log("PAYMENT TOKEN ", process.env.AIRTEL_UGX_CLIENT_ID, process.env.AIRTEL_UGX_CLIENT_SECRET)
+        // console.log('AIRTEL PAYMENT TOKEN URL', AIRTEL_PAYMENT_TOKEN_URL)
+        // console.log('TOKEN COUNTRY CURRENCY', currency);
         try {
             let response;
             if (currency == "KES") {
-                response = yield axios_1.default.post(AIRTEL_PAYMENT_TOKEN_URL, {
+                response = yield axios_1.default.post(AIRTEL_AUTH_TOKEN_URL, {
                     client_id: process.env.AIRTEL_KEN_CLIENT_ID,
                     client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
                     grant_type: 'client_credentials',
@@ -45,9 +47,11 @@ function getAuthToken(currency) {
                     throw new Error(`Failed to get authentication token: ${response.statusText}`);
                 }
             }
-            response = yield axios_1.default.post(AIRTEL_PAYMENT_TOKEN_URL, {
-                client_id: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
-                client_secret: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
+            response = yield axios_1.default.post(AIRTEL_AUTH_TOKEN_URL, {
+                client_id: "536845b8-3367-4368-8ca1-6ced77aaafef",
+                client_secret: "a0f63148-e758-4fc9-9f18-df5a386ae854",
+                //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
+                // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
                 grant_type: 'client_credentials',
             }, {
                 headers: {
@@ -101,8 +105,8 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
         try {
             const token = yield getAuthToken(currency);
             console.log('AIRTEL MONEY TOKEN ' + country, token);
-            const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
-            console.log('PAYMENT URL ', PAYMENT_URL);
+            // const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
+            // console.log('PAYMENT URL ', PAYMENT_URL)
             const paymentData = {
                 reference: reference,
                 subscriber: {
@@ -126,7 +130,8 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                 'X-Currency': currency,
                 Authorization: authBearer,
             };
-            const response = yield axios_1.default.post(PAYMENT_URL, paymentData, { headers });
+            const AIRTEL_PAYMENT_URL = 'https://openapiuat.airtel.africa/merchant/v1/payments/';
+            const response = yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
             console.log('RESPONCE AIRTEL MONEY ' + country, response.data);
             if (response.data.status.code == '200') {
                 const transaction = response.data.data.transaction;

@@ -99,20 +99,23 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 return res.status(404).json({ message: "Transaction not found" });
             }
             const { policy_id, user_id, amount, partner_id } = transactionData;
+            console.log("TRANSACTION DATA", transactionData);
             const user = yield Users.findOne({ where: { user_id } });
-            let policy = yield Policy.findAll({ where: { policy_id } });
+            let policy = yield db_1.db.policies.findOne({ where: { policy_id } });
+            // policy.sort((a, b) => a.policy_start_date - b.policy_start_date);
+            policy.airtel_money_id = airtel_money_id;
             if (!user) {
                 console.log("User not found");
                 return res.status(404).json({ message: "User not found" });
             }
             // latest policy
-            policy = policy[policy.length - 1];
+            // policy = policy[policy.length - 1];
             console.log("======= POLICY =========", policy);
-            if (!policy) {
+            if (!policy || !policy.airtel_money_id) {
                 console.log("Policy not found");
                 return res.status(404).json({ message: "Policy not found" });
             }
-            const beneficiary = yield Beneficiary.findOne({ where: { user_id } });
+            const beneficiary = policy.beneficiary;
             const to = ((_a = user.phone_number) === null || _a === void 0 ? void 0 : _a.startsWith("7")) ? `+256${user.phone_number}` : ((_b = user.phone_number) === null || _b === void 0 ? void 0 : _b.startsWith("0")) ? `+256${user.phone_number.substring(1)}` : ((_c = user.phone_number) === null || _c === void 0 ? void 0 : _c.startsWith("+")) ? user.phone_number : `+256${user.phone_number}`;
             const policyType = policy.policy_type.toUpperCase();
             const period = policy.installment_type == 1 ? "yearly" : "monthly";
@@ -123,25 +126,24 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 let registerAARUser, updatePremiumData, updatedPolicy, installment;
                 const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
                 if (memberStatus.code !== 200) {
-                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy, beneficiary, airtel_money_id);
+                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy, beneficiary);
                     console.log("AAR USER", registerAARUser);
                     if (registerAARUser.code == 200 || memberStatus.code == 200) {
                         user.arr_member_number = registerAARUser.member_no;
                         yield user.save();
-                        updatePremiumData = yield (0, aar_1.updatePremium)(user, policy, airtel_money_id);
+                        updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
                         console.log("AAR UPDATE PREMIUM", updatePremiumData);
                     }
                 }
                 if (memberStatus.code == 200) {
-                    const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
                     console.log("MEMBER STATUS", memberStatus);
                     policy.arr_policy_number = memberStatus === null || memberStatus === void 0 ? void 0 : memberStatus.policy_no;
-                    updatePremiumData = yield (0, aar_1.updatePremium)(user, policy, airtel_money_id);
+                    updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
                     console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
                 }
                 const payment = yield Payment.create({
                     payment_amount: amount,
-                    payment_type: "airtel money stk push",
+                    payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
                     user_id,
                     policy_id,
                     payment_status: "paid",
@@ -181,7 +183,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                             const newPolicySchedule = {
                                 policy_schedule_id: (0, uuid_1.v4)(),
                                 policy_id,
-                                payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+                                payment_frequency: period,
                                 policy_start_date: policyStartDate,
                                 next_payment_due_date: nextDueDate,
                                 reminder_date: reminderDate,
@@ -200,7 +202,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                         const newPolicySchedule = {
                             policy_schedule_id: (0, uuid_1.v4)(),
                             policy_id,
-                            payment_frequency: policy.installment_type == 1 ? "yearly" : "monthly",
+                            payment_frequency: period,
                             policy_start_date: policy.policy_start_date,
                             next_payment_due_date: policy.policy_end_date,
                             reminder_date: policy.policy_end_date,
@@ -239,15 +241,12 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     });
                 }
                 updatedPolicy = yield updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
-                // AAR renewal
                 console.log("=== PAYMENT ===", payment);
                 console.log("=== TRANSACTION === ", transactionData);
                 console.log("=== UPDATED POLICY ===", updatedPolicy);
                 console.log("=== INSTALLMENT ===", installment);
                 console.log("=== REGISTERED AAR USER ===", registerAARUser);
                 console.log("=== UPDATED PREMIUM DATA ===", updatePremiumData);
-                //         Congratulations! You and 1 dependent are each covered for Inpatient benefit of UGX 1.5M and Funeral benefit of UGX 1M.
-                // Cover valid till <date>
                 const members = (_d = policy.total_member_number) === null || _d === void 0 ? void 0 : _d.match(/\d+(\.\d+)?/g);
                 console.log("MEMBERS", members, policy.total_member_number);
                 const sumInsured = (0, utils_1.formatAmount)(policy.sum_insured);

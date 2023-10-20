@@ -65,37 +65,9 @@ function refreshToken() {
         }
     });
 }
-// {
-//   "surname": "mary",
-//   "first_name": "wairimu",
-//   "other_names": "ms",
-//   "gender": "1",
-//   "dob": "1989-01-01",
-//   "pri_dep": "24",
-//   "family_title": "24",
-//   "tel_no": "253701010101",
-//   "email": "marydoe@gmail.com",
-//   "next_of_kin": {
-//       "surname": "jean",
-//       "first_name": "mary",
-//       "other_names": "doe",
-//       "tel_no": "0799999999"
-//   },
-//   "member_status": "1",
-//   "health_option": "63",
-//   "health_plan": "MIDI",
-//   "policy_start_date": "2022-09-28",
-//   "policy_end_date": "2023-09-27",
-//   "unique_profile_id": "123455"
-// }
-function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
+function registerPrincipal(user, policy, beneficiary) {
     return __awaiter(this, void 0, void 0, function* () {
-        // random date of birth and gender
-        console.log("i was called register principal");
-        // console.log("USER", user);
-        // console.log("POLICY", policy);
-        // console.log("BENEFICIARY", beneficiary);
-        // console.log("AIRTEL MONEY ID", airtel_money_id);
+        console.log("REGISTER PRINCIPAL AAR", user, policy, beneficiary);
         const userData = {
             surname: user.last_name,
             first_name: user.first_name,
@@ -118,7 +90,7 @@ function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
             policy_start_date: policy.policy_start_date,
             policy_end_date: policy.policy_end_date,
             unique_profile_id: user.membership_id + '',
-            money_transaction_id: airtel_money_id,
+            money_transaction_id: policy.airtel_money_id,
         };
         try {
             const config = {
@@ -145,35 +117,10 @@ function registerPrincipal(user, policy, beneficiary, airtel_money_id) {
     });
 }
 exports.registerPrincipal = registerPrincipal;
-// Example usage:
-const registrationMembData = {
-    surname: "james",
-    first_name: "Odo",
-    other_names: "doe",
-    gender: 1,
-    dob: "2000-09-09",
-    pri_dep: "24",
-    family_title: "24",
-    tel_no: "0701010101",
-    email: "james@gmail.com",
-    next_of_kin: {
-        surname: "jean",
-        first_name: "mary",
-        other_names: "doe",
-        tel_no: "0799999999",
-    },
-    member_status: "2",
-    health_option: "2",
-    health_plan: "BRONZE10",
-    policy_start_date: "2000-02-22",
-    policy_end_date: "2000-02-01",
-    unique_profile_id: "2000",
-    money_transaction_id: "2000222",
-};
-function updatePremium(data, policy, airtel_money_id) {
+function updatePremium(data, policy) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("updatePremium DATA", data, policy);
+            console.log("UPDATE PREMIUM AAR", data, policy);
             const payments = yield db_1.db.payments.findAll({
                 where: {
                     policy_id: policy.policy_id,
@@ -189,7 +136,7 @@ function updatePremium(data, policy, airtel_money_id) {
             console.log("LAST EXPENSE LIMIT", last_expense_limit);
             let premium_installment = payments.length + 1;
             const requestData = {
-                member_no: data.arr_member_number,
+                member_no: data.arr_member_number || data.member_no,
                 unique_profile_id: data.membership_id + "",
                 health_plan: "AIRTEL_" + policy.policy_type,
                 health_option: "63",
@@ -198,7 +145,7 @@ function updatePremium(data, policy, airtel_money_id) {
                 premium_installment: premium_installment,
                 main_benefit_limit: main_benefit_limit,
                 last_expense_limit: last_expense_limit,
-                money_transaction_id: airtel_money_id
+                money_transaction_id: policy.airtel_money_id
             };
             console.log("REQUEST DATA AAR UPDATE PREMIUM", requestData);
             const config = {
@@ -215,7 +162,7 @@ function updatePremium(data, policy, airtel_money_id) {
             const response = yield axios_1.default.request(config);
             console.log(JSON.stringify(response.data));
             if (response.data.code == 200) {
-                console.log(" updatePremium RESPONSE", response.data);
+                console.log("UPDATE PREMIUM AAR RESPONSE", response.data);
                 return response.data;
             }
         }

@@ -159,6 +159,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        airtel_money_id: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, { timestamps: true });
     Policy.belongsTo(User, {
         as: "user",

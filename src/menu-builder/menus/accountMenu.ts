@@ -1,5 +1,5 @@
 import sendSMS from "../../services/sendSMS";
-import { registerDependant, fetchMemberStatusData } from "../../services/aar";
+import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aar";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";
@@ -228,42 +228,50 @@ if(policies.length == 0){
             user_id: existingUser.user_id,
             bonus: allSteps[2],
         }
+        // let dependant
 
-        let arr_member = await fetchMemberStatusData({
-            member_no: existingUser.arr_member_number,
-            unique_profile_id: existingUser.membership_id + "",
-          });
-          console.log("arr_member", arr_member);
-          let dependant_first_name = allSteps[2].split(" ")[0];
-            let dependant_other_names = allSteps[2].split(" ")[1];
-                let dependant_surname = allSteps[2].split(" ")[2] || allSteps[2].split(" ")[1];
-          if (arr_member.code == 200) {
-            await registerDependant({
-              member_no: existingUser.arr_member_number,
-              surname: dependant_surname,
-              first_name: dependant_first_name,
-              other_names: dependant_other_names, 
-              gender: 1,
-              dob: "1990-01-01",
-              email: "dependant@bluewave.insure",
-              pri_dep: "25",
-              family_title: "4", //4 spouse // 3 -principal // 25 - child
-              tel_no:  userText,
-              next_of_kin: {
-                surname: "",
-                first_name: "",
-                other_names: "",
-                tel_no: "",
-              },
-              member_status: "1",
-              health_option: "63",
-              health_plan: "AIRTEL_" + myPolicy?.policy_type,
-              policy_start_date: myPolicy.policy_start_date,
-              policy_end_date: myPolicy.policy_end_date,
-              unique_profile_id: existingUser.membership_id + "-01",
-            });
-          }
-
+        // let arr_member = await fetchMemberStatusData({
+        //     member_no: existingUser.arr_member_number,
+        //     unique_profile_id: existingUser.membership_id + "",
+        //   });
+        //   console.log("arr_member", arr_member);
+        //   let dependant_first_name = allSteps[2].split(" ")[0];
+        //     let dependant_other_names = allSteps[2].split(" ")[1];
+        //         let dependant_surname = allSteps[2].split(" ")[2] || allSteps[2].split(" ")[1];
+        //   if (arr_member.code == 200) {
+        //     dependant = await registerDependant({
+        //       member_no: existingUser.arr_member_number,
+        //       surname: dependant_surname,
+        //       first_name: dependant_first_name,
+        //       other_names: dependant_other_names, 
+        //       gender: 1,
+        //       dob: "1990-01-01",
+        //       email: "dependant@bluewave.insure",
+        //       pri_dep: "25",
+        //       family_title: "4", //4 spouse // 3 -principal // 25 - child
+        //       tel_no:  userText,
+        //       next_of_kin: {
+        //         surname: "",
+        //         first_name: "",
+        //         other_names: "",
+        //         tel_no: "",
+        //       },
+        //       member_status: "1",
+        //       health_option: "63",
+        //       health_plan: "AIRTEL_" + myPolicy?.policy_type,
+        //       policy_start_date: myPolicy.policy_start_date,
+        //       policy_end_date: myPolicy.policy_end_date,
+        //       unique_profile_id: existingUser.membership_id + "-01",
+        //     });
+        //   }
+        //   console.log("AAR DEPENDANT", dependant);
+        //   if (arr_member.code == 200) {
+        //      console.log("MEMBER STATUS", arr_member);
+        //      myPolicy.arr_policy_number = arr_member?.policy_no;
+             
+        //    let  updatePremiumData = await updatePremium(dependant, myPolicy);
+        //      console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
+        //    }
 
 
         await db.beneficiaries.create(nextOfKinDetails);
