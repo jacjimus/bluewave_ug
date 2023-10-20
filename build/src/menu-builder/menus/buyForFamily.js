@@ -901,7 +901,7 @@ function buyForFamily(menu, args, db) {
             console.log("LAST EXPENSE INSURED", last_expense_insured);
             console.log("YEARLY PREMIUM", yearly_premium);
             menu.con(`Pay UGX ${premium} payable ${period}.
-                  Terms&Conditions - www.airtel.com
+                  Terms&Conditions - https://rb.gy/g4hyk
                   Enter PIN to Agree and Pay 
                   0.Back
                   00.Main Menu`);

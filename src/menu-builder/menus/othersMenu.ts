@@ -279,7 +279,7 @@ const othersMenu = async (args, db) => {
 
 
   }
-   else if (currentStep == 2) {
+  else if (currentStep == 2) {
     let selectedCover = covers[parseInt(userText) - 1];
     if (!selectedCover) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -327,19 +327,19 @@ const othersMenu = async (args, db) => {
 
 
     response = `CON Pay UGX ${ultimatePremium} ${period}.` +
-      `\nTerms&Conditions www.airtel.com` +
+      `\nTerms&Conditions https://rb.gy/g4hyk` +
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
-      
-    if(userText == "1"){
+
+    if (userText == "1") {
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
 
-  }
+    }
 
     if (userText == "1") {
-    
+
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -347,26 +347,26 @@ const othersMenu = async (args, db) => {
 
 
       if (!existingUser) {
-        
+
         let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
         let membershipId = Math.floor(100000 + Math.random() * 900000);
 
-          existingUser = await db.users.create({
-            user_id: uuidv4(),
-            phone_number: phone,
-            membership_id: Math.floor(100000 + Math.random() * 900000),
-            pin: Math.floor(1000 + Math.random() * 9000),
-            first_name: user.first_name,
-            last_name: user.last_name,
-            name: `${user.first_name} ${user.last_name}`,
-            total_member_number: selectedPolicyType.code_name,
-            partner_id: 2,
-            role: "user",
-            nationality: "UGANDA"
-          });
-          const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-          await sendSMS(fullPhone, message);
-        
+        existingUser = await db.users.create({
+          user_id: uuidv4(),
+          phone_number: phone,
+          membership_id: Math.floor(100000 + Math.random() * 900000),
+          pin: Math.floor(1000 + Math.random() * 9000),
+          first_name: user.first_name,
+          last_name: user.last_name,
+          name: `${user.first_name} ${user.last_name}`,
+          total_member_number: selectedPolicyType.code_name,
+          partner_id: 2,
+          role: "user",
+          nationality: "UGANDA"
+        });
+        const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+        await sendSMS(fullPhone, message);
+
       }
 
       let otherUser = await db.users.findOne({
@@ -449,15 +449,15 @@ const othersMenu = async (args, db) => {
           "UG",
           "UGX"
         );
-        
+
       } catch (error) {
         console.log("AIRTEL MONEY ERROR", error);
-        
+
       }
 
 
       // if (paymentStatus.code === 200) {
-     
+
       // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
       // } else {
       //   response = `END Sorry, your payment was not successful.`

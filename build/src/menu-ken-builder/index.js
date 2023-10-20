@@ -272,7 +272,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.bronze.pay", {
                 run: () => {
                     menu.con("Pay KES 300 deducted monthly." +
-                        "\nTerms&Conditions - www.airtel.com" +
+                        "\nTerms&Conditions - https://rb.gy/g4hyk" +
                         '\nEnter PIN or Membership ID to Agree and Pay' +
                         "\n0.Back" +
                         "\n00.Main Menu");
@@ -286,7 +286,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.silver.pay", {
                 run: () => {
                     menu.con("Pay KES 650 deducted monthly." +
-                        "\nTerms&Conditions - www.airtel.com" +
+                        "\nTerms&Conditions - https://rb.gy/g4hyk" +
                         '\nEnter PIN or Membership ID to Agree and Pay' +
                         "\n0.Back" +
                         "\n00.Main Menu");
@@ -300,7 +300,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.gold.pay", {
                 run: () => {
                     menu.con("Pay KES 14,000 deducted monthly." +
-                        "\nTerms&Conditions - www.airtel.com" +
+                        "\nTerms&Conditions - https://rb.gy/g4hyk" +
                         '\nEnter PIN or Membership ID to Agree and Pay' +
                         "\n0.Back" +
                         "\n00.Main Menu");
@@ -314,7 +314,7 @@ function handleUssd(args, db) {
             menu.state("buyForSelf.bronze.pay.yearly", {
                 run: () => {
                     menu.con("Pay KES 3,292 deducted yearly." +
-                        "\nTerms&Conditions - www.airtel.com" +
+                        "\nTerms&Conditions - https://rb.gy/g4hyk" +
                         '\nEnter PIN or Membership ID to Agree and Pay' +
                         "\n0.Back" +
                         "\n00.Main Menu");
@@ -2285,7 +2285,7 @@ function handleUssd(args, db) {
                             },
                         });
                         menu.con(`Pay KES 1,456 deducted monthly.
-                    Terms&Conditions - www.airtel.com
+                    Terms&Conditions - https://rb.gy/g4hyk
                     '\nEnter PIN or Membership ID to Agree and Pay' +
                     0.Back
                     00.Main Menu`);
@@ -2305,7 +2305,7 @@ function handleUssd(args, db) {
             menu.state("buyForFamily.selfSpouse2Child.pin", {
                 run: () => {
                     menu.con(`Pay KES 1,456 deducted monthly.
-                            Terms&Conditions - www.airtel.com
+                            Terms&Conditions - https://rb.gy/g4hyk
                             '\nEnter PIN or Membership ID to Agree and Pay' +
                             n0.Back
                             00.Main Menu`);
@@ -2320,7 +2320,7 @@ function handleUssd(args, db) {
                 run: () => {
                     console.log("buyForFamilyPin");
                     menu.con(`Pay 1, deducted monthly.
-                    Terms&Conditions - www.airtel.com
+                    Terms&Conditions - https://rb.gy/g4hyk
                     Enter PIN or Membership Number to Agree and Pay
                     n0.Back
                     00.Main Menu`);

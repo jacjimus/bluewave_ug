@@ -9,9 +9,9 @@ const selfMenu = async (args, db) => {
     let phone = phoneNumber?.replace('+', "")?.substring(3);
     let existingUser = await db.users.findOne({
         where: {
-          phone_number: phone,
+            phone_number: phone,
         },
-      });
+    });
 
 
     const coverTypes = [{
@@ -52,8 +52,8 @@ const selfMenu = async (args, db) => {
                 //     return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
                 // }
                 // ).join("");
-                
-                
+
+
                 // response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
 
                 // create a raw menu with the cover types without looping
@@ -65,7 +65,7 @@ const selfMenu = async (args, db) => {
 
                 break;
 
-            }
+        }
     }
     else if (currentStep === 2) {
         let coverType = coverTypes[parseInt(userText) - 1];
@@ -86,30 +86,30 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions www.airtel.com\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions https://rb.gy/g4hyk\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
 
     }
     else if (currentStep === 4) {
-        if(userText == "1"){
+        if (userText == "1") {
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-             console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
 
         }
 
         if (userText == "1") {
-           // response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+            // response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
             console.log("RESPONCE WAS CALLED", response);
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
-              
-              if (!existingUser) {
+
+            if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
                 console.log("AIRTEL USER", user);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
 
-                  existingUser = await db.users.create({
+                existingUser = await db.users.create({
                     user_id: uuidv4(),
                     phone_number: phone,
                     membership_id: membershipId,
@@ -121,13 +121,13 @@ const selfMenu = async (args, db) => {
                     partner_id: 2,
                     role: "user",
                     nationality: "UGANDA",
-                  });
-                 
-                  const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-                  await sendSMS(fullPhone, message);
-                
+                });
+
+                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+                await sendSMS(fullPhone, message);
+
             }
-           // console.log("EXISTING USER", existingUser);
+            // console.log("EXISTING USER", existingUser);
 
             // create policy
             let policy_type = selectedPolicyType.name;
@@ -137,7 +137,7 @@ const selfMenu = async (args, db) => {
             let ultimatePremium = calculatePaymentOptions(policy_type, installment_type);
             //console.log("ULTIMATE PREMIUM", ultimatePremium);
             //next month minus 1 day
-             let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
+            let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
             let policyObject = {
                 policy_id: uuidv4(),
@@ -162,7 +162,7 @@ const selfMenu = async (args, db) => {
                 product_id: "d18424d6-5316-4e12-9826-302b866a380c",
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
-                
+
             }
             console.log("POLICY OBJECT", policyObject);
 
@@ -170,24 +170,24 @@ const selfMenu = async (args, db) => {
 
             try {
                 await airtelMoney(
-                     existingUser.user_id,
-                     2,
-                     policy.policy_id,
-                     phone,
-                     ultimatePremium.premium,
-                     existingUser.membership_id,
-                     "UG",
-                     "UGX"
-                 );
-                
+                    existingUser.user_id,
+                    2,
+                    policy.policy_id,
+                    phone,
+                    ultimatePremium.premium,
+                    existingUser.membership_id,
+                    "UG",
+                    "UGX"
+                );
+
             } catch (error) {
                 console.log("AIRTEL MONEY ERROR", error);
-                
+
             }
             // create payment
 
 
-        } else{
+        } else {
             response = "END Thank you for using Ddwaliro Care"
         }
     }

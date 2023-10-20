@@ -213,7 +213,7 @@ const familyMenu = async (args, db) => {
           code_name: "MINI",
           premium: '40,000',
           sum_insured: '1.5M',
-          sumInsured:   1500000,
+          sumInsured: 1500000,
           last_expense_insured: '1M',
           lastExpenseInsured: 1000000,
           year_premium: '480,000',
@@ -623,44 +623,44 @@ const familyMenu = async (args, db) => {
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
 
     response = `CON Pay UGX ${premium} ${period}` +
-      `\nTerms&Conditions - www.airtel.com` +
+      `\nTerms&Conditions - https://rb.gy/g4hyk` +
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
-   
+
     if (userText == "1") {
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
-     // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
-  
-      
+      // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
+
+
       console.log("SELECTED POLICY TYPE", selectedPolicyType);
-      
+
       if (!existingUser) {
         console.log("USER DOES NOT EXIST FAMILY");
         let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
         let membershierId = Math.floor(100000 + Math.random() * 900000);
-          existingUser = await db.users.create({
-            user_id: uuidv4(),
-            phone_number: phone,
-            membership_id: membershierId,
-            pin: Math.floor(1000 + Math.random() * 9000),
-            first_name: user.first_name,
-            last_name: user.last_name,
-            name: `${user.first_name} ${user.last_name}`,
-            total_member_number: selectedPolicyType.code_name,
-            partner_id: 2,
-            role: "user",
-            nationality: "UGANDA"
-          });
-          console.log("USER DOES NOT EXIST", user);
-          const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
-          await sendSMS(fullPhone, message);
-        
-    }
+        existingUser = await db.users.create({
+          user_id: uuidv4(),
+          phone_number: phone,
+          membership_id: membershierId,
+          pin: Math.floor(1000 + Math.random() * 9000),
+          first_name: user.first_name,
+          last_name: user.last_name,
+          name: `${user.first_name} ${user.last_name}`,
+          total_member_number: selectedPolicyType.code_name,
+          partner_id: 2,
+          role: "user",
+          nationality: "UGANDA"
+        });
+        console.log("USER DOES NOT EXIST", user);
+        const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
+        await sendSMS(fullPhone, message);
+
+      }
 
       console.log("EXISTING USER", existingUser);
 
@@ -687,7 +687,7 @@ const familyMenu = async (args, db) => {
       console.log("ULTIMATE PREMIUM", ultimatePremium);
 
       //next month minus 1 day
-      let installment_next_month_date =  new Date(new Date().getFullYear(), new Date().getMonth() + 1,  new Date().getDate() - 1)
+      let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
 
       let policyObject = {
@@ -718,23 +718,23 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-    try {
-      
-      // create payment
-      await airtelMoney(
-        existingUser.user_id,
-        2,
-        policy.policy_id,
-        phone,
-        ultimatePremium,
-        existingUser.membership_id,
-        "UG",
-        "UGX"
-      );
-    } catch (error) {
-      console.log("AIRTEL MONEY ERROR", error);
-      
-    }
+      try {
+
+        // create payment
+        await airtelMoney(
+          existingUser.user_id,
+          2,
+          policy.policy_id,
+          phone,
+          ultimatePremium,
+          existingUser.membership_id,
+          "UG",
+          "UGX"
+        );
+      } catch (error) {
+        console.log("AIRTEL MONEY ERROR", error);
+
+      }
 
     } else {
       response = "END Thank you for using Ddwaliro Care"

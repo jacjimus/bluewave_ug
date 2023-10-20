@@ -326,7 +326,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
         let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
         response = `CON Pay UGX ${ultimatePremium} ${period}.` +
-            `\nTerms&Conditions www.airtel.com` +
+            `\nTerms&Conditions https://rb.gy/g4hyk` +
             `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
     }
     else if (currentStep == 7) {

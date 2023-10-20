@@ -169,7 +169,7 @@ export function buyForSelf(menu: any, args: any, db: any): void {
       console.log(options)
       if (options.premium) {
         menu.con(`Pay UGX ${options.premium} payable ${options.period}.
-            Terms&Conditions - www.airtel.com
+            Terms&Conditions - https://rb.gy/g4hyk
             Enter PIN to Agree and Pay 
             \n0 .Back
              00 .Main Menu`);

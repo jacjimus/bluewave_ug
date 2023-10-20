@@ -5,7 +5,7 @@ import UssdMenu from "ussd-builder";
 import { airtelMoney } from "../services/payment";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
-import {getAirtelUser} from "../services/getAirtelUser";
+import { getAirtelUser } from "../services/getAirtelUser";
 
 require("dotenv").config();
 
@@ -301,7 +301,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: () => {
           menu.con(
             "Pay KES 300 deducted monthly." +
-            "\nTerms&Conditions - www.airtel.com" +
+            "\nTerms&Conditions - https://rb.gy/g4hyk" +
             '\nEnter PIN or Membership ID to Agree and Pay' +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -318,7 +318,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: () => {
           menu.con(
             "Pay KES 650 deducted monthly." +
-            "\nTerms&Conditions - www.airtel.com" +
+            "\nTerms&Conditions - https://rb.gy/g4hyk" +
             '\nEnter PIN or Membership ID to Agree and Pay' +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -336,7 +336,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: () => {
           menu.con(
             "Pay KES 14,000 deducted monthly." +
-            "\nTerms&Conditions - www.airtel.com" +
+            "\nTerms&Conditions - https://rb.gy/g4hyk" +
             '\nEnter PIN or Membership ID to Agree and Pay' +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -353,7 +353,7 @@ export default function handleUssd(args: RequestBody, db: any) {
         run: () => {
           menu.con(
             "Pay KES 3,292 deducted yearly." +
-            "\nTerms&Conditions - www.airtel.com" +
+            "\nTerms&Conditions - https://rb.gy/g4hyk" +
             '\nEnter PIN or Membership ID to Agree and Pay' +
             "\n0.Back" +
             "\n00.Main Menu"
@@ -2716,7 +2716,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             );
 
             menu.con(`Pay KES 1,456 deducted monthly.
-                    Terms&Conditions - www.airtel.com
+                    Terms&Conditions - https://rb.gy/g4hyk
                     '\nEnter PIN or Membership ID to Agree and Pay' +
                     0.Back
                     00.Main Menu`);
@@ -2739,7 +2739,7 @@ export default function handleUssd(args: RequestBody, db: any) {
       menu.state("buyForFamily.selfSpouse2Child.pin", {
         run: () => {
           menu.con(`Pay KES 1,456 deducted monthly.
-                            Terms&Conditions - www.airtel.com
+                            Terms&Conditions - https://rb.gy/g4hyk
                             '\nEnter PIN or Membership ID to Agree and Pay' +
                             n0.Back
                             00.Main Menu`);
@@ -2756,7 +2756,7 @@ export default function handleUssd(args: RequestBody, db: any) {
           console.log("buyForFamilyPin");
 
           menu.con(`Pay 1, deducted monthly.
-                    Terms&Conditions - www.airtel.com
+                    Terms&Conditions - https://rb.gy/g4hyk
                     Enter PIN or Membership Number to Agree and Pay
                     n0.Back
                     00.Main Menu`);
