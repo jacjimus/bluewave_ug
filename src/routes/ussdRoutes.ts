@@ -49,7 +49,7 @@ const findTransactionById = async (transactionId) => {
   });
 };
 
-const updateUserPolicyStatus = async (policy, amount, installment_order, installment_type) => {
+const updateUserPolicyStatus = async (policy, amount, installment_order, installment_type, payment, airtel_money_id) => {
   console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type)
   let date = new Date();
 
@@ -75,6 +75,9 @@ const updateUserPolicyStatus = async (policy, amount, installment_order, install
     policy.policy_paid_amount += amount;
     policy.policy_pending_premium -= amount;
   }
+
+  policy.bluewave_transaction_id = payment.payment_id;
+  policy.airtel_transaction_id = airtel_money_id
 
   console.log("UPDATE STATUS WAS CALLED", policy)
   await policy.save();
@@ -282,7 +285,7 @@ router.all("/callback", async (req, res) => {
           });
 
         }
-        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
+        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type, payment, airtel_money_id);
 
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
