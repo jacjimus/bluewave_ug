@@ -1605,7 +1605,7 @@ const getClaimExcelReportDownload = async (req, res) => {
       return res.status(404).json({ message: "No claims found" });
     }
 
-    console.log("I WAS CALLED 1")
+    console.log("I WAS CALLED  claims", claims)
 
 
     const workbook = await generateClaimExcelReport(claims);
@@ -1653,7 +1653,7 @@ function generateClaimExcelReport(claims: any[]) {
   const worksheet = workbook.addWorksheet("Claim Report");
 
 
-  console.log("I WAS CALLED 2")
+  console.log("I WAS CALLED 2", claims)
   // Define columns for data in Excel. Key must match data key
 
   worksheet.columns = [
@@ -1677,6 +1677,15 @@ function generateClaimExcelReport(claims: any[]) {
   ];
 
   claims.forEach((claim) => {
+    // get user name
+    let user = db.users.findOne({
+      where: {
+        user_id: claim.user_id
+      }
+    })
+
+    console.log("I WAS CALLED 3", user)
+
     worksheet.addRow({
       claim_date: moment(claim.claim_date).format("YYYY-MM-DD"),
       claim_number: claim.claim_id,
@@ -1691,8 +1700,8 @@ function generateClaimExcelReport(claims: any[]) {
       partner_id: claim.partner_id,
       createdAt: moment(claim.createdAt).format("YYYY-MM-DD"),
       updatedAt: moment(claim.updatedAt).format("YYYY-MM-DD"),
-      full_name: `${claim.user.first_name} ${claim.user.last_name}`,
-      phone_number: claim.user.phone_number,
+      full_name: `${user.first_name} ${user.last_name}`,
+      phone_number: user.phone_number,
   
     });
   });

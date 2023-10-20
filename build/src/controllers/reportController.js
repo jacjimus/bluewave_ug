@@ -1359,7 +1359,7 @@ const getClaimExcelReportDownload = (req, res) => __awaiter(void 0, void 0, void
         if (!claims || claims.length === 0) {
             return res.status(404).json({ message: "No claims found" });
         }
-        console.log("I WAS CALLED 1");
+        console.log("I WAS CALLED  claims", claims);
         const workbook = yield generateClaimExcelReport(claims);
         // Save the workbook to a temporary file
         const tempFilePath = path.join(__dirname, "uploads", "claim_report.xlsx");
@@ -1393,7 +1393,7 @@ const getClaimExcelReportDownload = (req, res) => __awaiter(void 0, void 0, void
 function generateClaimExcelReport(claims) {
     const workbook = new excelJS.Workbook(); // Create a new workbook
     const worksheet = workbook.addWorksheet("Claim Report");
-    console.log("I WAS CALLED 2");
+    console.log("I WAS CALLED 2", claims);
     // Define columns for data in Excel. Key must match data key
     worksheet.columns = [
         { header: "Claim Number", key: "claim_number", width: 20 },
@@ -1413,6 +1413,13 @@ function generateClaimExcelReport(claims) {
         { header: "Updated At", key: "updatedAt", width: 20 },
     ];
     claims.forEach((claim) => {
+        // get user name
+        let user = db_1.db.users.findOne({
+            where: {
+                user_id: claim.user_id
+            }
+        });
+        console.log("I WAS CALLED 3", user);
         worksheet.addRow({
             claim_date: moment(claim.claim_date).format("YYYY-MM-DD"),
             claim_number: claim.claim_id,
@@ -1427,8 +1434,8 @@ function generateClaimExcelReport(claims) {
             partner_id: claim.partner_id,
             createdAt: moment(claim.createdAt).format("YYYY-MM-DD"),
             updatedAt: moment(claim.updatedAt).format("YYYY-MM-DD"),
-            full_name: `${claim.user.first_name} ${claim.user.last_name}`,
-            phone_number: claim.user.phone_number,
+            full_name: `${user.first_name} ${user.last_name}`,
+            phone_number: user.phone_number,
         });
     });
     return workbook;
