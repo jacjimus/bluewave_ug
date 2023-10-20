@@ -1,6 +1,9 @@
 const { Sequelize, DataTypes } = require('sequelize')
 import { v4 as uuidv4 } from 'uuid'
+import { fetchMemberStatusData, registerDependant, updatePremium } from '../services/aar';
 require('dotenv').config()
+
+const Agenda = require('agenda');
 
 
 const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres" })
@@ -31,6 +34,100 @@ db.installments = require('./Installment')(sequelize, DataTypes)
 db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 db.hospitals = require('./Hospital')(sequelize, DataTypes)
 db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
+
+
+const agenda = new Agenda({
+  db: { instance: db, collection: 'beneficiaries' }, // Replace 'agendaJobs' with your table name
+});
+
+
+// Define a function to create the dependent
+async function createDependant(phone_number: string, policy_id: string) {
+  console.log('=========== createDependant ============ ', phone_number, policy_id);
+  // let dependant
+  const existingUser = await db.users.findOne({
+    where: {
+      phone_number: '256772381544'
+    }
+  })
+  console.log('excistingUser', existingUser);
+
+  let myPolicy = await db.policies.findOne({
+    where: {
+      user_id: existingUser.user_id,
+      policy_status: 'paid'
+    }
+  })
+
+  console.log('myPolicy', myPolicy);
+
+  let dependant
+
+  let arr_member = await fetchMemberStatusData({
+    member_no: existingUser.arr_member_number,
+    unique_profile_id: existingUser.membership_id + "",
+  });
+  console.log("arr_member", arr_member);
+  let dependant_first_name = "first_name_1"
+  let dependant_other_names = "other_names_1"
+  let dependant_surname = "surname_1"
+  if (arr_member.code == 200) {
+    dependant = await registerDependant({
+      member_no: existingUser.arr_member_number,
+      surname: dependant_surname,
+      first_name: dependant_first_name,
+      other_names: dependant_other_names,
+      gender: 1,
+      dob: "1990-01-01",
+      email: "dependant@bluewave.insure",
+      pri_dep: "25",
+      family_title: "4", //4 spouse // 3 -principal // 25 - child
+      tel_no: "256772381544",
+      next_of_kin: {
+        surname: "",
+        first_name: "",
+        other_names: "",
+        tel_no: "",
+      },
+      member_status: "1",
+      health_option: "63",
+      health_plan: "AIRTEL_" + myPolicy?.policy_type,
+      policy_start_date: myPolicy.policy_start_date,
+      policy_end_date: myPolicy.policy_end_date,
+      unique_profile_id: existingUser.membership_id + "-01",
+    });
+  }
+  console.log("AAR DEPENDANT", dependant);
+  if (arr_member.code == 200) {
+    console.log("MEMBER STATUS", arr_member);
+    myPolicy.arr_policy_number = arr_member?.policy_no;
+
+    let updatePremiumData = await updatePremium(dependant, myPolicy);
+    console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
+  }
+
+
+  console.log('Dependant created:', dependant);
+
+  // Check if you want to update the premium here
+  if (arr_member.code == 200) {
+    console.log('MEMBER STATUS', arr_member);
+    myPolicy.arr_policy_number = arr_member?.policy_no;
+
+    let updatePremiumData = await updatePremium(dependant, myPolicy);
+    console.log('AAR UPDATE PREMIUM -member found', updatePremiumData);
+  }
+}
+
+// Schedule the job to run after 300 minutes (5 hours)
+agenda.schedule('in 3 minutes', 'create_dependant');
+
+// Start the Agenda instance
+(async () => {
+  console.log('Starting agenda instance...');
+  await agenda.start();
+})();
+
 
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
@@ -94,7 +191,7 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 //     db.installments.findAll({
 //       where: {
 //         policy_id: policy.policy_id,
-       
+
 //       }
 //     }).then((installment: any) => {
 //       let installmentOrder = 0
@@ -202,5 +299,5 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 
 
 //exporting the module
-module.exports = { db }
+module.exports = { db, createDependant }
 

@@ -423,6 +423,7 @@ const login = async (req: any, res: any) => {
               code: 201,
               message: "Customer login successfully",
               token: token,
+              partner_name: partner.partner_name,
               user: {
                 user_id: user.user_id,
                 full_name: user.name,

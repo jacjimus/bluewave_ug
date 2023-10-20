@@ -156,6 +156,8 @@ router.all("/callback", async (req, res) => {
             user.arr_member_number = registerAARUser.member_no;
             await user.save();
             updatePremiumData = await updatePremium(user, policy);
+               // await createDependant(user.phone_number,policy.policy_id) 
+
             console.log("AAR UPDATE PREMIUM", updatePremiumData);
           }
 

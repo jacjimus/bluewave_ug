@@ -134,6 +134,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                         user.arr_member_number = registerAARUser.member_no;
                         yield user.save();
                         updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
+                        // await createDependant(user.phone_number,policy.policy_id) 
                         console.log("AAR UPDATE PREMIUM", updatePremiumData);
                     }
                 }

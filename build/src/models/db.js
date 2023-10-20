@@ -1,8 +1,19 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = void 0;
 const { Sequelize, DataTypes } = require('sequelize');
+const aar_1 = require("../services/aar");
 require('dotenv').config();
+const Agenda = require('agenda');
 const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres" });
 //checking if connection is done
 sequelize.authenticate().then(() => {
@@ -28,6 +39,86 @@ exports.db.installments = require('./Installment')(sequelize, DataTypes);
 exports.db.user_hospitals = require('./UserHospital')(sequelize, DataTypes);
 exports.db.hospitals = require('./Hospital')(sequelize, DataTypes);
 exports.db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes);
+const agenda = new Agenda({
+    db: { instance: exports.db, collection: 'beneficiaries' }, // Replace 'agendaJobs' with your table name
+});
+// Define a function to create the dependent
+function createDependant(phone_number, policy_id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log('=========== createDependant ============ ', phone_number, policy_id);
+        // let dependant
+        const existingUser = yield exports.db.users.findOne({
+            where: {
+                phone_number: '256772381544'
+            }
+        });
+        console.log('excistingUser', existingUser);
+        let myPolicy = yield exports.db.policies.findOne({
+            where: {
+                user_id: existingUser.user_id,
+                policy_status: 'paid'
+            }
+        });
+        console.log('myPolicy', myPolicy);
+        let dependant;
+        let arr_member = yield (0, aar_1.fetchMemberStatusData)({
+            member_no: existingUser.arr_member_number,
+            unique_profile_id: existingUser.membership_id + "",
+        });
+        console.log("arr_member", arr_member);
+        let dependant_first_name = "first_name_1";
+        let dependant_other_names = "other_names_1";
+        let dependant_surname = "surname_1";
+        if (arr_member.code == 200) {
+            dependant = yield (0, aar_1.registerDependant)({
+                member_no: existingUser.arr_member_number,
+                surname: dependant_surname,
+                first_name: dependant_first_name,
+                other_names: dependant_other_names,
+                gender: 1,
+                dob: "1990-01-01",
+                email: "dependant@bluewave.insure",
+                pri_dep: "25",
+                family_title: "4",
+                tel_no: "256772381544",
+                next_of_kin: {
+                    surname: "",
+                    first_name: "",
+                    other_names: "",
+                    tel_no: "",
+                },
+                member_status: "1",
+                health_option: "63",
+                health_plan: "AIRTEL_" + (myPolicy === null || myPolicy === void 0 ? void 0 : myPolicy.policy_type),
+                policy_start_date: myPolicy.policy_start_date,
+                policy_end_date: myPolicy.policy_end_date,
+                unique_profile_id: existingUser.membership_id + "-01",
+            });
+        }
+        console.log("AAR DEPENDANT", dependant);
+        if (arr_member.code == 200) {
+            console.log("MEMBER STATUS", arr_member);
+            myPolicy.arr_policy_number = arr_member === null || arr_member === void 0 ? void 0 : arr_member.policy_no;
+            let updatePremiumData = yield (0, aar_1.updatePremium)(dependant, myPolicy);
+            console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
+        }
+        console.log('Dependant created:', dependant);
+        // Check if you want to update the premium here
+        if (arr_member.code == 200) {
+            console.log('MEMBER STATUS', arr_member);
+            myPolicy.arr_policy_number = arr_member === null || arr_member === void 0 ? void 0 : arr_member.policy_no;
+            let updatePremiumData = yield (0, aar_1.updatePremium)(dependant, myPolicy);
+            console.log('AAR UPDATE PREMIUM -member found', updatePremiumData);
+        }
+    });
+}
+// Schedule the job to run after 300 minutes (5 hours)
+agenda.schedule('in 3 minutes', 'create_dependant');
+// Start the Agenda instance
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('Starting agenda instance...');
+    yield agenda.start();
+}))();
 //delete column bemeficiary_id from transactions table
 //db.transactions.removeAttribute('beneficiary_id')
 //insert a test pdf to policy table, colunm policy_documents which id jsonb[]
@@ -166,4 +257,4 @@ exports.db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes);
 //   console.log(err)
 // })
 //exporting the module
-module.exports = { db: exports.db };
+module.exports = { db: exports.db, createDependant };
