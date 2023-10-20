@@ -2,6 +2,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../models/db';
 import dotenv from 'dotenv';
+import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 dotenv.config();
 
 const User = db.users;
@@ -54,7 +55,7 @@ async function getAuthToken(currency: string) {
       }
     );
 
-    
+    console.log('====================== AUTH TOKEN RESPONSE =================', response.data);
     if (response.status === 200) {
       const { access_token } = response.data;
       return access_token;

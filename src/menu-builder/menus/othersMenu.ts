@@ -331,7 +331,15 @@ const othersMenu = async (args, db) => {
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
+      
+    if(userText == "1"){
+      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+
+  }
+
     if (userText == "1") {
+    
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;

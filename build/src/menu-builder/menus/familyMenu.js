@@ -623,9 +623,13 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else if (currentStep == 7) {
         if (userText == "1") {
+            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+        }
+        if (userText == "1") {
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
-            response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment";
+            // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
             console.log("SELECTED POLICY TYPE", selectedPolicyType);
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST FAMILY");

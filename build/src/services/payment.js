@@ -58,6 +58,7 @@ function getAuthToken(currency) {
                     'Content-Type': 'application/json',
                 },
             });
+            console.log('====================== AUTH TOKEN RESPONSE =================', response.data);
             if (response.status === 200) {
                 const { access_token } = response.data;
                 return access_token;
