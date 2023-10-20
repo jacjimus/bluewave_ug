@@ -88,7 +88,8 @@ function getAirtelUser(phoneNumber, country, currency, partner_id) {
             phoneNumber = phoneNumber.replace("+", "");
             // remove the first 3 characters
             phoneNumber = phoneNumber.substring(3);
-            const AIRTEL_KYC_API_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL : process.env.AIRTEL_AUTH_TOKEN_URL;
+            const AIRTEL_KYC_API_URL = 'https://openapi.airtel.africa/standard/v1/users';
+            // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL:   process.env.AIRTEL_AUTH_TOKEN_URL;
             const GET_USER_URL = `${AIRTEL_KYC_API_URL}/${phoneNumber}`;
             console.log("GET_USER_URL", GET_USER_URL);
             const { data } = yield axios_1.default.get(GET_USER_URL, { headers });

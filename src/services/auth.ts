@@ -17,8 +17,10 @@ async function authToken(partner_id: number) {
                 break;
                 case 2:
                 inputBody = {
-                    client_id: process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID: process.env.AIRTEL_UGX_CLIENT_ID,
-                    client_secret:process.env.ENVIROMENT == 'PROD' ?  process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
+                    client_id: 'f42013ed-a169-4b69-a7fb-960e56e80911',
+                    //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID: process.env.AIRTEL_UGX_CLIENT_ID,
+                    client_secret:'845908cd-8f22-463a-bb2b-8a5243b6efbe',
+                    //process.env.ENVIROMENT == 'PROD' ?  process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
                 
@@ -38,7 +40,8 @@ async function authToken(partner_id: number) {
 
         console.log("process.env.AIRTEL_UGX_CLIENT_ID", inputBody);
 
-        const AUTH_TOKEN_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL : process.env.AIRTEL_AUTH_TOKEN_URL;
+        const AUTH_TOKEN_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
+        //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL : process.env.AIRTEL_AUTH_TOKEN_URL;
         console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL)
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
         console.log("RESPONSE", response);
