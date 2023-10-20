@@ -421,9 +421,12 @@ const login = async (req: any, res: any) => {
           .json({
             result: {
               code: 201,
-              message: "Customer login successfully",
+              message: "login successfully",
               token: token,
               partner_name: partner.partner_name,
+              partner_id: partner.partner_id,
+              countryCode: partner.country_code,
+                currencyCode: partner.currency_code,
               user: {
                 user_id: user.user_id,
                 full_name: user.name,
@@ -432,6 +435,7 @@ const login = async (req: any, res: any) => {
                 email: user.email,
                 phone_number: user.phone_number,
                 partner_id: user.partner_id,
+                partner_name: partner.partner_name,
                 is_active: user.is_active,
                 is_verified: user.is_verified,
                 countryCode: partner.country_code,
