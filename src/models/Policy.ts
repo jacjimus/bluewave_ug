@@ -3,6 +3,8 @@ import { db } from "../models/db";
 import { uuid } from 'uuidv4';
 
 const User = db.users;
+const Payment = db.payments;
+const Policy = db.policies;
 
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
@@ -176,6 +178,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+      
+
 
     },
 
@@ -189,6 +193,11 @@ module.exports = (sequelize, DataTypes) => {
         as: "policies",
         foreignKey: "user_id",
     });
+
+   
+
+
+    
 
 
 

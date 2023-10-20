@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../models/db");
 const uuidv4_1 = require("uuidv4");
 const User = db_1.db.users;
+const Payment = db_1.db.payments;
+const Policy = db_1.db.policies;
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
         policy_id: {
@@ -160,6 +162,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         airtel_money_id: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        airtel_transaction_id: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        bluewave_transaction_id: {
             type: DataTypes.STRING,
             allowNull: true
         },

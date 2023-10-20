@@ -5,12 +5,15 @@ const User = db.users;
 const Product = db.products;
 const Partner = db.partners;
 const Log = db.logs;
+const Beneficiary = db.beneficiaries;
+const Payment = db.payments;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
 import { globalSearch } from "../services/utils";
 
 
 import PolicyIssuance from "../services/PolicyIssuance";
+import { BeneficiaryModel } from "../menu-ken-builder/models";
 
 interface Policy {
   user_id: number,
@@ -132,6 +135,7 @@ const getPolicies = async (req, res) => {
           model: Product,
           as: "product",
         },
+
       ],
       offset: (page - 1) * limit,
       limit: limit,
@@ -144,14 +148,37 @@ const getPolicies = async (req, res) => {
 
 
     // Add paid premium and pending premium
-    policies.rows.forEach((policy) => {
+    const newPolicies = await Promise.all(policies.rows.map(async (policy) => {
       policy.dataValues.total_premium = policy.premium;
       policy.dataValues.paid_premium = policy.policy_deduction_amount;
       policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
-    });
+
+      // get the payment details of each policy
+      const payment = await Payment.findAll({
+        where: {
+          policy_id: policy.policy_id,
+        },
+      })
+
+      policy.dataValues.payment = payment;
+
+
+
+      // GET BENEFICIARIES OF EACH USER_ID
+      const beneficiary = await Beneficiary.findAll({
+        where: {
+          user_id: policy.user_id,
+        },
+      })
+      if (beneficiary) {
+        policy.dataValues.beneficiaries = beneficiary;
+      }
+
+      return policy;
+    }));
 
     //impletement search
-    const searchResults = globalSearch(policies.rows, filter);
+    const searchResults = globalSearch(newPolicies, filter);
 
     console.log("SEARCH RESULTS", searchResults)
 
@@ -166,14 +193,14 @@ const getPolicies = async (req, res) => {
       policies: searchResults
     };
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: `User ${req?.user_id} fetched policies`,
-      level: "info",
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: `User ${req?.user_id} fetched policies`,
+    //   level: "info",
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     return res.status(200).json({
       result: {

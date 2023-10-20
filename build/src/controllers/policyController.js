@@ -18,6 +18,8 @@ const User = db_1.db.users;
 const Product = db_1.db.products;
 const Partner = db_1.db.partners;
 const Log = db_1.db.logs;
+const Beneficiary = db_1.db.beneficiaries;
+const Payment = db_1.db.payments;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
 const utils_1 = require("../services/utils");
@@ -110,13 +112,30 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return res.status(404).json({ message: "No policies found" });
         }
         // Add paid premium and pending premium
-        policies.rows.forEach((policy) => {
+        const newPolicies = yield Promise.all(policies.rows.map((policy) => __awaiter(void 0, void 0, void 0, function* () {
             policy.dataValues.total_premium = policy.premium;
             policy.dataValues.paid_premium = policy.policy_deduction_amount;
             policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
-        });
+            // get the payment details of each policy
+            const payment = yield Payment.findAll({
+                where: {
+                    policy_id: policy.policy_id,
+                },
+            });
+            policy.dataValues.payment = payment;
+            // GET BENEFICIARIES OF EACH USER_ID
+            const beneficiary = yield Beneficiary.findAll({
+                where: {
+                    user_id: policy.user_id,
+                },
+            });
+            if (beneficiary) {
+                policy.dataValues.beneficiaries = beneficiary;
+            }
+            return policy;
+        })));
         //impletement search
-        const searchResults = (0, utils_1.globalSearch)(policies.rows, filter);
+        const searchResults = (0, utils_1.globalSearch)(newPolicies, filter);
         console.log("SEARCH RESULTS", searchResults);
         // Calculate pagination information
         const total = searchResults.length;
@@ -127,14 +146,14 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             currentPage: page,
             policies: searchResults
         };
-        yield Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `User ${req === null || req === void 0 ? void 0 : req.user_id} fetched policies`,
-            level: "info",
-            user: req === null || req === void 0 ? void 0 : req.user_id,
-            partner_id: req === null || req === void 0 ? void 0 : req.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: `User ${req?.user_id} fetched policies`,
+        //   level: "info",
+        //   user: req?.user_id,
+        //   partner_id: req?.partner_id,
+        // });
         return res.status(200).json({
             result: {
                 code: 200,

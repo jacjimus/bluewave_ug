@@ -54,7 +54,7 @@ const findTransactionById = (transactionId) => __awaiter(void 0, void 0, void 0,
         },
     });
 });
-const updateUserPolicyStatus = (policy, amount, installment_order, installment_type) => __awaiter(void 0, void 0, void 0, function* () {
+const updateUserPolicyStatus = (policy, amount, installment_order, installment_type, payment, airtel_money_id) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type);
     let date = new Date();
     amount = parseInt(amount);
@@ -73,6 +73,8 @@ const updateUserPolicyStatus = (policy, amount, installment_order, installment_t
         policy.policy_paid_amount += amount;
         policy.policy_pending_premium -= amount;
     }
+    policy.bluewave_transaction_id = payment.payment_id;
+    policy.airtel_transaction_id = airtel_money_id;
     console.log("UPDATE STATUS WAS CALLED", policy);
     yield policy.save();
     return policy;
@@ -240,7 +242,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                         country_code: policy.country_code,
                     });
                 }
-                updatedPolicy = yield updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type);
+                updatedPolicy = yield updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type, payment, airtel_money_id);
                 console.log("=== PAYMENT ===", payment);
                 console.log("=== TRANSACTION === ", transactionData);
                 console.log("=== UPDATED POLICY ===", updatedPolicy);
