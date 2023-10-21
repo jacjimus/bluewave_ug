@@ -517,15 +517,17 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
-    let users = await User.findAll({
+    // Calculate the offset for pagination
+    const offset = (page - 1) * limit;
+
+    let users = await User.findAndCountAll({
       where: {
         partner_id: partner_id,
       },
-      offset: (page - 1) * limit,
-      limit: limit,
+      offset,
+      limit,
       order: [["createdAt", "DESC"]],
     });
-
 
     // Filter by start_date and end_date if provided
     const start_date = req.query.start_date;
@@ -534,7 +536,7 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
     if (start_date && end_date) {
       const startDate = new Date(start_date);
       const endDate = new Date(end_date);
-      users = users.filter((user: any) => {
+      users.rows = users.rows.filter((user: any) => {
         const userDate = new Date(user.createdAt);
         return userDate >= startDate && userDate <= endDate;
       });
@@ -542,22 +544,21 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
 
     // Filter by search term if provided
     if (filter) {
-      users = globalSearch(users, filter);
+      users.rows = globalSearch(users.rows, filter);
     }
 
     // Count the number of users
-    const count = users.length;
+    const count = users.count;
 
     // Remove password and other sensitive information from the response
-    if (users) {
-      for (let i = 0; i < users.length; i++) {
-        delete users[i].dataValues.password;
-        delete users[i].dataValues.pin;
-      }
+    users.rows.forEach((user: any) => {
+      delete user.dataValues.password;
+      delete user.dataValues.pin;
     }
-    //GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
-    for (let i = 0; i < users.length; i++) {
-      let user = users[i];
+    );
+    // GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
+    for (let i = 0; i < users.rows.length; i++) {
+      let user = users.rows[i];
       let policies = await Policy.findAll({
         where: {
           user_id: user.user_id,
@@ -566,21 +567,21 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
       user.dataValues.number_of_policies = policies.length;
     }
 
-    if (users && users.length > 0) {
-      status.result = users;
+    if (users.rows && users.rows.length > 0) {
+      status.result = users.rows;
       return res.status(200).json({
-        result: { message: "Customers fetched successfully", items: users, count },
+        result: { message: "Customers fetched successfully", items: users.rows, count },
       });
     }
-
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'get users',
-      level: 'info',
-      user: req.params.user_id,
-      partner_id: req.query.partner_id,
-    });
+  
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'get users',
+    //   level: 'info',
+    //   user: req.params.user_id,
+    //   partner_id: req.query.partner_id,
+    // });
     return res.status(404).json({ code: 404, message: "Sorry, No Customer found" });
   } catch (error) {
     console.log("ERROR", error);
@@ -588,7 +589,9 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
       .status(500)
       .json({ code: 500, message: "Internal server error", error: error });
   }
-};
+}
+
+
 
 /**
  * @swagger

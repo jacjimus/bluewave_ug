@@ -417,12 +417,14 @@ const findUserByPhoneNumbers = (req, res) => __awaiter(void 0, void 0, void 0, f
         if (!partner_id) {
             return res.status(400).json({ message: "Please provide a partner id" });
         }
-        let users = yield User.findAll({
+        // Calculate the offset for pagination
+        const offset = (page - 1) * limit;
+        let users = yield User.findAndCountAll({
             where: {
                 partner_id: partner_id,
             },
-            offset: (page - 1) * limit,
-            limit: limit,
+            offset,
+            limit,
             order: [["createdAt", "DESC"]],
         });
         // Filter by start_date and end_date if provided
@@ -431,27 +433,25 @@ const findUserByPhoneNumbers = (req, res) => __awaiter(void 0, void 0, void 0, f
         if (start_date && end_date) {
             const startDate = new Date(start_date);
             const endDate = new Date(end_date);
-            users = users.filter((user) => {
+            users.rows = users.rows.filter((user) => {
                 const userDate = new Date(user.createdAt);
                 return userDate >= startDate && userDate <= endDate;
             });
         }
         // Filter by search term if provided
         if (filter) {
-            users = (0, utils_1.globalSearch)(users, filter);
+            users.rows = (0, utils_1.globalSearch)(users.rows, filter);
         }
         // Count the number of users
-        const count = users.length;
+        const count = users.count;
         // Remove password and other sensitive information from the response
-        if (users) {
-            for (let i = 0; i < users.length; i++) {
-                delete users[i].dataValues.password;
-                delete users[i].dataValues.pin;
-            }
-        }
-        //GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
-        for (let i = 0; i < users.length; i++) {
-            let user = users[i];
+        users.rows.forEach((user) => {
+            delete user.dataValues.password;
+            delete user.dataValues.pin;
+        });
+        // GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
+        for (let i = 0; i < users.rows.length; i++) {
+            let user = users.rows[i];
             let policies = yield Policy.findAll({
                 where: {
                     user_id: user.user_id,
@@ -459,20 +459,20 @@ const findUserByPhoneNumbers = (req, res) => __awaiter(void 0, void 0, void 0, f
             });
             user.dataValues.number_of_policies = policies.length;
         }
-        if (users && users.length > 0) {
-            status.result = users;
+        if (users.rows && users.rows.length > 0) {
+            status.result = users.rows;
             return res.status(200).json({
-                result: { message: "Customers fetched successfully", items: users, count },
+                result: { message: "Customers fetched successfully", items: users.rows, count },
             });
         }
-        yield Log.create({
-            log_id: (0, uuid_1.v4)(),
-            timestamp: new Date(),
-            message: 'get users',
-            level: 'info',
-            user: req.params.user_id,
-            partner_id: req.query.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'get users',
+        //   level: 'info',
+        //   user: req.params.user_id,
+        //   partner_id: req.query.partner_id,
+        // });
         return res.status(404).json({ code: 404, message: "Sorry, No Customer found" });
     }
     catch (error) {
