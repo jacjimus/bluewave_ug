@@ -332,13 +332,12 @@ const othersMenu = async (args, db) => {
   }
   else if (currentStep == 7) {
 
+
     if (userText == "1") {
+
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
 
-    }
-
-    if (userText == "1") {
 
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
@@ -437,31 +436,65 @@ const othersMenu = async (args, db) => {
       let policy = await db.policies.create(policyObject);
 
 
-      try {
-        // create payment
-        await airtelMoney(
-          existingUser.user_id,
-          2,
-          policy.policy_id,
-          phone,
-          policy.policy_deduction_amount,
-          existingUser.membership_id,
-          "UG",
-          "UGX"
-        );
+      // try {
+      //   // create payment
+      //   await airtelMoney(
+      //     existingUser.user_id,
+      //     2,
+      //     policy.policy_id,
+      //     phone,
+      //     policy.policy_deduction_amount,
+      //     existingUser.membership_id,
+      //     "UG",
+      //     "UGX"
+      //   );
 
-      } catch (error) {
-        console.log("AIRTEL MONEY ERROR", error);
+      // } catch (error) {
+      //   console.log("AIRTEL MONEY ERROR", error);
 
-      }
-
-
-      // if (paymentStatus.code === 200) {
-
-      // response = `END Congratulations! You have bought cover for ${spouse} for Inpatient benefit of UGX ${selectedPolicyType.sum_insured} and Funeral benefit of UGX ${selectedPolicyType.last_expense_insured}.`;
-      // } else {
-      //   response = `END Sorry, your payment was not successful.`
       // }
+
+    
+
+      const airtelMoneyPromise =   await airtelMoney(
+        existingUser.user_id,
+        2,
+        policy.policy_id,
+        phone,
+        policy.policy_deduction_amount,
+        existingUser.membership_id,
+        "UG",
+        "UGX"
+      );
+
+    
+
+    const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
+
+    // Use Promise.race to combine the Airtel Money promise and a timeout promise
+    Promise.race([
+      airtelMoneyPromise,
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error('Airtel Money operation timed out'));
+        }, timeout);
+      })
+    ])
+      .then((result) => {
+        // Airtel Money operation completed successfully
+        response = 'END Payment successful'; // Set your desired response here
+        console.log("RESPONSE WAS CALLED", response);
+        return response;
+      })
+      .catch((error) => {
+        console.log("An error occurred:", error);
+        response = 'END Payment failed'; // Set an error response
+        console.log("RESPONSE WAS CALLED", response);
+        return response;
+      });
+
+
+  
     } else {
       response = "END Thank you for using Ddwaliro Care"
     }
