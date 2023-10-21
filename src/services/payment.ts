@@ -8,7 +8,7 @@ dotenv.config();
 const User = db.users;
 const Transaction = db.transactions;
 
-let AIRTEL_AUTH_TOKEN_URL='https://openapiuat.airtel.africa/auth/oauth2/token'  
+let AIRTEL_AUTH_TOKEN_URL='https://openapi.airtel.africa/auth/oauth2/token'  
 //process.env.ENVIROMENT=='PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 async function getAuthToken(currency: string) {
   // console.log("PAYMENT TOKEN ", process.env.AIRTEL_UGX_CLIENT_ID, process.env.AIRTEL_UGX_CLIENT_SECRET)
@@ -42,8 +42,10 @@ async function getAuthToken(currency: string) {
 
       ,
       {
-        client_id: "536845b8-3367-4368-8ca1-6ced77aaafef",
-        client_secret:"a0f63148-e758-4fc9-9f18-df5a386ae854",
+
+
+        client_id: 'f42013ed-a169-4b69-a7fb-960e56e80911',
+        client_secret:'845908cd-8f22-463a-bb2b-8a5243b6efbe',
         //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
         // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
         grant_type: 'client_credentials',
@@ -122,6 +124,7 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
 
     console.log('PAYMENT DATA ' + country, paymentData);
     const authBearer = currency == "KES" ? token : `Bearer ${token}`;
+    console.log('AUTH BEARER ', authBearer);
 
     const headers = {
       'Content-Type': 'application/json',
@@ -131,9 +134,12 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
       Authorization: authBearer,
     };
 
+    console.log('HEADERS ' + country, headers);
+
    const AIRTEL_PAYMENT_URL='https://openapi.airtel.africa/merchant/v1/payments/'
     const response = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-    console.log('RESPONCE AIRTEL MONEY ' + country, response.data);
+    console.log('RESPONCE AIRTEL MONEY ' , response.data);
+    console.log('RESPONCE AIRTEL MONEY API ' , AIRTEL_PAYMENT_URL);
 
     if (response.data.status.code == '200') {
       const transaction = response.data.data.transaction;

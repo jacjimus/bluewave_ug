@@ -194,7 +194,7 @@ const selfMenu = async (args, db) => {
               );
             
 
-            const timeout = 30000; // Set the timeout duration in milliseconds (30 seconds in this example)
+            const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
 
             // Use Promise.race to combine the Airtel Money promise and a timeout promise
             Promise.race([

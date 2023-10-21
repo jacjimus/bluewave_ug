@@ -696,13 +696,44 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
             };
             let policy = yield db.policies.create(policyObject);
-            try {
-                // create payment
-                yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
-            }
-            catch (error) {
-                console.log("AIRTEL MONEY ERROR", error);
-            }
+            // try {
+            //   // create payment
+            //   await airtelMoney(
+            //     existingUser.user_id,
+            //     2,
+            //     policy.policy_id,
+            //     phone,
+            //     ultimatePremium,
+            //     existingUser.membership_id,
+            //     "UG",
+            //     "UGX"
+            //   );
+            // } catch (error) {
+            //   console.log("AIRTEL MONEY ERROR", error);
+            // }
+            let airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
+            const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
+            // Use Promise.race to combine the Airtel Money promise and a timeout promise
+            Promise.race([
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
+                })
+            ])
+                .then((result) => {
+                // Airtel Money operation completed successfully
+                response = 'END Payment successful'; // Set your desired response here
+                console.log("RESPONSE WAS CALLED", response);
+                return response;
+            })
+                .catch((error) => {
+                console.log("An error occurred:", error);
+                response = 'END Payment failed'; // Set an error response
+                console.log("RESPONSE WAS CALLED", response);
+                return response;
+            });
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
