@@ -504,9 +504,9 @@ const login = async (req: any, res: any) => {
 const findUserByPhoneNumbers = async (req: any, res: any) => {
   let partner_id = req.query.partner_id;
   console.log("PARTNER ID", partner_id);
-  let filter = req.query.filter || "";
-  let page = parseInt(req.query.page) || 1;
-  let limit = parseInt(req.query.limit) || 10;
+  let filter = req.query.filter
+  let page = parseInt(req.query.page) || 1  
+  let limit = parseInt(req.query.limit) || 10
   let status = {
     status: 200,
     result: {},
@@ -519,14 +519,20 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
 
     // Calculate the offset for pagination
     const offset = (page - 1) * limit;
-// find all users with value of any of the columns matching the filter(case insensitive). It should match numerics, strings, and dates and also do a match in nested objects
+// find all users with value of any of the columns matching the filter(case insensitive). It should look for a match in the first_name, last_name, email, phone_number columns
     let users = await User.findAndCountAll({
       where: {
         partner_id: partner_id,
+        [Op.or]: [
+          { first_name: { [Op.iLike]: `%${filter}%` } },
+          { last_name: { [Op.iLike]: `%${filter}%` } },
+          { email: { [Op.iLike]: `%${filter}%` } },
+          { phone_number: { [Op.iLike]: `%${filter}%` } },
+          {arr_member_number: { [Op.iLike]: `%${filter}%` } },
+        ],
       },
-      // offset,
-      // limit,
-      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
     });
     // Filter by start_date and end_date if provided
     const start_date = req.query.start_date;
@@ -543,9 +549,9 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
     // console.log("USERS", users.rows);
 
     // Filter by search term if provided
-    if (filter) {
-      users.rows = globalSearch(users.rows, filter);
-    }
+    // if (filter) {
+    //   users.rows = globalSearch(users.rows, filter);
+    // }
 
     // Count the number of users
     const count = users.count;

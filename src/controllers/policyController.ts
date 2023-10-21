@@ -141,8 +141,26 @@ const getPolicies = async (req, res) => {
           as: "product",
         },
       ],
-      // offset, // Use calculated offset
-      // limit,
+      [Op.or]: [
+        { user_id: { [Op.iLike]: `%${filter}%` } },
+        { policy_id : { [Op.iLike]: `%${filter}%` } },
+        { beneficiary: { [Op.iLike]: `%${filter}%` } },
+        { policy_type: { [Op.iLike]: `%${filter}%` } },
+        { sum_insured: { [Op.iLike]: `%${filter}%` } },
+        { premium: { [Op.iLike]: `%${filter}%` } },
+        { policy_deduction_amount: { [Op.iLike]: `%${filter}%` } },
+        { policy_status: { [Op.iLike]: `%${filter}%` } },
+        { policy_deduction_day: { [Op.iLike]: `%${filter}%` } },
+        { installment_order: { [Op.iLike]: `%${filter}%` } },,
+        { tax_rate_vat: { [Op.iLike]: `%${filter}%` } },
+        { tax_rate_ext: { [Op.iLike]: `%${filter}%` } },
+        { excess_premium: { [Op.iLike]: `%${filter}%` } },
+        { discount_premium: { [Op.iLike]: `%${filter}%` } },
+        { currency_code: { [Op.iLike]: `%${filter}%` } },
+        { country_code: { [Op.iLike]: `%${filter}%` } },
+      ],
+      offset, // Use calculated offset
+      limit,
     });
 
     if (!count || count === 0) {
@@ -180,24 +198,21 @@ const getPolicies = async (req, res) => {
     );
 
     // Implement search
-    const searchResults = globalSearch(newPolicies, filter);
+    // const searchResults = globalSearch(newPolicies, filter);
 
-    // Calculate pagination information
-    const totalPages = Math.ceil(count / limit);
-
-    const result = {
-      count,
-      totalPages,
-      currentPage: page,
-      policies: searchResults,
-    };
+    // const result = {
+    //   count,
+    //   totalPages,
+    //   currentPage: page,
+    //   policies: searchResults,
+    // };
 
     return res.status(200).json({
       result: {
         code: 200,
         message: "Policies fetched successfully",
         count,
-        items: searchResults,
+        items: newPolicies,
       },
     });
   } catch (error) {
