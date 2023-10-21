@@ -428,7 +428,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             //   console.log("AIRTEL MONEY ERROR", error);
             // }
             const airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
-            const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
+            const timeout = 30000; // Set the timeout duration in milliseconds (30 seconds in this example)
             // Use Promise.race to combine the Airtel Money promise and a timeout promise
             Promise.race([
                 airtelMoneyPromise,
