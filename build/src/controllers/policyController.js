@@ -112,8 +112,8 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     as: "product",
                 },
             ],
-            offset,
-            limit,
+            // offset, // Use calculated offset
+            // limit,
         });
         if (!count || count === 0) {
             return res.status(404).json({ message: "No policies found" });

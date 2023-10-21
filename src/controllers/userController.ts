@@ -519,16 +519,15 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
 
     // Calculate the offset for pagination
     const offset = (page - 1) * limit;
-
+// find all users with value of any of the columns matching the filter(case insensitive). It should match numerics, strings, and dates and also do a match in nested objects
     let users = await User.findAndCountAll({
       where: {
         partner_id: partner_id,
       },
-      offset,
-      limit,
+      // offset,
+      // limit,
       order: [["createdAt", "DESC"]],
     });
-
     // Filter by start_date and end_date if provided
     const start_date = req.query.start_date;
     const end_date = req.query.end_date;
@@ -541,6 +540,7 @@ const findUserByPhoneNumbers = async (req: any, res: any) => {
         return userDate >= startDate && userDate <= endDate;
       });
     }
+    // console.log("USERS", users.rows);
 
     // Filter by search term if provided
     if (filter) {

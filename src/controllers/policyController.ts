@@ -141,8 +141,8 @@ const getPolicies = async (req, res) => {
           as: "product",
         },
       ],
-      offset, // Use calculated offset
-      limit,
+      // offset, // Use calculated offset
+      // limit,
     });
 
     if (!count || count === 0) {
