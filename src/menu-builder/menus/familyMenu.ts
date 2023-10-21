@@ -607,7 +607,7 @@ const familyMenu = async (args, db) => {
   else if (currentStep == 5) {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    console.log("SELECTED COVER", selectedPackage)
+    //console.log("SELECTED COVER", selectedPackage)
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
       "\nPAY " +
