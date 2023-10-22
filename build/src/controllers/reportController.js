@@ -121,8 +121,14 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
         if (!policy || policy.length === 0) {
             return res.status(404).json({ message: "No policies found" });
         }
+        const allUsers = yield User.findAll({
+            where: {
+                partner_id: partner_id,
+            },
+        });
         let summary = {
             total_policies: policy.length,
+            total_users: allUsers.length,
             total_policies_pending: policy.filter((policy) => policy.policy_status == "pending").length,
             total_policies_paid: policy.filter((policy) => policy.policy_status == "paid").length,
             total_policies_unpaid: policy.filter((policy) => policy.policy_status == "unpaid").length,

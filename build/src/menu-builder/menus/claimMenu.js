@@ -72,7 +72,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         response = "CON Enter Name of deceased";
     }
     else if (currentStep === 5) {
-        response = "CON Enter Date of death in the format DDMMYYYY e.g 01011990";
+        response = "CON Enter Date of death in the format DDMMYYYY e.g 01/01/1990";
     }
     else if (currentStep === 6) {
         const deathData = {
@@ -82,7 +82,9 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             dateOfDeath: allSteps[5],
         };
         // fomat date of death as YYYY-MM-DD
-        deathData.dateOfDeath = `${deathData.dateOfDeath.substring(4)}-${deathData.dateOfDeath.substring(2, 4)}-${deathData.dateOfDeath.substring(0, 2)}`;
+        //    deathData.dateOfDeath = new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) :  "2021-01-01"
+        //    console.log("DATE OF DEATH", deathData.dateOfDeath)
+        // `${deathData.dateOfDeath.substring(4)}-${deathData.dateOfDeath.substring(2, 4)}-${deathData.dateOfDeath.substring(0, 2)}`;
         // CREATE CLAIM
         let claim_type = "Death Claim";
         let user = yield db.users.findOne({
@@ -90,12 +92,20 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 phone_number: deathData.nextOfKinPhoneNumber,
             },
         });
-        const policy = yield db.policies.findOne({
+        console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
+        if (!user) {
+            response = "CON No user found with that phone number" + "\n0. Back \n00. Main Menu";
+            return response;
+        }
+        let policy = yield db.policies.findAll({
             where: {
-                user_id: user && user.user_id,
+                user_id: user.user_id,
                 policy_status: "paid",
             },
         });
+        console.log("POLICY", policy);
+        policy = policy[policy.length - 1];
+        console.log("POLICY2", policy);
         if (!policy) {
             response = "CON No policy found" + "\n0. Back \n00. Main Menu";
             return response;
@@ -111,7 +121,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id}  ${policy.policy_type.toUpperCase()} ${policy.beneficiary.toUpperCase()} policy`,
             claim_type: claim_type,
             claim_amount: policy.sum_insured,
-            claim_death_date: deathData.dateOfDeath,
+            claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
         // update beneficiary
         const beneficiary = yield db.beneficiaries.findOne({
@@ -120,6 +130,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 beneficiary_type: "NEXTOFKIN",
             },
         });
+        console.log("BENEFICIARY", beneficiary);
         if (!beneficiary) {
             response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
             return response;
