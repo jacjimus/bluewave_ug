@@ -125,8 +125,19 @@ const getPolicySummary = async (req: any, res: any) => {
     if (!policy || policy.length === 0) {
       return res.status(404).json({ message: "No policies found" });
     }
+
+     
+  
+        const allUsers = await User.findAll({
+          where: {
+            partner_id: partner_id,
+            },
+          });
+  
+       
     let summary = {
       total_policies: policy.length,
+      total_users: allUsers.length,
       total_policies_pending: policy.filter(
         (policy: any) => policy.policy_status == "pending"
       ).length,
@@ -157,6 +168,10 @@ const getPolicySummary = async (req: any, res: any) => {
         partner_id: partner_id,
       },
     });
+
+ 
+  
+    
     return res.status(200).json({
       result: {
         code: 200,
