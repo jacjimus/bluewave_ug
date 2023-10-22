@@ -131,25 +131,25 @@ const claimMenu = async (args, db) => {
         });
 
         // update beneficiary
-        const beneficiary = await db.beneficiaries.findOne({
-            where: {
-                user_id: user.user_id,
-                beneficiary_type: "NEXTOFKIN",
-            },
-        });
+        // const beneficiary = await db.beneficiaries.findOne({
+        //     where: {
+        //         user_id: user.user_id,
+        //         //beneficiary_type: "NEXTOFKIN",
+        //     },
+        // });
 
-        console.log("BENEFICIARY", beneficiary);
+        //console.log("BENEFICIARY", beneficiary);
 
-        if (!beneficiary) {
-            response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
-            return response;
-        }
+        // if (!beneficiary) {
+        //     response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
+        //     return response;
+        // }
 
-        const beneficiaryPhone = beneficiary.phone_number?.startsWith('+') ? beneficiary.phone_number : `+${beneficiary.phone_number}`;
+        //const beneficiaryPhone = beneficiary.phone_number?.startsWith('+') ? beneficiary.phone_number : `+${beneficiary.phone_number}`;
         const userPhone = user.phone_number?.startsWith('+') ? user.phone_number : `+${user.phone_number}`;
 
         const sms = 'Your claim documents have been received. Your claim is being processed.';
-        await sendSMS(beneficiaryPhone || userPhone, sms);
+        await sendSMS( userPhone, sms);
 
         response = `END Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`;
     }
