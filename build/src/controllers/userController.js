@@ -403,85 +403,75 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *       200:
  *         description: Successful response
  */
-const findUserByPhoneNumbers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let partner_id = req.query.partner_id;
-    console.log("PARTNER ID", partner_id);
-    let filter = req.query.filter || "";
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    let status = {
-        status: 200,
-        result: {},
-    };
+const findAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const partner_id = req.query.partner_id;
+    const filter = req.query.filter;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const start_date = req.query.start_date;
+    const end_date = req.query.end_date;
     try {
         if (!partner_id) {
             return res.status(400).json({ message: "Please provide a partner id" });
         }
-        // Calculate the offset for pagination
-        const offset = (page - 1) * limit;
-        // find all users with value of any of the columns matching the filter(case insensitive). It should match numerics, strings, and dates and also do a match in nested objects
-        let users = yield User.findAndCountAll({
-            where: {
-                partner_id: partner_id,
-            },
-            // offset,
-            // limit,
-            order: [["createdAt", "DESC"]],
-        });
-        // Filter by start_date and end_date if provided
-        const start_date = req.query.start_date;
-        const end_date = req.query.end_date;
-        if (start_date && end_date) {
-            const startDate = new Date(start_date);
-            const endDate = new Date(end_date);
-            users.rows = users.rows.filter((user) => {
-                const userDate = new Date(user.createdAt);
-                return userDate >= startDate && userDate <= endDate;
-            });
-        }
-        // console.log("USERS", users.rows);
-        // Filter by search term if provided
+        const offset = Math.max(0, (page - 1) * limit);
+        let whereCondition;
+        whereCondition = {
+            partner_id: partner_id,
+        };
         if (filter) {
-            users.rows = (0, utils_1.globalSearch)(users.rows, filter);
+            whereCondition = {
+                partner_id: partner_id,
+                [Op.or]: [
+                    { first_name: { [Op.iLike]: `%${filter}%` } },
+                    { last_name: { [Op.iLike]: `%${filter}%` } },
+                    { email: { [Op.iLike]: `%${filter}%` } },
+                    { phone_number: { [Op.iLike]: `%${filter}%` } },
+                    { arr_member_number: { [Op.iLike]: `%${filter}%` } },
+                ],
+            };
         }
-        // Count the number of users
+        if (start_date && end_date) {
+            whereCondition.createdAt = {
+                [Op.between]: [new Date(start_date), new Date(end_date)],
+            };
+        }
+        let users = yield User.findAndCountAll({
+            where: Object.assign({}, whereCondition),
+            limit,
+            offset,
+        });
+        // if (start_date && end_date) {
+        //   const startDate = new Date(start_date);
+        //   const endDate = new Date(end_date);
+        //   users.rows = users.rows.filter((user) => {
+        //     const userDate = new Date(user.createdAt);
+        //     return userDate >= startDate && userDate <= endDate;
+        //   });
+        // }
         const count = users.count;
-        // Remove password and other sensitive information from the response
         users.rows.forEach((user) => {
             delete user.dataValues.password;
             delete user.dataValues.pin;
         });
-        // GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
-        for (let i = 0; i < users.rows.length; i++) {
-            let user = users.rows[i];
-            let policies = yield Policy.findAll({
+        yield Promise.all(users.rows.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+            const policies = yield Policy.findAll({
                 where: {
                     user_id: user.user_id,
                 },
             });
             user.dataValues.number_of_policies = policies.length;
-        }
-        if (users.rows && users.rows.length > 0) {
-            status.result = users.rows;
+        })));
+        if (users.rows.length > 0) {
             return res.status(200).json({
                 result: { message: "Customers fetched successfully", items: users.rows, count },
             });
         }
-        // await Log.create({
-        //   log_id: uuidv4(),
-        //   timestamp: new Date(),
-        //   message: 'get users',
-        //   level: 'info',
-        //   user: req.params.user_id,
-        //   partner_id: req.query.partner_id,
-        // });
-        return res.status(404).json({ code: 404, message: "Sorry, No Customer found" });
+        return res.status(404).json({ code: 404, message: "No customers found" });
     }
     catch (error) {
-        console.log("ERROR", error);
-        return res
-            .status(500)
-            .json({ code: 500, message: "Internal server error", error: error });
+        console.error("ERROR", error);
+        return res.status(500).json({ code: 500, message: "Internal server error", error: error });
     }
 });
 /**
@@ -950,7 +940,7 @@ module.exports = {
     adminSignup,
     signup,
     login,
-    findUserByPhoneNumbers,
+    findAllUsers,
     findUserByPhoneNumber,
     getPartner,
     updateUser,

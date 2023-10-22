@@ -501,101 +501,94 @@ const login = async (req: any, res: any) => {
  *       200:
  *         description: Successful response
  */
-const findUserByPhoneNumbers = async (req: any, res: any) => {
-  let partner_id = req.query.partner_id;
-  console.log("PARTNER ID", partner_id);
-  let filter = req.query.filter
-  let page = parseInt(req.query.page) || 1  
-  let limit = parseInt(req.query.limit) || 10
-  let status = {
-    status: 200,
-    result: {},
-  };
+const findAllUsers = async (req, res) => {
+  const partner_id = req.query.partner_id;
+  const filter = req.query.filter;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const start_date = req.query.start_date;
+  const end_date = req.query.end_date;
 
   try {
     if (!partner_id) {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
-    // Calculate the offset for pagination
-    const offset = (page - 1) * limit;
-// find all users with value of any of the columns matching the filter(case insensitive). It should look for a match in the first_name, last_name, email, phone_number columns
+    const offset = Math.max(0, (page - 1) * limit);
+
+    let whereCondition: any
+    whereCondition = {
+      partner_id: partner_id,
+    };
+   if (filter) {
+    whereCondition = {
+      partner_id: partner_id,
+      [Op.or]: [
+        { first_name: { [Op.iLike]: `%${filter}%` } },
+        { last_name: { [Op.iLike]: `%${filter}%` } },
+        { email: { [Op.iLike]: `%${filter}%` } },
+        { phone_number: { [Op.iLike]: `%${filter}%` } },
+        { arr_member_number: { [Op.iLike]: `%${filter}%` } },
+      ],
+    };
+   }
+
+   if (start_date && end_date) {
+    whereCondition.createdAt = {
+      [Op.between]: [new Date(start_date), new Date(end_date)],
+    };
+  }
+
     let users = await User.findAndCountAll({
       where: {
-        partner_id: partner_id,
-        [Op.or]: [
-          { first_name: { [Op.iLike]: `%${filter}%` } },
-          { last_name: { [Op.iLike]: `%${filter}%` } },
-          { email: { [Op.iLike]: `%${filter}%` } },
-          { phone_number: { [Op.iLike]: `%${filter}%` } },
-          {arr_member_number: { [Op.iLike]: `%${filter}%` } },
-        ],
+        ...whereCondition,
+    
       },
       limit,
       offset,
     });
-    // Filter by start_date and end_date if provided
-    const start_date = req.query.start_date;
-    const end_date = req.query.end_date;
 
-    if (start_date && end_date) {
-      const startDate = new Date(start_date);
-      const endDate = new Date(end_date);
-      users.rows = users.rows.filter((user: any) => {
-        const userDate = new Date(user.createdAt);
-        return userDate >= startDate && userDate <= endDate;
-      });
-    }
-    // console.log("USERS", users.rows);
+   
 
-    // Filter by search term if provided
-    // if (filter) {
-    //   users.rows = globalSearch(users.rows, filter);
+    // if (start_date && end_date) {
+    //   const startDate = new Date(start_date);
+    //   const endDate = new Date(end_date);
+    //   users.rows = users.rows.filter((user) => {
+    //     const userDate = new Date(user.createdAt);
+    //     return userDate >= startDate && userDate <= endDate;
+    //   });
     // }
 
-    // Count the number of users
     const count = users.count;
 
-    // Remove password and other sensitive information from the response
-    users.rows.forEach((user: any) => {
+    users.rows.forEach((user) => {
       delete user.dataValues.password;
       delete user.dataValues.pin;
-    }
-    );
-    // GET NUMBER OF POLICIES FOR EACH USER AND ADD IT TO THE USER OBJECT RESPONSE
-    for (let i = 0; i < users.rows.length; i++) {
-      let user = users.rows[i];
-      let policies = await Policy.findAll({
-        where: {
-          user_id: user.user_id,
-        },
-      });
-      user.dataValues.number_of_policies = policies.length;
-    }
+    });
 
-    if (users.rows && users.rows.length > 0) {
-      status.result = users.rows;
+    await Promise.all(
+      users.rows.map(async (user) => {
+        const policies = await Policy.findAll({
+          where: {
+            user_id: user.user_id,
+          },
+        });
+        user.dataValues.number_of_policies = policies.length;
+      })
+    );
+
+    if (users.rows.length > 0) {
       return res.status(200).json({
         result: { message: "Customers fetched successfully", items: users.rows, count },
       });
     }
-  
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'get users',
-    //   level: 'info',
-    //   user: req.params.user_id,
-    //   partner_id: req.query.partner_id,
-    // });
-    return res.status(404).json({ code: 404, message: "Sorry, No Customer found" });
+
+    return res.status(404).json({ code: 404, message: "No customers found" });
   } catch (error) {
-    console.log("ERROR", error);
-    return res
-      .status(500)
-      .json({ code: 500, message: "Internal server error", error: error });
+    console.error("ERROR", error);
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
-}
+};
 
 
 
@@ -1146,7 +1139,7 @@ module.exports = {
   adminSignup,
   signup,
   login,
-  findUserByPhoneNumbers,
+  findAllUsers,
   findUserByPhoneNumber,
   getPartner,
   updateUser,

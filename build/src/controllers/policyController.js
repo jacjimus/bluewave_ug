@@ -22,7 +22,6 @@ const Beneficiary = db_1.db.beneficiaries;
 const Payment = db_1.db.payments;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
-const utils_1 = require("../services/utils");
 const PolicyIssuance_1 = __importDefault(require("../services/PolicyIssuance"));
 /**
     * @swagger
@@ -84,12 +83,12 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const limit = parseInt(req.query.limit) || 10;
         // Prepare the date range filters based on the provided start_date and end_date
         const dateFilters = {};
-        if (start_date) {
-            dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
-        }
-        if (end_date) {
-            dateFilters.createdAt = Object.assign(Object.assign({}, dateFilters.createdAt), { [Op.lte]: new Date(end_date) });
-        }
+        // if (start_date) {
+        //   dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+        // }
+        // if (end_date) {
+        //   dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+        // }
         if (!partner_id) {
             return res.status(400).json({
                 code: 400, message: "Please provide a partner_id"
@@ -97,6 +96,31 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
         // Create a dynamic where condition for searchable fields
         const whereCondition = Object.assign({ partner_id: partner_id }, dateFilters);
+        if (start_date && end_date) {
+            whereCondition.createdAt = {
+                [Op.between]: [new Date(start_date), new Date(end_date)],
+            };
+        }
+        if (filter) {
+            whereCondition[Op.or] = [
+                { user_id: { [Op.iLike]: `%${filter}%` } },
+                { policy_id: { [Op.iLike]: `%${filter}%` } },
+                { beneficiary: { [Op.iLike]: `%${filter}%` } },
+                { policy_type: { [Op.iLike]: `%${filter}%` } },
+                { sum_insured: { [Op.iLike]: `%${filter}%` } },
+                { premium: { [Op.iLike]: `%${filter}%` } },
+                { policy_deduction_amount: { [Op.iLike]: `%${filter}%` } },
+                { policy_status: { [Op.iLike]: `%${filter}%` } },
+                { policy_deduction_day: { [Op.iLike]: `%${filter}%` } },
+                { installment_order: { [Op.iLike]: `%${filter}%` } }, ,
+                { tax_rate_vat: { [Op.iLike]: `%${filter}%` } },
+                { tax_rate_ext: { [Op.iLike]: `%${filter}%` } },
+                { excess_premium: { [Op.iLike]: `%${filter}%` } },
+                { discount_premium: { [Op.iLike]: `%${filter}%` } },
+                { currency_code: { [Op.iLike]: `%${filter}%` } },
+                { country_code: { [Op.iLike]: `%${filter}%` } },
+            ];
+        }
         // Calculate the offset for pagination
         const offset = (page - 1) * limit;
         const { count, rows } = yield Policy.findAndCountAll({
@@ -112,8 +136,8 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     as: "product",
                 },
             ],
-            // offset, // Use calculated offset
-            // limit,
+            offset,
+            limit,
         });
         if (!count || count === 0) {
             return res.status(404).json({ message: "No policies found" });
@@ -141,22 +165,12 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             }
             return policy;
         })));
-        // Implement search
-        const searchResults = (0, utils_1.globalSearch)(newPolicies, filter);
-        // Calculate pagination information
-        const totalPages = Math.ceil(count / limit);
-        const result = {
-            count,
-            totalPages,
-            currentPage: page,
-            policies: searchResults,
-        };
         return res.status(200).json({
             result: {
                 code: 200,
                 message: "Policies fetched successfully",
                 count,
-                items: searchResults,
+                items: newPolicies,
             },
         });
     }
