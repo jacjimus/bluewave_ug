@@ -88,7 +88,7 @@ const othersMenu = async (args, db) => {
         }
       ]
     }, {
-      name: 'Other+Spouse+1 Child',
+      name: 'Other+Spouse+1Child',
       code_name: 'M+2',
       sum_insured: '4M',
       premium: '30,000',
@@ -124,7 +124,7 @@ const othersMenu = async (args, db) => {
         }
       ]
     }, {
-      name: 'Other+Spouse+2 Children',
+      name: 'Other+Spouse+2Children',
       code_name: 'M+3',
       sum_insured: '5M',
       premium: '40,000',
@@ -160,7 +160,7 @@ const othersMenu = async (args, db) => {
         }
       ]
     }, {
-      name: 'Other+Spouse+3 Children',
+      name: 'Other+Spouse+3Children',
       code_name: 'M+4',
       sum_insured: '6M',
       premium: '50,000',
@@ -196,7 +196,7 @@ const othersMenu = async (args, db) => {
         }
       ]
     }, {
-      name: 'Other+Spouse+4 Children',
+      name: 'Other+Spouse+4Children',
       code_name: 'M+5',
       sum_insured: '7M',
       premium: '60,000',
@@ -232,7 +232,7 @@ const othersMenu = async (args, db) => {
         }
       ]
     }, {
-      name: 'Other+Spouse+5 Children',
+      name: 'Other+Spouse+5Children',
       code_name: 'M+6',
       sum_insured: '8M',
       premium: '70,000',
@@ -275,7 +275,7 @@ const othersMenu = async (args, db) => {
       return `\n${index + 1}. ${cover.name}`
     }).join("")
 
-    response = "CON Buy for Others" + coversList + "\n0. Back";
+    response = "CON " + coversList + "\n0. Back";
 
 
   }
