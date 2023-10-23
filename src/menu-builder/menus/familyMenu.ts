@@ -647,8 +647,7 @@ const familyMenu = async (args, db) => {
   else if (currentStep == 7) {
 
     if (userText == "1") {
-      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+     
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -731,7 +730,7 @@ const familyMenu = async (args, db) => {
           "UGX"
         );
 
-      const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
+      const timeout = 40000; // Set the timeout duration in milliseconds (30 seconds in this example)
 
       // Use Promise.race to combine the Airtel Money promise and a timeout promise
       Promise.race([
@@ -755,6 +754,8 @@ const familyMenu = async (args, db) => {
           return response;
         });
 
+        response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+        console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
 
     } else {
       response = "END Thank you for using Ddwaliro Care"

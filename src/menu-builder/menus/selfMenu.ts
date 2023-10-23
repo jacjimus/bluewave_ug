@@ -164,23 +164,6 @@ const selfMenu = async (args, db) => {
             console.log("POLICY OBJECT", policyObject);
 
             let policy = await db.policies.create(policyObject);
-
-            // try {
-            //     // await airtelMoney(
-            //     //     existingUser.user_id,
-            //     //     2,
-            //     //     policy.policy_id,
-            //     //     phone,
-            //     //     ultimatePremium.premium,
-            //     //     existingUser.membership_id,
-            //     //     "UG",
-            //     //     "UGX"
-            //     // );
-
-            // } catch (error) {
-            //     console.log("AIRTEL MONEY ERROR", error);
-
-            // }
             // create payment
             const airtelMoneyPromise = airtelMoney(
                 existingUser.user_id,

@@ -331,8 +331,6 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else if (currentStep == 7) {
         if (userText == "1") {
-            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
@@ -412,23 +410,8 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 bought_for: otherUser.user_id
             };
             let policy = yield db.policies.create(policyObject);
-            // try {
-            //   // create payment
-            //   await airtelMoney(
-            //     existingUser.user_id,
-            //     2,
-            //     policy.policy_id,
-            //     phone,
-            //     policy.policy_deduction_amount,
-            //     existingUser.membership_id,
-            //     "UG",
-            //     "UGX"
-            //   );
-            // } catch (error) {
-            //   console.log("AIRTEL MONEY ERROR", error);
-            // }
             const airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
-            const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
+            const timeout = 40000; // Set the timeout duration in milliseconds (30 seconds in this example)
             // Use Promise.race to combine the Airtel Money promise and a timeout promise
             Promise.race([
                 airtelMoneyPromise,
@@ -450,6 +433,8 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 console.log("RESPONSE WAS CALLED", response);
                 return response;
             });
+            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
