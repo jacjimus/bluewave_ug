@@ -26,13 +26,13 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
             [sequelize_1.Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
         }
     });
-    const policies = yield db.policies.findAll({
+    const paidPolicies = yield db.policies.findAll({
         where: {
-            user_id: currentUser.user_id,
+            phone_number: smsPhone,
             policy_status: "paid"
         }
     });
-    let policyMessages = yield policies.map((policy, index) => {
+    let policyMessages = yield paidPolicies.map((policy, index) => {
         return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`;
     });
     if (currentStep == 1) {
@@ -47,7 +47,7 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
         // console.log('User text', userText)
         switch (userText) {
             case "1":
-                response = policies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy";
+                response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy";
                 break;
             case "2":
                 console.log("phoneNumber", smsPhone);
@@ -73,14 +73,10 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                 }
                 break;
             case "3":
-                const paidPolicies = yield db.policies.findAll({
-                    where: {
-                        phone_number: smsPhone,
-                        policy_status: "paid"
-                    }
-                });
+                console.log("paidPolicies", paidPolicies);
+                console.log("policyMessages", policyMessages);
                 if (paidPolicies.length > 0) {
-                    response = `CON ${policyMessages[0]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu";
+                    response = `CON ${policyMessages}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu";
                 }
                 else {
                     response = "END You have no policies";
@@ -97,34 +93,34 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
     else if (currentStep == 3) {
         switch (allSteps[1]) {
             case "1":
-                if (userText == "1" && policies.length > 1) {
+                if (userText == "1" && paidPolicies.length > 1) {
                     response = `CON ${policyMessages[1]}\n1. Next`;
                 }
-                else if (userText == "1" && policies.length == 1) {
-                    if (policies[0].installment_type == 1) {
-                        response = `END Your available inpatient limit is UGX ${(0, utils_1.formatAmount)(policies[0].sum_insured)} and Funeral expense of UGX ${(0, utils_1.formatAmount)(policies[0].last_expense_insured)}`;
+                else if (userText == "1" && paidPolicies.length == 1) {
+                    if (paidPolicies[0].installment_type == 1) {
+                        response = `END Your available inpatient limit is UGX ${(0, utils_1.formatAmount)(paidPolicies[0].sum_insured)} and Funeral expense of UGX ${(0, utils_1.formatAmount)(paidPolicies[0].last_expense_insured)}`;
                     }
                     else {
-                        console.log("POLICIES", policies[0].policy_id);
+                        console.log("POLICIES", paidPolicies[0].policy_id);
                         const payments = yield db.payments.findAll({
                             where: {
-                                policy_id: policies[0].policy_id,
+                                policy_id: paidPolicies[0].policy_id,
                                 payment_status: "paid"
                             }
                         });
                         console.log("PAYMENTS", payments.length);
                         let proratedPercentage = (0, utils_1.calculateProrationPercentage)(payments.length);
-                        console.log("PRORATED PERCENTAGE", policies[0].sum_insured / proratedPercentage);
+                        console.log("PRORATED PERCENTAGE", paidPolicies[0].sum_insured / proratedPercentage);
                         // add 3 months to the policy start date
-                        let policyStartDate = new Date(policies[0].policy_start_date);
+                        let policyStartDate = new Date(paidPolicies[0].policy_start_date);
                         console.log("POLICY START DATE", policyStartDate);
                         policyStartDate.setMonth(policyStartDate.getMonth() + payments.length);
                         console.log("POLICY START DATE", policyStartDate);
-                        if (policyStartDate > new Date() && policies[0].installment_type == 2) {
-                            response = `END Your available inpatient limit is UGX ${(policies[0].sum_insured / proratedPercentage).toLocaleString()} and Funeral expense of UGX ${(policies[0].last_expense_insured / proratedPercentage).toLocaleString()}`;
+                        if (policyStartDate > new Date() && paidPolicies[0].installment_type == 2) {
+                            response = `END Your available inpatient limit is UGX ${(paidPolicies[0].sum_insured / proratedPercentage).toLocaleString()} and Funeral expense of UGX ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()}`;
                         }
                         else {
-                            response = `END Your outstanding premium is UGX ${(policies[0].premium).toLocaleString()}\nYour available inpatient limit is UGX ${(policies[0].sum_insured / proratedPercentage).toLocaleString()} and Funeral expense of UGX ${(policies[0].last_expense_insured / proratedPercentage).toLocaleString()}`;
+                            response = `END Your outstanding premium is UGX ${(paidPolicies[0].premium).toLocaleString()}\nYour available inpatient limit is UGX ${(paidPolicies[0].sum_insured / proratedPercentage).toLocaleString()} and Funeral expense of UGX ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()}`;
                         }
                     }
                 }
@@ -161,10 +157,10 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                         user_id: user.user_id
                     }, {
                         where: {
-                            policy_id: policies[0].policy_id
+                            policy_id: paidPolicies[0].policy_id
                         }
                     });
-                    response = `END Cancelling, you will no longer be covered as from ${new Date(policies[0].policy_end_date).toDateString()}`;
+                    response = `END Cancelling, you will no longer be covered as from ${new Date(paidPolicies[0].policy_end_date).toDateString()}`;
                 }
                 break;
             case "4":
