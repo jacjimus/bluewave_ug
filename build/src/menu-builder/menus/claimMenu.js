@@ -81,10 +81,6 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             deceasedName: allSteps[4],
             dateOfDeath: allSteps[5],
         };
-        // fomat date of death as YYYY-MM-DD
-        //    deathData.dateOfDeath = new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) :  "2021-01-01"
-        //    console.log("DATE OF DEATH", deathData.dateOfDeath)
-        // `${deathData.dateOfDeath.substring(4)}-${deathData.dateOfDeath.substring(2, 4)}-${deathData.dateOfDeath.substring(0, 2)}`;
         // CREATE CLAIM
         let claim_type = "Death Claim";
         let user = yield db.users.findOne({

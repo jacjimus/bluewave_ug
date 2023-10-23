@@ -94,7 +94,13 @@ export default function (args: RequestBody, db: any) {
       const handleBack = (arr:any) => {
         let index = arr.indexOf("0");
         if (index > -1) {
-          allSteps.splice(index - 1, 2);
+        
+          console.log("index", index);
+          console.log("allSteps", allSteps);
+
+          allSteps.splice(index - 1, 2) 
+          text = allSteps.join("*");
+        
           return handleBack(allSteps);
         }
         // find the last index of '00' and return the array from that index

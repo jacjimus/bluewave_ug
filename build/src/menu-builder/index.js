@@ -78,7 +78,10 @@ function default_1(args, db) {
             const handleBack = (arr) => {
                 let index = arr.indexOf("0");
                 if (index > -1) {
+                    console.log("index", index);
+                    console.log("allSteps", allSteps);
                     allSteps.splice(index - 1, 2);
+                    text = allSteps.join("*");
                     return handleBack(allSteps);
                 }
                 // find the last index of '00' and return the array from that index
