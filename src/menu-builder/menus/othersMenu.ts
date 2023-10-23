@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser";
 import { airtelMoney } from "../../services/payment";
+import { all } from "axios";
 
 const othersMenu = async (args, db) => {
   let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -14,6 +15,7 @@ const othersMenu = async (args, db) => {
       phone_number: phone,
     },
   });
+  let otherUser: any;
   const covers = [
     {
       name: 'Other',
@@ -325,6 +327,39 @@ const othersMenu = async (args, db) => {
     console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
+    let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+    console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
+
+
+     otherUser = await db.users.findOne({
+      where: {
+        phone_number: allSteps[4].replace('0', ""),
+      },
+    });
+    //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
+    if (!otherUser) {
+      let otherPhone = allSteps[4].replace('0', "");
+
+      let otherData = {
+        user_id: uuidv4(),
+        phone_number: otherPhone,
+        membership_id: Math.floor(100000 + Math.random() * 900000),
+        pin: Math.floor(1000 + Math.random() * 9000),
+        first_name: allSteps[3].split(" ")[0],
+        middle_name: allSteps[3].split(" ")[1],
+        last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
+        name: `${allSteps[3]}`,
+        total_member_number: selectedPolicyType.code_name,
+        partner_id: 2,
+        role: "user",
+        nationality: "UGANDA"
+      }
+
+      otherUser = await db.users.create(otherData);
+      console.log("OTHER USER CREATED", otherUser)
+    }
+
+
 
     response = `CON Pay UGX ${ultimatePremium} ${period}.` +
       `\nTerms&Conditions https://rb.gy/g4hyk` +
@@ -334,9 +369,6 @@ const othersMenu = async (args, db) => {
 
 
     if (userText == "1") {
-
-    
-
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -366,32 +398,7 @@ const othersMenu = async (args, db) => {
 
       }
 
-      let otherUser = await db.users.findOne({
-        where: {
-          phone_number: allSteps[4].replace('0', ""),
-        },
-      });
-      //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
-      if (!otherUser) {
-        let otherPhone = allSteps[4].replace('0', "");
-
-        let otherData = {
-          user_id: uuidv4(),
-          phone_number: otherPhone,
-          membership_id: Math.floor(100000 + Math.random() * 900000),
-          pin: Math.floor(1000 + Math.random() * 9000),
-          first_name: allSteps[3][0],
-          last_name: allSteps[3][1],
-          name: `${allSteps[3]}`,
-          total_member_number: selectedPolicyType.code_name,
-          partner_id: 2,
-          role: "user",
-        }
-
-        otherUser = await db.users.create(otherData);
-        console.log("OTHER USER CREATED", otherUser)
-      }
-
+    
 
       let paymentOption = parseInt(allSteps[5]);
       let installment_type = paymentOption == 1 ? 2 : 1;
@@ -472,9 +479,7 @@ const othersMenu = async (args, db) => {
       });
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
-
-
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
 
   
     } else {

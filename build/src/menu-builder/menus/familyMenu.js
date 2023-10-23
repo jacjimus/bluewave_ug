@@ -603,8 +603,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else if (currentStep == 5) {
         const selectedCover = covers[parseInt(allSteps[1]) - 1];
+        //console.log("SELECTED COVER", selectedCover)
         const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-        //console.log("SELECTED COVER", selectedPackage)
+        console.log("SELECTED PACKAGE", selectedPackage);
         let userPhoneNumber = (_b = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _b === void 0 ? void 0 : _b.substring(3);
         let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
             "\nPAY " +
@@ -617,6 +618,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
         let premium = selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[parseInt(userText) - 1].premium;
         let period = selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[parseInt(userText) - 1].period;
+        let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
         let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
         const spouse = allSteps[3];
         let beneficiary = {
@@ -632,6 +634,27 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         };
         console.log("BENEFICIARY", beneficiary);
         yield Beneficiary.create(beneficiary);
+        if (!existingUser) {
+            console.log("USER DOES NOT EXIST FAMILY");
+            let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
+            let membershierId = Math.floor(100000 + Math.random() * 900000);
+            existingUser = yield db.users.create({
+                user_id: (0, uuid_1.v4)(),
+                phone_number: phone,
+                membership_id: membershierId,
+                pin: Math.floor(1000 + Math.random() * 9000),
+                first_name: user.first_name,
+                last_name: user.last_name,
+                name: `${user.first_name} ${user.last_name}`,
+                total_member_number: selectedPolicyType.code_name,
+                partner_id: 2,
+                role: "user",
+                nationality: "UGANDA"
+            });
+            console.log("USER DOES NOT EXIST", user);
+            const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
+            yield (0, sendSMS_1.default)(fullPhone, message);
+        }
         response = `CON Pay UGX ${premium} ${period}` +
             `\nTerms&Conditions - https://rb.gy/g4hyk` +
             `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
@@ -639,30 +662,6 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     else if (currentStep == 7) {
         if (userText == "1") {
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-            let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
-            // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
-            //  console.log("SELECTED POLICY TYPE", selectedPolicyType);
-            if (!existingUser) {
-                console.log("USER DOES NOT EXIST FAMILY");
-                let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
-                let membershierId = Math.floor(100000 + Math.random() * 900000);
-                existingUser = yield db.users.create({
-                    user_id: (0, uuid_1.v4)(),
-                    phone_number: phone,
-                    membership_id: membershierId,
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    name: `${user.first_name} ${user.last_name}`,
-                    total_member_number: selectedPolicyType.code_name,
-                    partner_id: 2,
-                    role: "user",
-                    nationality: "UGANDA"
-                });
-                console.log("USER DOES NOT EXIST", user);
-                const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
-                yield (0, sendSMS_1.default)(fullPhone, message);
-            }
             let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
             let policyType = selectedPackage.code_name;
             let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;

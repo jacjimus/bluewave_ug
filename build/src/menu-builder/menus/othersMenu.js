@@ -27,6 +27,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             phone_number: phone,
         },
     });
+    let otherUser;
     const covers = [
         {
             name: 'Other',
@@ -325,6 +326,33 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let selectedCoverPackage = selectedCover.packages[coverType - 1];
         console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
         let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
+        let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+        console.log("POLICY TYPE USERTEXT 1", selectedPolicyType);
+        otherUser = yield db.users.findOne({
+            where: {
+                phone_number: allSteps[4].replace('0', ""),
+            },
+        });
+        //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
+        if (!otherUser) {
+            let otherPhone = allSteps[4].replace('0', "");
+            let otherData = {
+                user_id: (0, uuid_1.v4)(),
+                phone_number: otherPhone,
+                membership_id: Math.floor(100000 + Math.random() * 900000),
+                pin: Math.floor(1000 + Math.random() * 9000),
+                first_name: allSteps[3].split(" ")[0],
+                middle_name: allSteps[3].split(" ")[1],
+                last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
+                name: `${allSteps[3]}`,
+                total_member_number: selectedPolicyType.code_name,
+                partner_id: 2,
+                role: "user",
+                nationality: "UGANDA"
+            };
+            otherUser = yield db.users.create(otherData);
+            console.log("OTHER USER CREATED", otherUser);
+        }
         response = `CON Pay UGX ${ultimatePremium} ${period}.` +
             `\nTerms&Conditions https://rb.gy/g4hyk` +
             `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
@@ -352,29 +380,6 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 });
                 const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
                 yield (0, sendSMS_1.default)(fullPhone, message);
-            }
-            let otherUser = yield db.users.findOne({
-                where: {
-                    phone_number: allSteps[4].replace('0', ""),
-                },
-            });
-            //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
-            if (!otherUser) {
-                let otherPhone = allSteps[4].replace('0', "");
-                let otherData = {
-                    user_id: (0, uuid_1.v4)(),
-                    phone_number: otherPhone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: allSteps[3][0],
-                    last_name: allSteps[3][1],
-                    name: `${allSteps[3]}`,
-                    total_member_number: selectedPolicyType.code_name,
-                    partner_id: 2,
-                    role: "user",
-                };
-                otherUser = yield db.users.create(otherData);
-                console.log("OTHER USER CREATED", otherUser);
             }
             let paymentOption = parseInt(allSteps[5]);
             let installment_type = paymentOption == 1 ? 2 : 1;
@@ -434,7 +439,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 return response;
             });
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
