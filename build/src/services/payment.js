@@ -101,6 +101,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             message: 'Payment successfully initiated'
         };
         try {
+            console.log("PAYMNET WAS CALLED AT ", new Date());
             const token = yield getAuthToken(currency);
             console.log('AIRTEL MONEY TOKEN ', token);
             // const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
@@ -135,6 +136,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             const response = yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
             console.log('RESPONCE AIRTEL MONEY ', response.data);
             if (response.data.status.code == '200') {
+                console.log('PAYMENT RESPONSE AT ', new Date());
                 const transaction = response.data.data.transaction;
                 yield createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
                 status.result = response.data.status;

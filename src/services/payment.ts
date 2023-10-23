@@ -96,6 +96,8 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
   };
 
   try {
+
+    console.log("PAYMNET WAS CALLED AT ", new Date())
     const token = await getAuthToken(currency);
     console.log('AIRTEL MONEY TOKEN ', token);
     // const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
@@ -136,6 +138,7 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
     console.log('RESPONCE AIRTEL MONEY ' , response.data);
 
     if (response.data.status.code == '200') {
+      console.log('PAYMENT RESPONSE AT ', new Date())
       const transaction = response.data.data.transaction;
       await createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
 
