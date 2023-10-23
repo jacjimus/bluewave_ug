@@ -24,9 +24,6 @@ let AIRTEL_AUTH_TOKEN_URL = 'https://openapi.airtel.africa/auth/oauth2/token';
 //process.env.ENVIROMENT=='PROD' ? process.env.PROD_AIRTEL_PAYMENT_TOKEN_URL : process.env.AIRTEL_PAYMENT_TOKEN_URL;
 function getAuthToken(currency) {
     return __awaiter(this, void 0, void 0, function* () {
-        // console.log("PAYMENT TOKEN ", process.env.AIRTEL_UGX_CLIENT_ID, process.env.AIRTEL_UGX_CLIENT_SECRET)
-        // console.log('AIRTEL PAYMENT TOKEN URL', AIRTEL_PAYMENT_TOKEN_URL)
-        // console.log('TOKEN COUNTRY CURRENCY', currency);
         try {
             let response;
             if (currency == "KES") {
@@ -105,7 +102,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
         };
         try {
             const token = yield getAuthToken(currency);
-            console.log('AIRTEL MONEY TOKEN ' + country, token);
+            console.log('AIRTEL MONEY TOKEN ', token);
             // const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
             // console.log('PAYMENT URL ', PAYMENT_URL)
             const paymentData = {
@@ -122,7 +119,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                     id: (0, uuid_1.v4)(),
                 },
             };
-            console.log('PAYMENT DATA ' + country, paymentData);
+            console.log('PAYMENT DATA ', paymentData);
             const authBearer = currency == "KES" ? token : `Bearer ${token}`;
             console.log('AUTH BEARER ', authBearer);
             const headers = {
@@ -132,11 +129,11 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                 'X-Currency': currency,
                 Authorization: authBearer,
             };
-            console.log('HEADERS ' + country, headers);
+            console.log('HEADERS ', headers);
             const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
+            console.log('RESPONCE AIRTEL MONEY API ', AIRTEL_PAYMENT_URL);
             const response = yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
             console.log('RESPONCE AIRTEL MONEY ', response.data);
-            console.log('RESPONCE AIRTEL MONEY API ', AIRTEL_PAYMENT_URL);
             if (response.data.status.code == '200') {
                 const transaction = response.data.data.transaction;
                 yield createTransaction(user_id, partner_id, policy_id, transaction.id, amount);

@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         user_id: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: true
         },
         age: {
             type: DataTypes.INTEGER,
@@ -61,6 +61,7 @@ module.exports = (sequelize, DataTypes) => {
         beneficiary_type: { type: String },
         date_of_death: { type: Date },
         dependant_member_number: { type: String },
+        principal_phone_number: { type: String },
 
 
 

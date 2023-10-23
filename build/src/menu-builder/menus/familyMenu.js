@@ -617,6 +617,21 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
         let premium = selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[parseInt(userText) - 1].premium;
         let period = selectedPackage === null || selectedPackage === void 0 ? void 0 : selectedPackage.payment_options[parseInt(userText) - 1].period;
+        let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+        const spouse = allSteps[3];
+        let beneficiary = {
+            beneficiary_id: (0, uuid_1.v4)(),
+            full_name: spouse,
+            first_name: spouse.split(" ")[0],
+            middle_name: spouse.split(" ")[1],
+            last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
+            relationship: "SPOUSE",
+            member_number: selectedPolicyType.code_name,
+            principal_phone_number: phoneNumber,
+            //user_id: existingUser.user_id,
+        };
+        console.log("BENEFICIARY", beneficiary);
+        yield Beneficiary.create(beneficiary);
         response = `CON Pay UGX ${premium} ${period}` +
             `\nTerms&Conditions - https://rb.gy/g4hyk` +
             `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
@@ -628,7 +643,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
-            console.log("SELECTED POLICY TYPE", selectedPolicyType);
+            //  console.log("SELECTED POLICY TYPE", selectedPolicyType);
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST FAMILY");
                 let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
@@ -650,19 +665,6 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
                 yield (0, sendSMS_1.default)(fullPhone, message);
             }
-            console.log("EXISTING USER", existingUser);
-            const spouse = allSteps[2];
-            let beneficiary = {
-                beneficiary_id: (0, uuid_1.v4)(),
-                full_name: spouse,
-                first_name: spouse.split(" ")[0],
-                middle_name: spouse.split(" ")[1],
-                last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
-                relationship: "SPOUSE",
-                member_number: selectedPolicyType.code_name,
-                user_id: existingUser.user_id,
-            };
-            yield Beneficiary.create(beneficiary);
             let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
             let policyType = selectedPackage.code_name;
             let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
@@ -696,21 +698,6 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
             };
             let policy = yield db.policies.create(policyObject);
-            // try {
-            //   // create payment
-            //   await airtelMoney(
-            //     existingUser.user_id,
-            //     2,
-            //     policy.policy_id,
-            //     phone,
-            //     ultimatePremium,
-            //     existingUser.membership_id,
-            //     "UG",
-            //     "UGX"
-            //   );
-            // } catch (error) {
-            //   console.log("AIRTEL MONEY ERROR", error);
-            // }
             let airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
             const timeout = 50000; // Set the timeout duration in milliseconds (30 seconds in this example)
             // Use Promise.race to combine the Airtel Money promise and a timeout promise

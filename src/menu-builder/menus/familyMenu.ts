@@ -621,6 +621,24 @@ const familyMenu = async (args, db) => {
 
     let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
+    let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+
+    const spouse = allSteps[3];
+
+    let beneficiary = {
+      beneficiary_id: uuidv4(),
+      full_name: spouse,
+      first_name: spouse.split(" ")[0],
+      middle_name: spouse.split(" ")[1],
+      last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
+      relationship: "SPOUSE",
+      member_number: selectedPolicyType.code_name,
+      principal_phone_number: phoneNumber,
+      //user_id: existingUser.user_id,
+    };
+    console.log("BENEFICIARY", beneficiary);
+
+    await Beneficiary.create(beneficiary);
 
     response = `CON Pay UGX ${premium} ${period}` +
       `\nTerms&Conditions - https://rb.gy/g4hyk` +
@@ -637,7 +655,7 @@ const familyMenu = async (args, db) => {
       // response = "END Please wait for the Airtel Money prompt to enter your PIN to complete the payment"
 
 
-      console.log("SELECTED POLICY TYPE", selectedPolicyType);
+    //  console.log("SELECTED POLICY TYPE", selectedPolicyType);
 
       if (!existingUser) {
         console.log("USER DOES NOT EXIST FAMILY");
@@ -661,23 +679,6 @@ const familyMenu = async (args, db) => {
         await sendSMS(fullPhone, message);
 
       }
-
-      console.log("EXISTING USER", existingUser);
-
-      const spouse = allSteps[2];
-
-      let beneficiary = {
-        beneficiary_id: uuidv4(),
-        full_name: spouse,
-        first_name: spouse.split(" ")[0],
-        middle_name: spouse.split(" ")[1],
-        last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
-        relationship: "SPOUSE",
-        member_number: selectedPolicyType.code_name,
-        user_id: existingUser.user_id,
-      };
-
-      await Beneficiary.create(beneficiary);
 
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let policyType = selectedPackage.code_name;
@@ -718,23 +719,7 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-      // try {
-
-      //   // create payment
-      //   await airtelMoney(
-      //     existingUser.user_id,
-      //     2,
-      //     policy.policy_id,
-      //     phone,
-      //     ultimatePremium,
-      //     existingUser.membership_id,
-      //     "UG",
-      //     "UGX"
-      //   );
-      // } catch (error) {
-      //   console.log("AIRTEL MONEY ERROR", error);
-
-      // }
+  
        let airtelMoneyPromise=  await airtelMoney(
           existingUser.user_id,
           2,
