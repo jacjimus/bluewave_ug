@@ -311,6 +311,12 @@ const othersMenu = async (args, db) => {
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
 
+    otherUser = await db.users.findOne({
+      where: {
+        phone_number: allSteps[4].replace('0', ""),
+      },
+    });
+
     response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
       "\nPAY " +
       `\n1 UGX ${selectedCoverPackage.premium} monthly` +
@@ -331,34 +337,30 @@ const othersMenu = async (args, db) => {
     console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
 
-     otherUser = await db.users.findOne({
-      where: {
-        phone_number: allSteps[4].replace('0', ""),
-      },
-    });
-    //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
-    if (!otherUser) {
-      let otherPhone = allSteps[4].replace('0', "");
+    let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
-      let otherData = {
+    if (!existingUser) {
+
+      let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+      let membershipId = Math.floor(100000 + Math.random() * 900000);
+
+      existingUser = await db.users.create({
         user_id: uuidv4(),
-        phone_number: otherPhone,
+        phone_number: phone,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         pin: Math.floor(1000 + Math.random() * 9000),
-        first_name: allSteps[3].split(" ")[0],
-        middle_name: allSteps[3].split(" ")[1],
-        last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
-        name: `${allSteps[3]}`,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        name: `${user.first_name} ${user.last_name}`,
         total_member_number: selectedPolicyType.code_name,
         partner_id: 2,
         role: "user",
         nationality: "UGANDA"
-      }
+      });
+      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+      await sendSMS(fullPhone, message);
 
-      otherUser = await db.users.create(otherData);
-      console.log("OTHER USER CREATED", otherUser)
     }
-
 
 
     response = `CON Pay UGX ${ultimatePremium} ${period}.` +
@@ -370,35 +372,13 @@ const othersMenu = async (args, db) => {
 
     if (userText == "1") {
 
+      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
+      console.log("otherUser", otherUser);
+
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
-
-
-      if (!existingUser) {
-
-        let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
-        let membershipId = Math.floor(100000 + Math.random() * 900000);
-
-        existingUser = await db.users.create({
-          user_id: uuidv4(),
-          phone_number: phone,
-          membership_id: Math.floor(100000 + Math.random() * 900000),
-          pin: Math.floor(1000 + Math.random() * 9000),
-          first_name: user.first_name,
-          last_name: user.last_name,
-          name: `${user.first_name} ${user.last_name}`,
-          total_member_number: selectedPolicyType.code_name,
-          partner_id: 2,
-          role: "user",
-          nationality: "UGANDA"
-        });
-        const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-        await sendSMS(fullPhone, message);
-
-      }
-
-    
 
       let paymentOption = parseInt(allSteps[5]);
       let installment_type = paymentOption == 1 ? 2 : 1;
@@ -410,6 +390,30 @@ const othersMenu = async (args, db) => {
       console.log("POLICY TYPE USERTEXT 1", policyType)
       let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
       console.log("ULTIMATE PREMIUM", ultimatePremium)
+
+
+     
+      //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
+      if (!otherUser) {
+        let otherPhone = allSteps[4].replace('0', "");
+
+        let otherData = {
+          user_id: uuidv4(),
+          phone_number: otherPhone,
+          membership_id: Math.floor(100000 + Math.random() * 900000),
+          first_name: allSteps[3].split(" ")[0],
+          middle_name: allSteps[3].split(" ")[1],
+          last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
+          name: `${allSteps[3]}`,
+          total_member_number: selectedPolicyType.code_name,
+          partner_id: 2,
+          role: "user",
+          nationality: "UGANDA"
+        }
+
+        otherUser = await db.users.create(otherData);
+        console.log("OTHER USER CREATED", otherUser)
+      }
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -438,50 +442,45 @@ const othersMenu = async (args, db) => {
         bought_for: otherUser.user_id
       }
 
-      let policy = await db.policies.create(policyObject);
-    
+      try {
 
-      const airtelMoneyPromise =   await airtelMoney(
-        existingUser.user_id,
-        2,
-        policy.policy_id,
-        phone,
-        policy.policy_deduction_amount,
-        existingUser.membership_id,
-        "UG",
-        "UGX"
-      );
+        let policy = await db.policies.create(policyObject);
 
-    
+        const airtelMoneyPromise = await airtelMoney(
+          existingUser.user_id,
+          2,
+          policy.policy_id,
+          phone,
+          policy.policy_deduction_amount,
+          existingUser.membership_id,
+          "UG",
+          "UGX"
+        );
 
-    const timeout = 40000; // Set the timeout duration in milliseconds (30 seconds in this example)
 
-    // Use Promise.race to combine the Airtel Money promise and a timeout promise
-    Promise.race([
-      airtelMoneyPromise,
-      new Promise((resolve, reject) => {
-        setTimeout(() => {
-          reject(new Error('Airtel Money operation timed out'));
-        }, timeout);
-      })
-    ])
-      .then((result) => {
-        // Airtel Money operation completed successfully
-        response = 'END Payment successful'; // Set your desired response here
-        console.log("RESPONSE WAS CALLED", response);
-        return response;
-      })
-      .catch((error) => {
-        console.log("An error occurred:", error);
-        response = 'END Payment failed'; // Set an error response
-        console.log("RESPONSE WAS CALLED", response);
-        return response;
-      });
+        const result = await Promise.race([
+          airtelMoneyPromise,
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve('timeout');
+            }, 40000);
+          }),
+        ]);
 
-      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
+        if (result === 'timeout') {
+          // response = 'END Payment operation timed out';
+          console.log("RESPONSE WAS CALLED", result);
+        } else {
+          // Airtel Money operation completed successfully
+          //response = 'END Payment successful'; // Set your desired response here
+          console.log("RESPONSE WAS CALLED", result);
+        }
+      } catch (error) {
+        //response = 'END Payment failed'; // Set an error response
+        console.log("RESPONSE WAS CALLED EER", error);
+      }
 
-  
+
     } else {
       response = "END Thank you for using Ddwaliro Care"
     }

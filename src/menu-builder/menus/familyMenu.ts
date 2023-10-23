@@ -687,6 +687,8 @@ const familyMenu = async (args, db) => {
 
       //next month minus 1 day
       let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+      let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
+      let policy_deduction_day = new Date().getDate() - 1;
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -698,13 +700,13 @@ const familyMenu = async (args, db) => {
         premium: ultimatePremium,
         yearly_premium: parseAmount(selectedPackage.year_premium),
         last_expense_insured: selectedPackage.lastExpenseInsured,
-        policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
+        policy_end_date: policy_end_date,
         policy_start_date: new Date(),
-        installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
+        installment_date: installment_type == 1 ? policy_end_date  : installment_next_month_date,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         beneficiary: "FAMILY",
         policy_status: "pending",
-        policy_deduction_day: new Date().getDate() - 1,
+        policy_deduction_day:  policy_deduction_day,
         partner_id: 2,
         country_code: "UGA",
         currency_code: "UGX",
@@ -765,4 +767,3 @@ const familyMenu = async (args, db) => {
 }
 
 export default familyMenu;
-

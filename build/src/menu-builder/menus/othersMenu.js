@@ -311,6 +311,11 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let coverType = allSteps[2];
         let selectedCover = covers[parseInt(allSteps[1]) - 1];
         let selectedCoverPackage = selectedCover.packages[coverType - 1];
+        otherUser = yield db.users.findOne({
+            where: {
+                phone_number: allSteps[4].replace('0', ""),
+            },
+        });
         response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
             "\nPAY " +
             `\n1 UGX ${selectedCoverPackage.premium} monthly` +
@@ -328,30 +333,25 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
         let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
         console.log("POLICY TYPE USERTEXT 1", selectedPolicyType);
-        otherUser = yield db.users.findOne({
-            where: {
-                phone_number: allSteps[4].replace('0', ""),
-            },
-        });
-        //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
-        if (!otherUser) {
-            let otherPhone = allSteps[4].replace('0', "");
-            let otherData = {
+        let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
+        if (!existingUser) {
+            let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
+            let membershipId = Math.floor(100000 + Math.random() * 900000);
+            existingUser = yield db.users.create({
                 user_id: (0, uuid_1.v4)(),
-                phone_number: otherPhone,
+                phone_number: phone,
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 pin: Math.floor(1000 + Math.random() * 9000),
-                first_name: allSteps[3].split(" ")[0],
-                middle_name: allSteps[3].split(" ")[1],
-                last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
-                name: `${allSteps[3]}`,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                name: `${user.first_name} ${user.last_name}`,
                 total_member_number: selectedPolicyType.code_name,
                 partner_id: 2,
                 role: "user",
                 nationality: "UGANDA"
-            };
-            otherUser = yield db.users.create(otherData);
-            console.log("OTHER USER CREATED", otherUser);
+            });
+            const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+            yield (0, sendSMS_1.default)(fullPhone, message);
         }
         response = `CON Pay UGX ${ultimatePremium} ${period}.` +
             `\nTerms&Conditions https://rb.gy/g4hyk` +
@@ -359,28 +359,12 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else if (currentStep == 7) {
         if (userText == "1") {
+            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
+            console.log("otherUser", otherUser);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
-            if (!existingUser) {
-                let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
-                let membershipId = Math.floor(100000 + Math.random() * 900000);
-                existingUser = yield db.users.create({
-                    user_id: (0, uuid_1.v4)(),
-                    phone_number: phone,
-                    membership_id: Math.floor(100000 + Math.random() * 900000),
-                    pin: Math.floor(1000 + Math.random() * 9000),
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    name: `${user.first_name} ${user.last_name}`,
-                    total_member_number: selectedPolicyType.code_name,
-                    partner_id: 2,
-                    role: "user",
-                    nationality: "UGANDA"
-                });
-                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-                yield (0, sendSMS_1.default)(fullPhone, message);
-            }
             let paymentOption = parseInt(allSteps[5]);
             let installment_type = paymentOption == 1 ? 2 : 1;
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
@@ -388,6 +372,25 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             console.log("POLICY TYPE USERTEXT 1", policyType);
             let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
             console.log("ULTIMATE PREMIUM", ultimatePremium);
+            //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
+            if (!otherUser) {
+                let otherPhone = allSteps[4].replace('0', "");
+                let otherData = {
+                    user_id: (0, uuid_1.v4)(),
+                    phone_number: otherPhone,
+                    membership_id: Math.floor(100000 + Math.random() * 900000),
+                    first_name: allSteps[3].split(" ")[0],
+                    middle_name: allSteps[3].split(" ")[1],
+                    last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
+                    name: `${allSteps[3]}`,
+                    total_member_number: selectedPolicyType.code_name,
+                    partner_id: 2,
+                    role: "user",
+                    nationality: "UGANDA"
+                };
+                otherUser = yield db.users.create(otherData);
+                console.log("OTHER USER CREATED", otherUser);
+            }
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type,
@@ -414,32 +417,31 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
                 bought_for: otherUser.user_id
             };
-            let policy = yield db.policies.create(policyObject);
-            const airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
-            const timeout = 40000; // Set the timeout duration in milliseconds (30 seconds in this example)
-            // Use Promise.race to combine the Airtel Money promise and a timeout promise
-            Promise.race([
-                airtelMoneyPromise,
-                new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        reject(new Error('Airtel Money operation timed out'));
-                    }, timeout);
-                })
-            ])
-                .then((result) => {
-                // Airtel Money operation completed successfully
-                response = 'END Payment successful'; // Set your desired response here
-                console.log("RESPONSE WAS CALLED", response);
-                return response;
-            })
-                .catch((error) => {
-                console.log("An error occurred:", error);
-                response = 'END Payment failed'; // Set an error response
-                console.log("RESPONSE WAS CALLED", response);
-                return response;
-            });
-            response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
+            try {
+                let policy = yield db.policies.create(policyObject);
+                const airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
+                const result = yield Promise.race([
+                    airtelMoneyPromise,
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve('timeout');
+                        }, 40000);
+                    }),
+                ]);
+                if (result === 'timeout') {
+                    // response = 'END Payment operation timed out';
+                    console.log("RESPONSE WAS CALLED", result);
+                }
+                else {
+                    // Airtel Money operation completed successfully
+                    //response = 'END Payment successful'; // Set your desired response here
+                    console.log("RESPONSE WAS CALLED", result);
+                }
+            }
+            catch (error) {
+                //response = 'END Payment failed'; // Set an error response
+                console.log("RESPONSE WAS CALLED EER", error);
+            }
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
