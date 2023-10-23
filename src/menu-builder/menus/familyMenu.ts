@@ -598,17 +598,17 @@ const familyMenu = async (args, db) => {
 
 
   }
-  // else if (currentStep == 3) {
-  //   response = "CON Enter atleast Name of spouse or 1 child\n"
-  // }
-  // else if (currentStep == 4) {
-  //   response = "CON Enter Phone of spouse (or Main member, if dependent is child)\n"
-  // }
   else if (currentStep == 3) {
+    response = "CON Enter atleast Name of spouse or 1 child\n"
+  }
+  else if (currentStep == 4) {
+    response = "CON Enter Phone of spouse (or Main member, if dependent is child)\n"
+  }
+  else if (currentStep == 5) {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     //console.log("SELECTED COVER", selectedCover)
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    console.log("SELECTED PACKAGE", selectedPackage)
+   // console.log("SELECTED PACKAGE", selectedPackage)
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
       "\nPAY " +
@@ -616,31 +616,31 @@ const familyMenu = async (args, db) => {
       `\n2. UGX ${selectedPackage?.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     response = coverText;
   }
-  else if (currentStep == 4) {
+  else if (currentStep == 6) {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
     let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
-     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+    let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
 
-    // const spouse = allSteps[3];
+    const spouse = allSteps[3];
 
-    // let beneficiary = {
-    //   beneficiary_id: uuidv4(),
-    //   full_name: spouse,
-    //   first_name: spouse.split(" ")[0],
-    //   middle_name: spouse.split(" ")[1],
-    //   last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
-    //   relationship: "SPOUSE",
-    //   member_number: selectedPolicyType.code_name,
-    //   principal_phone_number: phoneNumber,
-    //   //user_id: existingUser.user_id,
-    // };
-    // console.log("BENEFICIARY", beneficiary);
+    let beneficiary = {
+      beneficiary_id: uuidv4(),
+      full_name: spouse,
+      first_name: spouse.split(" ")[0],
+      middle_name: spouse.split(" ")[1],
+      last_name: spouse.split(" ")[2] || spouse.split(" ")[1],
+      relationship: "SPOUSE",
+      member_number: selectedPolicyType.code_name,
+      principal_phone_number: phoneNumber,
+      //user_id: existingUser.user_id,
+    };
+   // console.log("BENEFICIARY", beneficiary);
 
-    // await Beneficiary.create(beneficiary);
+    await Beneficiary.create(beneficiary);
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY");
@@ -669,23 +669,21 @@ const familyMenu = async (args, db) => {
       `\nTerms&Conditions - https://rb.gy/g4hyk` +
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
   }
-  else if (currentStep == 5) {
+  else if (currentStep == 7) {
 
     if (userText == "1") {
+
+      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", response);
+
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let policyType = selectedPackage.code_name;
-      let installment_type = parseInt(allSteps[3]) == 1 ? 2 : 1;
+      let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
 
-      console.log("SELECTED POLICY TYPE", selectedPolicyType);
-      console.log("SELECTED PACKAGE", selectedPackage);
-      console.log("POLICY TYPE", policyType);
-
-
-      let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[3]) - 1].premium);
+      let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
       console.log("ULTIMATE PREMIUM", ultimatePremium);
-
 
       //next month minus 1 day
       let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
@@ -716,6 +714,9 @@ const familyMenu = async (args, db) => {
         total_member_number: selectedPolicyType.code_name,
       }
 
+      try {
+        
+     
       let policy = await db.policies.create(policyObject);
 
   
@@ -730,33 +731,30 @@ const familyMenu = async (args, db) => {
           "UGX"
         );
 
-      const timeout = 40000; // Set the timeout duration in milliseconds (30 seconds in this example)
 
-      // Use Promise.race to combine the Airtel Money promise and a timeout promise
-      Promise.race([
+     
+      const result = await Promise.race([
         airtelMoneyPromise,
-        new Promise((resolve, reject) => {
+        new Promise((resolve) => {
           setTimeout(() => {
-            reject(new Error('Airtel Money operation timed out'));
-          }, timeout);
-        })
-      ])
-        .then((result) => {
+            resolve('timeout'); 
+          }, 40000);
+        }),
+      ]);
+
+        if (result === 'timeout') {
+         // response = 'END Payment operation timed out';
+          console.log("RESPONSE WAS CALLED", result);
+        } else {
           // Airtel Money operation completed successfully
-          response = 'END Payment successful'; // Set your desired response here
-          console.log("RESPONSE WAS CALLED", response);
-          return response;
-        })
-        .catch((error) => {
-          console.log("An error occurred:", error);
-          response = 'END Payment failed'; // Set an error response
-          console.log("RESPONSE WAS CALLED", response);
-          return response;
-        });
-
-        response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-        console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", response);
-
+          //response = 'END Payment successful'; // Set your desired response here
+          console.log("RESPONSE WAS CALLED", result);
+        }
+      } catch (error) {
+        //response = 'END Payment failed'; // Set an error response
+        console.log("RESPONSE WAS CALLED EER", error);
+      }
+      
     } else {
       response = "END Thank you for using Ddwaliro Care"
     }

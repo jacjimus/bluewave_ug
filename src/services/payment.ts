@@ -88,7 +88,7 @@ async function createTransaction(user_id: any, partner_id: any, policy_id: any, 
 
 // =========== AIRTEL MONEY ===========
 
-async function airtelMoney(user_id: any, partner_id: number, policy_id: any, phoneNumber: any, amount: number, reference: any, country: any, currency: any) {
+async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, reference, country, currency) {
   const status = {
     code: 200,
     result: "",
@@ -96,13 +96,8 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
   };
 
   try {
-
-    console.log("PAYMNET WAS CALLED AT ", new Date())
     const token = await getAuthToken(currency);
-    console.log('AIRTEL MONEY TOKEN ', token);
-    // const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
-    // console.log('PAYMENT URL ', PAYMENT_URL)
-
+    
     const paymentData = {
       reference: reference,
       subscriber: {
@@ -118,9 +113,7 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
       },
     };
 
-    console.log('PAYMENT DATA ', paymentData);
     const authBearer = currency == "KES" ? token : `Bearer ${token}`;
-    console.log('AUTH BEARER ', authBearer);
 
     const headers = {
       'Content-Type': 'application/json',
@@ -130,25 +123,17 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
       Authorization: authBearer,
     };
 
-    console.log('HEADERS ',headers);
+    const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
-   const AIRTEL_PAYMENT_URL='https://openapi.airtel.africa/merchant/v1/payments/'
-     console.log('RESPONCE AIRTEL MONEY API ' , AIRTEL_PAYMENT_URL);
-    const response = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-    console.log('RESPONCE AIRTEL MONEY ' , response.data);
+    const [paymentResponse, transactionCreationResponse] = await Promise.all([
+      axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers }),
+      createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount)
+    ]);
 
-    if (response.data.status.code == '200') {
-      console.log('PAYMENT RESPONSE AT ', new Date())
-      const transaction = response.data.data.transaction;
-      await createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
+    status.result = paymentResponse.data.status;
+    // Use transactionCreationResponse as needed.
 
-      status.result = response.data.status
-      return status;
-    } else {
-      status.code = 500;
-      status.message = 'Sorry, Transaction failed';
-      return status;
-    }
+    return status;
   } catch (error) {
     console.error('ERROR:', error);
     status.code = 500;
@@ -157,6 +142,7 @@ async function airtelMoney(user_id: any, partner_id: number, policy_id: any, pho
     return status;
   }
 }
+
 
 async function initiateConsent(product: any, start_date: any, end_date: any, phoneNumber: any, amount: any, premium: any, country: any, currency: any) {
   console.log('PRODUCT', product, 'START DATE', start_date, 'END DATE', end_date, 'PHONE NUMBER', phoneNumber, 'AMOUNT', amount, 'PREMIUM', premium);

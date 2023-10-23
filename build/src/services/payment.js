@@ -101,11 +101,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             message: 'Payment successfully initiated'
         };
         try {
-            console.log("PAYMNET WAS CALLED AT ", new Date());
             const token = yield getAuthToken(currency);
-            console.log('AIRTEL MONEY TOKEN ', token);
-            // const PAYMENT_URL = process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_PAYMENT_URL : process.env.AIRTEL_PAYMENT_URL;
-            // console.log('PAYMENT URL ', PAYMENT_URL)
             const paymentData = {
                 reference: reference,
                 subscriber: {
@@ -120,9 +116,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                     id: (0, uuid_1.v4)(),
                 },
             };
-            console.log('PAYMENT DATA ', paymentData);
             const authBearer = currency == "KES" ? token : `Bearer ${token}`;
-            console.log('AUTH BEARER ', authBearer);
             const headers = {
                 'Content-Type': 'application/json',
                 Accept: '/',
@@ -130,23 +124,14 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                 'X-Currency': currency,
                 Authorization: authBearer,
             };
-            console.log('HEADERS ', headers);
             const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
-            console.log('RESPONCE AIRTEL MONEY API ', AIRTEL_PAYMENT_URL);
-            const response = yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-            console.log('RESPONCE AIRTEL MONEY ', response.data);
-            if (response.data.status.code == '200') {
-                console.log('PAYMENT RESPONSE AT ', new Date());
-                const transaction = response.data.data.transaction;
-                yield createTransaction(user_id, partner_id, policy_id, transaction.id, amount);
-                status.result = response.data.status;
-                return status;
-            }
-            else {
-                status.code = 500;
-                status.message = 'Sorry, Transaction failed';
-                return status;
-            }
+            const [paymentResponse, transactionCreationResponse] = yield Promise.all([
+                axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers }),
+                createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount)
+            ]);
+            status.result = paymentResponse.data.status;
+            // Use transactionCreationResponse as needed.
+            return status;
         }
         catch (error) {
             console.error('ERROR:', error);
