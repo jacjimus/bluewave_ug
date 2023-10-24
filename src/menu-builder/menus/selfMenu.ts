@@ -161,9 +161,9 @@ const selfMenu = async (args, db) => {
 
 
             let policy = await db.policies.create(policyObject);
+
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 
-            // create payment   
             const airtelMoneyPromise = airtelMoney(
                 existingUser.user_id,
                 2,
@@ -181,23 +181,21 @@ const selfMenu = async (args, db) => {
             Promise.race([
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
-                     setTimeout(() => {
-                    reject(new Error('Airtel Money operation timed out'));
-                     }, timeout);
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
                 })
-            ])
-                .then((result) => {
-                    // Airtel Money operation completed successfully
-                    console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
-                    response = 'END Payment successful';
-                    console.log("RESPONSE WAS CALLED", result);
-                    return response;
-                })
-                .catch((error) => {
-                    response = 'END Payment failed';
-                    console.log("RESPONSE WAS CALLED", error);
-                    return response;
-                });
+            ]).then((result) => {
+                // Airtel Money operation completed successfully
+                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                response = 'END Payment successful';
+                console.log("RESPONSE WAS CALLED", result);
+                return response;
+            }).catch((error) => {
+                response = 'END Payment failed';
+                console.log("RESPONSE WAS CALLED", error);
+                return response;
+            });
 
             console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
 

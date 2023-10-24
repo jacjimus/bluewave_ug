@@ -150,7 +150,6 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             };
             let policy = yield db.policies.create(policyObject);
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
-            // create payment   
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
             const timeout = 1000;
             Promise.race([
@@ -160,15 +159,13 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                         reject(new Error('Airtel Money operation timed out'));
                     }, timeout);
                 })
-            ])
-                .then((result) => {
+            ]).then((result) => {
                 // Airtel Money operation completed successfully
                 console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
                 console.log("RESPONSE WAS CALLED", result);
                 return response;
-            })
-                .catch((error) => {
+            }).catch((error) => {
                 response = 'END Payment failed';
                 console.log("RESPONSE WAS CALLED", error);
                 return response;
