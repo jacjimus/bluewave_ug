@@ -21,6 +21,8 @@ const familyMenu = async (args, db) => {
     },
   });
 
+  let policy, ultimatePremium;
+
   // covers for family
   const covers = [
     {
@@ -663,6 +665,43 @@ const familyMenu = async (args, db) => {
 
     }
 
+
+    //let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+    //let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+   let policyType = selectedPackage.code_name;
+    let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+
+     ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
+   // console.log("ULTIMATE PREMIUM", ultimatePremium);
+
+    //next month minus 1 day
+    //let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+    //let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
+   // let policy_deduction_day = new Date().getDate() - 1;
+
+    let policyObject = {
+      policy_id: uuidv4(),
+      installment_type,
+      policy_type: policyType,
+      policy_deduction_amount: ultimatePremium,
+      policy_pending_premium: ultimatePremium,
+      sum_insured: selectedPackage.sumInsured,
+      premium: ultimatePremium,
+      yearly_premium: parseAmount(selectedPackage.year_premium),
+      last_expense_insured: selectedPackage.lastExpenseInsured,
+      membership_id: Math.floor(100000 + Math.random() * 900000),
+      beneficiary: "FAMILY",
+      partner_id: 2,
+      country_code: "UGA",
+      currency_code: "UGX",
+      product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+      user_id: existingUser.user_id,
+      phone_number: phoneNumber,
+      total_member_number: selectedPolicyType.code_name,
+    }
+
+   policy = await db.policies.create(policyObject);
+
     response = `CON Pay UGX ${premium} ${period}` +
       `\nTerms&Conditions - https://rb.gy/g4hyk` +
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
@@ -676,48 +715,48 @@ const familyMenu = async (args, db) => {
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", new Date());
 
 
-      let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-      let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
-      let policyType = selectedPackage.code_name;
-      let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
+    //   let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+    //   let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+    //   let policyType = selectedPackage.code_name;
+    //   let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
 
-      let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
-     // console.log("ULTIMATE PREMIUM", ultimatePremium);
+    //   let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
+    //  // console.log("ULTIMATE PREMIUM", ultimatePremium);
 
-      //next month minus 1 day
-      //let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
-      //let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
-     // let policy_deduction_day = new Date().getDate() - 1;
+    //   //next month minus 1 day
+    //   //let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+    //   //let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
+    //  // let policy_deduction_day = new Date().getDate() - 1;
 
-      let policyObject = {
-        policy_id: uuidv4(),
-        installment_type,
-        policy_type: policyType,
-        policy_deduction_amount: ultimatePremium,
-        policy_pending_premium: ultimatePremium,
-        sum_insured: selectedPackage.sumInsured,
-        premium: ultimatePremium,
-        yearly_premium: parseAmount(selectedPackage.year_premium),
-        last_expense_insured: selectedPackage.lastExpenseInsured,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
-        beneficiary: "FAMILY",
-        partner_id: 2,
-        country_code: "UGA",
-        currency_code: "UGX",
-        product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-        user_id: existingUser.user_id,
-        phone_number: phoneNumber,
-        total_member_number: selectedPolicyType.code_name,
-      }
+    //   let policyObject = {
+    //     policy_id: uuidv4(),
+    //     installment_type,
+    //     policy_type: policyType,
+    //     policy_deduction_amount: ultimatePremium,
+    //     policy_pending_premium: ultimatePremium,
+    //     sum_insured: selectedPackage.sumInsured,
+    //     premium: ultimatePremium,
+    //     yearly_premium: parseAmount(selectedPackage.year_premium),
+    //     last_expense_insured: selectedPackage.lastExpenseInsured,
+    //     membership_id: Math.floor(100000 + Math.random() * 900000),
+    //     beneficiary: "FAMILY",
+    //     partner_id: 2,
+    //     country_code: "UGA",
+    //     currency_code: "UGX",
+    //     product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+    //     user_id: existingUser.user_id,
+    //     phone_number: phoneNumber,
+    //     total_member_number: selectedPolicyType.code_name,
+    //   }
 
-      let policy = await db.policies.create(policyObject);
+    //   let policy = await db.policies.create(policyObject);
 
       console.log("============== START TIME ================ ", new Date());
 
         try {
 
       //  let airtelMoneyPromise=  await
-        airtelMoney(
+       await airtelMoney(
           existingUser.user_id,
           2,
           policy.policy_id,
