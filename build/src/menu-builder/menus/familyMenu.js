@@ -707,7 +707,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     new Promise((resolve) => {
                         setTimeout(() => {
                             resolve('timeout');
-                        }, 50000);
+                        }, 20000);
                     }),
                 ]).then((result) => {
                     if (result === 'timeout') {

@@ -720,8 +720,7 @@ const familyMenu = async (args, db) => {
       let policy = await db.policies.create(policyObject);
 
         try {
-        
-     
+
        let airtelMoneyPromise=  await airtelMoney(
           existingUser.user_id,
           2,
@@ -740,7 +739,7 @@ const familyMenu = async (args, db) => {
         new Promise((resolve) => {
           setTimeout(() => {
             resolve('timeout'); 
-          }, 50000);
+          }, 20000);
         }),
       ]).then((result) => {
 
@@ -757,7 +756,7 @@ const familyMenu = async (args, db) => {
         //response = 'END Payment failed'; // Set an error response
         console.log("RESPONSE WAS CALLED EER", error);
       })
-      
+
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
         console.log("RESPONSE WAS CALLED EER", error);
