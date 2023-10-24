@@ -454,9 +454,8 @@ const othersMenu = async (args, db) => {
         console.log("============== START TIME ================ ", new Date());
 
 
-        const timeout = 5000; // Set the timeout duration in milliseconds (30 seconds in this example)
+        const timeout = 5000; 
 
-        // Use Promise.race to combine the Airtel Money promise and a timeout promise
         Promise.race([
           airtelMoneyPromise,
           new Promise((resolve, reject) => {

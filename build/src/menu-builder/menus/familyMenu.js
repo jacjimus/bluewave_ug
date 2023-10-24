@@ -662,11 +662,10 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         if (userText == "1") {
             // NOT WORK
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", new Date());
+            console.log("=============== END SCREEN USSD RESPONCE - FAMILY =======", new Date());
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
             let ultimatePremium = (0, utils_1.parseAmount)(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
-            // console.log("ULTIMATE PREMIUM", ultimatePremium);
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
@@ -688,70 +687,28 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
             };
             let policy = yield db.policies.create(policyObject);
-            console.log("============== START TIME ================ ", new Date());
+            console.log("============== START TIME - FAMILY ================ ", new Date());
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
+            const timeout = 5000;
             Promise.race([
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));
-                    }, 5000);
+                    }, timeout);
                 }),
             ]).then((result) => {
-                console.log("============== END TIME ================ ", new Date());
-                response = 'END Payment successful'; // Set your desired response here
+                console.log("============== END TIME - FAMIY ================ ", new Date());
+                response = 'END Payment successful';
                 console.log("RESPONSE WAS CALLED", result);
                 return response;
             })
-                //   if (result === 'timeout') {
-                //    // response = 'END Payment operation timed out';
-                //     console.log("RESPONSE WAS CALLED", result);
-                //   } else {
-                //     // Airtel Money operation completed successfully
-                //     //response = 'END Payment successful'; // Set your desired response here
-                //     console.log("RESPONSE WAS CALLED", result);
-                //   }
                 .catch((error) => {
-                response = 'END Payment failed'; // Set an error response
+                response = 'END Payment failed';
                 console.log("RESPONSE WAS CALLED EER", error);
                 return response;
             });
-            console.log("============== AFTER CATCH  TIME ================ ", new Date());
-            //| ============== START TIME ================  2023-10-24T14:08:11.341Z
-            //============== AFTER CATCH  TIME ================  2023-10-24T14:08:13.749Z
-            // ============== END TIME ================  2023-10-24T14:08:13.750Z
-            // try {
-            // let policy = await db.policies.create(policyObject);
-            //  let airtelMoneyPromise=  await airtelMoney(
-            //     existingUser.user_id,
-            //     2,
-            //     policy.policy_id,
-            //     phone,
-            //     ultimatePremium,
-            //     existingUser.membership_id,
-            //     "UG",
-            //     "UGX"
-            //   );
-            // const result = await Promise.race([
-            //   airtelMoneyPromise,
-            //   new Promise((resolve) => {
-            //     setTimeout(() => {
-            //       resolve('timeout'); 
-            //     }, 50000);
-            //   }),
-            // ]);
-            //   if (result === 'timeout') {
-            //    // response = 'END Payment operation timed out';
-            //     console.log("RESPONSE WAS CALLED", result);
-            //   } else {
-            //     // Airtel Money operation completed successfully
-            //     //response = 'END Payment successful'; // Set your desired response here
-            //     console.log("RESPONSE WAS CALLED", result);
-            //   }
-            // } catch (error) {
-            //   //response = 'END Payment failed'; // Set an error response
-            //   console.log("RESPONSE WAS CALLED EER", error);
-            // }
+            console.log("============== AFTER CATCH  TIME - FAMILY ================ ", new Date());
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
@@ -760,3 +717,46 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     return response;
 });
 exports.default = familyMenu;
+//| ============== START TIME ================  2023-10-24T14:08:11.341Z
+//============== AFTER CATCH  TIME ================  2023-10-24T14:08:13.749Z
+// ============== END TIME ================  2023-10-24T14:08:13.750Z
+//   if (result === 'timeout') {
+//    // response = 'END Payment operation timed out';
+//     console.log("RESPONSE WAS CALLED", result);
+//   } else {
+//     // Airtel Money operation completed successfully
+//     //response = 'END Payment successful'; // Set your desired response here
+//     console.log("RESPONSE WAS CALLED", result);
+//   }
+// try {
+// let policy = await db.policies.create(policyObject);
+//  let airtelMoneyPromise=  await airtelMoney(
+//     existingUser.user_id,
+//     2,
+//     policy.policy_id,
+//     phone,
+//     ultimatePremium,
+//     existingUser.membership_id,
+//     "UG",
+//     "UGX"
+//   );
+// const result = await Promise.race([
+//   airtelMoneyPromise,
+//   new Promise((resolve) => {
+//     setTimeout(() => {
+//       resolve('timeout'); 
+//     }, 50000);
+//   }),
+// ]);
+//   if (result === 'timeout') {
+//    // response = 'END Payment operation timed out';
+//     console.log("RESPONSE WAS CALLED", result);
+//   } else {
+//     // Airtel Money operation completed successfully
+//     //response = 'END Payment successful'; // Set your desired response here
+//     console.log("RESPONSE WAS CALLED", result);
+//   }
+// } catch (error) {
+//   //response = 'END Payment failed'; // Set an error response
+//   console.log("RESPONSE WAS CALLED EER", error);
+// }

@@ -96,15 +96,12 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         if (userText == "1") {
             //  WORKING WELL
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
-            // response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-            //console.log("RESPONCE WAS CALLED", response);
+            console.log("=============== END SCREEN USSD RESPONCE SELF =======", new Date());
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
-                // console.log("AIRTEL USER", user);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
                 existingUser = yield db.users.create({
                     user_id: (0, uuid_1.v4)(),
@@ -122,14 +119,10 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
                 yield (0, sendSMS_1.default)(fullPhone, message);
             }
-            // console.log("EXISTING USER", existingUser);
             // create policy
             let policy_type = selectedPolicyType.name;
             let installment_type = parseInt(allSteps[2]);
-            // let period = installment_type == 1 ? "yearly" : "monthly";
             let ultimatePremium = (0, utils_1.calculatePaymentOptions)(policy_type, installment_type);
-            //console.log("ULTIMATE PREMIUM", ultimatePremium);
-            //next month minus 1 day
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
@@ -155,12 +148,11 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
             };
-            //console.log("POLICY OBJECT", policyObject);
             let policy = yield db.policies.create(policyObject);
-            // create payment
+            console.log("============== START TIME - SELF ================ ", new Date());
+            // create payment   
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
-            const timeout = 5000; // Set the timeout duration in milliseconds (30 seconds in this example)
-            // Use Promise.race to combine the Airtel Money promise and a timeout promise
+            const timeout = 5000;
             Promise.race([
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
@@ -171,16 +163,17 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             ])
                 .then((result) => {
                 // Airtel Money operation completed successfully
-                response = 'END Payment successful'; // Set your desired response here
+                console.log("============== END TIME - SELF ================ ", new Date());
+                response = 'END Payment successful';
                 console.log("RESPONSE WAS CALLED", result);
                 return response;
             })
                 .catch((error) => {
-                console.log("An error occurred:", error);
-                response = 'END Payment failed'; // Set an error response
+                response = 'END Payment failed';
                 console.log("RESPONSE WAS CALLED", response);
                 return response;
             });
+            console.log("============== AFTER CATCH TIME - SELF ================ ", new Date());
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
