@@ -45,13 +45,14 @@ module.exports = (sequelize: any, DataTypes: any) => {
         },
         is_active: {
             type: DataTypes.BOOLEAN,
+            defaultValue: false,
             allowNull: true,
-            default: true
+        
         },
         is_verified: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
-            default: false
+            defaultValue: false,
         },
         currency_code: {
             type: DataTypes.STRING,

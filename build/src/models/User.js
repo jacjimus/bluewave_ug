@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
         email: {
             type: DataTypes.STRING,
             unique: true,
-            isEmail: true,
+            // isEmail: true, //checks for email format
             allowNull: true
         },
         password: {
@@ -89,19 +89,19 @@ module.exports = (sequelize, DataTypes) => {
         },
         role: {
             type: DataTypes.STRING,
+            defaultValue: "user",
             allowNull: true,
             enum: ["user", "admin", "superadmin", "partner", "manager", "agent"],
-            default: "user"
         },
         is_active: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
-            default: false
+            defaultValue: false,
         },
         is_verified: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
-            default: false
+            defaultValue: false,
         },
         pin: {
             type: DataTypes.INTEGER,
@@ -121,7 +121,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         number_of_policies: {
             type: DataTypes.INTEGER,
-            default: 0
+            defaultValue: 0
         },
         arr_member_number: {
             type: DataTypes.STRING,

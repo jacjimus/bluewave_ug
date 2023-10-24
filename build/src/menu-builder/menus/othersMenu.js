@@ -332,7 +332,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         //console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
         let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
         let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-        console.log("POLICY TYPE USERTEXT 1", selectedPolicyType);
+        //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
         let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
         if (!existingUser) {
             let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
@@ -385,7 +385,6 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     name: `${allSteps[3]}`,
                     total_member_number: selectedPolicyType.code_name,
                     partner_id: 2,
-                    role: "user",
                     nationality: "UGANDA"
                 };
                 otherUser = yield db.users.create(otherData);
@@ -401,13 +400,8 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 premium: (0, utils_1.parseAmount)(ultimatePremium),
                 yearly_premium: (0, utils_1.parseAmount)(policyType.yearly_premium),
                 last_expense_insured: policyType.lastExpenseInsured,
-                policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
-                policy_start_date: new Date(),
-                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
                 membership_id: Math.floor(100000 + Math.random() * 900000),
                 beneficiary: "OTHER",
-                policy_status: "pending",
-                policy_deduction_day: new Date().getDate() - 1,
                 partner_id: 2,
                 country_code: "UGA",
                 currency_code: "UGX",
@@ -420,28 +414,35 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             try {
                 let policy = yield db.policies.create(policyObject);
                 const airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
-                const result = yield Promise.race([
+                console.log("============== START TIME ================ ", new Date());
+                const timeout = 5000; // Set the timeout duration in milliseconds (30 seconds in this example)
+                // Use Promise.race to combine the Airtel Money promise and a timeout promise
+                Promise.race([
                     airtelMoneyPromise,
-                    new Promise((resolve) => {
+                    new Promise((resolve, reject) => {
                         setTimeout(() => {
-                            resolve('timeout');
-                        }, 5000);
-                    }),
-                ]);
-                if (result === 'timeout') {
-                    // response = 'END Payment operation timed out';
-                    console.log("RESPONSE WAS CALLED", result);
-                }
-                else {
+                            reject(new Error('Airtel Money operation timed out'));
+                        }, timeout);
+                    })
+                ])
+                    .then((result) => {
                     // Airtel Money operation completed successfully
-                    //response = 'END Payment successful'; // Set your desired response here
+                    response = 'END Payment successful'; // Set your desired response here
                     console.log("RESPONSE WAS CALLED", result);
-                }
+                    return response;
+                })
+                    .catch((error) => {
+                    console.log("An error occurred:", error);
+                    response = 'END Payment failed'; // Set an error response
+                    console.log("RESPONSE WAS CALLED", response);
+                    return response;
+                });
             }
             catch (error) {
                 //response = 'END Payment failed'; // Set an error response
                 console.log("RESPONSE WAS CALLED EER", error);
             }
+            console.log("============== AFTER CATCH  TIME ================ ", new Date());
         }
         else {
             response = "END Thank you for using Ddwaliro Care";

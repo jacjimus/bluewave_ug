@@ -25,12 +25,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true
         },
-        policy_start_date: {
-            type: DataTypes.DATE,
-            allowNull: false
-        },
         policy_status: {
             type: DataTypes.STRING,
+            defaultValue: "pending",
             allowNull: true
         },
         beneficiary: {
@@ -42,8 +39,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             enum: ["MINI", "MIDI", "BIGGIE"]
         },
+        policy_start_date: {
+            type: DataTypes.DATE,
+            defaultValue: new Date(),
+            allowNull: false
+        },
         policy_end_date: {
             type: DataTypes.DATE,
+            defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
             allowNull: true
         },
         policy_deduction_amount: {
@@ -56,6 +59,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         policy_deduction_day: {
             type: DataTypes.INTEGER,
+            defaultValue: new Date().getDate() - 1,
             allowNull: true
         },
         installment_order: {

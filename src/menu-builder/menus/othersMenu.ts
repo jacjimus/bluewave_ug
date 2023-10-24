@@ -334,7 +334,7 @@ const othersMenu = async (args, db) => {
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-    console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
+    //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
 
     let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -407,7 +407,6 @@ const othersMenu = async (args, db) => {
           name: `${allSteps[3]}`,
           total_member_number: selectedPolicyType.code_name,
           partner_id: 2,
-          role: "user",
           nationality: "UGANDA"
         }
 
@@ -425,13 +424,8 @@ const othersMenu = async (args, db) => {
         premium: parseAmount(ultimatePremium),
         yearly_premium: parseAmount(policyType.yearly_premium),
         last_expense_insured: policyType.lastExpenseInsured,
-        policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
-        policy_start_date: new Date(),
-        installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         beneficiary: "OTHER",
-        policy_status: "pending",
-        policy_deduction_day: new Date().getDate() - 1,
         partner_id: 2,
         country_code: "UGA",
         currency_code: "UGX",
@@ -457,28 +451,38 @@ const othersMenu = async (args, db) => {
           "UGX"
         );
 
+        console.log("============== START TIME ================ ", new Date());
 
-        const result = await Promise.race([
+
+        const timeout = 5000; // Set the timeout duration in milliseconds (30 seconds in this example)
+
+        // Use Promise.race to combine the Airtel Money promise and a timeout promise
+        Promise.race([
           airtelMoneyPromise,
-          new Promise((resolve) => {
+          new Promise((resolve, reject) => {
             setTimeout(() => {
-              resolve('timeout');
-            }, 5000);
-          }),
-        ]);
-
-        if (result === 'timeout') {
-          // response = 'END Payment operation timed out';
-          console.log("RESPONSE WAS CALLED", result);
-        } else {
+              reject(new Error('Airtel Money operation timed out'));
+            }, timeout);
+          })
+        ])
+        .then((result) => {
           // Airtel Money operation completed successfully
-          //response = 'END Payment successful'; // Set your desired response here
+          response = 'END Payment successful'; // Set your desired response here
           console.log("RESPONSE WAS CALLED", result);
-        }
+          return response;
+        })
+        .catch((error) => {
+          console.log("An error occurred:", error);
+          response = 'END Payment failed'; // Set an error response
+          console.log("RESPONSE WAS CALLED", response);
+          return response;
+        });
+
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
         console.log("RESPONSE WAS CALLED EER", error);
       }
+      console.log("============== AFTER CATCH  TIME ================ ", new Date());
 
 
     } else {

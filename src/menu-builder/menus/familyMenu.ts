@@ -646,17 +646,15 @@ const familyMenu = async (args, db) => {
       console.log("USER DOES NOT EXIST FAMILY");
       let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
       let membershierId = Math.floor(100000 + Math.random() * 900000);
-      existingUser = await db.users.create({
+        existingUser = await db.users.create({
         user_id: uuidv4(),
         phone_number: phone,
         membership_id: membershierId,
-        pin: Math.floor(1000 + Math.random() * 9000),
         first_name: user.first_name,
         last_name: user.last_name,
         name: `${user.first_name} ${user.last_name}`,
         total_member_number: selectedPolicyType.code_name,
         partner_id: 2,
-        role: "user",
         nationality: "UGANDA"
       });
       console.log("USER DOES NOT EXIST", user);
@@ -687,9 +685,9 @@ const familyMenu = async (args, db) => {
      // console.log("ULTIMATE PREMIUM", ultimatePremium);
 
       //next month minus 1 day
-      let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
-      let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
-      let policy_deduction_day = new Date().getDate() - 1;
+      //let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+      //let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
+     // let policy_deduction_day = new Date().getDate() - 1;
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -701,13 +699,8 @@ const familyMenu = async (args, db) => {
         premium: ultimatePremium,
         yearly_premium: parseAmount(selectedPackage.year_premium),
         last_expense_insured: selectedPackage.lastExpenseInsured,
-        policy_end_date: policy_end_date,
-        policy_start_date: new Date(),
-        installment_date: installment_type == 1 ? policy_end_date  : installment_next_month_date,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         beneficiary: "FAMILY",
-        policy_status: "pending",
-        policy_deduction_day:  policy_deduction_day,
         partner_id: 2,
         country_code: "UGA",
         currency_code: "UGX",
@@ -734,16 +727,16 @@ const familyMenu = async (args, db) => {
           "UGX"
         );
 
-
+        const timeout = 5000;
      
-     Promise.race([
-        airtelMoneyPromise,
-        new Promise((resolve) => {
-          setTimeout(() => {
-            resolve('timeout'); 
-          }, 5000);
-        }),
-      ]).then((result) => {
+        Promise.race([
+          airtelMoneyPromise,
+          new Promise((resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('Airtel Money operation timed out'));
+            }, timeout);
+          })
+        ]).then((result) => {
       console.log("============== END TIME ================ ", new Date());
 
 
