@@ -102,23 +102,31 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             };
             const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
             // Parallelize the Airtel Money payment request and transaction creation
-            let paymentResponse;
-            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+            //let paymentResponse;
+            new Promise((resolve, reject) => {
+                setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                    console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date());
+                    resolve(yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers }));
+                }), 3000);
+            }).then((paymentResponse) => {
                 console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date());
-                paymentResponse = yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-            }), 3000);
-            console.log("=========== PUSH OUTSIDE AIRTEL MONEY ===========", phoneNumber, new Date());
-            status.result = paymentResponse.data.status;
-            console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date());
-            // Create the transaction record
-            yield createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
-            return status;
+                status.result = paymentResponse.data.status;
+                console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date());
+                createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
+                return status;
+            }).catch((error) => {
+                console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date());
+                status.code = 500;
+                status.result = error;
+                status.message = 'Sorry, Transaction failed';
+                return status;
+            });
         }
         catch (error) {
             console.error('ERROR:', error);
             status.code = 500;
             status.result = error;
-            status.message = 'Sorry, Transaction failed';
+            status.message = 'Sorry, Payment Transaction failed';
             return status;
         }
     });

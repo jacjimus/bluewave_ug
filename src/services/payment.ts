@@ -100,28 +100,35 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
 
     // Parallelize the Airtel Money payment request and transaction creation
 
-    let paymentResponse;
+    //let paymentResponse;
+    new Promise((resolve, reject) => {
+      setTimeout(async() => {
+        console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+        resolve( await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers }))
+  
+      }, 3000)
 
-    setTimeout(async() => {
+    }).then((paymentResponse: any) => {
       console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
-
-      paymentResponse =  await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
-    }, 3000);
-    console.log("=========== PUSH OUTSIDE AIRTEL MONEY ===========", phoneNumber, new Date())
-
-    status.result = paymentResponse.data.status;
-    console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date())
-
-
-    // Create the transaction record
-    await createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
-
-    return status;
+      status.result = paymentResponse.data.status;
+      console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date())
+      createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
+      return status;
+    }).catch((error) => {
+      console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+      status.code = 500;
+      status.result = error;
+      status.message = 'Sorry, Transaction failed';
+      return status;
+    }
+    );
+  
+   
   } catch (error) {
     console.error('ERROR:', error);
     status.code = 500;
     status.result = error;
-    status.message = 'Sorry, Transaction failed';
+    status.message = 'Sorry, Payment Transaction failed';
     return status;
   }
 }
