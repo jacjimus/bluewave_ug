@@ -78,8 +78,11 @@ const accountMenu = async (args: any, db: any) => {
                
                 console.log("paidPolicies", paidPolicies)
                 console.log("policyMessages", policyMessages)
+                
+
+
                 if (paidPolicies.length > 0) {
-                    response = `CON ${policyMessages}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
+                    response = `CON ${policyMessages[policyMessages.length -1]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
                 }
                 else {
                     response = "END You have no policies"
