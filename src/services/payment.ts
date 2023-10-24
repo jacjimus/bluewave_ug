@@ -102,10 +102,10 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
 
     let paymentResponse;
 
-    setTimeout(() => {
+    setTimeout(async() => {
       console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
 
-      paymentResponse =  axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
+      paymentResponse =  await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
     }, 3000);
     console.log("=========== PUSH OUTSIDE AIRTEL MONEY ===========", phoneNumber, new Date())
 
