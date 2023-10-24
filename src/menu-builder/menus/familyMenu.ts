@@ -716,7 +716,8 @@ const familyMenu = async (args, db) => {
 
         try {
 
-       let airtelMoneyPromise=  await airtelMoney(
+      //  let airtelMoneyPromise=  await
+        airtelMoney(
           existingUser.user_id,
           2,
           policy.policy_id,
