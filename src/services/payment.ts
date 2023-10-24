@@ -71,6 +71,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
   };
 
   try {
+    console.log("=========== PUSH TO AIRTEL MONEY ===========",  phoneNumber, new Date())
     const token = await getAuthToken();
     
     const paymentData = {
@@ -104,6 +105,8 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
     ]);
 
     status.result = paymentResponse.data.status;
+    console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========",  phoneNumber, new Date())
+
 
     // Create the transaction record
     await createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);

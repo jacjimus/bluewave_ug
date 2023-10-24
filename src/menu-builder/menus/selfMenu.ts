@@ -212,11 +212,14 @@ const selfMenu = async (args, db) => {
 export default selfMenu;
 
 
+/*
 
-//=========== END SCREEN USSD RESPONCE SELF ======= 2023-10-24T20:36:59.690Z
+ =============== END SCREEN USSD RESPONCE SELF =======  2023-10-24T20:45:08.335Z
 
-// ==============START TIME - SELF ================  2023-10-24T20:37:03.844Z
-//  ===== AFTER CATCH TIME - SELF ================   2023-10-24T20:37:03.849Z
+ ============== START TIME - SELF ================      2023-10-24T20:45:08.354Z
+ ============== AFTER CATCH TIME - SELF ==========      2023-10-24T20:45:08.404Z
 
-//  ============== END TIME - SELF ================  2023-10-24T20:37:06.274Z
+0 ============== END TIME - SELF ================        2023-10-24T20:45:11.029Z
+
+*/
 
