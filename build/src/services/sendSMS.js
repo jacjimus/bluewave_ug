@@ -18,6 +18,7 @@ const africastalking = AfricasTalking({
 });
 function sendSMS(phoneNumber, message) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log("API KEY", process.env.AFRICA_TALKING_API_KEY, "USERNAME", process.env.AFRICA_TALKING_USERNAME);
         console.log("PHONE NUMBER", phoneNumber, "MESSAGE", message);
         const sms = africastalking.SMS;
         const options = {

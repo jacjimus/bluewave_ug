@@ -740,7 +740,7 @@ const familyMenu = async (args, db) => {
         new Promise((resolve) => {
           setTimeout(() => {
             resolve('timeout'); 
-          }, 40000);
+          }, 50000);
         }),
       ]);
 

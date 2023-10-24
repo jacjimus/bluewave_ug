@@ -81,6 +81,7 @@ interface PrincipalRegistration {
   member_status: string;
   health_option: string;
   health_plan: string;
+  corp_id: string;
   policy_start_date: string;
   policy_end_date: string;
   unique_profile_id: string;
@@ -109,6 +110,7 @@ console.log("REGISTER PRINCIPAL AAR", user, policy, beneficiary);
     member_status: "1",
     health_option: "63",
     health_plan: "AIRTEL_" + policy.policy_type,
+    corp_id: "758",
     policy_start_date: policy.policy_start_date,
     policy_end_date: policy.policy_end_date,
     unique_profile_id: user.membership_id + '',
@@ -179,12 +181,29 @@ async function updatePremium(data: any, policy: any) {
 
     let premium_installment = payments.length + 1;
 
+    let ultimatePremium: any;
+
+    if(policy.beneficiary == "FAMILY" || policy.beneficiary == "OTHER" ){
+      // spit premium based on memeber family size e.g  M+3  PREMIUM / 4
+
+      if(policy.total_member_number !== "M"){
+        const policyPremium = policy.premium
+        const memberSize = (policy.total_member_number).split("")[2]
+        console.log(policyPremium, memberSize)
+        ultimatePremium = policyPremium / (parseInt(memberSize) + 1)
+        
+      }
+      ultimatePremium = policy.premium
+
+    }
+    console.log("ultimatePremium", ultimatePremium)
+
     const requestData: requestPremiumData = {
       member_no: data.arr_member_number || data.member_no,
       unique_profile_id: data.membership_id + "",
       health_plan: "AIRTEL_" + policy.policy_type,
       health_option: "63",
-      premium: policy.policy_deduction_amount,
+      premium: ultimatePremium,
       premium_type: policy.installment_type,
       premium_installment: premium_installment,
       main_benefit_limit: main_benefit_limit,
@@ -230,15 +249,15 @@ interface NextOfKin {
 
 interface DependantRegistration {
   member_no: string;
-  surname: string;
+  surname: string;  // UNIQUE??  ALADIN+UNIQUE_PROFILE_ID
   first_name: string;
   other_names: string;
-  gender: number,
-  dob: string;
-  pri_dep: string;
-  family_title: string;
-  tel_no: string;
-  email: string;
+  gender: number,// 1
+  dob: string; // 1990-01-01
+  pri_dep: string; // 24
+  family_title: string; // 24
+  tel_no: string; // UNIQUE??
+  email: string;// OPTIONAL
   next_of_kin: NextOfKin;
   member_status: string;
   health_option: string;

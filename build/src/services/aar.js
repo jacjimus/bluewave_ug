@@ -87,6 +87,7 @@ function registerPrincipal(user, policy, beneficiary) {
             member_status: "1",
             health_option: "63",
             health_plan: "AIRTEL_" + policy.policy_type,
+            corp_id: "758",
             policy_start_date: policy.policy_start_date,
             policy_end_date: policy.policy_end_date,
             unique_profile_id: user.membership_id + '',
@@ -135,12 +136,24 @@ function updatePremium(data, policy) {
             console.log("MAIN BENEFIT LIMIT", main_benefit_limit);
             console.log("LAST EXPENSE LIMIT", last_expense_limit);
             let premium_installment = payments.length + 1;
+            let ultimatePremium;
+            if (policy.beneficiary == "FAMILY" || policy.beneficiary == "OTHER") {
+                // spit premium based on memeber family size e.g  M+3  PREMIUM / 4
+                if (policy.total_member_number !== "M") {
+                    const policyPremium = policy.premium;
+                    const memberSize = (policy.total_member_number).split("")[2];
+                    console.log(policyPremium, memberSize);
+                    ultimatePremium = policyPremium / (parseInt(memberSize) + 1);
+                }
+                ultimatePremium = policy.premium;
+            }
+            console.log("ultimatePremium", ultimatePremium);
             const requestData = {
                 member_no: data.arr_member_number || data.member_no,
                 unique_profile_id: data.membership_id + "",
                 health_plan: "AIRTEL_" + policy.policy_type,
                 health_option: "63",
-                premium: policy.policy_deduction_amount,
+                premium: ultimatePremium,
                 premium_type: policy.installment_type,
                 premium_installment: premium_installment,
                 main_benefit_limit: main_benefit_limit,
