@@ -18,7 +18,7 @@ const sendSMS_1 = __importDefault(require("../../services/sendSMS"));
 const utils_1 = require("../../services/utils");
 const getAirtelUser_1 = require("../../services/getAirtelUser");
 const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f;
     let { phoneNumber, text, response, currentStep, previousStep, userText, allSteps } = args;
     const Policy = db.policies;
     const Beneficiary = db.beneficiaries;
@@ -625,9 +625,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let beneficiary = {
             beneficiary_id: (0, uuid_1.v4)(),
             full_name: spouse,
-            first_name: spouse.split(" ")[0].toUpperCase(),
-            middle_name: spouse.split(" ")[1].toUpperCase(),
-            last_name: spouse.split(" ")[2].toUpperCase() || spouse.split(" ")[1].toUpperCase(),
+            first_name: (_c = spouse === null || spouse === void 0 ? void 0 : spouse.split(" ")[0]) === null || _c === void 0 ? void 0 : _c.toUpperCase(),
+            middle_name: (_d = spouse === null || spouse === void 0 ? void 0 : spouse.split(" ")[1]) === null || _d === void 0 ? void 0 : _d.toUpperCase(),
+            last_name: ((_e = spouse === null || spouse === void 0 ? void 0 : spouse.split(" ")[2]) === null || _e === void 0 ? void 0 : _e.toUpperCase()) || ((_f = spouse.split(" ")[1]) === null || _f === void 0 ? void 0 : _f.toUpperCase()),
             relationship: "SPOUSE",
             member_number: selectedPolicyType.code_name,
             principal_phone_number: phoneNumber,

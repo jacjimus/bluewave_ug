@@ -18,7 +18,7 @@ const utils_1 = require("../../services/utils");
 const getAirtelUser_1 = require("../../services/getAirtelUser");
 const payment_1 = require("../../services/payment");
 const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
     let phone = (_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3);
     // console.log("SELECTED POLICY TYPE", selectedPolicyType);
@@ -381,9 +381,9 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     user_id: (0, uuid_1.v4)(),
                     phone_number: otherPhone,
                     membership_id: Math.floor(100000 + Math.random() * 900000),
-                    first_name: allSteps[3].split(" ")[0].toUpperCase(),
-                    middle_name: allSteps[3].split(" ")[1].toUpperCase(),
-                    last_name: allSteps[3].split(" ")[2].toUpperCase() ? allSteps[3].split(" ")[2].toUpperCase() : allSteps[3].split(" ")[1].toUpperCase(),
+                    first_name: (_c = (_b = allSteps[3]) === null || _b === void 0 ? void 0 : _b.split(" ")[0]) === null || _c === void 0 ? void 0 : _c.toUpperCase(),
+                    middle_name: (_e = (_d = allSteps[3]) === null || _d === void 0 ? void 0 : _d.split(" ")[1]) === null || _e === void 0 ? void 0 : _e.toUpperCase(),
+                    last_name: ((_g = (_f = allSteps[3]) === null || _f === void 0 ? void 0 : _f.split(" ")[2]) === null || _g === void 0 ? void 0 : _g.toUpperCase()) ? (_j = (_h = allSteps[3]) === null || _h === void 0 ? void 0 : _h.split(" ")[2]) === null || _j === void 0 ? void 0 : _j.toUpperCase() : (_l = (_k = allSteps[3]) === null || _k === void 0 ? void 0 : _k.split(" ")[1]) === null || _l === void 0 ? void 0 : _l.toUpperCase(),
                     name: `${allSteps[3]}`,
                     total_member_number: selectedPolicyType.code_name,
                     partner_id: 2,

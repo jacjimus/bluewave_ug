@@ -631,9 +631,9 @@ const familyMenu = async (args, db) => {
     let beneficiary = {
       beneficiary_id: uuidv4(),
       full_name: spouse,
-      first_name: spouse.split(" ")[0].toUpperCase(),
-      middle_name: spouse.split(" ")[1].toUpperCase(),
-      last_name: spouse.split(" ")[2].toUpperCase() || spouse.split(" ")[1].toUpperCase(),
+      first_name: spouse?.split(" ")[0]?.toUpperCase(),
+      middle_name: spouse?.split(" ")[1]?.toUpperCase(),
+      last_name: spouse?.split(" ")[2]?.toUpperCase() || spouse.split(" ")[1]?.toUpperCase(),
       relationship: "SPOUSE",
       member_number: selectedPolicyType.code_name,
       principal_phone_number: phoneNumber,
