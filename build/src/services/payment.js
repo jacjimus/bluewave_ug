@@ -116,7 +116,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                     id: (0, uuid_1.v4)(),
                 },
             };
-            const authBearer = currency == "KES" ? token : `Bearer ${token}`;
+            const authBearer = currency === "KES" ? token : `Bearer ${token}`;
             const headers = {
                 'Content-Type': 'application/json',
                 Accept: '/',
@@ -125,11 +125,13 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                 Authorization: authBearer,
             };
             const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
-            const [paymentResponse, transactionCreationResponse] = yield Promise.all([
-                axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers }),
-                createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount)
+            // Parallelize the Airtel Money payment request and transaction creation
+            const [paymentResponse] = yield Promise.all([
+                axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
             ]);
             status.result = paymentResponse.data.status;
+            // Create the transaction record
+            const transactionCreationResponse = yield createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
             // Use transactionCreationResponse as needed.
             return status;
         }

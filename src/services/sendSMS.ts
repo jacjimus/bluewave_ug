@@ -10,9 +10,6 @@ const africastalking = AfricasTalking({
 
 async function sendSMS(phoneNumber: string, message: string) {
     
-    console.log("API KEY", process.env.AFRICA_TALKING_API_KEY, "USERNAME", process.env.AFRICA_TALKING_USERNAME);
-    console.log("PHONE NUMBER", phoneNumber, "MESSAGE", message);
-
     const sms = africastalking.SMS
     const options = {
         from: process.env.AFRICA_TALKING_SHORTCODE,
