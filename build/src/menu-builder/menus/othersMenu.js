@@ -367,7 +367,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
             let paymentOption = parseInt(allSteps[5]);
             let installment_type = paymentOption == 1 ? 2 : 1;
-            let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
+            // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
             let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
             //console.log("POLICY TYPE USERTEXT 1", policyType)
             let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
