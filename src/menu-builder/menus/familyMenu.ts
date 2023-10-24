@@ -703,7 +703,7 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-      console.log("============== START TIME - FAMILY ================ ", new Date());
+      console.log("============== START TIME - FAMILY ================ ",phoneNumber, new Date());
 
         const airtelMoneyPromise = airtelMoney(
           existingUser.user_id,
@@ -726,7 +726,7 @@ const familyMenu = async (args, db) => {
             }, timeout);
           }),
         ]).then((result) => {
-          console.log("============== END TIME - FAMIY ================ ", new Date());
+          console.log("============== END TIME - FAMIY ================ ",phoneNumber, new Date());
           response = 'END Payment successful'; 
           console.log("RESPONSE WAS CALLED", result);
           return response;
@@ -737,7 +737,7 @@ const familyMenu = async (args, db) => {
           return response;
         })
         
-        console.log("============== AFTER CATCH  TIME - FAMILY ================ ", new Date());
+        console.log("============== AFTER CATCH  TIME - FAMILY ================ ",phoneNumber, new Date());
         
       } else {
         response = "END Thank you for using Ddwaliro Care"

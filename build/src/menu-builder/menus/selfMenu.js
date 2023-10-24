@@ -96,7 +96,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         if (userText == "1") {
             //  WORKING WELL
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE SELF =======", new Date());
+            console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber, new Date());
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             if (!existingUser) {
@@ -149,7 +149,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 phone_number: phoneNumber,
             };
             let policy = yield db.policies.create(policyObject);
-            console.log("============== START TIME - SELF ================ ", new Date());
+            console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
             // create payment   
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
             const timeout = 5000;
@@ -163,7 +163,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             ])
                 .then((result) => {
                 // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF ================ ", new Date());
+                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
                 console.log("RESPONSE WAS CALLED", result);
                 return response;
@@ -173,7 +173,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 console.log("RESPONSE WAS CALLED", response);
                 return response;
             });
-            console.log("============== AFTER CATCH TIME - SELF ================ ", new Date());
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
@@ -182,3 +182,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
     return response;
 });
 exports.default = selfMenu;
+//=========== END SCREEN USSD RESPONCE SELF ======= 2023-10-24T20:36:59.690Z
+// ==============START TIME - SELF ================  2023-10-24T20:37:03.844Z
+//  ===== AFTER CATCH TIME - SELF ================   2023-10-24T20:37:03.849Z
+//  ============== END TIME - SELF ================  2023-10-24T20:37:06.274Z

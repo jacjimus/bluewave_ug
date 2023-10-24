@@ -96,7 +96,7 @@ const selfMenu = async (args, db) => {
             //  WORKING WELL
 
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-            console.log("=============== END SCREEN USSD RESPONCE SELF =======", new Date());
+            console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber,new Date());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -161,7 +161,7 @@ const selfMenu = async (args, db) => {
     
 
             let policy = await db.policies.create(policyObject);
-            console.log("============== START TIME - SELF ================ ", new Date());
+            console.log("============== START TIME - SELF ================ ",phoneNumber, new Date());
 
             // create payment   
             const airtelMoneyPromise = airtelMoney(
@@ -188,7 +188,7 @@ const selfMenu = async (args, db) => {
             ])
               .then((result) => {
                 // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF ================ ", new Date());
+                console.log("============== END TIME - SELF ================ ",phoneNumber, new Date());
                 response = 'END Payment successful'; 
                 console.log("RESPONSE WAS CALLED", result);
                 return response;
@@ -199,7 +199,7 @@ const selfMenu = async (args, db) => {
                 return response;
               });
 
-              console.log("============== AFTER CATCH TIME - SELF ================ ", new Date());
+              console.log("============== AFTER CATCH TIME - SELF ================ ",phoneNumber, new Date());
 
         } else {
             response = "END Thank you for using Ddwaliro Care"
@@ -210,4 +210,13 @@ const selfMenu = async (args, db) => {
 }
 
 export default selfMenu;
+
+
+
+//=========== END SCREEN USSD RESPONCE SELF ======= 2023-10-24T20:36:59.690Z
+
+// ==============START TIME - SELF ================  2023-10-24T20:37:03.844Z
+//  ===== AFTER CATCH TIME - SELF ================   2023-10-24T20:37:03.849Z
+
+//  ============== END TIME - SELF ================  2023-10-24T20:37:06.274Z
 

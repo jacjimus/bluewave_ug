@@ -687,7 +687,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
             };
             let policy = yield db.policies.create(policyObject);
-            console.log("============== START TIME - FAMILY ================ ", new Date());
+            console.log("============== START TIME - FAMILY ================ ", phoneNumber, new Date());
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
             const timeout = 5000;
             Promise.race([
@@ -698,7 +698,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     }, timeout);
                 }),
             ]).then((result) => {
-                console.log("============== END TIME - FAMIY ================ ", new Date());
+                console.log("============== END TIME - FAMIY ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
                 console.log("RESPONSE WAS CALLED", result);
                 return response;
@@ -708,7 +708,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 console.log("RESPONSE WAS CALLED EER", error);
                 return response;
             });
-            console.log("============== AFTER CATCH  TIME - FAMILY ================ ", new Date());
+            console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, new Date());
         }
         else {
             response = "END Thank you for using Ddwaliro Care";
