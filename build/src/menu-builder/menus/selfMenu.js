@@ -156,9 +156,9 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             Promise.race([
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
-                    // setTimeout(() => {
-                    reject(new Error('Airtel Money operation timed out'));
-                    // }, timeout);
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
                 })
             ])
                 .then((result) => {
