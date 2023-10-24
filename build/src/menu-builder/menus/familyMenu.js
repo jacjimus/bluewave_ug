@@ -708,7 +708,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     new Promise((resolve) => {
                         setTimeout(() => {
                             resolve('timeout');
-                        }, 20000);
+                        }, 5000);
                     }),
                 ]).then((result) => {
                     console.log("============== END TIME ================ ", new Date());
@@ -732,6 +732,9 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 console.log("RESPONSE WAS CALLED EER", error);
             }
             console.log("============== AFTER CATCH  TIME ================ ", new Date());
+            //| ============== START TIME ================  2023-10-24T14:08:11.341Z
+            //============== AFTER CATCH  TIME ================  2023-10-24T14:08:13.749Z
+            // ============== END TIME ================  2023-10-24T14:08:13.750Z
             // try {
             // let policy = await db.policies.create(policyObject);
             //  let airtelMoneyPromise=  await airtelMoney(

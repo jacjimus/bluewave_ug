@@ -463,7 +463,7 @@ const othersMenu = async (args, db) => {
           new Promise((resolve) => {
             setTimeout(() => {
               resolve('timeout');
-            }, 20000);
+            }, 5000);
           }),
         ]);
 

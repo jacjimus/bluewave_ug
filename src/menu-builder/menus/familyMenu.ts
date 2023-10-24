@@ -741,7 +741,7 @@ const familyMenu = async (args, db) => {
         new Promise((resolve) => {
           setTimeout(() => {
             resolve('timeout'); 
-          }, 20000);
+          }, 5000);
         }),
       ]).then((result) => {
       console.log("============== END TIME ================ ", new Date());
@@ -769,6 +769,13 @@ const familyMenu = async (args, db) => {
       
 
 
+
+
+      //| ============== START TIME ================  2023-10-24T14:08:11.341Z
+
+      //============== AFTER CATCH  TIME ================  2023-10-24T14:08:13.749Z
+
+      // ============== END TIME ================  2023-10-24T14:08:13.750Z
 
 
       // try {
