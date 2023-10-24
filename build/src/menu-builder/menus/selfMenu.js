@@ -159,7 +159,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             let policy = yield db.policies.create(policyObject);
             // create payment
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
-            const timeout = 10000; // Set the timeout duration in milliseconds (30 seconds in this example)
+            const timeout = 5000; // Set the timeout duration in milliseconds (30 seconds in this example)
             // Use Promise.race to combine the Airtel Money promise and a timeout promise
             Promise.race([
                 airtelMoneyPromise,
