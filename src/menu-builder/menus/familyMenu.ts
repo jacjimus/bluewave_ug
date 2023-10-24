@@ -608,7 +608,7 @@ const familyMenu = async (args, db) => {
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     //console.log("SELECTED COVER", selectedCover)
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-   // console.log("SELECTED PACKAGE", selectedPackage)
+    // console.log("SELECTED PACKAGE", selectedPackage)
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
       "\nPAY " +
@@ -638,7 +638,7 @@ const familyMenu = async (args, db) => {
       principal_phone_number: phoneNumber,
       //user_id: existingUser.user_id,
     };
-   // console.log("BENEFICIARY", beneficiary);
+    // console.log("BENEFICIARY", beneficiary);
 
     await Beneficiary.create(beneficiary);
 
@@ -646,7 +646,7 @@ const familyMenu = async (args, db) => {
       console.log("USER DOES NOT EXIST FAMILY");
       let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
       let membershierId = Math.floor(100000 + Math.random() * 900000);
-        existingUser = await db.users.create({
+      existingUser = await db.users.create({
         user_id: uuidv4(),
         phone_number: phone,
         membership_id: membershierId,
@@ -679,7 +679,7 @@ const familyMenu = async (args, db) => {
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
-     // console.log("ULTIMATE PREMIUM", ultimatePremium);
+      // console.log("ULTIMATE PREMIUM", ultimatePremium);
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -706,9 +706,9 @@ const familyMenu = async (args, db) => {
 
       console.log("============== START TIME ================ ", new Date());
 
-        try {
 
-       let airtelMoneyPromise=  await airtelMoney(
+
+        const airtelMoneyPromise = airtelMoney(
           existingUser.user_id,
           2,
           policy.policy_id,
@@ -720,38 +720,38 @@ const familyMenu = async (args, db) => {
         );
 
 
-     
-     Promise.race([
-        airtelMoneyPromise,
-        new Promise((resolve) => {
-          setTimeout(() => {
-            resolve('timeout'); 
-          }, 5000);
-        }),
-      ]).then((result) => {
-      console.log("============== END TIME ================ ", new Date());
 
-
-        if (result === 'timeout') {
-         // response = 'END Payment operation timed out';
+        Promise.race([
+          airtelMoneyPromise,
+          new Promise((resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('Airtel Money operation timed out'));
+            }, 5000);
+          }),
+        ]).then((result) => {
+          console.log("============== END TIME ================ ", new Date());
+          response = 'END Payment successful'; // Set your desired response here
           console.log("RESPONSE WAS CALLED", result);
-        } else {
-          // Airtel Money operation completed successfully
-          //response = 'END Payment successful'; // Set your desired response here
-          console.log("RESPONSE WAS CALLED", result);
-        }
-      })
-      .catch((error) => {
-        //response = 'END Payment failed'; // Set an error response
-        console.log("RESPONSE WAS CALLED EER", error);
-      })
+          return response;
 
-      } catch (error) {
-        //response = 'END Payment failed'; // Set an error response
-        console.log("RESPONSE WAS CALLED EER", error);
-      }
+        })
+
+          //   if (result === 'timeout') {
+          //    // response = 'END Payment operation timed out';
+          //     console.log("RESPONSE WAS CALLED", result);
+          //   } else {
+          //     // Airtel Money operation completed successfully
+          //     //response = 'END Payment successful'; // Set your desired response here
+          //     console.log("RESPONSE WAS CALLED", result);
+          //   }
+          .catch((error) => {
+            response = 'END Payment failed'; // Set an error response
+            console.log("RESPONSE WAS CALLED EER", error);
+            return response;
+          })
+
       console.log("============== AFTER CATCH  TIME ================ ", new Date());
-      
+
 
 
 
@@ -764,11 +764,11 @@ const familyMenu = async (args, db) => {
 
 
       // try {
-        
-     
+
+
       // let policy = await db.policies.create(policyObject);
 
-  
+
       //  let airtelMoneyPromise=  await airtelMoney(
       //     existingUser.user_id,
       //     2,
@@ -781,7 +781,7 @@ const familyMenu = async (args, db) => {
       //   );
 
 
-     
+
       // const result = await Promise.race([
       //   airtelMoneyPromise,
       //   new Promise((resolve) => {
@@ -803,7 +803,7 @@ const familyMenu = async (args, db) => {
       //   //response = 'END Payment failed'; // Set an error response
       //   console.log("RESPONSE WAS CALLED EER", error);
       // }
-      
+
     } else {
       response = "END Thank you for using Ddwaliro Care"
     }

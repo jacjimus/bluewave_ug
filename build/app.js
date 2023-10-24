@@ -46,7 +46,7 @@ const path = require("path");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
-const session = require('express-session');
+//const session = require('express-session');
 const compression = require('compression');
 const Agenda = require('agenda');
 const app = (0, express_1.default)();
@@ -55,7 +55,7 @@ app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-app.use(session({ secret: "Shh, its a secret!" }));
+//app.use(session({secret: "Shh, its a secret!"}));
 app.use(compression());
 // log only 4xx and 5xx responses to console
 app.use(morgan("dev", {

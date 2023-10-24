@@ -689,36 +689,33 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             };
             let policy = yield db.policies.create(policyObject);
             console.log("============== START TIME ================ ", new Date());
-            try {
-                let airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
-                Promise.race([
-                    airtelMoneyPromise,
-                    new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve('timeout');
-                        }, 5000);
-                    }),
-                ]).then((result) => {
-                    console.log("============== END TIME ================ ", new Date());
-                    if (result === 'timeout') {
-                        // response = 'END Payment operation timed out';
-                        console.log("RESPONSE WAS CALLED", result);
-                    }
-                    else {
-                        // Airtel Money operation completed successfully
-                        //response = 'END Payment successful'; // Set your desired response here
-                        console.log("RESPONSE WAS CALLED", result);
-                    }
-                })
-                    .catch((error) => {
-                    //response = 'END Payment failed'; // Set an error response
-                    console.log("RESPONSE WAS CALLED EER", error);
-                });
-            }
-            catch (error) {
-                //response = 'END Payment failed'; // Set an error response
+            const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
+            Promise.race([
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, 5000);
+                }),
+            ]).then((result) => {
+                console.log("============== END TIME ================ ", new Date());
+                response = 'END Payment successful'; // Set your desired response here
+                console.log("RESPONSE WAS CALLED", result);
+                return response;
+            })
+                //   if (result === 'timeout') {
+                //    // response = 'END Payment operation timed out';
+                //     console.log("RESPONSE WAS CALLED", result);
+                //   } else {
+                //     // Airtel Money operation completed successfully
+                //     //response = 'END Payment successful'; // Set your desired response here
+                //     console.log("RESPONSE WAS CALLED", result);
+                //   }
+                .catch((error) => {
+                response = 'END Payment failed'; // Set an error response
                 console.log("RESPONSE WAS CALLED EER", error);
-            }
+                return response;
+            });
             console.log("============== AFTER CATCH  TIME ================ ", new Date());
             //| ============== START TIME ================  2023-10-24T14:08:11.341Z
             //============== AFTER CATCH  TIME ================  2023-10-24T14:08:13.749Z

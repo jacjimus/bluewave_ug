@@ -18,7 +18,7 @@ const path = require("path");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
-const session = require('express-session');
+//const session = require('express-session');
 const compression = require('compression'); 
 const Agenda = require('agenda');
 
@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-app.use(session({secret: "Shh, its a secret!"}));
+//app.use(session({secret: "Shh, its a secret!"}));
 app.use(compression());
 
 
