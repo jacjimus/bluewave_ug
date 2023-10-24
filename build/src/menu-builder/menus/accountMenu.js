@@ -24,7 +24,8 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
     const currentUser = yield db.users.findOne({
         where: {
             [sequelize_1.Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-        }
+        },
+        limit: 1,
     });
     const paidPolicies = yield db.policies.findAll({
         where: {
@@ -137,7 +138,8 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                 const existingUser = yield db.users.findOne({
                     where: {
                         phone_number: phoneNumber.replace("+", "").substring(3),
-                    }
+                    },
+                    limit: 1,
                 });
                 unpaidPolicies = unpaidPolicies.slice(-6);
                 let choosenPolicy = unpaidPolicies[allSteps[2] - 1];
@@ -150,7 +152,8 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                     const user = yield db.users.findOne({
                         where: {
                             phone_number: phoneNumber
-                        }
+                        },
+                        limit: 1,
                     });
                     yield db.policies.update({
                         policy_status: "cancelled",
@@ -175,7 +178,8 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
         const existingUser = yield db.users.findOne({
             where: {
                 [sequelize_1.Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-            }
+            },
+            limit: 1,
         });
         let policies = yield db.policies.findAll({
             where: {

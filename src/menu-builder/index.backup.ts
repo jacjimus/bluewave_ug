@@ -98,6 +98,7 @@ export default function (args: RequestBody, db: any) {
             where: {
               phone_number: phoneNumber,
             },
+            limit: 1,
           });
         if(!existingUser){
           existingUser = await db.users.create({

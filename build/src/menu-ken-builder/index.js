@@ -128,6 +128,7 @@ function handleUssd(args, db) {
                                 [db.Sequelize.Op.ne]: null,
                             },
                         },
+                        limit: 1,
                     });
                     console.log(" ============== USER ================ ", user);
                     if (user) {

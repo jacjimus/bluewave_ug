@@ -134,6 +134,7 @@ export default function handleUssd(args: RequestBody, db: any) {
                 [db.Sequelize.Op.ne]: null,
               },
             },
+            limit: 1,
           });
 
           console.log(" ============== USER ================ ", user);

@@ -91,6 +91,7 @@ function default_1(args, db) {
                         where: {
                             phone_number: phoneNumber,
                         },
+                        limit: 1,
                     });
                     if (!existingUser) {
                         existingUser = yield db.users.create({

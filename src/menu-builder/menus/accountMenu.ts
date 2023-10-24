@@ -15,7 +15,8 @@ const accountMenu = async (args: any, db: any) => {
     const currentUser = await db.users.findOne({
         where: {
             [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-        }
+        },
+        limit: 1,
     });
 
     const paidPolicies = await db.policies.findAll({
@@ -155,7 +156,8 @@ const accountMenu = async (args: any, db: any) => {
                 const existingUser = await db.users.findOne({
                     where: {
                         phone_number: phoneNumber.replace("+", "").substring(3),
-                    }
+                    },
+                    limit: 1,
                 });
 
                 unpaidPolicies = unpaidPolicies.slice(-6);
@@ -182,7 +184,8 @@ const accountMenu = async (args: any, db: any) => {
                     const user = await db.users.findOne({
                         where: {
                             phone_number: phoneNumber
-                        }
+                        },
+                        limit: 1,
                     });
                     await db.policies.update({
                         policy_status: "cancelled",
@@ -207,7 +210,8 @@ const accountMenu = async (args: any, db: any) => {
         const existingUser = await db.users.findOne({
             where: {
                 [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-            }
+            },
+            limit: 1,
         });
 
         let policies = await db.policies.findAll({

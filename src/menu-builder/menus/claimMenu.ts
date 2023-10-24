@@ -22,6 +22,7 @@ const claimMenu = async (args, db) => {
                     where: {
                         phone_number: args.phoneNumber.replace('+', "")?.substring(3),
                     },
+                    limit: 1,
                 });
                 console.log("USER ID", user.user_id);
 
@@ -83,6 +84,7 @@ const claimMenu = async (args, db) => {
             where: {
                 phone_number: deathData.nextOfKinPhoneNumber,
             },
+            limit: 1,
         });
         console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
 

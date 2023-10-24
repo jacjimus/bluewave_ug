@@ -1424,7 +1424,8 @@ function generateClaimExcelReport(claims) {
         let user = db_1.db.users.findOne({
             where: {
                 user_id: claim.user_id
-            }
+            },
+            limit: 1,
         });
         console.log("I WAS CALLED 3", user);
         worksheet.addRow({

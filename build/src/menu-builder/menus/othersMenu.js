@@ -26,6 +26,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         where: {
             phone_number: phone,
         },
+        limit: 1,
     });
     let otherUser;
     const covers = [
@@ -315,6 +316,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             where: {
                 phone_number: allSteps[4].replace('0', ""),
             },
+            limit: 1,
         });
         response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
             "\nPAY " +
@@ -379,9 +381,9 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     user_id: (0, uuid_1.v4)(),
                     phone_number: otherPhone,
                     membership_id: Math.floor(100000 + Math.random() * 900000),
-                    first_name: allSteps[3].split(" ")[0],
-                    middle_name: allSteps[3].split(" ")[1],
-                    last_name: allSteps[3].split(" ")[2] ? allSteps[3].split(" ")[2] : allSteps[3].split(" ")[1],
+                    first_name: allSteps[3].split(" ")[0].toUpperCase(),
+                    middle_name: allSteps[3].split(" ")[1].toUpperCase(),
+                    last_name: allSteps[3].split(" ")[2].toUpperCase() ? allSteps[3].split(" ")[2].toUpperCase() : allSteps[3].split(" ")[1].toUpperCase(),
                     name: `${allSteps[3]}`,
                     total_member_number: selectedPolicyType.code_name,
                     partner_id: 2,

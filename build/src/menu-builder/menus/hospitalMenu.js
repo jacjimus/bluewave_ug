@@ -28,15 +28,17 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
         response = "CON Type your district e.g Kampala";
     }
     else if (currentStep == 3) {
+        const userTextLower = userText.toLowerCase(); // Convert user input to lowercase
         const hospitals = yield db.hospitals.findAll({
             where: {
                 district: {
-                    [sequelize_1.Op.iLike]: `%${userText}%`
+                    [sequelize_1.Op.eq]: userTextLower, // Use equality check
                 }
             },
             order: [
                 ['district', 'ASC'],
             ],
+            limit: 10,
         });
         // if no hospitals are found, return an error message
         if (hospitals.length == 0) {
@@ -130,7 +132,8 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
         const user = yield db.users.findOne({
             where: {
                 phone_number: trimmedPhoneNumber
-            }
+            },
+            limit: 1,
         });
         yield db.user_hospitals.create({
             user_hospital_id: (0, uuid_1.v4)(),

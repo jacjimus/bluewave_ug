@@ -33,6 +33,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                     where: {
                         phone_number: (_a = args.phoneNumber.replace('+', "")) === null || _a === void 0 ? void 0 : _a.substring(3),
                     },
+                    limit: 1,
                 });
                 console.log("USER ID", user.user_id);
                 const policy = yield db.policies.findOne({
@@ -87,6 +88,7 @@ const claimMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             where: {
                 phone_number: deathData.nextOfKinPhoneNumber,
             },
+            limit: 1,
         });
         console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
         if (!user) {

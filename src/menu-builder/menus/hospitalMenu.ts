@@ -18,15 +18,17 @@ const hospitalMenu = async (args: any, db: any) => {
     } else if (currentStep == 2) {
         response = "CON Type your district e.g Kampala";
     } else if (currentStep == 3) {
+        const userTextLower = userText.toLowerCase(); // Convert user input to lowercase
         const hospitals = await db.hospitals.findAll({
-            where: {
-                district: {
-                    [Op.iLike]: `%${userText}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
+          where: {
+            district: {
+              [Op.eq]: userTextLower, // Use equality check
+            }
+          },
+          order: [
+            ['district', 'ASC'],
+          ],
+          limit: 10,
         });
 
         // if no hospitals are found, return an error message
@@ -137,7 +139,8 @@ const hospitalMenu = async (args: any, db: any) => {
         const user = await db.users.findOne({
             where: {
                 phone_number: trimmedPhoneNumber
-            }
+            },
+            limit: 1,
         });
 
         await db.user_hospitals.create({
