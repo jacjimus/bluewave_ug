@@ -727,32 +727,32 @@ const familyMenu = async (args, db) => {
           "UGX"
         );
 
-        const timeout = 5000;
+      //   const timeout = 5000;
      
-        Promise.race([
-          airtelMoneyPromise,
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              reject(new Error('Airtel Money operation timed out'));
-            }, timeout);
-          })
-        ]).then((result) => {
-      console.log("============== END TIME ================ ", new Date());
+      //   Promise.race([
+      //     airtelMoneyPromise,
+      //     new Promise((resolve, reject) => {
+      //       setTimeout(() => {
+      //         reject(new Error('Airtel Money operation timed out'));
+      //       }, timeout);
+      //     })
+      //   ]).then((result) => {
+      // console.log("============== END TIME ================ ", new Date());
 
 
-        if (result === 'timeout') {
-         // response = 'END Payment operation timed out';
-          console.log("RESPONSE WAS CALLED", result);
-        } else {
-          // Airtel Money operation completed successfully
-          //response = 'END Payment successful'; // Set your desired response here
-          console.log("RESPONSE WAS CALLED", result);
-        }
-      })
-      .catch((error) => {
-        //response = 'END Payment failed'; // Set an error response
-        console.log("RESPONSE WAS CALLED EER", error);
-      })
+      //   if (result === 'timeout') {
+      //    // response = 'END Payment operation timed out';
+      //     console.log("RESPONSE WAS CALLED", result);
+      //   } else {
+      //     // Airtel Money operation completed successfully
+      //     //response = 'END Payment successful'; // Set your desired response here
+      //     console.log("RESPONSE WAS CALLED", result);
+      //   }
+      // })
+      // .catch((error) => {
+      //   //response = 'END Payment failed'; // Set an error response
+      //   console.log("RESPONSE WAS CALLED EER", error);
+      // })
 
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
