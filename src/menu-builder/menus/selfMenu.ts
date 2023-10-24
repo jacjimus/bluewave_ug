@@ -195,7 +195,7 @@ const selfMenu = async (args, db) => {
               })
               .catch((error) => {
                 response = 'END Payment failed'; 
-                console.log("RESPONSE WAS CALLED", response);
+                console.log("RESPONSE WAS CALLED", error);
                 return response;
               });
 

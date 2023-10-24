@@ -170,7 +170,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             })
                 .catch((error) => {
                 response = 'END Payment failed';
-                console.log("RESPONSE WAS CALLED", response);
+                console.log("RESPONSE WAS CALLED", error);
                 return response;
             });
             console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
