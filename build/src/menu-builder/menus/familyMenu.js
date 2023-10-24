@@ -661,6 +661,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else if (currentStep == 7) {
         if (userText == "1") {
+            // NOT WORK
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
             console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", response);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
@@ -698,31 +699,68 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 phone_number: phoneNumber,
                 total_member_number: selectedPolicyType.code_name,
             };
+            let policy = yield db.policies.create(policyObject);
             try {
-                let policy = yield db.policies.create(policyObject);
                 let airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
-                const result = yield Promise.race([
+                Promise.race([
                     airtelMoneyPromise,
                     new Promise((resolve) => {
                         setTimeout(() => {
                             resolve('timeout');
                         }, 50000);
                     }),
-                ]);
-                if (result === 'timeout') {
-                    // response = 'END Payment operation timed out';
-                    console.log("RESPONSE WAS CALLED", result);
-                }
-                else {
-                    // Airtel Money operation completed successfully
-                    //response = 'END Payment successful'; // Set your desired response here
-                    console.log("RESPONSE WAS CALLED", result);
-                }
+                ]).then((result) => {
+                    if (result === 'timeout') {
+                        // response = 'END Payment operation timed out';
+                        console.log("RESPONSE WAS CALLED", result);
+                    }
+                    else {
+                        // Airtel Money operation completed successfully
+                        //response = 'END Payment successful'; // Set your desired response here
+                        console.log("RESPONSE WAS CALLED", result);
+                    }
+                })
+                    .catch((error) => {
+                    //response = 'END Payment failed'; // Set an error response
+                    console.log("RESPONSE WAS CALLED EER", error);
+                });
             }
             catch (error) {
                 //response = 'END Payment failed'; // Set an error response
                 console.log("RESPONSE WAS CALLED EER", error);
             }
+            // try {
+            // let policy = await db.policies.create(policyObject);
+            //  let airtelMoneyPromise=  await airtelMoney(
+            //     existingUser.user_id,
+            //     2,
+            //     policy.policy_id,
+            //     phone,
+            //     ultimatePremium,
+            //     existingUser.membership_id,
+            //     "UG",
+            //     "UGX"
+            //   );
+            // const result = await Promise.race([
+            //   airtelMoneyPromise,
+            //   new Promise((resolve) => {
+            //     setTimeout(() => {
+            //       resolve('timeout'); 
+            //     }, 50000);
+            //   }),
+            // ]);
+            //   if (result === 'timeout') {
+            //    // response = 'END Payment operation timed out';
+            //     console.log("RESPONSE WAS CALLED", result);
+            //   } else {
+            //     // Airtel Money operation completed successfully
+            //     //response = 'END Payment successful'; // Set your desired response here
+            //     console.log("RESPONSE WAS CALLED", result);
+            //   }
+            // } catch (error) {
+            //   //response = 'END Payment failed'; // Set an error response
+            //   console.log("RESPONSE WAS CALLED EER", error);
+            // }
         }
         else {
             response = "END Thank you for using Ddwaliro Care";

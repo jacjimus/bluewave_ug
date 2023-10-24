@@ -94,6 +94,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
     }
     else if (currentStep === 4) {
         if (userText == "1") {
+            //  WORKING WELL
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
             console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
             // response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
