@@ -26,29 +26,32 @@ function getAuthToken(currency) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let response;
-            if (currency == "KES") {
-                response = yield axios_1.default.post(AIRTEL_AUTH_TOKEN_URL, {
-                    client_id: process.env.AIRTEL_KEN_CLIENT_ID,
-                    client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
-                    grant_type: 'client_credentials',
-                }, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-                if (response.status === 200) {
-                    const { access_token } = response.data;
-                    return access_token;
-                }
-                else {
-                    throw new Error(`Failed to get authentication token: ${response.statusText}`);
-                }
-            }
+            // if (currency == "KES") {
+            //   response = await axios.post(AIRTEL_AUTH_TOKEN_URL
+            //     ,
+            //     {
+            //       client_id: process.env.AIRTEL_KEN_CLIENT_ID,
+            //       client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
+            //       grant_type: 'client_credentials',
+            //     },
+            //     {
+            //       headers: {
+            //         'Content-Type': 'application/json',
+            //       },
+            //     }
+            //   );
+            //   if (response.status === 200) {
+            //     const { access_token } = response.data;
+            //     return access_token;
+            //   } else {
+            //     throw new Error(`Failed to get authentication token: ${response.statusText}`);
+            //   }
+            // }
             response = yield axios_1.default.post(AIRTEL_AUTH_TOKEN_URL, {
-                client_id: 'f42013ed-a169-4b69-a7fb-960e56e80911',
-                client_secret: '845908cd-8f22-463a-bb2b-8a5243b6efbe',
                 //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID : process.env.AIRTEL_UGX_CLIENT_ID,
                 // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
+                client_id: 'f42013ed-a169-4b69-a7fb-960e56e80911',
+                client_secret: '845908cd-8f22-463a-bb2b-8a5243b6efbe',
                 grant_type: 'client_credentials',
             }, {
                 headers: {
@@ -72,7 +75,7 @@ function getAuthToken(currency) {
 function createTransaction(user_id, partner_id, policy_id, transactionId, amount) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log('TRANSACTION ID', transactionId, 'AMOUNT', amount, 'USER ID', user_id, 'POLICY ID', policy_id, 'PARTNER ID', partner_id);
+            //console.log('TRANSACTION ID', transactionId, 'AMOUNT', amount, 'USER ID', user_id, 'POLICY ID', policy_id, 'PARTNER ID', partner_id);
             const transaction = yield Transaction.create({
                 transaction_id: (0, uuid_1.v4)(),
                 amount: amount,
@@ -83,9 +86,7 @@ function createTransaction(user_id, partner_id, policy_id, transactionId, amount
                 partner_id: partner_id,
             });
             //console.log('NEW TRANSACTION', transaction);
-            if (transaction) {
-                return true;
-            }
+            return transaction;
         }
         catch (error) {
             throw new Error(`Failed to create a transaction: ${error.message}`);
@@ -116,13 +117,13 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                     id: (0, uuid_1.v4)(),
                 },
             };
-            const authBearer = currency === "KES" ? token : `Bearer ${token}`;
+            // const authBearer = currency === "KES" ? token : `Bearer ${token}`;
             const headers = {
                 'Content-Type': 'application/json',
                 Accept: '/',
                 'X-Country': country,
                 'X-Currency': currency,
-                Authorization: authBearer,
+                Authorization: `Bearer ${token}`,
             };
             const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
             // Parallelize the Airtel Money payment request and transaction creation
