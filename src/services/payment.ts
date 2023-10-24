@@ -106,7 +106,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
         console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
         resolve( await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers }))
   
-      }, 2000)
+      }, 3000)
 
     }).then((paymentResponse: any) => {
       console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())

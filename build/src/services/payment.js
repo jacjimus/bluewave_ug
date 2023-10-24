@@ -107,7 +107,7 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
                 setTimeout(() => __awaiter(this, void 0, void 0, function* () {
                     console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date());
                     resolve(yield axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers }));
-                }), 2000);
+                }), 3000);
             }).then((paymentResponse) => {
                 console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date());
                 status.result = paymentResponse.data.status;
