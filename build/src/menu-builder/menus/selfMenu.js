@@ -96,15 +96,15 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
         if (userText == "1") {
             //  WORKING WELL
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
             // response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-            console.log("RESPONCE WAS CALLED", response);
+            //console.log("RESPONCE WAS CALLED", response);
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = yield (0, getAirtelUser_1.getAirtelUser)(phoneNumber, "UG", "UGX", 2);
-                console.log("AIRTEL USER", user);
+                // console.log("AIRTEL USER", user);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
                 existingUser = yield db.users.create({
                     user_id: (0, uuid_1.v4)(),
@@ -155,7 +155,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
             };
-            console.log("POLICY OBJECT", policyObject);
+            //console.log("POLICY OBJECT", policyObject);
             let policy = yield db.policies.create(policyObject);
             // create payment
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
@@ -172,7 +172,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
                 .then((result) => {
                 // Airtel Money operation completed successfully
                 response = 'END Payment successful'; // Set your desired response here
-                console.log("RESPONSE WAS CALLED", response);
+                console.log("RESPONSE WAS CALLED", result);
                 return response;
             })
                 .catch((error) => {

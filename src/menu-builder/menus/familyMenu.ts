@@ -675,7 +675,7 @@ const familyMenu = async (args, db) => {
       // NOT WORK
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", response);
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", new Date());
 
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
@@ -684,7 +684,7 @@ const familyMenu = async (args, db) => {
       let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
 
       let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
-      console.log("ULTIMATE PREMIUM", ultimatePremium);
+     // console.log("ULTIMATE PREMIUM", ultimatePremium);
 
       //next month minus 1 day
       let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
@@ -719,6 +719,8 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
+      console.log("============== START TIME ================ ", new Date());
+
         try {
 
        let airtelMoneyPromise=  await airtelMoney(
@@ -742,6 +744,8 @@ const familyMenu = async (args, db) => {
           }, 20000);
         }),
       ]).then((result) => {
+      console.log("============== END TIME ================ ", new Date());
+
 
         if (result === 'timeout') {
          // response = 'END Payment operation timed out';
@@ -761,6 +765,7 @@ const familyMenu = async (args, db) => {
         //response = 'END Payment failed'; // Set an error response
         console.log("RESPONSE WAS CALLED EER", error);
       }
+      console.log("============== AFTER CATCH  TIME ================ ", new Date());
       
 
 

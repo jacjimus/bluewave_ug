@@ -327,9 +327,9 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         let period = paymentOption == 1 ? "monthly" : "yearly";
         let coverType = allSteps[2];
         console.log("COVER TYPE", coverType);
-        console.log("SELECTED COVER", selectedCover);
+        //console.log("SELECTED COVER", selectedCover);
         let selectedCoverPackage = selectedCover.packages[coverType - 1];
-        console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
+        //console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
         let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
         let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
         console.log("POLICY TYPE USERTEXT 1", selectedPolicyType);
@@ -360,8 +360,8 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
     else if (currentStep == 7) {
         if (userText == "1") {
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response, new Date());
-            console.log("otherUser", otherUser);
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
+            //console.log("otherUser", otherUser);
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let fullPhone = !(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.startsWith('+')) ? `+${phoneNumber}` : phoneNumber;
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.';
@@ -369,9 +369,9 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             let installment_type = paymentOption == 1 ? 2 : 1;
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
             let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
-            console.log("POLICY TYPE USERTEXT 1", policyType);
+            //console.log("POLICY TYPE USERTEXT 1", policyType)
             let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
-            console.log("ULTIMATE PREMIUM", ultimatePremium);
+            //console.log("ULTIMATE PREMIUM", ultimatePremium)
             //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
             if (!otherUser) {
                 let otherPhone = allSteps[4].replace('0', "");
@@ -389,7 +389,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                     nationality: "UGANDA"
                 };
                 otherUser = yield db.users.create(otherData);
-                console.log("OTHER USER CREATED", otherUser);
+                // console.log("OTHER USER CREATED", otherUser)
             }
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),

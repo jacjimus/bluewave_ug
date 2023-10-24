@@ -663,13 +663,13 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
         if (userText == "1") {
             // NOT WORK
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", response);
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED =======", new Date());
             let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
             let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
             let policyType = selectedPackage.code_name;
             let installment_type = parseInt(allSteps[5]) == 1 ? 2 : 1;
             let ultimatePremium = (0, utils_1.parseAmount)(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
-            console.log("ULTIMATE PREMIUM", ultimatePremium);
+            // console.log("ULTIMATE PREMIUM", ultimatePremium);
             //next month minus 1 day
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1);
             let policy_end_date = new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1));
@@ -700,6 +700,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 total_member_number: selectedPolicyType.code_name,
             };
             let policy = yield db.policies.create(policyObject);
+            console.log("============== START TIME ================ ", new Date());
             try {
                 let airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
                 Promise.race([
@@ -710,6 +711,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                         }, 20000);
                     }),
                 ]).then((result) => {
+                    console.log("============== END TIME ================ ", new Date());
                     if (result === 'timeout') {
                         // response = 'END Payment operation timed out';
                         console.log("RESPONSE WAS CALLED", result);
@@ -729,6 +731,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 //response = 'END Payment failed'; // Set an error response
                 console.log("RESPONSE WAS CALLED EER", error);
             }
+            console.log("============== AFTER CATCH  TIME ================ ", new Date());
             // try {
             // let policy = await db.policies.create(policyObject);
             //  let airtelMoneyPromise=  await airtelMoney(

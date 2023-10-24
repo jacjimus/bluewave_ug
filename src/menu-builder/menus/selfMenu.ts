@@ -96,17 +96,17 @@ const selfMenu = async (args, db) => {
             //  WORKING WELL
 
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", response);
+            console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
             // response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
-            console.log("RESPONCE WAS CALLED", response);
+            //console.log("RESPONCE WAS CALLED", response);
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
-                console.log("AIRTEL USER", user);
+               // console.log("AIRTEL USER", user);
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
 
                 existingUser = await db.users.create({
@@ -164,7 +164,7 @@ const selfMenu = async (args, db) => {
                 phone_number: phoneNumber,
 
             }
-            console.log("POLICY OBJECT", policyObject);
+            //console.log("POLICY OBJECT", policyObject);
 
             let policy = await db.policies.create(policyObject);
             // create payment
@@ -194,7 +194,7 @@ const selfMenu = async (args, db) => {
               .then((result) => {
                 // Airtel Money operation completed successfully
                 response = 'END Payment successful'; // Set your desired response here
-                console.log("RESPONSE WAS CALLED", response);
+                console.log("RESPONSE WAS CALLED", result);
                 return response;
               })
               .catch((error) => {
