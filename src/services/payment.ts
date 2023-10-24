@@ -71,7 +71,6 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
   };
 
   try {
-    console.log("=========== PUSH TO AIRTEL MONEY ===========", phoneNumber, new Date())
     const token = await getAuthToken();
 
     const paymentData = {
@@ -104,8 +103,11 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
     let paymentResponse;
 
     setTimeout(() => {
-      paymentResponse = axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
+      console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+
+      paymentResponse =  axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
     }, 3000);
+    console.log("=========== PUSH OUTSIDE AIRTEL MONEY ===========", phoneNumber, new Date())
 
     status.result = paymentResponse.data.status;
     console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date())

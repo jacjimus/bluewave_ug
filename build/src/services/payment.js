@@ -78,7 +78,6 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             message: 'Payment successfully initiated'
         };
         try {
-            console.log("=========== PUSH TO AIRTEL MONEY ===========", phoneNumber, new Date());
             const token = yield getAuthToken();
             const paymentData = {
                 reference: reference,
@@ -105,8 +104,10 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             // Parallelize the Airtel Money payment request and transaction creation
             let paymentResponse;
             setTimeout(() => {
+                console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date());
                 paymentResponse = axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
             }, 3000);
+            console.log("=========== PUSH OUTSIDE AIRTEL MONEY ===========", phoneNumber, new Date());
             status.result = paymentResponse.data.status;
             console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date());
             // Create the transaction record
