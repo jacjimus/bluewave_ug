@@ -152,7 +152,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
             // create payment   
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium.premium, existingUser.membership_id, "UG", "UGX");
-            const timeout = 5000;
+            const timeout = 1000;
             Promise.race([
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
@@ -184,11 +184,11 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
 exports.default = selfMenu;
 /*
 
- =============== END SCREEN USSD RESPONCE SELF =======  2023-10-24T20:45:08.335Z
+============== START TIME - SELF ======  +256706991200 2023-10-24T21:03:11.440Z
+=========== PUSH TO AIRTEL MONEY =========== 706991200 2023-10-24T21:03:11.441Z
+=========== AFTER CATCH TIMe==========   +256706991200 2023-10-24T21:03:11.490Z
+=== RETURN RESPONSE AIRTEL MONEY =========== 706991200 2023-10-24T21:03:16.115Z
 
- ============== START TIME - SELF ================      2023-10-24T20:45:08.354Z
- ============== AFTER CATCH TIME - SELF ==========      2023-10-24T20:45:08.404Z
-
-0 ============== END TIME - SELF ================        2023-10-24T20:45:11.029Z
+=======END TIME - SELF ================  +256706991200 2023-10-24T21:03:16.122Z
 
 */

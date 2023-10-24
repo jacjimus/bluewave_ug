@@ -415,7 +415,7 @@ const othersMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
                 let policy = yield db.policies.create(policyObject);
                 const airtelMoneyPromise = yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, policy.policy_deduction_amount, existingUser.membership_id, "UG", "UGX");
                 console.log("============== START TIME ================ ", new Date());
-                const timeout = 5000;
+                const timeout = 1000;
                 Promise.race([
                     airtelMoneyPromise,
                     new Promise((resolve, reject) => {

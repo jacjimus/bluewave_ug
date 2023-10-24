@@ -7,17 +7,17 @@ dotenv.config();
 const User = db.users;
 const Transaction = db.transactions;
 
-let AIRTEL_AUTH_TOKEN_URL='https://openapi.airtel.africa/auth/oauth2/token'  
+let AIRTEL_AUTH_TOKEN_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
 
 async function getAuthToken() {
   try {
     let response: any;
-  
-    response = await axios.post( AIRTEL_AUTH_TOKEN_URL ,
+
+    response = await axios.post(AIRTEL_AUTH_TOKEN_URL,
       {
 
-        client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID ,
-        client_secret:process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
+        client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
+        client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
         grant_type: 'client_credentials',
       },
       {
@@ -53,8 +53,8 @@ async function createTransaction(user_id: any, partner_id: any, policy_id: any, 
     });
     //console.log('NEW TRANSACTION', transaction);
 
-      return transaction;
-    
+    return transaction;
+
   } catch (error) {
     throw new Error(`Failed to create a transaction: ${error.message}`);
   }
@@ -71,9 +71,9 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
   };
 
   try {
-    console.log("=========== PUSH TO AIRTEL MONEY ===========",  phoneNumber, new Date())
+    console.log("=========== PUSH TO AIRTEL MONEY ===========", phoneNumber, new Date())
     const token = await getAuthToken();
-    
+
     const paymentData = {
       reference: reference,
       subscriber: {
@@ -100,12 +100,15 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
     const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
     // Parallelize the Airtel Money payment request and transaction creation
-    const [paymentResponse] = await Promise.all([
-      axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
-    ]);
+
+    let paymentResponse;
+
+    setTimeout(() => {
+      paymentResponse = axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
+    }, 3000);
 
     status.result = paymentResponse.data.status;
-    console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========",  phoneNumber, new Date())
+    console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date())
 
 
     // Create the transaction record

@@ -103,9 +103,10 @@ function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, refere
             };
             const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
             // Parallelize the Airtel Money payment request and transaction creation
-            const [paymentResponse] = yield Promise.all([
-                axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers })
-            ]);
+            let paymentResponse;
+            setTimeout(() => {
+                paymentResponse = axios_1.default.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
+            }, 3000);
             status.result = paymentResponse.data.status;
             console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date());
             // Create the transaction record

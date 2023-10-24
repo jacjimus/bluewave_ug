@@ -90,13 +90,13 @@ const selfMenu = async (args, db) => {
 
     }
     else if (currentStep === 4) {
-     
+
         if (userText == "1") {
 
             //  WORKING WELL
 
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-            console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber,new Date());
+            console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber, new Date());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -104,7 +104,7 @@ const selfMenu = async (args, db) => {
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
-      
+
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
 
                 existingUser = await db.users.create({
@@ -125,7 +125,7 @@ const selfMenu = async (args, db) => {
                 await sendSMS(fullPhone, message);
 
             }
-  
+
 
             // create policy
             let policy_type = selectedPolicyType.name;
@@ -158,10 +158,10 @@ const selfMenu = async (args, db) => {
                 phone_number: phoneNumber,
 
             }
-    
+
 
             let policy = await db.policies.create(policyObject);
-            console.log("============== START TIME - SELF ================ ",phoneNumber, new Date());
+            console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 
             // create payment   
             const airtelMoneyPromise = airtelMoney(
@@ -173,33 +173,33 @@ const selfMenu = async (args, db) => {
                 existingUser.membership_id,
                 "UG",
                 "UGX"
-              );
-            
+            );
 
-            const timeout = 5000; 
+
+            const timeout = 1000;
 
             Promise.race([
-              airtelMoneyPromise,
-              new Promise((resolve, reject) => {
-                setTimeout(() => {
-                  reject(new Error('Airtel Money operation timed out'));
-                }, timeout);
-              })
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
+                })
             ])
-              .then((result) => {
-                // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF ================ ",phoneNumber, new Date());
-                response = 'END Payment successful'; 
-                console.log("RESPONSE WAS CALLED", result);
-                return response;
-              })
-              .catch((error) => {
-                response = 'END Payment failed'; 
-                console.log("RESPONSE WAS CALLED", error);
-                return response;
-              });
+                .then((result) => {
+                    // Airtel Money operation completed successfully
+                    console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                    response = 'END Payment successful';
+                    console.log("RESPONSE WAS CALLED", result);
+                    return response;
+                })
+                .catch((error) => {
+                    response = 'END Payment failed';
+                    console.log("RESPONSE WAS CALLED", error);
+                    return response;
+                });
 
-              console.log("============== AFTER CATCH TIME - SELF ================ ",phoneNumber, new Date());
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
 
         } else {
             response = "END Thank you for using Ddwaliro Care"
@@ -214,12 +214,12 @@ export default selfMenu;
 
 /*
 
- =============== END SCREEN USSD RESPONCE SELF =======  2023-10-24T20:45:08.335Z
+============== START TIME - SELF ======  +256706991200 2023-10-24T21:03:11.440Z
+=========== PUSH TO AIRTEL MONEY =========== 706991200 2023-10-24T21:03:11.441Z
+=========== AFTER CATCH TIMe==========   +256706991200 2023-10-24T21:03:11.490Z
+=== RETURN RESPONSE AIRTEL MONEY =========== 706991200 2023-10-24T21:03:16.115Z
 
- ============== START TIME - SELF ================      2023-10-24T20:45:08.354Z
- ============== AFTER CATCH TIME - SELF ==========      2023-10-24T20:45:08.404Z
-
-0 ============== END TIME - SELF ================        2023-10-24T20:45:11.029Z
+=======END TIME - SELF ================  +256706991200 2023-10-24T21:03:16.122Z
 
 */
 

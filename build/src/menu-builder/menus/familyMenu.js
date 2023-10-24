@@ -689,7 +689,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             let policy = yield db.policies.create(policyObject);
             console.log("============== START TIME - FAMILY ================ ", phoneNumber, new Date());
             const airtelMoneyPromise = (0, payment_1.airtelMoney)(existingUser.user_id, 2, policy.policy_id, phone, ultimatePremium, existingUser.membership_id, "UG", "UGX");
-            const timeout = 5000;
+            const timeout = 1000;
             Promise.race([
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {

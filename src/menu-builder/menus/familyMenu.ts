@@ -716,7 +716,7 @@ const familyMenu = async (args, db) => {
           "UGX"
         );
 
-        const timeout = 5000;
+        const timeout = 1000;
 
         Promise.race([
           airtelMoneyPromise,

@@ -384,7 +384,7 @@ const othersMenu = async (args, db) => {
       let installment_type = paymentOption == 1 ? 2 : 1;
 
 
-     // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+      // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
       let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       //console.log("POLICY TYPE USERTEXT 1", policyType)
@@ -392,7 +392,7 @@ const othersMenu = async (args, db) => {
       //console.log("ULTIMATE PREMIUM", ultimatePremium)
 
 
-     
+
       //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
       if (!otherUser) {
         let otherPhone = allSteps[4].replace('0', "");
@@ -411,7 +411,7 @@ const othersMenu = async (args, db) => {
         }
 
         otherUser = await db.users.create(otherData);
-       // console.log("OTHER USER CREATED", otherUser)
+        // console.log("OTHER USER CREATED", otherUser)
       }
 
       let policyObject = {
@@ -454,7 +454,7 @@ const othersMenu = async (args, db) => {
         console.log("============== START TIME ================ ", new Date());
 
 
-        const timeout = 5000; 
+        const timeout = 1000;
 
         Promise.race([
           airtelMoneyPromise,
@@ -464,18 +464,18 @@ const othersMenu = async (args, db) => {
             }, timeout);
           })
         ])
-        .then((result) => {
-          // Airtel Money operation completed successfully
-          response = 'END Payment successful'; // Set your desired response here
-          console.log("RESPONSE WAS CALLED", result);
-          return response;
-        })
-        .catch((error) => {
-          console.log("An error occurred:", error);
-          response = 'END Payment failed'; // Set an error response
-          console.log("RESPONSE WAS CALLED", response);
-          return response;
-        });
+          .then((result) => {
+            // Airtel Money operation completed successfully
+            response = 'END Payment successful'; // Set your desired response here
+            console.log("RESPONSE WAS CALLED", result);
+            return response;
+          })
+          .catch((error) => {
+            console.log("An error occurred:", error);
+            response = 'END Payment failed'; // Set an error response
+            console.log("RESPONSE WAS CALLED", response);
+            return response;
+          });
 
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
