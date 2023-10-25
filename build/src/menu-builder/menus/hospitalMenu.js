@@ -32,7 +32,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
         const hospitals = yield db.hospitals.findAll({
             where: {
                 district: {
-                    [sequelize_1.Op.eq]: userTextLower, // Use equality check
+                    [sequelize_1.Op.iLike]: `%${userText}%`
                 }
             },
             order: [
@@ -65,6 +65,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
             order: [
                 ['district', 'ASC'],
             ],
+            limit: 10,
         });
         const districtSelected = hospitals[parseInt(allSteps[3]) - 1];
         response = `CON Type your Hospital to search e.g ${districtSelected.hospital_name}`;
@@ -91,6 +92,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
             order: [
                 ['hospital_name', 'ASC'],
             ],
+            limit: 10,
         });
         const hospitalMessages = hospitals === null || hospitals === void 0 ? void 0 : hospitals.slice(0, 6).map((hospital, index) => {
             return `${index + 1}. ${hospital.hospital_name}`;
@@ -120,6 +122,7 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
             order: [
                 ['hospital_name', 'ASC'],
             ],
+            limit: 10,
         });
         console.log("ALL STEPS", allSteps);
         const hospitalSelected = hospitals[parseInt(allSteps[5]) - 1];

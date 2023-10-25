@@ -20,15 +20,15 @@ const hospitalMenu = async (args: any, db: any) => {
     } else if (currentStep == 3) {
         const userTextLower = userText.toLowerCase(); // Convert user input to lowercase
         const hospitals = await db.hospitals.findAll({
-          where: {
-            district: {
-              [Op.eq]: userTextLower, // Use equality check
-            }
-          },
-          order: [
-            ['district', 'ASC'],
-          ],
-          limit: 10,
+            where: {
+                district: {
+                    [Op.iLike]: `%${userText}%`
+                }
+            },
+            order: [
+                ['district', 'ASC'],
+            ],
+            limit: 10,
         });
 
         // if no hospitals are found, return an error message
@@ -58,6 +58,7 @@ const hospitalMenu = async (args: any, db: any) => {
             order: [
                 ['district', 'ASC'],
             ],
+            limit: 10,
         });
 
         const districtSelected = hospitals[parseInt(allSteps[3]) - 1];
@@ -89,6 +90,7 @@ const hospitalMenu = async (args: any, db: any) => {
             order: [
                 ['hospital_name', 'ASC'],
             ],
+            limit: 10,
         });
 
         const hospitalMessages = hospitals?.slice(0, 6).map((hospital: any, index: number) => {
@@ -121,6 +123,7 @@ const hospitalMenu = async (args: any, db: any) => {
             order: [
                 ['hospital_name', 'ASC'],
             ],
+            limit: 10,
         });
 
 
