@@ -153,7 +153,7 @@ const hospitalMenu = async (args: any, db: any) => {
         });
 
         response = `CON You have selected ${hospital.hospital_name} as your preferred facility.` +
-            `\n${hospital.hospital_name}` +
+            // `\n${hospital.hospital_name}` +
             `\nContact: ${hospital.hospital_contact}` +
             `\nLocation: ${hospital.hospital_address}` + "\n0. Back \n00. Main Menu";
 

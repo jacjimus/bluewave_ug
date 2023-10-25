@@ -514,73 +514,42 @@ const findAllUsers = async (req, res) => {
       return res.status(400).json({ message: "Please provide a partner id" });
     }
 
+
     const offset = Math.max(0, (page - 1) * limit);
 
-    let whereCondition: any
-    whereCondition = {
+    let whereCondition:any = {
       partner_id: partner_id,
     };
-   if (filter) {
-    whereCondition = {
-      partner_id: partner_id,
-      [Op.or]: [
-        { first_name: { [Op.iLike]: `%${filter}%` } },
-        { last_name: { [Op.iLike]: `%${filter}%` } },
-        { email: { [Op.iLike]: `%${filter}%` } },
-        { phone_number: { [Op.iLike]: `%${filter}%` } },
-        { arr_member_number: { [Op.iLike]: `%${filter}%` } },
-      ],
-    };
-   }
 
-   if (start_date && end_date) {
-    whereCondition.createdAt = {
-      [Op.between]: [new Date(start_date), new Date(end_date)],
-    };
-  }
+    if (start_date && end_date) {
+      whereCondition.createdAt = {
+        [Op.between]: [new Date(start_date), new Date(end_date)],
+      };
+    }
 
-    let users = await User.findAndCountAll({
-      where: {
+    if (filter) {
+      // Add global filtering for user properties (modify this as needed)
+      whereCondition = {
         ...whereCondition,
-    
-      },
-      limit,
-      offset,
+        [Op.or]: [
+          { name: { [Op.like]: `%${filter}%` } },
+          { first_name: { [Op.like]: `%${filter}%` } },
+          { last_name: { [Op.like]: `%${filter}%` } },
+          // Add more fields as needed
+        ],
+      };
+    }
+
+    // Now, you can use Sequelize to fetch users based on the whereCondition and pagination
+    const users = await User.findAndCountAll({
+      where: whereCondition,
+      limit: limit,
+      offset: offset,
     });
 
-   
-
-    // if (start_date && end_date) {
-    //   const startDate = new Date(start_date);
-    //   const endDate = new Date(end_date);
-    //   users.rows = users.rows.filter((user) => {
-    //     const userDate = new Date(user.createdAt);
-    //     return userDate >= startDate && userDate <= endDate;
-    //   });
-    // }
-
-    const count = users.count;
-
-    users.rows.forEach((user) => {
-      delete user.dataValues.password;
-      delete user.dataValues.pin;
-    });
-
-    await Promise.all(
-      users.rows.map(async (user) => {
-        const policies = await Policy.findAll({
-          where: {
-            user_id: user.user_id,
-          },
-        });
-        user.dataValues.number_of_policies = policies.length;
-      })
-    );
-
-    if (users.rows.length > 0) {
-      return res.status(200).json({
-        result: { message: "Customers fetched successfully", items: users.rows, count },
-      });
+    // Send the response
+    if(users && users.count > 0) {
+      return res.status(200).json({ code: 200, message: "Users fetched successfully", items: users , count: users.count});
     }
 
     return res.status(404).json({ code: 404, message: "No customers found" });
@@ -589,6 +558,8 @@ const findAllUsers = async (req, res) => {
     return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
 };
+
+
 
 
 

@@ -17,7 +17,7 @@ export function isValidEmail(email: string) {
 
 export function globalSearch(array: any, searchTerm: any) {
   console.log("SEARCH TERM", searchTerm);
-  console.log("ARRAY", array);
+  //console.log("ARRAY", array);
 
   // Convert the searchTerm to lowercase for case-insensitive search
   const search = searchTerm.toLowerCase();
@@ -28,9 +28,10 @@ export function globalSearch(array: any, searchTerm: any) {
     // Spread all object fields into the ITEM
     const ITEM = { ...item.dataValues, ...item?.user?.dataValues, ...item?.policy?.dataValues };
 
-   // console.log("ITEM", ITEM);
+   //console.log("ITEM", ITEM);
     // Combine all object values into a single string for searching
     const objectValues = Object.values(ITEM).join(' ').toLowerCase();
+   
     return objectValues.includes(search);
   });
 
