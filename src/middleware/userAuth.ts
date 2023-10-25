@@ -9,7 +9,7 @@ function isBluewave(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+      //console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
@@ -31,7 +31,7 @@ function isAirtel(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+      //console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
@@ -54,7 +54,7 @@ function isVodacom(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+     // console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
@@ -77,13 +77,14 @@ function isAAR(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+      //console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
       if (user.partner_id == 4 && user.role === 'superadmin') {
          req.user_id = user.user_id;
         req.partner_id = user.partner_id;
+        req.role = user.role === 'superadmin'? 11 : 0;
         next();
       } else {
         return res.status(401).json({ message: 'You are not authorized to access this resource' });
@@ -100,7 +101,7 @@ function isUser(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+      //console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
@@ -123,7 +124,7 @@ function isUserOrAdmin(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+     // console.log("USER: ",user)
 
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
@@ -153,7 +154,7 @@ function isManager(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+     // console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
@@ -175,7 +176,7 @@ function isSuperAdmin(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+      //console.log("USER: ",user)
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });
       }
@@ -200,7 +201,7 @@ function isUserOrAdminOrManager(req:any, res:any, next:any) {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      console.log("USER: ",user)
+     // console.log("USER: ",user)
 
       if (err) {
         return res.status(403).json({ message: 'Token is not valid' });

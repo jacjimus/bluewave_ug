@@ -953,7 +953,7 @@ function handleUssd(args, db) {
                             phone_number: args.phoneNumber,
                         },
                     });
-                    console.log("USER: ", user);
+                    //  console.log("USER: ", user);
                     menu.con(`Enter your date of birth in the format DDMMYYYY
           0. Back
           00. Main Menu
@@ -1177,7 +1177,7 @@ function handleUssd(args, db) {
                             phone_number: args.phoneNumber,
                         },
                     });
-                    console.log("USER: ", user);
+                    // console.log("USER: ", user);
                     if (!user) {
                         menu.con("User not found");
                         return;

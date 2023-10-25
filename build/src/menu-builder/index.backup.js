@@ -980,7 +980,7 @@ function default_1(args, db) {
                         "West Nile Region",
                         "Northern Region",
                     ];
-                    console.log("USER");
+                    //console.log("USER");
                     let existingUser = yield findUserByPhoneNumber(args.phoneNumber);
                     menu.session.set('user', existingUser);
                     console.log("USER DATA SESSION", existingUser);

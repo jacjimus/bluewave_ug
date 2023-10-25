@@ -139,7 +139,6 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("USER DATA", userData);
         //saving the user
         const newUser = yield User.create(userData);
-        req.session.user = newUser;
         // set cookie with the token generated
         if (newUser) {
             let token = jwt.sign({ user_id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
@@ -307,8 +306,15 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 let token = jwt.sign({ user_id: user.user_id, role: user.role, partner_id: user.partner_id, partner_name: partner.partner_name }, process.env.JWT_SECRET || "apple123", {
                     expiresIn: 1 * 24 * 60 * 60 * 1000,
                 });
+                //save partner id in the request
+                let admin = {
+                    partner_id: user.partner_id,
+                    role: user.role == 'superadmin' ? 11 : 22
+                };
                 //go ahead and generate a cookie for the user
                 res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
+                // store user object in the session
+                res.cookie("admin", admin, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
                 console.log(token);
                 //remove password from the user object
                 user.password = undefined;
@@ -704,8 +710,26 @@ const getPartner = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
  */
 const listPartners = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        // get admin object from cookies
+        const admin = req.partner_id;
         let partner = yield Partner.findAll();
-        console.log(partner);
+        if (parseInt(req.partner_id) == 4) {
+            if (!partner || partner.length === 0) {
+                return res.status(404).json({ message: "Sorry, No partner found" });
+            }
+            return res
+                .status(200)
+                .json({
+                result: { code: 200, message: "All partners fetched successfully", items: partner },
+            });
+        }
+        else {
+            partner = yield Partner.findAll({
+                where: {
+                    partner_id: admin.toString()
+                },
+            });
+        }
         if (!partner || partner.length === 0) {
             return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
         }

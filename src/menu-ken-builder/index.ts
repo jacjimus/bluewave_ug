@@ -1152,7 +1152,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             }
           );
 
-          console.log("USER: ", user);
+        //  console.log("USER: ", user);
 
           menu.con(`Enter your date of birth in the format DDMMYYYY
           0. Back
@@ -1423,7 +1423,7 @@ export default function handleUssd(args: RequestBody, db: any) {
             },
           });
 
-          console.log("USER: ", user);
+         // console.log("USER: ", user);
 
           if (!user) {
             menu.con("User not found");

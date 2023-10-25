@@ -200,7 +200,7 @@ const signup = async (req: any, res: any) => {
 
     //saving the user
     const newUser: any = await User.create(userData);
-    req.session.user = newUser;
+   
     // set cookie with the token generated
     if (newUser) {
       let token = jwt.sign(
@@ -402,8 +402,16 @@ const login = async (req: any, res: any) => {
           }
         );
 
+        //save partner id in the request
+        let admin = {
+          partner_id: user.partner_id,
+          role : user.role == 'superadmin' ? 11: 22
+        }
+
         //go ahead and generate a cookie for the user
         res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
+        // store user object in the session
+        res.cookie("admin", admin, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
         console.log(token);
         //remove password from the user object
         user.password = undefined;
@@ -855,8 +863,30 @@ const getPartner = async (req: any, res: any) => {
 const listPartners = async (req: any, res: any) => {
   try {
 
+    // get admin object from cookies
+    const admin = req.partner_id;
+    
     let partner: any = await Partner.findAll();
-    console.log(partner);
+    if(parseInt(req.partner_id) == 4) {
+     
+      if (!partner || partner.length === 0) {
+        return res.status(404).json({  message: "Sorry, No partner found" });
+      }
+      return res
+        .status(200)
+        .json({
+          result: { code: 200, message: "All partners fetched successfully", items: partner },
+        });
+    }else{
+      partner = await Partner.findAll({
+        where: {
+          partner_id: admin.toString()
+        },
+      });
+    }
+
+    
+  
 
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "Sorry, No partner found" });

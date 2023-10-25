@@ -1253,7 +1253,7 @@ export default function (args: RequestBody, db: any) {
             "Northern Region",
           ];
 
-          console.log("USER");
+          //console.log("USER");
           let existingUser = await findUserByPhoneNumber(args.phoneNumber);
           menu.session.set('user', existingUser)
 
