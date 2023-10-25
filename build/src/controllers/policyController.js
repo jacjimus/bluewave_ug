@@ -103,8 +103,8 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
         if (filter) {
             whereCondition[Op.or] = [
-                { user_id: { [Op.iLike]: `%${filter}%` } },
-                { policy_id: { [Op.iLike]: `%${filter}%` } },
+                // { user_id: { [Op.iLike]: `%${filter}%` } },
+                // { policy_id : { [Op.iLike]: `%${filter}%` } },
                 { beneficiary: { [Op.iLike]: `%${filter}%` } },
                 { policy_type: { [Op.iLike]: `%${filter}%` } },
                 { policy_status: { [Op.iLike]: `%${filter}%` } },
