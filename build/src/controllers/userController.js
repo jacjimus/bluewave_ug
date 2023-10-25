@@ -454,7 +454,9 @@ const findAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         })));
         // Send the response
         if (users && users.count > 0) {
-            return res.status(200).json({ code: 200, message: "Users fetched successfully", items: users, count: users.count });
+            return res.status(200).json({
+                result: { message: "Customers fetched successfully", items: users.rows, count: users.count },
+            });
         }
         return res.status(404).json({ code: 404, message: "No customers found" });
     }
