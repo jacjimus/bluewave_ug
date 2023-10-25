@@ -150,7 +150,9 @@ const getPolicySummary = async (req: any, res: any) => {
       total_policies_partially_paid: policy.filter(
         (policy: any) => policy.policy_status == "partially_paid"
       ).length,
-      total_preimum_amount: policy.reduce(
+      total_preimum_amount:  policy
+      .filter((policy) => policy.policy_status === 'paid')
+      .reduce(
         (a: any, b: any) => a + b.policy_deduction_amount * 1,
         0
       ),

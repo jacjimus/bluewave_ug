@@ -133,7 +133,9 @@ const getPolicySummary = (req, res) => __awaiter(void 0, void 0, void 0, functio
             total_policies_paid: policy.filter((policy) => policy.policy_status == "paid").length,
             total_policies_unpaid: policy.filter((policy) => policy.policy_status == "unpaid").length,
             total_policies_partially_paid: policy.filter((policy) => policy.policy_status == "partially_paid").length,
-            total_preimum_amount: policy.reduce((a, b) => a + b.policy_deduction_amount * 1, 0),
+            total_preimum_amount: policy
+                .filter((policy) => policy.policy_status === 'paid')
+                .reduce((a, b) => a + b.policy_deduction_amount * 1, 0),
         };
         // await Log.create({
         //   log_id: uuidv4(),
