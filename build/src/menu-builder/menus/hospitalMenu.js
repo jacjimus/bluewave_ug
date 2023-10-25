@@ -143,9 +143,9 @@ const hospitalMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* (
             user_id: user.user_id,
             hospital_id: hospital.hospital_id
         });
-        response = `CON You have selected ${hospital.hospital_name} as your preferred facility.Below are the Hospital details` +
-            `\nHospital Name: ${hospital.hospital_name}` +
-            `\nContact Number: ${hospital.hospital_contact}` +
+        response = `CON You have selected ${hospital.hospital_name} as your preferred facility.` +
+            `\n${hospital.hospital_name}` +
+            `\nContact: ${hospital.hospital_contact}` +
             `\nLocation: ${hospital.hospital_address}` + "\n0. Back \n00. Main Menu";
     }
     return response;
