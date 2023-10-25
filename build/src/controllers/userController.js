@@ -433,11 +433,25 @@ const findAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 ] });
         }
         // Now, you can use Sequelize to fetch users based on the whereCondition and pagination
-        const users = yield User.findAndCountAll({
+        let users = yield User.findAndCountAll({
             where: whereCondition,
             limit: limit,
             offset: offset,
+            order: [["createdAt", "DESC"]],
+            attributes: {
+                exclude: ["password", "pin"],
+            },
         });
+        const usersWithPolicyCount = yield Promise.all(users.rows.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+            const policies = yield db_1.db.policies.findAndCountAll({
+                where: {
+                    user_id: user.user_id,
+                },
+                limit: 6,
+            });
+            user.dataValues.number_of_policies = policies.count;
+            return user;
+        })));
         // Send the response
         if (users && users.count > 0) {
             return res.status(200).json({ code: 200, message: "Users fetched successfully", items: users, count: users.count });
