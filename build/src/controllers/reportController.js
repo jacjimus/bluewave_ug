@@ -782,9 +782,19 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
             partner_id: partner_id,
         };
         if (filter) {
-            whereClause.policy_number = {
-                [Op.like]: `%${filter}%`,
-            };
+            whereClause[Op.or] = [
+                // { user_id: { [Op.iLike]: `%${filter}%` } },
+                // { policy_id : { [Op.iLike]: `%${filter}%` } },
+                { beneficiary: { [Op.iLike]: `%${filter}%` } },
+                { policy_type: { [Op.iLike]: `%${filter}%` } },
+                { policy_status: { [Op.iLike]: `%${filter}%` } },
+                // { sum_insured: { [Op.iLike]: `%${filter}%` } },
+                // { premium: { [Op.iLike]: `%${filter}%` } },
+                // { policy_deduction_day: { [Op.iLike]: `%${filter}%` } },
+                // { installment_order: { [Op.iLike]: `%${filter}%` } },
+                { currency_code: { [Op.iLike]: `%${filter}%` } },
+                { country_code: { [Op.iLike]: `%${filter}%` } },
+            ];
         }
         if (start_date && end_date) {
             whereClause.policy_date = {
@@ -793,13 +803,13 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
         }
         const options = {
             where: whereClause,
-            offset: (page - 1) * limit,
-            limit: limit,
+            // offset: (page - 1) * limit,
+            // limit: limit,
             include: [
                 {
                     model: User,
                     as: "user",
-                    attributes: ["first_name", "last_name", "phone_number"],
+                    attributes: ["first_name", "last_name", "phone_number", "arr_member_number"],
                 },
                 {
                     model: Product,
@@ -863,21 +873,27 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
     const worksheet = workbook.addWorksheet("Policy Report");
     // Define columns for data in Excel. Key must match data key
     worksheet.columns = [
+        { header: "Product Name", key: "product_name", width: 20 },
         { header: "Product ID", key: "product_id", width: 20 },
         { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
         { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
+        { header: "AAR Member Number", key: "arr_member_number", width: 20 },
         { header: "Full Name", key: "full_name", width: 20 },
         { header: "Phone Number", key: "phone_number", width: 20 },
-        { header: "Product Name", key: "product_name", width: 20 },
+        { header: "Policy Category", key: "beneficiary", width: 20 },
         { header: "Policy Type", key: "policy_type", width: 20 },
+        { header: "Family Size", key: "total_member_number", width: 20 },
         { header: "Policy Status", key: "policy_status", width: 20 },
         { header: "Policy Start Date", key: "policy_start_date", width: 20 },
         { header: "Policy End Date", key: "policy_end_date", width: 20 },
+        { header: "Policy Paid Date", key: "policy_paid_date", width: 20 },
+        { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
         {
             header: "Policy Deduction Amount",
             key: "policy_deduction_amount",
             width: 20,
         },
+        { header: "Customer ID", key: "user_id", width: 20 },
         {
             header: "Policy Next Deduction Date",
             key: "policy_next_deduction_date",
@@ -891,20 +907,16 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             key: "installment_alert_date",
             width: 20,
         },
-        { header: "Tax Rate VAT", key: "tax_rate_vat", width: 20 },
-        { header: "Tax Rate EXT", key: "tax_rate_ext", width: 20 },
+        // { header: "Tax Rate VAT", key: "tax_rate_vat", width: 20 },
+        // { header: "Tax Rate EXT", key: "tax_rate_ext", width: 20 },
         { header: "Premium", key: "premium", width: 20 },
         { header: "Sum Insured", key: "sum_insured", width: 20 },
         { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
         { header: "Excess Premium", key: "excess_premium", width: 20 },
         { header: "Discount Premium", key: "discount_premium", width: 20 },
         { header: "Hospital Details", key: "hospital_details", width: 20 },
-        { header: "Policy Documents", key: "policy_documents", width: 20 },
-        { header: "Policy Paid Date", key: "policy_paid_date", width: 20 },
-        { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
         { header: "Currency Code", key: "currency_code", width: 20 },
         { header: "Country Code", key: "country_code", width: 20 },
-        { header: "Customer ID", key: "user_id", width: 20 },
         { header: "Partner ID", key: "partner_id", width: 20 },
         { header: "Created At", key: "createdAt", width: 20 },
         { header: "Updated At", key: "updatedAt", width: 20 },
@@ -915,8 +927,12 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             policy_id: policy.policy_id,
             airtel_money_id: policy.airtel_money_id,
             bluewave_transaction_id: policy.bluewave_transaction_id,
+            arr_member_number: policy.arr_member_number,
             policy_date: moment(policy.policy_date).format("YYYY-MM-DD"),
             policy_number: policy.policy_number,
+            policy_type: policy.policy_type,
+            beneficiary: policy.beneficiary,
+            total_member_number: policy.total_member_number,
             policy_status: policy.policy_status,
             policy_start_date: moment(policy.policy_start_date).format("YYYY-MM-DD"),
             policy_end_date: moment(policy.policy_end_date).format("YYYY-MM-DD"),
@@ -944,7 +960,6 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             partner_id: policy.partner_id,
             createdAt: moment(policy.createdAt).format("YYYY-MM-DD"),
             updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
-            policy_type: policy.policy_type,
             full_name: `${(_b = (_a = policy.user) === null || _a === void 0 ? void 0 : _a.dataValues) === null || _b === void 0 ? void 0 : _b.first_name} ${(_d = (_c = policy.user) === null || _c === void 0 ? void 0 : _c.dataValues) === null || _d === void 0 ? void 0 : _d.last_name}`,
             phone_number: (_f = (_e = policy.user) === null || _e === void 0 ? void 0 : _e.dataValues) === null || _f === void 0 ? void 0 : _f.phone_number,
             product_name: policy.product.product_name,
