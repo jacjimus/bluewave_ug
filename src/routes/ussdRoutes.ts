@@ -150,7 +150,7 @@ router.all("/callback", async (req, res) => {
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
         if (memberStatus.code !== 200) {
-          registerAARUser = await registerPrincipal(user, policy, beneficiary);
+          registerAARUser = await registerPrincipal(user, policy);
           //console.log("AAR USER", registerAARUser);
           if (registerAARUser.code == 200 || memberStatus.code == 200) {
             user.arr_member_number = registerAARUser.member_no;

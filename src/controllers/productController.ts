@@ -72,7 +72,7 @@ const getProducts = async (req: any, res: any) => {
     result: {},
   };
   try {
-    let filter = req.query.filter.trim().toLowerCase();
+    let filter = req?.query?.filter?.trim().toLowerCase() || "";
     let product: any;
 
     if (!filter || filter == "") {

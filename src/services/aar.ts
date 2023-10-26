@@ -4,7 +4,7 @@ import { db } from '../models/db';
 import dotenv from 'dotenv';
 import { calculateProrationPercentage } from './utils';
 
-const User = db.users;
+//const User = db.users;
 
 function randomDateOfBirth() {
   const start = new Date(1950, 0, 1);
@@ -20,7 +20,7 @@ async function arr_uganda_login() {
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/auth/airtel/login',
+      url: 'http://cmsweb.aar.co.ug:82/api/auth/airtel/login',
       data: {
         "username": process.env.AAR_UGANDA_UAT_USERNAME,
         "password": process.env.AAR_UGANDA_UAT_PASSWORD,
@@ -39,25 +39,25 @@ async function arr_uganda_login() {
 
 
 
-async function refreshToken(): Promise<void> {
-  try {
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/auth/token_refresh',
-      headers: {
-        'Authorization': 'Bearer ' + await arr_uganda_login(),
-      }
-    };
+// async function refreshToken(): Promise<void> {
+//   try {
+//     const config: AxiosRequestConfig = {
+//       method: 'post',
+//       maxBodyLength: Infinity,
+//       url: 'http://airtelapi.aar-insurance.ug:82/api/auth/token_refresh',
+//       headers: {
+//         'Authorization': 'Bearer ' + await arr_uganda_login(),
+//       }
+//     };
 
-    console.log("CONFIG", config);
+//     console.log("CONFIG", config);
 
-    const response = await axios.request(config);
-    console.log(JSON.stringify(response.data));
-  } catch (error) {
-    console.error(error);
-  }
-}
+//     const response = await axios.request(config);
+//     console.log(JSON.stringify(response.data));
+//   } catch (error) {
+//     console.error(error);
+//   }
+// }
 
 
 interface NextOfKin {
@@ -89,8 +89,8 @@ interface PrincipalRegistration {
 }
 
 
-async function registerPrincipal(user: any, policy: any, beneficiary: any) {
-console.log("REGISTER PRINCIPAL AAR", user, policy, beneficiary);
+async function registerPrincipal(user: any, policy: any) {
+console.log("REGISTER PRINCIPAL AAR", user, policy);
   const userData: PrincipalRegistration = {
     surname: user.last_name,
     first_name: user.first_name,
@@ -122,7 +122,7 @@ console.log("REGISTER PRINCIPAL AAR", user, policy, beneficiary);
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
+      url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/register_principal',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
         'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ console.log("REGISTER PRINCIPAL AAR", user, policy, beneficiary);
     console.log(JSON.stringify(response.data));
 
     if (response.data.code == 200) {
-      await User.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
+      await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
       return { ...response.data, ...userData }
     }
   } catch (error) {
@@ -214,7 +214,7 @@ async function updatePremium(data: any, policy: any) {
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
+      url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/update_premium',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
         'Content-Type': 'application/json'
@@ -273,7 +273,7 @@ async function registerDependant(data: DependantRegistration): Promise<void> {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_dependant',
+      url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/register_dependant',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
         'Content-Type': 'application/json',
@@ -307,7 +307,7 @@ async function renewMember(data: MemberRenewalData): Promise<void> {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/renew_member',
+      url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/renew_member',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
         'Content-Type': 'application/json',
@@ -361,7 +361,7 @@ async function updateMember(data: MemberUpdateData): Promise<void> {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_member',
+      url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/update_member',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
       },
@@ -389,7 +389,7 @@ async function fetchMemberStatusData({ member_no, unique_profile_id }) {
     const config: AxiosRequestConfig = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/member_status_data',
+      url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/member_status_data',
       headers: {
         'Authorization': 'Bearer ' + await arr_uganda_login(),
       },

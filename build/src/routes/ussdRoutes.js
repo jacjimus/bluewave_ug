@@ -128,7 +128,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 let registerAARUser, updatePremiumData, updatedPolicy, installment;
                 const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
                 if (memberStatus.code !== 200) {
-                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy, beneficiary);
+                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy);
                     //console.log("AAR USER", registerAARUser);
                     if (registerAARUser.code == 200 || memberStatus.code == 200) {
                         user.arr_member_number = registerAARUser.member_no;

@@ -60,12 +60,13 @@ const Op = db_1.db.Sequelize.Op;
     *         description: Invalid request
     */
 const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     let status = {
         code: 200,
         result: {},
     };
     try {
-        let filter = req.query.filter.trim().toLowerCase();
+        let filter = ((_b = (_a = req === null || req === void 0 ? void 0 : req.query) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.trim().toLowerCase()) || "";
         let product;
         if (!filter || filter == "") {
             product = yield Product.findAll({
