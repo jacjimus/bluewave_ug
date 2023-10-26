@@ -940,7 +940,7 @@ const getDailyPolicySalesReport = async (req, res) => {
  *         description: Invalid request
  */
 const getPolicyExcelReportDownload = async (req, res) => {
-  const {
+  let {
     partner_id,
     page = 1,
     limit = 50,
@@ -953,6 +953,12 @@ const getPolicyExcelReportDownload = async (req, res) => {
     const whereClause: any = {
       partner_id: partner_id,
     };
+    // moment().format('YYYY-MM-DD')
+  
+  
+      if (filter)
+
+   filter = filter.trim().toLowerCase(); 
 
     if (filter) {
       whereClause[Op.or] = [
@@ -972,8 +978,14 @@ const getPolicyExcelReportDownload = async (req, res) => {
     }
 
     if (start_date && end_date) {
-      whereClause.policy_date = {
-        [Op.between]: [start_date, end_date],
+      whereClause.policy_start_date = {
+        [Op.between]: [new Date(start_date), new Date(end_date)],
+      };
+    }
+
+    if(start_date && !end_date){
+      whereClause.policy_start_date = {
+        [Op.gte]: new Date(start_date),
       };
     }
 
@@ -1136,7 +1148,6 @@ const generatePolicyExcelReport = async (policies) => {
       airtel_money_id: policy.airtel_money_id,
       bluewave_transaction_id: policy.bluewave_transaction_id,
       arr_member_number: policy.arr_member_number,
-      policy_date: moment(policy.policy_date).format("YYYY-MM-DD"),
       policy_number: policy.policy_number,
       policy_type: policy.policy_type,
       beneficiary: policy.beneficiary,
@@ -1586,7 +1597,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
  */
 const getClaimExcelReportDownload = async (req, res) => {
 
-  const {
+  let {
     partner_id,
     page = 1,
     limit = 50,
@@ -1600,6 +1611,7 @@ const getClaimExcelReportDownload = async (req, res) => {
       partner_id: partner_id,
     };
 
+    filter = req.query.filter.trim().toLowerCase();
     if (filter) {
       whereClause.claim_number = {
         [Op.like]: `%${filter}%`,

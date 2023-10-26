@@ -392,6 +392,7 @@ const login = async (req: any, res: any) => {
     //if user email is found, compare password with bcrypt
     if (user) {
       const isSame = await bcrypt.compare(password, user.password);
+      console.log("IS SAME", isSame);
       //generate token with the user's id and the secretKey in the env file
       if (isSame) {
         let token = jwt.sign(
@@ -402,17 +403,10 @@ const login = async (req: any, res: any) => {
           }
         );
 
-        //save partner id in the request
-        let admin = {
-          partner_id: user.partner_id,
-          role : user.role == 'superadmin' ? 11: 22
-        }
-
         //go ahead and generate a cookie for the user
         res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
         // store user object in the session
-        res.cookie("admin", admin, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-        console.log(token);
+   
         //remove password from the user object
         user.password = undefined;
 
@@ -511,7 +505,7 @@ const login = async (req: any, res: any) => {
  */
 const findAllUsers = async (req, res) => {
   const partner_id = req.query.partner_id;
-  const filter = req.query.filter;
+  const filter = req.query.filter.trim().toLowerCase();
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const start_date = req.query.start_date;

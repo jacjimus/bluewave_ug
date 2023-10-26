@@ -62,7 +62,7 @@ const getPayments = async (req: any, res: any) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
-    const filter = req.query.filter || "";
+    const filter = req.query.filter.trim().toLowerCase(); // Filter string
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
