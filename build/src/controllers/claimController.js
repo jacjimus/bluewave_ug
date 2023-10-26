@@ -72,7 +72,7 @@ const getClaims = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const partner_id = req.query.partner_id;
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
-    const filter = req.query.filter;
+    const filter = req.query.filter.trim().toLowerCase(); // Search term as string, e.g., "john"
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
     try {

@@ -75,7 +75,7 @@ const PolicyIssuance_1 = __importDefault(require("../services/PolicyIssuance"));
     */
 const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const filter = req.query.filter || "";
+        const filter = req.query.filter.trim().toLowerCase();
         const partner_id = req.query.partner_id;
         const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
         const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"

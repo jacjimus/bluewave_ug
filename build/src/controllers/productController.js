@@ -65,7 +65,7 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         result: {},
     };
     try {
-        let filter = req.query.filter || "";
+        let filter = req.query.filter.trim().toLowerCase();
         let product;
         if (!filter || filter == "") {
             product = yield Product.findAll({

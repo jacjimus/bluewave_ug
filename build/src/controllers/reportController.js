@@ -776,11 +776,14 @@ const getDailyPolicySalesReport = (req, res) => __awaiter(void 0, void 0, void 0
  *         description: Invalid request
  */
 const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { partner_id, page = 1, limit = 50, filter, start_date, end_date, } = req.query;
+    let { partner_id, page = 1, limit = 50, filter, start_date, end_date, } = req.query;
     try {
         const whereClause = {
             partner_id: partner_id,
         };
+        // moment().format('YYYY-MM-DD')
+        if (filter)
+            filter = filter.trim().toLowerCase();
         if (filter) {
             whereClause[Op.or] = [
                 // { user_id: { [Op.iLike]: `%${filter}%` } },
@@ -797,8 +800,13 @@ const getPolicyExcelReportDownload = (req, res) => __awaiter(void 0, void 0, voi
             ];
         }
         if (start_date && end_date) {
-            whereClause.policy_date = {
-                [Op.between]: [start_date, end_date],
+            whereClause.policy_start_date = {
+                [Op.between]: [new Date(start_date), new Date(end_date)],
+            };
+        }
+        if (start_date && !end_date) {
+            whereClause.policy_start_date = {
+                [Op.gte]: new Date(start_date),
             };
         }
         const options = {
@@ -928,7 +936,6 @@ const generatePolicyExcelReport = (policies) => __awaiter(void 0, void 0, void 0
             airtel_money_id: policy.airtel_money_id,
             bluewave_transaction_id: policy.bluewave_transaction_id,
             arr_member_number: policy.arr_member_number,
-            policy_date: moment(policy.policy_date).format("YYYY-MM-DD"),
             policy_number: policy.policy_number,
             policy_type: policy.policy_type,
             beneficiary: policy.beneficiary,
@@ -1347,11 +1354,12 @@ const getAggregatedMonthlySalesReport = (req, res) => __awaiter(void 0, void 0, 
  *         description: Invalid request
  */
 const getClaimExcelReportDownload = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { partner_id, page = 1, limit = 50, filter, start_date, end_date, } = req.query;
+    let { partner_id, page = 1, limit = 50, filter, start_date, end_date, } = req.query;
     try {
         const whereClause = {
             partner_id: partner_id,
         };
+        filter = req.query.filter.trim().toLowerCase();
         if (filter) {
             whereClause.claim_number = {
                 [Op.like]: `%${filter}%`,
