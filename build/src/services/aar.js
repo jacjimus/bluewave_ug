@@ -29,7 +29,7 @@ function arr_uganda_login() {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/auth/airtel/login',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/auth/airtel/login',
                 data: {
                     "username": process.env.AAR_UGANDA_UAT_USERNAME,
                     "password": process.env.AAR_UGANDA_UAT_PASSWORD,
@@ -47,15 +47,14 @@ function arr_uganda_login() {
 }
 function registerPrincipal(user, policy) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("REGISTER PRINCIPAL AAR", user, policy);
         const userData = {
             surname: user.last_name,
             first_name: user.first_name,
-            other_names: user.middle_name || user.last_name,
+            other_names: "",
             gender: 1,
             dob: randomDateOfBirth(),
             pri_dep: "24",
-            family_title: "24",
+            family_title: "3",
             tel_no: `256${user.phone_number}`,
             email: user.email || "admin@bluewave.insure",
             next_of_kin: {
@@ -65,7 +64,7 @@ function registerPrincipal(user, policy) {
                 tel_no: user.phone_number,
             },
             member_status: "1",
-            health_option: "63",
+            health_option: "64",
             health_plan: "AIRTEL_" + policy.policy_type,
             corp_id: "758",
             policy_start_date: policy.policy_start_date,
@@ -73,11 +72,12 @@ function registerPrincipal(user, policy) {
             unique_profile_id: user.membership_id + '',
             money_transaction_id: policy.airtel_money_id,
         };
+        console.log("REGISTER PRINCIPAL AAR", userData);
         try {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/register_principal',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
                 headers: {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                     'Content-Type': 'application/json',
@@ -98,25 +98,20 @@ function registerPrincipal(user, policy) {
     });
 }
 exports.registerPrincipal = registerPrincipal;
-function updatePremium(data, policy) {
+function updatePremium(user, policy) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("UPDATE PREMIUM AAR", data, policy);
             const payments = yield db_1.db.payments.findAll({
                 where: {
                     policy_id: policy.policy_id,
                     payment_status: "paid"
                 }
             });
-            console.log("PAYMENTS", payments.length);
             let proratedPercentage = (0, utils_1.calculateProrationPercentage)(payments.length);
-            console.log("PRORATED PERCENTAGE", proratedPercentage);
             const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / proratedPercentage;
             const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / proratedPercentage;
-            console.log("MAIN BENEFIT LIMIT", main_benefit_limit);
-            console.log("LAST EXPENSE LIMIT", last_expense_limit);
             let premium_installment = payments.length + 1;
-            let ultimatePremium;
+            let ultimatePremium = policy.premium;
             if (policy.beneficiary == "FAMILY" || policy.beneficiary == "OTHER") {
                 // spit premium based on memeber family size e.g  M+3  PREMIUM / 4
                 if (policy.total_member_number !== "M") {
@@ -125,14 +120,12 @@ function updatePremium(data, policy) {
                     console.log(policyPremium, memberSize);
                     ultimatePremium = policyPremium / (parseInt(memberSize) + 1);
                 }
-                ultimatePremium = policy.premium;
             }
-            console.log("ultimatePremium", ultimatePremium);
             const requestData = {
-                member_no: data.arr_member_number || data.member_no,
-                unique_profile_id: data.membership_id + "",
+                member_no: user.arr_member_number || user.member_no,
+                unique_profile_id: user.membership_id + "",
                 health_plan: "AIRTEL_" + policy.policy_type,
-                health_option: "63",
+                health_option: "64",
                 premium: ultimatePremium,
                 premium_type: policy.installment_type,
                 premium_installment: premium_installment,
@@ -144,18 +137,17 @@ function updatePremium(data, policy) {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/update_premium',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
                 headers: {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                     'Content-Type': 'application/json'
                 },
                 data: JSON.stringify(requestData),
             };
-            console.log("CONFIG", config);
             const response = yield axios_1.default.request(config);
             console.log(JSON.stringify(response.data));
             if (response.data.code == 200) {
-                console.log("UPDATE PREMIUM AAR RESPONSE", response.data);
+                // console.log("UPDATE PREMIUM AAR RESPONSE", response.data);
                 return response.data;
             }
         }
@@ -171,7 +163,7 @@ function registerDependant(data) {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/register_dependant',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_dependant',
                 headers: {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                     'Content-Type': 'application/json',
@@ -195,7 +187,7 @@ function renewMember(data) {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/renew_member',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/renew_member',
                 headers: {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                     'Content-Type': 'application/json',
@@ -227,7 +219,7 @@ function updateMember(data) {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/update_member',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_member',
                 headers: {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                 },
@@ -249,7 +241,7 @@ function fetchMemberStatusData({ member_no, unique_profile_id }) {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'http://cmsweb.aar.co.ug:82/api/airtel/v1/protected/member_status_data',
+                url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/member_status_data',
                 headers: {
                     'Authorization': 'Bearer ' + (yield arr_uganda_login()),
                 },

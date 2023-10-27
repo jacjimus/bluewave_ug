@@ -147,28 +147,6 @@ router.all("/callback", async (req, res) => {
           status: "paid",
         });
 
-        let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
-        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-        if (memberStatus.code !== 200) {
-          registerAARUser = await registerPrincipal(user, policy);
-          //console.log("AAR USER", registerAARUser);
-          if (registerAARUser.code == 200 || memberStatus.code == 200) {
-            user.arr_member_number = registerAARUser.member_no;
-            await user.save();
-            updatePremiumData = await updatePremium(user, policy);
-               // await createDependant(user.phone_number,policy.policy_id) 
-
-            console.log("AAR UPDATE PREMIUM", updatePremiumData);
-          }
-
-        }
-        if (memberStatus.code == 200) {
-          console.log("MEMBER STATUS", memberStatus);
-          policy.arr_policy_number = memberStatus?.policy_no;
-          updatePremiumData = await updatePremium(user, policy);
-          console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
-        }
-
         const payment = await Payment.create({
           payment_amount: amount,
           payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
@@ -181,6 +159,11 @@ router.all("/callback", async (req, res) => {
           partner_id,
         });
 
+
+        let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
+        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+      
+      
         // policy schedule
         //find policy schedule with policy id 
         //if not found create new policy schedule
@@ -319,6 +302,27 @@ router.all("/callback", async (req, res) => {
         }
 
         await sendSMS(to, congratText);
+
+
+        if (memberStatus.code !== 200) {
+          registerAARUser = await registerPrincipal(user, policy);
+          //console.log("AAR USER", registerAARUser);
+          if (registerAARUser.code == 200 || memberStatus.code == 200) {
+            user.arr_member_number = registerAARUser.member_no;
+            await user.save();
+            updatePremiumData = await updatePremium(user, policy);
+               // await createDependant(user.phone_number,policy.policy_id) 
+
+            console.log("AAR UPDATE PREMIUM", updatePremiumData);
+          }
+
+        }
+        if (memberStatus.code == 200) {
+          console.log("MEMBER STATUS", memberStatus);
+          policy.arr_policy_number = memberStatus?.policy_no;
+          updatePremiumData = await updatePremium(user, policy);
+          console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
+        }
 
         return res.status(200).json({
           code: 200,

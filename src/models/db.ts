@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize')
 import { v4 as uuidv4 } from 'uuid'
 import { fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
-import { all } from 'axios';
+
 require('dotenv').config()
 const fs = require('fs/promises'); // Use promises-based fs
 const { Op } = require('sequelize');
@@ -303,7 +303,7 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 
 //clear the arr_member_number column in users table
 //  db.users.update(
-//     { arr_member_number: null },{where :{partner_id: 5}},{ multi: true }
+//     { arr_member_number: null },{where :{partner_id: 2}},{ multi: true }
 //   ).then((user:any) => {
 //     console.log("UPDATED USER: ", user)
 
@@ -316,67 +316,148 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 
  
 //  async function allPaidPolicies() {
-//    try {
-//      // Fetch all policies with status "paid"
-//      const allPolicies = await db.policies.findAll({
-//        where: {
-//          policy_status: 'paid',
-//        },
-//      });
- 
-//      let updatePremiumResponse, arr_response
-//      // Use Promise.all to parallelize user queries
-//      const promises = allPolicies.map(async (policy) => {
-//        const user = await db.users.findOne({
-//          where: {
-//            user_id: 'f76379e9-8754-4038-aa0b-0bc2354c572e',
-//            partner_id: 2,
-//          },
-//        });
- 
-//        // Check if user is found
-//        if (user) {
-//          arr_response = await registerPrincipal(user, policy);
-//          console.log('arr_response', arr_response);
- 
-//          if (arr_response.code === 200) {
-//             updatePremiumResponse = await updatePremium(user, policy);
-//            console.log('updatePremiumResponse', updatePremiumResponse);
-//          }
- 
-//          // Use Promise.all to ensure all Promises are resolved
-//          return user;
-//        }
-//      });
- 
-//      const allUsers = await Promise.all(promises);
- 
-//      // Save data to files
-//      await fs.writeFile('allUsers.txt', JSON.stringify(allUsers));
-//      console.log('Saved allUsers.txt');
-     
-//      await fs.writeFile('arrPrincipal.txt', JSON.stringify(arr_response));
-//      console.log('Saved arrPrincipal.txt');
-     
-//      await fs.writeFile('updatePremiumData.txt', JSON.stringify(updatePremiumResponse));
-//      console.log('Saved updatePremiumData.txt');
-     
-//      return 'done';
-//    } catch (err) {
-//      console.error('Error:', err);
-//      return 'error';
-//    }
-//  }
- 
+//   try {
+//     let allPaidPolicies = await db.policies.findAll({
+//       where: {
+//         policy_status: 'paid',
+//         partner_id: 2,
+//         arr_policy_number: null,
+//       },
+//       include: [
+//         {
+//           model: db.users,
+//           as: 'user',
+//         },
+//       ],
+//     });
+
+//     async function processPolicy(policy) {
+//       const policy_start_date = policy.policy_start_date;
+//       const policy_end_date = policy.policy_end_date;
+//       policy.policy_start_date = policy_start_date;
+//       policy.policy_end_date = policy_end_date;
+
+//       const arr_member = await registerPrincipal(policy.user, policy);
+//       console.log('arr_member', arr_member);
+//     }
+
+//     async function processPoliciesSequentially() {
+//       for (const policy of allPaidPolicies) {
+//         await processPolicy(policy);
+//         // Wait for 2 seconds before processing the next policy
+//         await new Promise((resolve) => setTimeout(resolve, 2000));
+//       }
+//     }
+
+//     // Start processing policies
+//     await processPoliciesSequentially();
+
+//     return 'done';
+//   } catch (err) {
+//     console.error('Error:', err);
+//     return 'error';
+//   }
+// }
 
 //allPaidPolicies()
 
+// async function updatePremiumArr() {
+//   try {
+//     let allPaidPolicies = await db.policies.findAll({
+//       where: {
+//         policy_status: 'paid',
+//         partner_id: 2,
 
+//       },
+//       include: [
+//         {
+//           model: db.users,
+//           as: 'user',
+//         },
+//       ],
+//     });
 
+//     async function processPolicy(policy) {
+//       const policy_start_date = policy.policy_start_date;
+//       const policy_end_date = policy.policy_end_date;
+//       policy.policy_start_date = policy_start_date;
+//       policy.policy_end_date = policy_end_date;
 
+//       const arr_member = await updatePremium(policy.user, policy);
+//       console.log('arr_member', arr_member);
+//     }
 
+//     async function processPoliciesSequentially() {
+//       for (const policy of allPaidPolicies) {
+//         await processPolicy(policy);
+//         // Wait for 2 seconds before processing the next policy
+//         await new Promise((resolve) => setTimeout(resolve, 2000));
+//       }
+//     }
 
+//     // Start processing policies
+//     await processPoliciesSequentially();
 
+//     return 'done';
+//   } catch (err) {
+//     console.error('Error:', err);
+//     return 'error';
+//   }
+// }
+
+// updatePremiumArr()
+
+// update number_of_policies in users table with the number of paid policies a user has
+db.users.findAll(
+  {
+    where: {
+       arr_member_number: {
+          [Op.ne]: null
+        },
+    }
+  }
+).then((user: any) => {
+  user.forEach((user: any) => {
+    db.policies.findAll({
+      where: {
+        user_id: user.user_id,
+        policy_status: 'paid'
+      }
+    }).then((policy: any) => {
+
+      db.users.update(
+        { number_of_policies: policy.length },
+        { where: { user_id: user.user_id } }
+      )
+    }).catch((err: any) => {
+      console.log(err)
+    })
+  })
+
+}
+).catch((err: any) => {
+  console.log(err)
+})
+
+// get all paid trnasactions and sum the amount paid
+
+db.transactions.findAll(
+  {
+    where: {
+      status: 'paid'
+    }
+  }
+).then((transaction: any) => {
+  let total = 0
+  transaction.forEach((transaction: any) => {
+    total += transaction.amount
+  })
+  console.log('TOTAL', total);
+
+}
+).catch((err: any) => {
+  console.log(err)
+})
 
 
 

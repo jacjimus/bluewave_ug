@@ -125,25 +125,6 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                 yield transactionData.update({
                     status: "paid",
                 });
-                let registerAARUser, updatePremiumData, updatedPolicy, installment;
-                const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-                if (memberStatus.code !== 200) {
-                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy);
-                    //console.log("AAR USER", registerAARUser);
-                    if (registerAARUser.code == 200 || memberStatus.code == 200) {
-                        user.arr_member_number = registerAARUser.member_no;
-                        yield user.save();
-                        updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
-                        // await createDependant(user.phone_number,policy.policy_id) 
-                        console.log("AAR UPDATE PREMIUM", updatePremiumData);
-                    }
-                }
-                if (memberStatus.code == 200) {
-                    console.log("MEMBER STATUS", memberStatus);
-                    policy.arr_policy_number = memberStatus === null || memberStatus === void 0 ? void 0 : memberStatus.policy_no;
-                    updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
-                    console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
-                }
                 const payment = yield Payment.create({
                     payment_amount: amount,
                     payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
@@ -155,6 +136,8 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     payment_metadata: req.body,
                     partner_id,
                 });
+                let registerAARUser, updatePremiumData, updatedPolicy, installment;
+                const memberStatus = yield (0, aar_1.fetchMemberStatusData)({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
                 // policy schedule
                 //find policy schedule with policy id 
                 //if not found create new policy schedule
@@ -267,6 +250,23 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
                 }
                 yield (0, sendSMS_1.default)(to, congratText);
+                if (memberStatus.code !== 200) {
+                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy);
+                    //console.log("AAR USER", registerAARUser);
+                    if (registerAARUser.code == 200 || memberStatus.code == 200) {
+                        user.arr_member_number = registerAARUser.member_no;
+                        yield user.save();
+                        updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
+                        // await createDependant(user.phone_number,policy.policy_id) 
+                        console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                    }
+                }
+                if (memberStatus.code == 200) {
+                    console.log("MEMBER STATUS", memberStatus);
+                    policy.arr_policy_number = memberStatus === null || memberStatus === void 0 ? void 0 : memberStatus.policy_no;
+                    updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
+                    console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
+                }
                 return res.status(200).json({
                     code: 200,
                     message: "Payment record created successfully"
