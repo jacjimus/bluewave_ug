@@ -334,40 +334,49 @@ exports.db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes);
 // }
 // updatePremiumArr()
 // update number_of_policies in users table with the number of paid policies a user has
-exports.db.users.findAll({
-    where: {
-        arr_member_number: {
-            [Op.ne]: null
-        },
-    }
-}).then((user) => {
-    user.forEach((user) => {
-        exports.db.policies.findAll({
-            where: {
-                user_id: user.user_id,
-                policy_status: 'paid'
-            }
-        }).then((policy) => {
-            exports.db.users.update({ number_of_policies: policy.length }, { where: { user_id: user.user_id } });
-        }).catch((err) => {
-            console.log(err);
-        });
-    });
-}).catch((err) => {
-    console.log(err);
-});
+// db.users.findAll(
+//   {
+//     where: {
+//        arr_member_number: {
+//           [Op.ne]: null
+//         },
+//     }
+//   }
+// ).then((user: any) => {
+//   user.forEach((user: any) => {
+//     db.policies.findAll({
+//       where: {
+//         user_id: user.user_id,
+//         policy_status: 'paid'
+//       }
+//     }).then((policy: any) => {
+//       db.users.update(
+//         { number_of_policies: policy.length },
+//         { where: { user_id: user.user_id } }
+//       )
+//     }).catch((err: any) => {
+//       console.log(err)
+//     })
+//   })
+// }
+// ).catch((err: any) => {
+//   console.log(err)
+// })
 // get all paid trnasactions and sum the amount paid
-exports.db.transactions.findAll({
-    where: {
-        status: 'paid'
-    }
-}).then((transaction) => {
-    let total = 0;
-    transaction.forEach((transaction) => {
-        total += transaction.amount;
-    });
-    console.log('TOTAL', total);
-}).catch((err) => {
-    console.log(err);
-});
+// db.transactions.findAll(
+//   {
+//     where: {
+//       status: 'paid'
+//     }
+//   }
+// ).then((transaction: any) => {
+//   let total = 0
+//   transaction.forEach((transaction: any) => {
+//     total += transaction.amount
+//   })
+//   console.log('TOTAL', total);
+// }
+// ).catch((err: any) => {
+//   console.log(err)
+// })
 module.exports = { db: exports.db };

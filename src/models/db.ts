@@ -408,56 +408,56 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 // updatePremiumArr()
 
 // update number_of_policies in users table with the number of paid policies a user has
-db.users.findAll(
-  {
-    where: {
-       arr_member_number: {
-          [Op.ne]: null
-        },
-    }
-  }
-).then((user: any) => {
-  user.forEach((user: any) => {
-    db.policies.findAll({
-      where: {
-        user_id: user.user_id,
-        policy_status: 'paid'
-      }
-    }).then((policy: any) => {
+// db.users.findAll(
+//   {
+//     where: {
+//        arr_member_number: {
+//           [Op.ne]: null
+//         },
+//     }
+//   }
+// ).then((user: any) => {
+//   user.forEach((user: any) => {
+//     db.policies.findAll({
+//       where: {
+//         user_id: user.user_id,
+//         policy_status: 'paid'
+//       }
+//     }).then((policy: any) => {
 
-      db.users.update(
-        { number_of_policies: policy.length },
-        { where: { user_id: user.user_id } }
-      )
-    }).catch((err: any) => {
-      console.log(err)
-    })
-  })
+//       db.users.update(
+//         { number_of_policies: policy.length },
+//         { where: { user_id: user.user_id } }
+//       )
+//     }).catch((err: any) => {
+//       console.log(err)
+//     })
+//   })
 
-}
-).catch((err: any) => {
-  console.log(err)
-})
+// }
+// ).catch((err: any) => {
+//   console.log(err)
+// })
 
 // get all paid trnasactions and sum the amount paid
 
-db.transactions.findAll(
-  {
-    where: {
-      status: 'paid'
-    }
-  }
-).then((transaction: any) => {
-  let total = 0
-  transaction.forEach((transaction: any) => {
-    total += transaction.amount
-  })
-  console.log('TOTAL', total);
+// db.transactions.findAll(
+//   {
+//     where: {
+//       status: 'paid'
+//     }
+//   }
+// ).then((transaction: any) => {
+//   let total = 0
+//   transaction.forEach((transaction: any) => {
+//     total += transaction.amount
+//   })
+//   console.log('TOTAL', total);
 
-}
-).catch((err: any) => {
-  console.log(err)
-})
+// }
+// ).catch((err: any) => {
+//   console.log(err)
+// })
 
 
 
