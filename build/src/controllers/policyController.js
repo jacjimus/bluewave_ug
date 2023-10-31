@@ -74,8 +74,9 @@ const PolicyIssuance_1 = __importDefault(require("../services/PolicyIssuance"));
     *         description: Invalid request
     */
 const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const filter = req.query.filter.trim().toLowerCase();
+        let filter = (_a = req.query) === null || _a === void 0 ? void 0 : _a.filter;
         const partner_id = req.query.partner_id;
         const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
         const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
@@ -102,6 +103,7 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             };
         }
         if (filter) {
+            filter = filter === null || filter === void 0 ? void 0 : filter.trim().toLowerCase();
             whereCondition[Op.or] = [
                 // { user_id: { [Op.iLike]: `%${filter}%` } },
                 // { policy_id : { [Op.iLike]: `%${filter}%` } },
@@ -149,14 +151,28 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 },
             });
             policy.dataValues.payment = payment;
-            // GET BENEFICIARIES OF EACH USER_ID
-            const beneficiary = yield Beneficiary.findAll({
+            // get installments of each policy 
+            const installments = yield db_1.db.installments.findAll({
                 where: {
-                    user_id: policy.user_id,
+                    policy_id: policy.policy_id,
                 },
             });
-            if (beneficiary) {
-                policy.dataValues.beneficiaries = beneficiary;
+            policy.dataValues.installments = installments;
+            // outstanding premium = total yearly premium - paid premium(sum of all installments paid)
+            const outstanding_premium = policy.yearly_premium - installments.reduce((a, b) => a + (b.premium || 0), 0);
+            policy.dataValues.outstanding_premium = outstanding_premium;
+            policy.dataValues.installment_total_number = installments.length + 1;
+            // check if the policy is overdue or not
+            const today = new Date();
+            const installment_date = new Date(policy.installment_date);
+            const overdue = today > installment_date;
+            policy.dataValues.overdue = overdue;
+            if (overdue) {
+                policy.dataValues.overdue_days = Math.floor((today.getTime() - installment_date.getTime()) / (1000 * 3600 * 24));
+                //update the policy status to overdue
+                // nect deduction date to next month plus the number of days the policy has been overdue
+                let policy_next_deduction_date = new Date(new Date().setFullYear(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1));
+                yield Policy.update({ policy_status: "overdue", policy_deduction_amount: policy.premium, policy_paid_amount: 0, policy_pending_premium: policy.premium, policy_next_deduction_date }, { where: { policy_id: policy.policy_id } });
             }
             return policy;
         })));

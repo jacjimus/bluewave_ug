@@ -27,7 +27,7 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
         },
         limit: 1,
     });
-    const paidPolicies = yield db.policies.findAll({
+    let paidPolicies = yield db.policies.findAll({
         where: {
             phone_number: smsPhone,
             policy_status: "paid"
@@ -52,23 +52,23 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                 break;
             case "2":
                 console.log("phoneNumber", smsPhone);
-                let unpaidPolicies = yield db.policies.findAll({
+                paidPolicies = yield db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
-                        policy_status: "pending"
+                        policy_status: "paid"
                     }
                 });
                 // last 6 unpaid policies
-                unpaidPolicies = unpaidPolicies.slice(-6);
-                if ((unpaidPolicies === null || unpaidPolicies === void 0 ? void 0 : unpaidPolicies.length) === 0) {
-                    response = "END You have no pending policies";
+                paidPolicies = paidPolicies.slice(-6);
+                if ((paidPolicies === null || paidPolicies === void 0 ? void 0 : paidPolicies.length) === 0) {
+                    response = "END You have no paid policies";
                 }
                 else {
                     // response = "CON PAY " +
                     //     `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
                     //     `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
                     // list all the pending policies
-                    response = "CON " + unpaidPolicies.map((policy, index) => {
+                    response = "CON " + paidPolicies.map((policy, index) => {
                         return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `;
                     }).join("");
                 }
@@ -128,10 +128,10 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                 break;
             case "2":
                 console.log("allSteps", allSteps, allSteps[2]);
-                let unpaidPolicies = yield db.policies.findAll({
+                paidPolicies = yield db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
-                        policy_status: "pending"
+                        policy_status: "paid"
                     }
                 });
                 // last 6 unpaid policies
@@ -141,8 +141,8 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                     },
                     limit: 1,
                 });
-                unpaidPolicies = unpaidPolicies.slice(-6);
-                let choosenPolicy = unpaidPolicies[allSteps[2] - 1];
+                paidPolicies = paidPolicies.slice(-6);
+                let choosenPolicy = paidPolicies[allSteps[2] - 1];
                 console.log("CHOOSEN POLICY", choosenPolicy);
                 yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, choosenPolicy.policy_id, phoneNumber.replace("+", "").substring(3), choosenPolicy.premium, existingUser.membership_id, "UG", "UGX");
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';

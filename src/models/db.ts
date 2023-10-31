@@ -315,95 +315,95 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
  // get all users with policy_status == "paid" in polices table and no arr_member_number and partner_id = 2
 
  
-//  async function allPaidPolicies() {
-//   try {
-//     let allPaidPolicies = await db.policies.findAll({
-//       where: {
-//         policy_status: 'paid',
-//         partner_id: 2,
-//         arr_policy_number: null,
-//       },
-//       include: [
-//         {
-//           model: db.users,
-//           as: 'user',
-//         },
-//       ],
-//     });
+ async function allPaidPolicies() {
+  try {
+    let allPaidPolicies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
+        arr_policy_number: null,
+      },
+      include: [
+        {
+          model: db.users,
+          as: 'user',
+        },
+      ],
+    });
 
-//     async function processPolicy(policy) {
-//       const policy_start_date = policy.policy_start_date;
-//       const policy_end_date = policy.policy_end_date;
-//       policy.policy_start_date = policy_start_date;
-//       policy.policy_end_date = policy_end_date;
+    async function processPolicy(policy) {
+      const policy_start_date = policy.policy_start_date;
+      const policy_end_date = policy.policy_end_date;
+      policy.policy_start_date = policy_start_date;
+      policy.policy_end_date = policy_end_date;
 
-//       const arr_member = await registerPrincipal(policy.user, policy);
-//       console.log('arr_member', arr_member);
-//     }
+      const arr_member = await registerPrincipal(policy.user, policy);
+      console.log('arr_member', arr_member);
+    }
 
-//     async function processPoliciesSequentially() {
-//       for (const policy of allPaidPolicies) {
-//         await processPolicy(policy);
-//         // Wait for 2 seconds before processing the next policy
-//         await new Promise((resolve) => setTimeout(resolve, 2000));
-//       }
-//     }
+    async function processPoliciesSequentially() {
+      for (const policy of allPaidPolicies) {
+        await processPolicy(policy);
+        // Wait for 2 seconds before processing the next policy
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
 
-//     // Start processing policies
-//     await processPoliciesSequentially();
+    // Start processing policies
+    await processPoliciesSequentially();
 
-//     return 'done';
-//   } catch (err) {
-//     console.error('Error:', err);
-//     return 'error';
-//   }
-// }
+    return 'done';
+  } catch (err) {
+    console.error('Error:', err);
+    return 'error';
+  }
+}
 
 //allPaidPolicies()
 
-// async function updatePremiumArr() {
-//   try {
-//     let allPaidPolicies = await db.policies.findAll({
-//       where: {
-//         policy_status: 'paid',
-//         partner_id: 2,
+async function updatePremiumArr() {
+  try {
+    let allPaidPolicies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
 
-//       },
-//       include: [
-//         {
-//           model: db.users,
-//           as: 'user',
-//         },
-//       ],
-//     });
+      },
+      include: [
+        {
+          model: db.users,
+          as: 'user',
+        },
+      ],
+    });
 
-//     async function processPolicy(policy) {
-//       const policy_start_date = policy.policy_start_date;
-//       const policy_end_date = policy.policy_end_date;
-//       policy.policy_start_date = policy_start_date;
-//       policy.policy_end_date = policy_end_date;
+    async function processPolicy(policy) {
+      const policy_start_date = policy.policy_start_date;
+      const policy_end_date = policy.policy_end_date;
+      policy.policy_start_date = policy_start_date;
+      policy.policy_end_date = policy_end_date;
 
-//       const arr_member = await updatePremium(policy.user, policy);
-//       console.log('arr_member', arr_member);
-//     }
+      const arr_member = await updatePremium(policy.user, policy);
+      console.log('arr_member', arr_member);
+    }
 
-//     async function processPoliciesSequentially() {
-//       for (const policy of allPaidPolicies) {
-//         await processPolicy(policy);
-//         // Wait for 2 seconds before processing the next policy
-//         await new Promise((resolve) => setTimeout(resolve, 2000));
-//       }
-//     }
+    async function processPoliciesSequentially() {
+      for (const policy of allPaidPolicies) {
+        await processPolicy(policy);
+        // Wait for 2 seconds before processing the next policy
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
 
-//     // Start processing policies
-//     await processPoliciesSequentially();
+    // Start processing policies
+    await processPoliciesSequentially();
 
-//     return 'done';
-//   } catch (err) {
-//     console.error('Error:', err);
-//     return 'error';
-//   }
-// }
+    return 'done';
+  } catch (err) {
+    console.error('Error:', err);
+    return 'error';
+  }
+}
 
 // updatePremiumArr()
 
@@ -451,6 +451,38 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 //   let total = 0
 //   transaction.forEach((transaction: any) => {
 //     total += transaction.amount
+//   })
+//   console.log('TOTAL', total);
+
+// }
+// ).catch((err: any) => {
+//   console.log(err)
+// })
+
+
+// get all paid installments  per unique policy_id and sum the amount paid
+// db.policies.findAll(
+//   {
+//     where: {
+//       policy_status: 'paid'
+//     }
+//   }
+// ).then((policy: any) => {
+//   let total = 0
+//   policy.forEach((policy: any) => {
+//     db.installments.findAll({
+//       where: {
+//         policy_id: policy.policy_id,
+//       }
+//     }).then((installment: any) => {
+//       installment.forEach((installment: any) => {
+//         total += installment.premium
+//   console.log('TOTAL', total);
+
+//       })
+//     }).catch((err: any) => {
+//       console.log(err)
+//     })
 //   })
 //   console.log('TOTAL', total);
 

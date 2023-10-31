@@ -127,6 +127,7 @@ const selfMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () {
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type: installment_type == 1 ? 2 : 1,
+                installment_order: installment_type == 1 ? 0 : 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: ultimatePremium.premium,

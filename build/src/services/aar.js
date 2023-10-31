@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePremium = exports.fetchMemberStatusData = exports.updateMember = exports.renewMember = exports.registerDependant = exports.registerPrincipal = void 0;
 const axios_1 = __importDefault(require("axios"));
 const db_1 = require("../models/db");
-const utils_1 = require("./utils");
 //const User = db.users;
 function randomDateOfBirth() {
     const start = new Date(1950, 0, 1);
@@ -52,7 +51,7 @@ function registerPrincipal(user, policy) {
             first_name: user.first_name,
             other_names: "",
             gender: 1,
-            dob: randomDateOfBirth(),
+            dob: "1900-01-01",
             pri_dep: "24",
             family_title: "3",
             tel_no: `256${user.phone_number}`,
@@ -107,9 +106,9 @@ function updatePremium(user, policy) {
                     payment_status: "paid"
                 }
             });
-            let proratedPercentage = (0, utils_1.calculateProrationPercentage)(payments.length);
-            const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / proratedPercentage;
-            const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / proratedPercentage;
+            //let proratedPercentage = calculateProrationPercentage(payments.length)
+            const main_benefit_limit = policy.sum_insured;
+            const last_expense_limit = policy.last_expense_insured;
             let premium_installment = payments.length + 1;
             let ultimatePremium = policy.premium;
             if (policy.beneficiary == "FAMILY" || policy.beneficiary == "OTHER") {

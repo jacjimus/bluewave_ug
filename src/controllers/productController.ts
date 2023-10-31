@@ -72,10 +72,11 @@ const getProducts = async (req: any, res: any) => {
     result: {},
   };
   try {
-    let filter = req?.query?.filter?.trim().toLowerCase() || "";
+    let filter = req?.query?.filter
     let product: any;
 
     if (!filter || filter == "") {
+      filter = filter?.trim().toLowerCase(); 
       product = await Product.findAll({
         order: [["createdAt", "DESC"]],
       });

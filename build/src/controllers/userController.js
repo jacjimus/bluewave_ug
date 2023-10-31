@@ -404,8 +404,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
  *         description: Successful response
  */
 const findAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const partner_id = req.query.partner_id;
-    const filter = req.query.filter.trim().toLowerCase();
+    let filter = (_a = req.query) === null || _a === void 0 ? void 0 : _a.filter;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const start_date = req.query.start_date;
@@ -424,6 +425,7 @@ const findAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             };
         }
         if (filter) {
+            filter = filter === null || filter === void 0 ? void 0 : filter.trim().toLowerCase();
             // Add global filtering for user properties (modify this as needed)
             whereCondition = Object.assign(Object.assign({}, whereCondition), { [Op.or]: [
                     { name: { [Op.like]: `%${filter}%` } },

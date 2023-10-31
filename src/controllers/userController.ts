@@ -505,7 +505,7 @@ const login = async (req: any, res: any) => {
  */
 const findAllUsers = async (req, res) => {
   const partner_id = req.query.partner_id;
-  const filter = req.query.filter.trim().toLowerCase();
+  let filter = req.query?.filter
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const start_date = req.query.start_date;
@@ -530,6 +530,7 @@ const findAllUsers = async (req, res) => {
     }
 
     if (filter) {
+      filter = filter?.trim().toLowerCase(); 
       // Add global filtering for user properties (modify this as needed)
       whereCondition = {
         ...whereCondition,

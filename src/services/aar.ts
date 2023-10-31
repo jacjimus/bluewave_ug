@@ -95,7 +95,7 @@ async function registerPrincipal(user: any, policy: any) {
     first_name: user.first_name,
     other_names:  "",
     gender: 1,
-    dob: randomDateOfBirth(),//user.date_of_birth,
+    dob: "1900-01-01",
     pri_dep: "24",
     family_title: "3",
     tel_no: `256${user.phone_number}`,
@@ -168,11 +168,11 @@ async function updatePremium(user: any, policy: any) {
         payment_status: "paid"
       }
     });
-    let proratedPercentage = calculateProrationPercentage(payments.length)
+    //let proratedPercentage = calculateProrationPercentage(payments.length)
   
 
-    const main_benefit_limit = policy.installment_type == 1 ? policy.sum_insured : policy.sum_insured / proratedPercentage
-    const last_expense_limit = policy.installment_type == 1 ? policy.last_expense_insured : policy.last_expense_insured / proratedPercentage
+    const main_benefit_limit =  policy.sum_insured 
+    const last_expense_limit =  policy.last_expense_insured 
    
 
     let premium_installment = payments.length + 1;

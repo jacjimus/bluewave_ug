@@ -203,7 +203,7 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     }
                 }
                 console.log("Payment record created successfully");
-                if (policy.installment_order > 0 && policy.installment_order < 12 && policy.installment_type == 2) {
+                if (policy.installment_order >= 1 && policy.installment_order < 12 && policy.installment_type == 2 && policy.policy_status == "paid") {
                     console.log("INSTALLMENT ORDER", policy.installment_order, policy.installment_type);
                     const date = new Date();
                     const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);

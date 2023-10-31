@@ -19,7 +19,7 @@ const accountMenu = async (args: any, db: any) => {
         limit: 1,
     });
 
-    const paidPolicies = await db.policies.findAll({
+    let paidPolicies = await db.policies.findAll({
         where: {
             phone_number: smsPhone,
             policy_status: "paid"
@@ -50,16 +50,16 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "2":
                 console.log("phoneNumber", smsPhone);
-                let unpaidPolicies = await db.policies.findAll({
+                 paidPolicies = await db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
-                        policy_status: "pending"
+                        policy_status: "paid"
                     }
                 });
                 // last 6 unpaid policies
-                unpaidPolicies = unpaidPolicies.slice(-6);
-                if (unpaidPolicies?.length === 0) {
-                    response = "END You have no pending policies"
+                paidPolicies = paidPolicies.slice(-6);
+                if (paidPolicies?.length === 0) {
+                    response = "END You have no paid policies"
                 }
                 else {
                     // response = "CON PAY " +
@@ -68,7 +68,7 @@ const accountMenu = async (args: any, db: any) => {
 
 
                     // list all the pending policies
-                    response = "CON " + unpaidPolicies.map((policy: any, index: number) => {
+                    response = "CON " + paidPolicies.map((policy: any, index: number) => {
                         return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
                     }
                     ).join("");
@@ -146,10 +146,10 @@ const accountMenu = async (args: any, db: any) => {
             case "2":
                 console.log("allSteps", allSteps, allSteps[2]);
 
-                let unpaidPolicies = await db.policies.findAll({
+                 paidPolicies = await db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
-                        policy_status: "pending"
+                        policy_status: "paid"
                     }
                 });
                 // last 6 unpaid policies
@@ -160,9 +160,9 @@ const accountMenu = async (args: any, db: any) => {
                     limit: 1,
                 });
 
-                unpaidPolicies = unpaidPolicies.slice(-6);
+                paidPolicies = paidPolicies.slice(-6);
 
-                let choosenPolicy = unpaidPolicies[allSteps[2] - 1];
+                let choosenPolicy = paidPolicies[allSteps[2] - 1];
                 console.log("CHOOSEN POLICY", choosenPolicy)
                 await airtelMoney(
                     existingUser.user_id,

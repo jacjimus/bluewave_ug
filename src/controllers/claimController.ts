@@ -69,7 +69,7 @@ const getClaims = async (req: any, res: any) => {
     const partner_id = req.query.partner_id;
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
-    const filter = req.query.filter.trim().toLowerCase(); // Search term as string, e.g., "john"
+    let filter = req.query.filter // Search term as string, e.g., "john"
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
@@ -95,6 +95,7 @@ const getClaims = async (req: any, res: any) => {
 
         // Check if a filter is provided to include additional search criteria
         if (filter) {
+            filter = filter?.trim().toLowerCase(); 
             // Convert the filter to lowercase for case-insensitive search
             const search = filter.toLowerCase();
 

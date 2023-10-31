@@ -670,6 +670,7 @@ const familyMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* () 
             let policyObject = {
                 policy_id: (0, uuid_1.v4)(),
                 installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
+                installment_order: parseInt(allSteps[5]) == 1 ? 0 : 1,
                 policy_type: selectedPackage.code_name,
                 policy_deduction_amount: ultimatePremium,
                 policy_pending_premium: ultimatePremium,
