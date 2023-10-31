@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
-import { all } from "axios";
+
 
 const accountMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
