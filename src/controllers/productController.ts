@@ -194,10 +194,11 @@ const getProduct = async (req: any, res: any) => {
 
   }
   try {
-    const product_id = parseInt(req.params.product_id)
+    const product_id = req.params.product_id
+
     const product = await Product.findOne({
       where: {
-        id: product_id
+        product_id: product_id
       }
     })
     if (!product || product.length === 0) {

@@ -173,10 +173,10 @@ const getProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         result: {},
     };
     try {
-        const product_id = parseInt(req.params.product_id);
+        const product_id = req.params.product_id;
         const product = yield Product.findOne({
             where: {
-                id: product_id
+                product_id: product_id
             }
         });
         if (!product || product.length === 0) {
