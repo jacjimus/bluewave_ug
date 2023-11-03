@@ -163,17 +163,17 @@ const getPolicies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             policy.dataValues.outstanding_premium = outstanding_premium;
             policy.dataValues.installment_total_number = installments.length + 1;
             // check if the policy is overdue or not
-            const today = new Date();
-            const installment_date = new Date(policy.installment_date);
-            const overdue = today > installment_date;
-            policy.dataValues.overdue = overdue;
-            if (overdue) {
-                policy.dataValues.overdue_days = Math.floor((today.getTime() - installment_date.getTime()) / (1000 * 3600 * 24));
-                //update the policy status to overdue
-                // nect deduction date to next month plus the number of days the policy has been overdue
-                let policy_next_deduction_date = new Date(new Date().setFullYear(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1));
-                yield Policy.update({ policy_status: "overdue", policy_deduction_amount: policy.premium, policy_paid_amount: 0, policy_pending_premium: policy.premium, policy_next_deduction_date }, { where: { policy_id: policy.policy_id } });
-            }
+            // const today = new Date();
+            // const installment_date = new Date(policy.installment_date);
+            // const overdue = today > installment_date;
+            // policy.dataValues.overdue = overdue;
+            // if (overdue) {
+            //   policy.dataValues.overdue_days = Math.floor((today.getTime() - installment_date.getTime()) / (1000 * 3600 * 24));
+            //   //update the policy status to overdue
+            //   // nect deduction date to next month plus the number of days the policy has been overdue
+            //   let policy_next_deduction_date = new Date(new Date().setFullYear(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1));
+            //   await Policy.update({ policy_status: "overdue", policy_deduction_amount: policy.premium, policy_paid_amount:0, policy_pending_premium: policy.premium, policy_next_deduction_date }, { where: { policy_id: policy.policy_id } });
+            // }
             return policy;
         })));
         return res.status(200).json({
