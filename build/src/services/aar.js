@@ -46,9 +46,10 @@ function arr_uganda_login() {
 }
 function registerPrincipal(user, policy) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(user.first_name);
         const userData = {
-            surname: user.last_name,
-            first_name: user.first_name,
+            surname: user.last_name || `256${user.phone_number}`,
+            first_name: user.first_name || `256${user.phone_number}`,
             other_names: "",
             gender: 1,
             dob: "1900-01-01",
@@ -63,7 +64,7 @@ function registerPrincipal(user, policy) {
                 tel_no: user.phone_number,
             },
             member_status: "1",
-            health_option: "64",
+            health_option: "63",
             health_plan: "AIRTEL_" + policy.policy_type,
             corp_id: "758",
             policy_start_date: policy.policy_start_date,

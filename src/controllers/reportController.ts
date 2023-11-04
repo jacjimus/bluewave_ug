@@ -1324,7 +1324,7 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
         FROM
           policies 
         WHERE
-          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') AND partner_id = :partner_id
+          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day')   AND policy_status = 'paid' AND partner_id = :partner_id
         GROUP BY
           EXTRACT(MONTH FROM policy_paid_date),
           EXTRACT(DAY FROM policy_paid_date),
@@ -1449,6 +1449,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
         WHERE
           policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') 
           AND EXTRACT(MONTH FROM policy_paid_date) = :filterMonth -- Apply the month filter
+          AND policy_status = 'paid'
           AND partner_id = :partner_id
         GROUP BY
           EXTRACT(MONTH FROM policy_paid_date),
