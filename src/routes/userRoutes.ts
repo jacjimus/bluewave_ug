@@ -60,16 +60,6 @@ router.delete('/:user_id', userController.deleteUser)
 
 
 
-// Method	Endpoint	            Description
-// POST	/api/v1/users/signup	Create a new user
-// GET 	/api/v1/users/:id	    Get user by ID
-// GET	    /api/v1/users	        Get all users
-// GET     /api/v1/users/login     Login user
-// PUT	    /api/v1/users/:id	    Update user by ID
-// DELETE	/api/v1/users/:id	    Delete user by ID
-
-
-
 
 
 

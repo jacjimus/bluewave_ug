@@ -1,6 +1,5 @@
 import express from "express";
 import ussdUgaMenuBuilder from "../menu-builder";
-import ussdKenMenuBuilder from "../menu-ken-builder";
 import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
@@ -35,10 +34,6 @@ router.post("/uga", async (req: any, res: any) => {
 router.post("/uat/uga", async (req: any, res: any) => {
 
   await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
-});
-
-router.post("/ken", async (req: any, res: any) => {
-  await handleUSSDRequest(req, res, ussdKenMenuBuilder);
 });
 
 const findTransactionById = async (transactionId) => {

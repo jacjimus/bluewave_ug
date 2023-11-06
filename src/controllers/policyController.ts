@@ -12,8 +12,7 @@ const { Op, Sequelize, } = require("sequelize");
 import { globalSearch } from "../services/utils";
 
 
-import PolicyIssuance from "../services/PolicyIssuance";
-import { BeneficiaryModel } from "../menu-ken-builder/models";
+
 
 interface Policy {
   user_id: number,
@@ -514,181 +513,6 @@ const createPolicy = async (req: any, res: any) => {
 
 
 
-/**
-  * @swagger
-  * /api/v1/policies/policyIssuance:
-  *   post:
-  *     tags:
-  *       - Policies
-  *     description: policyIssuance
-  *     operationId: PolicyIssuance
-  *     summary: policyIssuance
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: product_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: string
-  *       - name: partner_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: number
-  *       - name: user_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: string
-  *       - name: policy_id
-  *         in: query
-  *         required: true
-  *         schema:
-  *           type: string
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             example: { "ClientCreation":{ "Title":"Master", "First_Nm":"Member1", "Middle_Nm":"Member1m", "Last_Nm":"Member1l","Dob":"2023-05-25T00:00:00","Gender":"M","Pin_Zip":null,"idNo":null,"Marital_Status":"Remarried","Nationality":null,"Email1":"Radhe@gmm.com","Contact_Mobile_No":"4444444444","Remarks":null,"Address_Line1":null},"PolicyCreationRequest":{"Quotation_No":"Q20230522100007-00", "Intermediary_Cd":"AGT0000308","Source_System_Nm":"Member Portal", "Employee_No":"", "Quotation_Dt":"2023-05-22T02:30:00+08:00","IsPayment":"0","Policy_Tenure":"365","FamilyType_Cd":"","Cal_Type":"PerPerson","Business_Type":"New","Subsidiary_Cd":""},"MemObj":{"Member":[ {"Insured_Cd":"1","Title":"Master","First_Nm":"Member1","Middle_Nm":"Member1m","Last_Nm":"Member1l","Gender":"M","Dob":"2023-05-25T00:00:00","Relation_Cd":"R001","MaritalStatus":"Remarried","Height":"179","Weight":"70","MemberproductComponents":[{"Product_Cd":"IFM1","Scheme_Cd":"IFM1000001","MemberQuestionDetails":[],"CoversDetails":[{ "Cover_Cd":"1100001", "Sum_Insured":"40000000.0","installment_Order":1, "installment_type":1,installment_Date":"2023-05-22T02:30:00+08:00","installment_Alert_Date":"2023-05-22T02:30:00+08:00","tax_Rate_Vat":0.20,"tax_Rate_Ext":0.25, "premium":0.0, "excess_Premium":0.0,"discount_Premium":0.0,"tax_Amt_Vat":0.000,"tax_Amt_Ext":0.0000,"total_Amt":0.0},{ "Cover_Cd":"1100002", "Sum_Insured":"250000.0", "installment_Order":1, "installment_type":1,installment_Date":"2023-05-22T02:30:00+08:00", "installment_Alert_Date":"2023-05-22T02:30:00+08:00", "tax_Rate_Vat":0.20, "tax_Rate_Ext":0.25, "premium":47418.00,"excess_Premium":0.0, "discount_Premium":0.0, "tax_Amt_Vat":94.8360,"tax_Amt_Ext":118.5450,"total_Amt":47418.00     } ]}]}]},"ReceiptObj":{"Branch_Cd":null,"Receipt_Type":null,"Mode_Of_Entry":null,"Payer_Type":null,"Payer_Cd":null,"Payer_Nm":null,"Collection_Rcvd_Dt":null,"Base_Currency_Cd":null,"Receipt_Amt":0.0,"Instrument_Type":null,"Instrument_No":null,"Instrument_Dt":"0001-01-01T00:00:00"}}
-  *     responses:
-  *       200:
-  *         description: Information fetched succussfuly
-  *       400:
-  *         description: Invalid request
-  */
-const policyIssuance = async (req: any, res: any) => {
-  try {
-    const { ReceiptObj } = req.body;
-
-    const { user_id, policy_id, partner_id, product_id } = req.query;
-
-    //get user details
-    let user = await User.findOne({ where: { user_id: user_id } });
-
-    //get policy details
-    let policy = await Policy.findOne({ where: { policy_id: policy_id } });
-
-    //use it to create client and policy request
-
-    let ClientCreation = {
-      Title: user.title,
-      First_Nm: user.first_name,
-      Middle_Nm: user.middle_name,
-      Last_Nm: user.last_name,
-      Dob: user.dob,
-      Gender: user.gender,
-      Pin_Zip: user.pin_zip,
-      idNo: user.national_id,
-      Marital_Status: user.marital_status,
-      Nationality: user.nationality,
-      Email1: user.email,
-      Contact_Mobile_No: user.phone_number,
-      Remarks: user.remarks || null,
-      Address_Line1: user.address_line
-    }
-
-    let PolicyCreationRequest = {
-      Quotation_No: policy.quotation_no,
-      Intermediary_Cd: policy.intermediary_cd,
-      Source_System_Nm: policy.source_system_nm,
-      Employee_No: policy.employee_no,
-      Quotation_Dt: policy.quotation_dt,
-      IsPayment: policy.is_payment,
-      Policy_Tenure: policy.policy_tenure,
-      FamilyType_Cd: policy.familytype_cd,
-      Cal_Type: policy.cal_type,
-      Business_Type: policy.business_type,
-      Subsidiary_Cd: policy.subsidiary_cd
-    }
-
-    let MemObj = {
-      Member: [
-        {
-          Insured_Cd: '1',
-          Title: 'Master',
-          First_Nm: 'Member1',
-          Middle_Nm: 'Member1m',
-          Last_Nm: 'Member1l',
-          Gender: 'M',
-          Dob: '2023-05-25T00:00:00',
-          Relation_Cd: 'R001',
-          MaritalStatus: 'Remarried',
-          Height: '179',
-          Weight: '70',
-          MemberproductComponents: [
-            {
-              Product_Cd: 'IFM1',
-              Scheme_Cd: 'IFM1000001',
-              MemberQuestionDetails: [],
-              CoversDetails: [
-                {
-                  Cover_Cd: '1100001',
-                  Sum_Insured: '40000000.0',
-                  installment_Order: 1,
-
-                  installment_Date: '2023-05-22T02:30:00+08:00',
-                  installment_Alert_Date: '2023-05-22T02:30:00+08:00',
-                  tax_Rate_Vat: 0.2,
-                  tax_Rate_Ext: 0.25,
-                  premium: 0,
-                  excess_Premium: 0,
-                  discount_Premium: 0,
-                  tax_Amt_Vat: 0,
-                  tax_Amt_Ext: 0,
-                  total_Amt: 0
-                },
-                {
-                  Cover_Cd: '1100002',
-                  Sum_Insured: '250000.0',
-                  installment_Order: 1,
-                  installment_Date: '2023-05-22T02:30:00+08:00',
-                  installment_Alert_Date: '2023-05-22T02:30:00+08:00',
-                  tax_Rate_Vat: 0.2,
-                  tax_Rate_Ext: 0.25,
-                  premium: 47418,
-                  excess_Premium: 0,
-                  discount_Premium: 0,
-                  tax_Amt_Vat: 94.836,
-                  tax_Amt_Ext: 118.545,
-                  total_Amt: 47418
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-
-
-    const policyIssuance = await PolicyIssuance(ClientCreation, PolicyCreationRequest, MemObj, ReceiptObj);
-
-    if (policyIssuance) {
-      await Log.create({
-        log_id: uuidv4(),
-        timestamp: new Date(),
-        message: `User ${req?.user_id} issued policy ${policy_id}`,
-        level: 'info',
-        user: req?.user_id,
-        partner_id: req?.partner_id,
-      });
-      return res.status(200).json({
-        result: {
-          success: true,
-          message: 'Policy Issuance',
-          item: policyIssuance
-        }
-      });
-    }
-
-  } catch (error) {
-    console.log("ERROR ON POLICY ISSURANC", error)
-    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
-  }
-};
-
-
 
 
 /**
@@ -873,7 +697,6 @@ module.exports = {
   createPolicy,
   updatePolicy,
   deletePolicy,
-  policyIssuance
 
 }
 

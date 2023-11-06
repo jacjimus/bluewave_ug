@@ -148,13 +148,6 @@ const formatAmount = (number) => {
     return formattedNumber + "M";
 };
 exports.formatAmount = formatAmount;
-//   const proration_benefit_table = {
-//     '1-3months': 10,
-//     '4-6months': 40,
-//     '7-9months': 60,
-//     '10-11months': 80,
-//     '12months': 100
-// };
 const calculateProrationPercentage = (installments) => {
     if (installments >= 1 && installments <= 3) {
         return 10;

@@ -9,7 +9,6 @@ const reportRoutes = require("./src/routes/reportRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const generalRoutes = require("./src/routes/generalRoutes");
 const logRoutes = require("./src/routes/logRoutes");
-const loggingMiddleware = require("./src/middleware/loggingMiddleware");
 import * as dotenv from "dotenv";
 dotenv.config();
 const fs = require("fs");
@@ -20,7 +19,6 @@ const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
 //const session = require('express-session');
 const compression = require('compression'); 
-const Agenda = require('agenda');
 
 
 const app: express.Application = express();

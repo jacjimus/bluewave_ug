@@ -2,20 +2,6 @@ import { RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-menu-builder";
-import sendSMS from "../services/sendSMS";
-import { v4 as uuidv4 } from "uuid";
-import bcrypt from "bcrypt";
-import { generateClaimId } from "../services/utils";
-import { registerDependant, fetchMemberStatusData } from "../services/aar";
-
-import { myAccount } from "./menus/myAccount";
-import { displayFaqsMenu } from "./menus/faqs";
-import { buyForSelf } from "./menus/buyForSelf";
-import { buyForFamily } from "./menus/buyForFamily";
-import { getAirtelUser, getUserByPhoneNumber } from "../services/getAirtelUser";
-import { airtelMoney } from "../services/payment";
-import { db } from "../models/db";
-import { buyForOthers } from "./menus/buyForOthers";
 import selfMenu from "./menus/selfMenu";
 import familyMenu from "./menus/familyMenu";
 import faqsMenu from "./menus/faqsMenu";
@@ -24,19 +10,9 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
-import { all } from "axios";
+
 
 require("dotenv").config();
-
-const Session = db.sessions;
-const User = db.users;
-const Policy = db.policies;
-const Beneficiary = db.beneficiaries;
-const Hospital = db.hospitals;
-const Claim = db.claims;
-const UserHospital = db.user_hospitals;
-
-
 
 
 let sessions = {};
@@ -91,16 +67,16 @@ export default function (args: RequestBody, db: any) {
         text = "";
       }
 
-      const handleBack = (arr:any) => {
+      const handleBack = (arr: any) => {
         let index = arr.indexOf("0");
         if (index > -1) {
-        
+
           console.log("index", index);
           console.log("allSteps", allSteps);
 
-          allSteps.splice(index - 1, 2) 
+          allSteps.splice(index - 1, 2)
           text = allSteps.join("*");
-        
+
           return handleBack(allSteps);
         }
         // find the last index of '00' and return the array from that index
@@ -120,8 +96,6 @@ export default function (args: RequestBody, db: any) {
 
       console.log("allStepsAfter", allSteps);
 
-
-
       const params = {
         phoneNumber,
         text,
@@ -131,7 +105,6 @@ export default function (args: RequestBody, db: any) {
         userText,
         allSteps,
       };
-
 
 
       if (text == "") {
@@ -173,7 +146,6 @@ export default function (args: RequestBody, db: any) {
       }
 
       resolve(response);
-
 
       return;
     } catch (e) {
