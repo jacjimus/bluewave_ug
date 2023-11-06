@@ -5,7 +5,7 @@ import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
-import { registerPrincipal, updatePremium, fetchMemberStatusData } from "../services/aar"
+import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aar"
 import { formatAmount } from "../services/utils";
 
 const Transaction = db.transactions;
@@ -80,6 +80,12 @@ const updateUserPolicyStatus = async (policy, amount, installment_order, install
   policy.airtel_transaction_id = airtel_money_id
 
   console.log("UPDATE STATUS WAS CALLED", policy)
+
+  if(policy.renewal_status == "pending"){
+    policy.renewal_status = "renewed";
+    policy.renewal_date = new Date();
+    policy.renewal_order = parseInt(policy.renewal_order) + 1;
+  }
   await policy.save();
 
   return policy;
@@ -303,26 +309,8 @@ router.all("/callback", async (req, res) => {
 
         await sendSMS(to, congratText);
 
-
-        if (memberStatus.code !== 200) {
-          registerAARUser = await registerPrincipal(user, policy);
-          //console.log("AAR USER", registerAARUser);
-          if (registerAARUser.code == 200 || memberStatus.code == 200) {
-            user.arr_member_number = registerAARUser.member_no;
-            await user.save();
-            updatePremiumData = await updatePremium(user, policy);
-               // await createDependant(user.phone_number,policy.policy_id) 
-
-            console.log("AAR UPDATE PREMIUM", updatePremiumData);
-          }
-
-        }
-        if (memberStatus.code == 200) {
-          console.log("MEMBER STATUS", memberStatus);
-          policy.arr_policy_number = memberStatus?.policy_no;
-          updatePremiumData = await updatePremium(user, policy);
-          console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
-        }
+         // Call the function with the relevant user, policy, and memberStatus
+      await processPolicy(user, policy, memberStatus);
 
         return res.status(200).json({
           code: 200,
@@ -351,6 +339,38 @@ router.all("/callback", async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
+
+
+async function processPolicy(user: any, policy: any, memberStatus: any) {
+  // Determine the number of dependants
+  const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+  console.log("Number of dependants:", number_of_dependants);
+
+  if (memberStatus.code === 200) {
+    // If the member status is 200, proceed with processing the policy
+    console.log("MEMBER STATUS:", memberStatus);
+    policy.arr_policy_number = memberStatus?.policy_no;
+  } else {
+    // If the member status is not 200, register the AAR user
+    const registerAARUser = await registerPrincipal(user, policy);
+    
+    if (registerAARUser.code === 200) {
+      // If the AAR user registration is successful
+      user.arr_member_number = registerAARUser.member_no;
+      await user.save();
+    }
+
+    if (number_of_dependants > 0) {
+      // If there are dependants, create them
+      await createDependant(user, policy);
+    } else {
+      // If there are no dependants, update the premium
+      const updatePremiumData = await updatePremium(user, policy);
+      console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
+    }
+  }
+}
+
 
 
 module.exports = router;

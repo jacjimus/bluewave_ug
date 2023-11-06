@@ -143,6 +143,14 @@ const accountMenu = (args, db) => __awaiter(void 0, void 0, void 0, function* ()
                 });
                 paidPolicies = paidPolicies.slice(-6);
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
+                yield db.policies.update({
+                    renewal_status: "pending",
+                    user_id: existingUser.user_id
+                }, {
+                    where: {
+                        policy_id: choosenPolicy.policy_id
+                    }
+                });
                 console.log("CHOOSEN POLICY", choosenPolicy);
                 yield (0, payment_1.airtelMoney)(existingUser.user_id, 2, choosenPolicy.policy_id, phoneNumber.replace("+", "").substring(3), choosenPolicy.premium, existingUser.membership_id, "UG", "UGX");
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';

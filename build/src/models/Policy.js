@@ -177,6 +177,22 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        renewal_date: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        renewal_order: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+        renewal_status: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        dependant_member_numbers: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true
+        },
     }, { timestamps: true });
     Policy.belongsTo(User, {
         as: "user",

@@ -163,6 +163,14 @@ const accountMenu = async (args: any, db: any) => {
                 paidPolicies = paidPolicies.slice(-6);
 
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
+                await db.policies.update({
+                    renewal_status: "pending",
+                    user_id: existingUser.user_id
+                }, {
+                    where: {
+                        policy_id: choosenPolicy.policy_id
+                    }
+                });
                 console.log("CHOOSEN POLICY", choosenPolicy)
                 await airtelMoney(
                     existingUser.user_id,

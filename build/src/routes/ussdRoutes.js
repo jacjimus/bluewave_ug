@@ -76,6 +76,11 @@ const updateUserPolicyStatus = (policy, amount, installment_order, installment_t
     policy.bluewave_transaction_id = payment.payment_id;
     policy.airtel_transaction_id = airtel_money_id;
     console.log("UPDATE STATUS WAS CALLED", policy);
+    if (policy.renewal_status == "pending") {
+        policy.renewal_status = "renewed";
+        policy.renewal_date = new Date();
+        policy.renewal_order = parseInt(policy.renewal_order) + 1;
+    }
     yield policy.save();
     return policy;
 });
@@ -250,23 +255,8 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
                     congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
                 }
                 yield (0, sendSMS_1.default)(to, congratText);
-                if (memberStatus.code !== 200) {
-                    registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy);
-                    //console.log("AAR USER", registerAARUser);
-                    if (registerAARUser.code == 200 || memberStatus.code == 200) {
-                        user.arr_member_number = registerAARUser.member_no;
-                        yield user.save();
-                        updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
-                        // await createDependant(user.phone_number,policy.policy_id) 
-                        console.log("AAR UPDATE PREMIUM", updatePremiumData);
-                    }
-                }
-                if (memberStatus.code == 200) {
-                    console.log("MEMBER STATUS", memberStatus);
-                    policy.arr_policy_number = memberStatus === null || memberStatus === void 0 ? void 0 : memberStatus.policy_no;
-                    updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
-                    console.log("AAR UPDATE PREMIUM -member found", updatePremiumData);
-                }
+                // Call the function with the relevant user, policy, and memberStatus
+                yield processPolicy(user, policy, memberStatus);
                 return res.status(200).json({
                     code: 200,
                     message: "Payment record created successfully"
@@ -296,4 +286,34 @@ router.all("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 }));
+function processPolicy(user, policy, memberStatus) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Determine the number of dependants
+        const number_of_dependants = parseFloat(policy === null || policy === void 0 ? void 0 : policy.total_member_number.split("")[2]) || 0;
+        console.log("Number of dependants:", number_of_dependants);
+        if (memberStatus.code === 200) {
+            // If the member status is 200, proceed with processing the policy
+            console.log("MEMBER STATUS:", memberStatus);
+            policy.arr_policy_number = memberStatus === null || memberStatus === void 0 ? void 0 : memberStatus.policy_no;
+        }
+        else {
+            // If the member status is not 200, register the AAR user
+            const registerAARUser = yield (0, aar_1.registerPrincipal)(user, policy);
+            if (registerAARUser.code === 200) {
+                // If the AAR user registration is successful
+                user.arr_member_number = registerAARUser.member_no;
+                yield user.save();
+            }
+            if (number_of_dependants > 0) {
+                // If there are dependants, create them
+                yield (0, aar_1.createDependant)(user, policy);
+            }
+            else {
+                // If there are no dependants, update the premium
+                const updatePremiumData = yield (0, aar_1.updatePremium)(user, policy);
+                console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
+            }
+        }
+    });
+}
 module.exports = router;
