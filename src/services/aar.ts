@@ -218,9 +218,9 @@ async function createDependant( existingUser: any, myPolicy: any) {
           }
 
           for (let i = 1; i <= number_of_dependants; i++) {
-            let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
-            let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
-            let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
+            let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
+            let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
+            let dependant_surname = `${i}surname${existingUser.membership_id}`;
 
             if (arr_member.policy_no != null && arr_member.code == 200) {
               // Use a Promise with setTimeout to control the creation
