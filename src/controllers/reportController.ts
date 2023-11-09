@@ -469,24 +469,23 @@ const getAllReportSummary = async (req: any, res: any) => {
     summary.user.total_users = users.length;
     summary.user.total_users_with_policy = policies.length;
     // summary.user.total_users_active = countUsersByActivity(users, true);
-
-
-    // // Populate policy summary
-    // summary.policy.total_policies = policies.length;
-    // summary.policy.total_policies_pending = countPoliciesByStatus(
-    //   policies,
-    //   "pending"
-    // );
-   
-    summary.policy.total_policies_paid = countPoliciesByStatus(
-      policies,
-      "paid"
-    );
-  
-    summary.policy.total_premium_amount = calculateTotalPremiumAmount(policies);
-    // summary.policy.total_installment_policies =
-    //   countInstallmentPolicies(policies);
-
+    summary.policy.total_policies_paid = await db.policies.count({
+      where: {
+        policy_status: "paid",
+        partner_id: partner_id,
+      },
+    });
+    
+    const totalPremiumAmountResult = await db.payments.sum("payment_amount", {
+      where: {
+        payment_status: "paid",
+        partner_id: partner_id,
+      },
+    });
+    
+    const totalPremiumAmount = totalPremiumAmountResult || 0;
+    
+    summary.policy.total_premium_amount = totalPremiumAmount;
 
     // Return the summary
     res.status(200).json({ summary });
@@ -501,12 +500,6 @@ const countPoliciesByStatus = (policies: any[], status: string): number => {
     .length;
 };
 
-const calculateTotalPremiumAmount = (policies: any[]): number => {
-  return db.payments.reduce(
-    (total: number, payment: any) => total +  parseInt(payment.payment_amount),
-    0
-  );
-};
 
 
 const countClaimsByStatus = (claims: any[], status: string): number => {
