@@ -212,13 +212,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
     });
 
-   
-
-
-    
-
-
-
     return Policy
 }
 

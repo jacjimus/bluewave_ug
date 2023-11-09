@@ -95,148 +95,86 @@ interface Policy {
 
 const getPolicies = async (req, res) => {
   try {
-    let filter = req.query?.filter
+    
     const partner_id = req.query.partner_id;
-    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
-    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const filter = req.query.filter;
+    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
 
+    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
     // Prepare the date range filters based on the provided start_date and end_date
     const dateFilters: any = {};
+    if (start_date) {
+      dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+    }
+    if (end_date) {
+      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+    }
 
-    // if (start_date) {
-    //   dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
-    // }
-    // if (end_date) {
-    //   dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
-    // }
-    if(!partner_id){
-      return res.status(400).json({
-          code: 400, message: "Please provide a partner_id"
-      });
-  }
-  
-  // Create a dynamic where condition for searchable fields
-  const whereCondition = {
-    partner_id: partner_id,
-    ...dateFilters, // Apply the date filters to the query
-  };
-  
-if (start_date && end_date) {
-  whereCondition.createdAt = {
-    [Op.between]: [new Date(start_date), new Date(end_date)],
-  };
-}
+    // Prepare the search filters based on the provided filter string
+    const searchFilters: any = {};
+    if (filter) {
+      searchFilters[Op.or] = [
+        // { policy_id: { [Op.like]: `%${filter}%` } },
+        { policy_status: { [Op.like]: `%${filter}%` } },
+        { policy_type: { [Op.like]: `%${filter}%` } },
+        { beneficiary: { [Op.like]: `%${filter}%` } },
+        { "$user.first_name$": { [Op.like]: `%${filter}%` } },
+        { "$user.last_name$": { [Op.like]: `%${filter}%` } },
+      
+      ];
+    }
 
-if (filter) {
-  filter = filter?.trim().toLowerCase(); 
-  whereCondition[Op.or] = [
-    // { user_id: { [Op.iLike]: `%${filter}%` } },
-    // { policy_id : { [Op.iLike]: `%${filter}%` } },
-    { beneficiary: { [Op.iLike]: `%${filter}%` } },
-    { policy_type: { [Op.iLike]: `%${filter}%` } },
-    { policy_status: { [Op.iLike]: `%${filter}%` } },
-    // { sum_insured: { [Op.iLike]: `%${filter}%` } },
-    // { premium: { [Op.iLike]: `%${filter}%` } },
-    // { policy_deduction_day: { [Op.iLike]: `%${filter}%` } },
-   // { installment_order: { [Op.iLike]: `%${filter}%` } },
-    { currency_code: { [Op.iLike]: `%${filter}%` } },
-    { country_code: { [Op.iLike]: `%${filter}%` } },
- 
-  ];
-}
+    // Prepare the where condition based on the provided filters
+    const whereCondition: any = {
+      partner_id: partner_id,
+      ...dateFilters, // Apply the date filters to the query
+      ...searchFilters, // Apply the search filters to the query
+    };
 
-    // Calculate the offset for pagination
+    // Calculate the offset
     const offset = (page - 1) * limit;
 
-    const { count, rows } = await Policy.findAndCountAll({
+
+    // Find query
+    const policies = await Policy.findAndCountAll({
       where: whereCondition,
-      order: [["id", "DESC"]],
+      order: [["policy_id", "DESC"]],
       include: [
         {
           model: User,
           as: "user",
-        },
-        {
-          model: Product,
-          as: "product",
-        },
+        }
       ],
-      offset, 
-      limit,
+      offset,
+      limit
     });
 
-    if (!count || count === 0) {
+    if (policies.count === 0) {
       return res.status(404).json({ message: "No policies found" });
     }
-
-    // Add paid premium and pending premium
-    const newPolicies = await Promise.all(
-      rows.map(async (policy) => {
-        policy.dataValues.total_premium = policy.premium;
-        policy.dataValues.paid_premium = policy.policy_deduction_amount;
-        policy.dataValues.pending_premium = policy.premium - policy.policy_deduction_amount;
-
-        // get the payment details of each policy
-        const payment = await Payment.findAll({
-          where: {
-            policy_id: policy.policy_id,
-          },
-        });
-
-        policy.dataValues.payment = payment;
-
-        // get installments of each policy 
-        const installments = await db.installments.findAll({
-          where: {
-            policy_id: policy.policy_id,
-          },
-        });
-
-        policy.dataValues.installments = installments;
-
-        // outstanding premium = total yearly premium - paid premium(sum of all installments paid)
-        const outstanding_premium = policy.yearly_premium - installments.reduce((a, b) => a + (b.premium || 0), 0);
-        policy.dataValues.outstanding_premium = outstanding_premium;
-         
-        policy.dataValues.installment_total_number = installments.length + 1;
-
-
-        // check if the policy is overdue or not
-       // const today = new Date();
-       // const installment_date = new Date(policy.installment_date);
-        // const overdue = today > installment_date;
-        // policy.dataValues.overdue = overdue;
-        // if (overdue) {
-        //   policy.dataValues.overdue_days = Math.floor((today.getTime() - installment_date.getTime()) / (1000 * 3600 * 24));
-        //   //update the policy status to overdue
-        //   // nect deduction date to next month plus the number of days the policy has been overdue
-        //   let policy_next_deduction_date = new Date(new Date().setFullYear(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1));
-        //   await Policy.update({ policy_status: "overdue", policy_deduction_amount: policy.premium, policy_paid_amount:0, policy_pending_premium: policy.premium, policy_next_deduction_date }, { where: { policy_id: policy.policy_id } });
-
-        // }
-
-
-      
-        return policy;
-      })
-    );
+  
 
     return res.status(200).json({
       result: {
         code: 200,
         message: "Policies fetched successfully",
-        count,
-        items: newPolicies,
+        count: policies.count,
+        items: policies.rows
       },
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ code: 500, message: "Internal server error", error });
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error",
+      error: error.message || "Unknown error",
+    });
   }
 };
+
 
 
 

@@ -72,8 +72,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "policy_id",
     });
 
-
-
+    sequelize.models.policy.hasMany(Payment, {
+        as: "payments",
+        foreignKey: "policy_id",
+    });
     return Payment
 }
 
