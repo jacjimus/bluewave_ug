@@ -99,7 +99,7 @@ const getPolicies = async (req, res) => {
     const partner_id = req.query.partner_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const filter = req.query.filter;
+    const filter = req.query?.filter?.toString().toLowerCase() || "";
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
 
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
@@ -116,6 +116,7 @@ const getPolicies = async (req, res) => {
     // Prepare the search filters based on the provided filter string
     const searchFilters: any = {};
     if (filter) {
+      
       searchFilters[Op.or] = [
         // { policy_id: { [Op.like]: `%${filter}%` } },
         { policy_status: { [Op.like]: `%${filter}%` } },
@@ -123,6 +124,7 @@ const getPolicies = async (req, res) => {
         { beneficiary: { [Op.like]: `%${filter}%` } },
         { "$user.first_name$": { [Op.like]: `%${filter}%` } },
         { "$user.last_name$": { [Op.like]: `%${filter}%` } },
+        { "$user.name$": { [Op.like]: `%${filter}%` } },
       
       ];
     }
