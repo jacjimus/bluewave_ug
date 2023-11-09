@@ -102,7 +102,7 @@ const getPolicySummary = async (req: any, res: any) => {
       endDate = new Date(); // Current date
     }
 
-    let policy;
+    let policy, policyCount;
     if (partner_id == 1) {
       policy = await Policy.findAll({
         where: {
@@ -128,28 +128,43 @@ const getPolicySummary = async (req: any, res: any) => {
 
      
   
-        const allUsers = await User.findAll({
+        const allUsersCount = await db.users.count({
           where: {
             partner_id: partner_id,
+          },
+        });
+
+          let total_payment_premium = await db.payments.sum("payment_amount", {
+            where: {
+              payment_status: "paid",
+              partner_id: partner_id,
             },
           });
+
+        policyCount = await db.policies.count({
+          where: {
+            policy_status: "paid",
+            partner_id: partner_id,
+          },
+        });
   
        
     let summary = {
-      total_policies: policy.length,
-      total_users: allUsers.length,
+      total_policies: policyCount,
+      total_users: allUsersCount,
       total_policies_pending: policy.filter(
         (policy: any) => policy.policy_status == "pending"
       ).length,
       total_policies_paid: policy.filter(
         (policy: any) => policy.policy_status == "paid"
       ).length,
-      total_preimum_amount:  policy
-      .filter((policy) => policy.policy_status === 'paid')
-      .reduce(
-        (a: any, b: any) => a + b.policy_paid_amount * 1,
-        0
-      ),
+      total_preimum_amount: total_payment_premium,
+      total_paid_payment: await db.payments.count({
+        where: {
+          payment_status: "paid",
+          partner_id: partner_id,
+        },
+      }),
     };
     // await Log.create({
     //   log_id: uuidv4(),
