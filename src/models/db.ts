@@ -42,134 +42,202 @@ db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 // const agenda = new Agenda({
 //   db: { instance: db, collection: 'beneficiaries' }, // Replace 'agendaJobs' with your table name
 // });
+//449 priincipal
+// policy 535
 
 
 // // // Define a function to create the dependent
-// async function createDependant(phoneNumber: any) {
-//   try {
+async function createDependant(existingUser: any, myPolicy: any) {
+  try {
 
-//     const existingUser = await db.users.findOne({
-//       where: {
-//         phone_number:  phoneNumber
-//       }
-//     });
-//     //  console.log('existingUser', existingUser);
-//     if (!existingUser) {
-//       throw new Error("USER NOT FOUND");
-//     }
+    let arr_member: any;
+    let dependant: any;
+    let number_of_dependants = parseFloat(myPolicy?.total_member_number?.split("")[2]) || 0;
+    console.log("number_of_dependants ", number_of_dependants)
 
-//     let myPolicy = await db.policies.findOne({
-//       where: {
-//         user_id: existingUser.user_id,
-//         policy_status: 'paid',
-//         installment_type: 2
-//       }
-//     });
+    const updatePremiumPromise = updatePremium(existingUser, myPolicy);
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error("Timeout: The updatePremium process took too long"));
+      }, 10000); // Adjust the timeout duration (in milliseconds) as needed
+    });
+    
+    try {
+      const result = await Promise.race([updatePremiumPromise, timeoutPromise]);
+      
+      if (result.code == 200) {
+        console.log("AAR UPDATE PREMIUM", result);
+      } else {
+        console.log("AAR NOT UPDATE PREMIUM", result);
+      }
+    } catch (error) {
+      console.error("AAR UPDATE PREMIUM timed out or encountered an error:", error.message);
+    }
+    
+  
+  //   if (existingUser.arr_member_number == null) {
+  //     console.log("REGISTER PRINCIPAL");
+  //     // Introduce a delay before calling registerPrincipal
+  //     await new Promise(resolve => {
+  //       setTimeout(async () => {
+  //         arr_member = await registerPrincipal(existingUser, myPolicy);
+  //         console.log("ARR PRINCIPAL CREATED", arr_member);
+  //         resolve(true);
+  //       }, 1000); // Adjust the delay as needed (1 second in this example)
+  //     });
+  //   }else{
+  //   // Fetch member status data or register principal based on the condition
+  //   await new Promise(resolve => {
+  //     setTimeout(async () => {
+  //       arr_member = await fetchMemberStatusData({
+  //         member_no: existingUser.arr_member_number,
+  //         unique_profile_id: existingUser.membership_id + "",
+  //       });
+  //       console.log("AAR MEMBER FOUND", arr_member);
+  //       if (number_of_dependants > 0) {
 
-//     if (!myPolicy) {
-//       throw new Error("NO FAMILY OR OTHER POLICY FOUND");
-//     }
-//     let arr_member: any;
-//     let dependant: any;
-//     let number_of_dependants = parseFloat(myPolicy.total_member_number.split("")[2]);
-//     console.log("number_of_dependants ", number_of_dependants)
+  //         for (let i = 1; i <= number_of_dependants; i++) {
+  //           let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
+  //           let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
+  //           let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
+
+  //           if (arr_member.policy_no != null && arr_member.code == 200) {
+  //             // Use a Promise with setTimeout to control the creation
+  //             await new Promise(resolve => {
+  //               setTimeout(async () => {
+  //                 dependant = await registerDependant({
+  //                   member_no: existingUser.arr_member_number,
+  //                   surname: dependant_surname,
+  //                   first_name: dependant_first_name,
+  //                   other_names: dependant_other_names,
+  //                   gender: 1,
+  //                   dob: "1990-01-01",
+  //                   email: "dependant@bluewave.insure",
+  //                   pri_dep: "25",
+  //                   family_title: "25", // Assuming all dependants are children
+  //                   tel_no: myPolicy.phone_number,
+  //                   next_of_kin: {
+  //                     surname: "",
+  //                     first_name: "",
+  //                     other_names: "",
+  //                     tel_no: "",
+  //                   },
+  //                   member_status: "1",
+  //                   health_option: "64",
+  //                   health_plan: "AIRTEL_" + myPolicy?.policy_type,
+  //                   policy_start_date: myPolicy.policy_start_date,
+  //                   policy_end_date: myPolicy.policy_end_date,
+  //                   unique_profile_id: existingUser.membership_id + "",
+  //                 });
+
+  //                 if (dependant.code == 200) {
+
+  //                   console.log(`Dependant ${i} created:`, dependant);
+
+  //                   myPolicy.arr_policy_number = arr_member?.policy_no;
+  //                   dependant.unique_profile_id = existingUser.membership_id + "";
+  //                   let updateDependantMemberNo = []
+  //                   updateDependantMemberNo.push(dependant.member_no)
+  //                   await db.policies.update(
+  //                     { dependant_member_numbers: updateDependantMemberNo },
+  //                     { where: { policy_id: myPolicy.policy_id } }
+  //                   );
+  //                   let updatePremiumData = await updatePremium(dependant, myPolicy);
+  //                   if (updatePremiumData.code == 200) {
+  //                     console.log("AAR UPDATE PREMIUM", updatePremiumData);
+  //                     resolve(true)
+  //                   } else{
+  //                     console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+  //                     resolve(true)
+
+  //                   }
+  //                   resolve(true)
+  //                 }else{
+  //                   console.log("DEPENDANT NOT CREATED", dependant);
+  //                   resolve(true)
+  //                 }
+  //               }, 1000 * i); // Adjust the delay as needed
+  //             });
+  //           } else {
+  //             console.log("NO ARR MEMBER")
+  //           }
+  //         }
+  //       } else {
+  //         let updatePremiumData = await updatePremium(existingUser, myPolicy);
+  //         if (updatePremiumData.code == 200) {
+  //           console.log("AAR UPDATE PREMIUM", updatePremiumData);
+  //           resolve(true)
+  //         }else{
+  //           console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+  //           resolve(true)
+  //         }
+  //       }
+  //       resolve(true);
+
+  //     }, 1000); // Adjust the delay as needed (1 second in this example)
+  //   });
+  // }
+
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
+// get all user with arr_member_number is null and partner_id = 2 and email is  null
+async function getAllUsers() {
+
+  let policies = await db.policies.findAll({
+    where: {
+      policy_status: 'paid',
+      //installment_type: 2
+    }
+  });
+
+  if (!policies) {
+    throw new Error("NO POLICY FOUND");
+  }
 
 
-//     if (existingUser.arr_member_number == null) {
-//       console.log("REGISTER PRINCIPAL");
-//       // Introduce a delay before calling registerPrincipal
-//       await new Promise(resolve => {
-//         setTimeout(async () => {
-//           const arr_member = await registerPrincipal(existingUser, myPolicy);
-//           console.log("ARR PRINCIPAL CREATED", arr_member);
-//           resolve(true);
-//         }, 1000); // Adjust the delay as needed (1 second in this example)
-//       });
-//     } else {
-//       // Fetch member status data or register principal based on the condition
+  async function processUsers() {
+    for (const policy of policies) {
+      try {
+        const user = await db.users.findOne({
+          where: {
+            arr_member_number: {
+              [db.Sequelize.Op.not]: null,
+            },
+            partner_id: 2,
+            user_id: policy.user_id,
+          },
+        });
 
-//       await new Promise(resolve => {
-//         setTimeout(async () => {
-//           arr_member = await fetchMemberStatusData({
-//             member_no: existingUser.arr_member_number,
-//             unique_profile_id: existingUser.membership_id + "",
-//           });
-//           console.log("AAR MEMBER FOUND", arr_member);
 
-//           if (arr_member.code == 624) {
-//             arr_member = await registerPrincipal(existingUser, myPolicy);
-//             console.log("ARR PRINCIPAL CREATED", arr_member);
-//             resolve(true);
-//           }
+        if (!user) {
+          console.log("NO USER FOUND");
+          continue
+        }
 
-//           for (let i = 1; i <= number_of_dependants; i++) {
-//             let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
-//             let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
-//             let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
+        console.log("user", user.phone_number);
+        await createDependant(user, policy);
+        console.log(`Dependant created for user with phone number: ${user.phone_number}`);
+      } catch (error) {
+        console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
+      }
+    }
+  }
 
-//             if (arr_member.policy_no != null && arr_member.code == 200) {
-//               // Use a Promise with setTimeout to control the creation
-//               await new Promise(resolve => {
-//                 setTimeout(async () => {
-//                   dependant = await registerDependant({
-//                     member_no: existingUser.arr_member_number,
-//                     surname: dependant_surname,
-//                     first_name: dependant_first_name,
-//                     other_names: dependant_other_names,
-//                     gender: 1,
-//                     dob: "1990-01-01",
-//                     email: "dependant@bluewave.insure",
-//                     pri_dep: "25",
-//                     family_title: "25", // Assuming all dependants are children
-//                     tel_no: myPolicy.phone_number,
-//                     next_of_kin: {
-//                       surname: "",
-//                       first_name: "",
-//                       other_names: "",
-//                       tel_no: "",
-//                     },
-//                     member_status: "1",
-//                     health_option: "63",
-//                     health_plan: "AIRTEL_" + myPolicy?.policy_type,
-//                     policy_start_date: myPolicy.policy_start_date,
-//                     policy_end_date: myPolicy.policy_end_date,
-//                     unique_profile_id: existingUser.membership_id + "",
-//                   });
+  try {
+    await processUsers();
+    console.log("All dependants created successfully.");
+  } catch (err) {
+    console.error("Error processing users:", err);
+  }
+}
 
-//                   if (dependant.code == 200) {
+// Call the function to start the process
+//getAllUsers();
 
-//                     console.log(`Dependant ${i} created:`, dependant);
 
-//                     myPolicy.arr_policy_number = arr_member?.policy_no;
-//                     dependant.unique_profile_id = existingUser.membership_id + "";
-//                     let updateDependantMemberNo = []
-//                     updateDependantMemberNo.push(dependant.member_no)
-//                     await db.policies.update(
-//                       { dependant_member_numbers: updateDependantMemberNo },
-//                       { where: { policy_id: myPolicy.policy_id } }
-//                     );
-//                     let updatePremiumData = await updatePremium(dependant, myPolicy);
-//                     if (updatePremiumData == 200) {
-//                       console.log("AAR UPDATE PREMIUM", updatePremiumData);
-//                       resolve(true)
-//                     }
-//                     resolve(true)
-//                   }
-//                 }, 1000 * i); // Adjust the delay as needed
-//               });
-//             } else {
-//               console.log("NO ARR MEMBER")
-//             }
-//           }
-
-//         }, 1000); // Adjust the delay as needed (1 second in this example)
-//       });
-//     }
-
-//   } catch (error) {
-//     console.error('Error:', error.message);
-//   }
-// }
 
 
 

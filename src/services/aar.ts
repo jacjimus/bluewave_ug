@@ -291,26 +291,26 @@ async function updatePremium(user: any, policy: any) {
 
   try {
 
-  console.log('USER DEPENDANTS', user.member_no, user.unique_profile_id)
+  console.log('UPDATE PREMIUM',user.name, policy.policy_type, policy.total_member_number)
     const main_benefit_limit =  policy.sum_insured 
     const last_expense_limit =  policy.last_expense_insured 
 
     let ultimatePremium = policy.premium
 
-    const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-    console.log("Number of dependants:", number_of_dependants);
-  
-
-      if(policy.total_member_number !== "M"  && number_of_dependants > 0){
-        const policyPremium = policy.premium
+    
+    if(policy.total_member_number !== "M"  && policy.total_member_number !== null){
+      const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+      console.log("Number of dependants:", number_of_dependants);
+    
+      const policyPremium = policy.premium
         const memberSize = (policy.total_member_number).split("")[2]
         console.log(policyPremium, memberSize)
         ultimatePremium = policyPremium / (parseInt(memberSize) + 1)
       }
       
     const requestData: requestPremiumData = {
-      member_no: user.member_no,
-      unique_profile_id: user.unique_profile_id,
+      member_no: user?.arr_member_number || user?.member_no,
+      unique_profile_id: user?.membership_id + "" ||user?.unique_profile_id + "",
       health_plan: "AIRTEL_" + policy.policy_type,
       health_option: "64",
       premium: ultimatePremium,
@@ -320,20 +320,20 @@ async function updatePremium(user: any, policy: any) {
       last_expense_limit: last_expense_limit,
       money_transaction_id: policy.airtel_money_id || "123456789",
     };
-    console.log("REQUEST DATA AAR UPDATE PREMIUM", requestData);
+   
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
       url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
       headers: {
-        'Authorization': 'Bearer ' + await arr_uganda_login(),
+        'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTY5OTM1NjkwOCwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.ZVx50eJNbswUpCOnhY_GVbw3YixLODN2yIIemFn8BXVmfAS4mQggCGCUsBXDNEUyAnCnFVNZLWVFEjjFBzz6cwzORg6K48ZInx33BGjfWDUAGh8udMMsRczsv1TpCFAVCKgz68KFiPjapIpRaLSFrdzXiP_p8in8SznmmP1nzRQVRooxzcpEW88rANqrGdB3YaGydKWGtlaFXnPPoIUFVljk1d3ZvHUZJdMdh-kyplD0R2ilo3RBRxmT2tN8CaY1ehQo86N3io54lrpY_B93hirZKfUNoZZ36r5TByXUcw6hpDW6TRv9aboaiyTi1gGEwYumyeuBkydAW6HjNtnBtg',
         'Content-Type': 'application/json'
       },
       data: JSON.stringify(requestData),
     };
 
-
     const response = await axios.request(config);
+    console.log(JSON.stringify(response.data));
       return response.data;
   } catch (error) {
     console.error(error);

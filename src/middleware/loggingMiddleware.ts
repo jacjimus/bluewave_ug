@@ -23,16 +23,16 @@ const loggingMiddleware = async (req: any, res: any, next: any) => {
       const partnerId = user.partner_id;
       const role = user.role;
       // Create a log entry
-      await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: `${role} ${userId} performed operation ${operationType}`,
-          level: 'info',
-          meta: details,
-          user: userId,
-          session: req.session?.id,
-          partner_id: partnerId,
-      });
+      // await Log.create({
+      //     log_id: uuidv4(),
+      //     timestamp: new Date(),
+      //     message: `${role} ${userId} performed operation ${operationType}`,
+      //     level: 'info',
+      //     meta: details,
+      //     user: userId,
+      //     session: req.session?.id,
+      //     partner_id: partnerId,
+      // });
 
       next();
   } catch (error) {

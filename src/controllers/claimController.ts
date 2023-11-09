@@ -134,14 +134,14 @@ const getClaims = async (req: any, res: any) => {
                 },
             });
         }
-        await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `Claims fetched successfully`,
-            level: 'info',
-            user: req?.user_id,
-            partner_id: req?.partner_id,
-        });
+        // await Log.create({
+        //     log_id: uuidv4(),
+        //     timestamp: new Date(),
+        //     message: `Claims fetched successfully`,
+        //     level: 'info',
+        //     user: req?.user_id,
+        //     partner_id: req?.partner_id,
+        // });
         return res.status(200).json({
             code: 200,
             result: claim
@@ -196,14 +196,14 @@ const getClaim = async (req: any, res: any) => {
         if (!claim) {
             return res.status(404).json({ message: 'Claim not found' });
         }
-        await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `Claim fetched successfully`,
-            level: 'info',
-            user: req?.user_id,
-            partner_id: req?.partner_id,
-        });
+        // await Log.create({
+        //     log_id: uuidv4(),
+        //     timestamp: new Date(),
+        //     message: `Claim fetched successfully`,
+        //     level: 'info',
+        //     user: req?.user_id,
+        //     partner_id: req?.partner_id,
+        // });
         return res.status(200).json({
             result: {
                 code: 200,
@@ -294,14 +294,14 @@ const findUserByPhoneNumberClaims = async (req: any, res: any) => {
                 }
             });
         }
-        await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `User Claims fetched successfully`,
-            level: 'info',
-            user: req?.user_id,
-            partner_id: req?.partner_id,
-        });
+        // await Log.create({
+        //     log_id: uuidv4(),
+        //     timestamp: new Date(),
+        //     message: `User Claims fetched successfully`,
+        //     level: 'info',
+        //     user: req?.user_id,
+        //     partner_id: req?.partner_id,
+        // });
 
         return res.status(200).json(claims);
     } catch (error) {
@@ -387,14 +387,14 @@ const getPolicyClaims = async (req: any, res: any) => {
                 }
             });
         }
-        await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `Policy Claims fetched successfully`,
-            level: 'info',
-            user: req?.user_id,
-            partner_id: req?.partner_id,
-        });
+        // await Log.create({
+        //     log_id: uuidv4(),
+        //     timestamp: new Date(),
+        //     message: `Policy Claims fetched successfully`,
+        //     level: 'info',
+        //     user: req?.user_id,
+        //     partner_id: req?.partner_id,
+        // });
         return res.status(200).json(claims);
     } catch (error) {
         console.error('Error fetching claims:', error);
@@ -526,14 +526,14 @@ const createClaim = async (req: any, res: any) => {
 
 
         console.log("NEW CLAIM", newClaim);
-        await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `Claim created successfully`,
-            level: 'info',
-            user: req?.user_id,
-            partner_id: req?.partner_id,
-        });
+        // await Log.create({
+        //     log_id: uuidv4(),
+        //     timestamp: new Date(),
+        //     message: `Claim created successfully`,
+        //     level: 'info',
+        //     user: req?.user_id,
+        //     partner_id: req?.partner_id,
+        // });
 
         return res.status(201).json({
             code: 201, message: "Claim created successfully", claim: newClaim
@@ -665,14 +665,14 @@ const deleteClaim = async (req: any, res: any) => {
                 partner_id: partner_id
             }
         });
-        await Log.create({
-            log_id: uuidv4(),
-            timestamp: new Date(),
-            message: `Claim deleted successfully`,
-            level: 'info',
-            user: req?.user_id,
-            partner_id: req?.partner_id,
-        });
+        // await Log.create({
+        //     log_id: uuidv4(),
+        //     timestamp: new Date(),
+        //     message: `Claim deleted successfully`,
+        //     level: 'info',
+        //     user: req?.user_id,
+        //     partner_id: req?.partner_id,
+        // });
         if (deleteClaim) {
             return res.status(200).json({
                 code: 200,

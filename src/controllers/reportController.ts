@@ -144,16 +144,10 @@ const getPolicySummary = async (req: any, res: any) => {
       total_policies_paid: policy.filter(
         (policy: any) => policy.policy_status == "paid"
       ).length,
-      total_policies_unpaid: policy.filter(
-        (policy: any) => policy.policy_status == "unpaid"
-      ).length,
-      total_policies_partially_paid: policy.filter(
-        (policy: any) => policy.policy_status == "partially_paid"
-      ).length,
       total_preimum_amount:  policy
       .filter((policy) => policy.policy_status === 'paid')
       .reduce(
-        (a: any, b: any) => a + b.policy_deduction_amount * 1,
+        (a: any, b: any) => a + b.policy_paid_amount * 1,
         0
       ),
     };
@@ -392,15 +386,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     const twentyFourHoursAgo = new Date();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
-    let users: any,
-      policies: any,
-      claims: any,
-      payments: any,
-      partners: any,
-      products: any,
-      sessions: any,
-      startDate: any,
-      endDate: any;
+    let startDate: any, endDate: any;
 
     if (today) {
       // For today
@@ -450,257 +436,57 @@ const getAllReportSummary = async (req: any, res: any) => {
       currencyCode: partnerCountry.currency_code,
       user: {
         total_users: 0,
-        total_users_active: 0,
-        total_users_inactive: 0,
-        total_users_pending: 0,
         total_users_with_policy: 0,
-        total_users_with_claim: 0,
-        total_users_with_payment: 0,
       },
       policy: {
-        total_policies: 0,
-        total_policies_pending: 0,
         total_policies_paid: 0,
-        total_policies_unpaid: 0,
-        total_policies_partially_paid: 0,
         total_premium_amount: 0,
-        total_installment_policies: 0,
-      },
-      claim: {
-        total_claims: 0,
-        total_claims_approved: 0,
-        total_claims_pending: 0,
-        total_claims_rejected: 0,
-      },
-      payment: {
-        total_payments: 0,
-        total_payments_paid: 0,
-        total_payments_unpaid: 0,
-        total_payments_pending: 0,
-      },
-      partner: {
-        total_partners: 0,
-        total_partners_active: 0,
-      },
-      product: {
-        total_products: 0,
-        total_products_active: 0,
-        total_products_inactive: 0,
-        total_products_pending: 0,
-      },
-      session: {
-        total_sessions: 0,
-      },
+      }
     };
 
-    if (partner_id == 1) {
-      users = await User.findAll({
+    const [users, policies] = await Promise.all([
+      User.findAll({
         where: {
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
+          ...(partner_id !== 1 && { partner_id: partner_id }), // Include partner_id condition if applicable
         },
-      });
-
-      policies = await Policy.findAll({
+      }),
+      Policy.findAll({
         where: {
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
+          policy_status: "paid",
+          ...(partner_id !== 1 && { partner_id: partner_id }), // Include partner_id condition if applicable
         },
-      });
-
-      claims = await Claim.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-        },
-      });
-
-      payments = await Payment.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-        },
-      });
-
-      partners = await Partner.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-        },
-      });
-
-      products = await Product.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-        },
-      });
-
-      sessions = await Session.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-        },
-      });
-    } else {
-      users = await User.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-
-      policies = await Policy.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-
-      claims = await Claim.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-
-      payments = await Payment.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-
-      partners = await Partner.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-
-      products = await Product.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-
-      sessions = await Session.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-    }
-
+      }),
+  
+    ]);
+    
     // Populate user summary
     summary.user.total_users = users.length;
-    summary.user.total_users_active = countUsersByActivity(users, true);
-    summary.user.total_users_inactive = countUsersByActivity(users, false);
+    summary.user.total_users_with_policy = policies.length;
+    // summary.user.total_users_active = countUsersByActivity(users, true);
 
-    // Populate policy summary
-    summary.policy.total_policies = policies.length;
-    summary.policy.total_policies_pending = countPoliciesByStatus(
-      policies,
-      "pending"
-    );
-    summary.policy.total_policies_unpaid = countPoliciesByStatus(
-      policies,
-      "unpaid"
-    );
+
+    // // Populate policy summary
+    // summary.policy.total_policies = policies.length;
+    // summary.policy.total_policies_pending = countPoliciesByStatus(
+    //   policies,
+    //   "pending"
+    // );
+   
     summary.policy.total_policies_paid = countPoliciesByStatus(
       policies,
       "paid"
     );
-    summary.policy.total_policies_partially_paid = countPoliciesByStatus(
-      policies,
-      "partially_paid"
-    );
+  
     summary.policy.total_premium_amount = calculateTotalPremiumAmount(policies);
-    summary.policy.total_installment_policies =
-      countInstallmentPolicies(policies);
+    // summary.policy.total_installment_policies =
+    //   countInstallmentPolicies(policies);
 
-    // Populate claim summary
-    summary.claim.total_claims = claims.length;
-    summary.claim.total_claims_approved = countClaimsByStatus(
-      claims,
-      "approved"
-    );
-    summary.claim.total_claims_pending = countClaimsByStatus(claims, "pending");
-    summary.claim.total_claims_rejected = countClaimsByStatus(
-      claims,
-      "rejected"
-    );
-
-    // Populate payment summary
-    summary.payment.total_payments = payments.length;
-    summary.payment.total_payments_paid = countPaymentsByStatus(
-      payments,
-      "paid"
-    );
-    summary.payment.total_payments_unpaid = countPaymentsByStatus(
-      payments,
-      "unpaid"
-    );
-    summary.payment.total_payments_pending = countPaymentsByStatus(
-      payments,
-      "pending"
-    );
-
-    // Populate partner summary
-    summary.partner.total_partners = partners.length;
-    summary.partner.total_partners_active = countPartnersByActivity(
-      partners,
-      true
-    );
-
-    // Populate product summary
-    summary.product.total_products = products.length;
-    summary.product.total_products_active = countProductsByStatus(
-      products,
-      "active"
-    );
-    summary.product.total_products_inactive = countProductsByStatus(
-      products,
-      "inactive"
-    );
-    summary.product.total_products_pending = countProductsByStatus(
-      products,
-      "pending"
-    );
-
-    // Populate session summary
-    summary.session.total_sessions = sessions.length;
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'User fetched successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
 
     // Return the summary
     res.status(200).json({ summary });
@@ -710,57 +496,23 @@ const getAllReportSummary = async (req: any, res: any) => {
   }
 };
 
-const countUsersByActivity = (users: any[], isActive: boolean): number => {
-  return users.filter((user: any) => user.is_active === isActive).length;
-};
-
 const countPoliciesByStatus = (policies: any[], status: string): number => {
   return policies.filter((policy: any) => policy.policy_status === status)
     .length;
 };
 
-const countPoliciesByInstallementOrder = (
-  policies: any[],
-  installment_order: number
-): number => {
-  return policies.filter(
-    (policy: any) => policy.installment_order === installment_order
-  ).length;
-};
-
 const calculateTotalPremiumAmount = (policies: any[]): number => {
   return policies.reduce(
-    (total: number, policy: any) => total + policy.policy_deduction_amount * 1,
+    (total: number, policy: any) => total +  parseInt(policy.premium),
     0
   );
 };
 
-const countPaymentsByStatus = (payments: any[], status: string): number => {
-  return payments.filter((payment: any) => payment.payment_status === status)
-    .length;
-};
-
-const countPartnersByActivity = (
-  partners: any[],
-  isActive: boolean
-): number => {
-  return partners.filter((partner: any) => partner.is_active === isActive)
-    .length;
-};
-
-const countProductsByStatus = (products: any[], status: string): number => {
-  return products.filter((product: any) => product.product_status === status)
-    .length;
-};
 
 const countClaimsByStatus = (claims: any[], status: string): number => {
   return claims.filter((claim: any) => claim.claim_status === status).length;
 };
 
-const countInstallmentPolicies = (policies: any[]): number => {
-  return policies.filter((policy: any) => policy.installment_order !== 1)
-    .length;
-};
 
 /**
  * @swagger

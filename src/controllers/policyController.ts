@@ -305,14 +305,14 @@ const getPolicy = async (req: any, res: any) => {
       },
     };
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: `User ${req?.user_id} fetched policy ${policy_id}`,
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: `User ${req?.user_id} fetched policy ${policy_id}`,
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     return res.status(200).json({
       code: 200,
       result
@@ -415,14 +415,14 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
       return res.status(status.code).json(status.result);
     }
     let count = policy.length;
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: `User ${req?.user_id} fetched policies for user ${user_id}`,
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: `User ${req?.user_id} fetched policies for user ${user_id}`,
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     status.result = {
       count,
@@ -486,14 +486,14 @@ const createPolicy = async (req: any, res: any) => {
     if (!newPolicy) {
       return res.status(500).json({ message: "Error creating policy" });
     }
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: `User ${req?.user_id} created policy ${newPolicy.policy_id}`,
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: `User ${req?.user_id} created policy ${newPolicy.policy_id}`,
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     return res.status(200).json({
       result: {
         code: 200,
@@ -613,14 +613,14 @@ const updatePolicy = async (req: any, res: any) => {
         policy_id: req.params.policy_id,
       },
     });
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: `User ${req?.user_id} updated policy ${req.params.policy_id}`,
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: `User ${req?.user_id} updated policy ${req.params.policy_id}`,
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     //send policy details
     return res.status(201).json({
       result: {
@@ -666,14 +666,14 @@ const deletePolicy = async (req: any, res: any) => {
         policy_id: req.params.policy_id,
       },
     });
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: `User ${req?.user_id} deleted policy ${req.params.policy_id}`,
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: `User ${req?.user_id} deleted policy ${req.params.policy_id}`,
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     //send policy details
     return res.status(201).json({
       result: {
@@ -688,6 +688,8 @@ const deletePolicy = async (req: any, res: any) => {
 
   }
 }
+
+
 
 
 module.exports = {

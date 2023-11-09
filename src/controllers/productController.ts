@@ -146,14 +146,14 @@ const getProducts = async (req: any, res: any) => {
       items: resultProduct,
     };
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Products fetched successfully',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Products fetched successfully',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     return res.status(status.code).json({   code: 200,result: status.result });
   } catch (error) {
@@ -209,14 +209,14 @@ const getProduct = async (req: any, res: any) => {
       item: product
     };
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Product fetched successfully by id ' + product_id + '',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Product fetched successfully by id ' + product_id + '',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
 
     return res.status(status.code).json({   code: 200,result: status.result });
   } catch (error) {
@@ -259,14 +259,14 @@ const createProduct = async (req: any, res: any) => {
       return res.status(500).json({ message: "Error creating product" });
     }
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Product created successfully ' + newProduct.product_name + '',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Product created successfully ' + newProduct.product_name + '',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     return res.status(200).json({
       result: {
         code: 200,
@@ -363,14 +363,14 @@ const updateProduct = async (req: any, res: any) => {
         id: req.params.product_id,
       },
     });
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Product updated successfully' + req.params.product_id + '',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Product updated successfully' + req.params.product_id + '',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     //send product details
     return res.status(201).json({ result: {
       code: 200, message: "Product updated successfully" } });
@@ -412,14 +412,14 @@ const deleteProduct = async (req: any, res: any) => {
       },
     });
     //send product details
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'Product deleted successfully ' + req.params.product_id + '',
-      level: 'info',
-      user: req?.user_id,
-      partner_id: req?.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'Product deleted successfully ' + req.params.product_id + '',
+    //   level: 'info',
+    //   user: req?.user_id,
+    //   partner_id: req?.partner_id,
+    // });
     return res.status(201).json({ result: { 
       code: 200,message: "Product deleted successfully" } });
   } catch (error) {

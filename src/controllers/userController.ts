@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 import { db } from "../models/db";
+import { registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 import {
@@ -215,14 +216,14 @@ const signup = async (req: any, res: any) => {
       console.log(token);
       //send users details
 
-      await Log.create({
-        log_id: uuidv4(),
-        timestamp: new Date(),
-        message: 'User registered successfully',
-        level: 'info',
-        user: newUser.user_id,
-        partner_id: newUser.partner_id,
-      });
+      // await Log.create({
+      //   log_id: uuidv4(),
+      //   timestamp: new Date(),
+      //   message: 'User registered successfully',
+      //   level: 'info',
+      //   user: newUser.user_id,
+      //   partner_id: newUser.partner_id,
+      // });
 
       return res
         .status(201)
@@ -318,14 +319,14 @@ const partnerRegistration = async (req: any, res: any) => {
 
     // set cookie with the token generated
     if (newPartner) {
-      await Log.create({
-        log_id: uuidv4(),
-        timestamp: new Date(),
-        message: 'Partner registered successfully',
-        level: 'info',
-        user: newPartner.user_id,
-        partner_id: newPartner.partner_id,
-      });
+      // await Log.create({
+      //   log_id: uuidv4(),
+      //   timestamp: new Date(),
+      //   message: 'Partner registered successfully',
+      //   level: 'info',
+      //   user: newPartner.user_id,
+      //   partner_id: newPartner.partner_id,
+      // });
       return res
         .status(201)
         .json({
@@ -410,14 +411,14 @@ const login = async (req: any, res: any) => {
         //remove password from the user object
         user.password = undefined;
 
-        await Log.create({
-          log_id: uuidv4(),
-          timestamp: new Date(),
-          message: 'User fetched successfully',
-          level: 'info',
-          user: user.user_id,
-          partner_id: user.partner_id,
-        });
+        // await Log.create({
+        //   log_id: uuidv4(),
+        //   timestamp: new Date(),
+        //   message: 'User fetched successfully',
+        //   level: 'info',
+        //   user: user.user_id,
+        //   partner_id: user.partner_id,
+        // });
         return res
           .status(201)
           .json({
@@ -635,14 +636,14 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
     });
     user.dataValues.number_of_policies = policies.length;
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'User fetched successfully',
-      level: 'info',
-      user: user.user_id,
-      partner_id: partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'User fetched successfully',
+    //   level: 'info',
+    //   user: user.user_id,
+    //   partner_id: partner_id,
+    // });
 
     return res
       .status(200)
@@ -770,14 +771,14 @@ const deleteUser = async (req: any, res) => {
       },
     });
 
-    await Log.create({
-      log_id: uuidv4(),
-      timestamp: new Date(),
-      message: 'User deleted successfully',
-      level: 'info',
-      user: req.params.user_id,
-      partner_id: req.query.partner_id,
-    });
+    // await Log.create({
+    //   log_id: uuidv4(),
+    //   timestamp: new Date(),
+    //   message: 'User deleted successfully',
+    //   level: 'info',
+    //   user: req.params.user_id,
+    //   partner_id: req.query.partner_id,
+    // });
     //send users details
     return res
       .status(201)
@@ -1151,6 +1152,162 @@ async function adminSignup(req: any, res: any) {
 }
 
 
+/**
+ * @swagger
+ * /api/v1/users/arr_member_registration:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: Arr Member Registration
+ *     operationId: arrMemberRegistration
+ *     summary: Arr Member Registration
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: phoneNumber
+ *         in: path
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: arr_member_number
+ *         in: path
+ *         required: false
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+async function arrMemberRegistration(req: any, res: any) {
+  try {
+    let partner_id = req.query.partner_id;
+    let phoneNumber  = req.params.phoneNumber || "";
+    let arr_member_number  = req.params.arr_member_number || "";
+   
+    const existingUser = await User.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { phone_number: phoneNumber },
+          { arr_member_number:  arr_member_number }
+        ],
+        partner_id: partner_id
+      },
+    });
+    
+     if(!existingUser) {
+      return res.status(404).json({ code: 404, message: "Sorry, No user found" });
+    }
+    let policy: any = await Policy.findOne({
+      where: {
+        user_id: existingUser.user_id,
+        policy_status: 'paid',
+      },
+    });
+    console.log("POLICY", policy);
+    if(!policy) {
+      return res.status(404).json({ code: 404, message: "Sorry, No policy found" });
+    }
+
+    let arr_member: any, dependant: any;
+    if(!existingUser.arr_member_number) {
+      // create arr member id
+      arr_member = await registerPrincipal(existingUser, policy);
+      console.log("ARR MEMBER", arr_member);
+    }
+    let updatedPremium : any;
+      if(policy.arr_member_id) {
+            updatedPremium =  await updatePremium(existingUser, policy);
+      console.log("UPDATED PREMIUM", updatedPremium);
+      }
+    let number_of_dependants = parseFloat(existingUser?.total_member_number?.split("")[2]) || 0;
+      if(existingUser.total_member_number > 0) {
+          for (let i = 1; i <= number_of_dependants; i++) {
+            let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
+            let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
+            let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
+
+         if (arr_member.policy_no != null && arr_member.code == 200) {
+              // Use a Promise with setTimeout to control the creation
+              await new Promise(resolve => {
+                setTimeout(async () => {
+                  dependant = await registerDependant({
+                    member_no: existingUser.arr_member_number,
+                    surname: dependant_surname,
+                    first_name: dependant_first_name,
+                    other_names: dependant_other_names,
+                    gender: 1,
+                    dob: "1990-01-01",
+                    email: "dependant@bluewave.insure",
+                    pri_dep: "25",
+                    family_title: "25", // Assuming all dependants are children
+                    tel_no: policy.phone_number,
+                    next_of_kin: {
+                      surname: "",
+                      first_name: "",
+                      other_names: "",
+                      tel_no: "",
+                    },
+                    member_status: "1",
+                    health_option: "64",
+                    health_plan: "AIRTEL_" + policy?.policy_type,
+                    policy_start_date: policy.policy_start_date,
+                    policy_end_date: policy.policy_end_date,
+                    unique_profile_id: existingUser.membership_id + "",
+                  });
+
+                  if (dependant.code == 200) {
+
+                    console.log(`Dependant ${i} created:`, dependant);
+
+                    policy.arr_policy_number = arr_member?.policy_no;
+                    dependant.unique_profile_id = existingUser.membership_id + "";
+                    let updateDependantMemberNo = []
+                    updateDependantMemberNo.push(dependant.member_no)
+                    await db.policies.update(
+                      { dependant_member_numbers: updateDependantMemberNo },
+                      { where: { policy_id: policy.policy_id } }
+                    );
+                    let updatePremiumData = await updatePremium(dependant, policy);
+                    if (updatePremiumData.code == 200) {
+                      console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                      resolve(true)
+                    } else{
+                      console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+                      resolve(true)
+
+                    }
+                    resolve(true)
+                  }else{
+                    console.log("DEPENDANT NOT CREATED", dependant);
+                    resolve(true)
+                  }
+                }, 1000 * i); // Adjust the delay as needed
+              });
+
+      }
+    }
+    }
+
+
+    return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium  });
+  } catch (error) {
+
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+    
+  }
+}
+
+
+
+
 
 module.exports = {
   adminSignup,
@@ -1164,5 +1321,6 @@ module.exports = {
   partnerRegistration,
   partnerSwitch,
   bulkUserRegistration,
-  listPartners
+  listPartners,
+  arrMemberRegistration
 };
