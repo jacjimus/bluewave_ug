@@ -502,8 +502,8 @@ const countPoliciesByStatus = (policies: any[], status: string): number => {
 };
 
 const calculateTotalPremiumAmount = (policies: any[]): number => {
-  return policies.reduce(
-    (total: number, policy: any) => total +  parseInt(policy.premium),
+  return db.payments.reduce(
+    (total: number, payment: any) => total +  parseInt(payment.payment_amount),
     0
   );
 };
