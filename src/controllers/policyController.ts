@@ -119,15 +119,16 @@ const getPolicies = async (req, res) => {
       
       searchFilters[Op.or] = [
         // { policy_id: { [Op.like]: `%${filter}%` } },
-        { policy_status: { [Op.like]: `%${filter}%` } },
-        { policy_type: { [Op.like]: `%${filter}%` } },
-        { beneficiary: { [Op.like]: `%${filter}%` } },
-        { "$user.first_name$": { [Op.like]: `%${filter}%` } },
-        { "$user.last_name$": { [Op.like]: `%${filter}%` } },
-        { "$user.name$": { [Op.like]: `%${filter}%` } },
+        { policy_status: { [Op.iLike]: `%${filter}%` } },
+        { policy_type: { [Op.iLike]: `%${filter}%` } },
+        { beneficiary: { [Op.iLike]: `%${filter}%` } },
+        { "$user.first_name$": { [Op.iLike]: `%${filter}%` } },
+        { "$user.last_name$": { [Op.iLike]: `%${filter}%` } },
+        { "$user.name$": { [Op.iLike]: `%${filter}%` } },
       
       ];
     }
+  
 
     // Prepare the where condition based on the provided filters
     const whereCondition: any = {
@@ -157,16 +158,18 @@ const getPolicies = async (req, res) => {
     if (policies.count === 0) {
       return res.status(404).json({ message: "No policies found" });
     }
-  
 
+    const result = {
+      message: "Policies fetched successfully",
+      count: policies.count,
+      item: policies.rows
+    };
     return res.status(200).json({
-      result: {
-        code: 200,
-        message: "Policies fetched successfully",
-        count: policies.count,
-        items: policies.rows
-      },
+      code: 200,
+      result
     });
+
+  
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -244,15 +247,6 @@ const getPolicy = async (req: any, res: any) => {
         items: policy
       },
     };
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: `User ${req?.user_id} fetched policy ${policy_id}`,
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
     return res.status(200).json({
       code: 200,
       result
@@ -355,14 +349,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
       return res.status(status.code).json(status.result);
     }
     let count = policy.length;
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: `User ${req?.user_id} fetched policies for user ${user_id}`,
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
+ 
 
     status.result = {
       count,
