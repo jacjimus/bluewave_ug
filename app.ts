@@ -26,7 +26,13 @@ app.disable("etag").disable("x-powered-by");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+app.use(cors(
+  {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }
+));
 //app.use(session({secret: "Shh, its a secret!"}));
 app.use(compression());
 
