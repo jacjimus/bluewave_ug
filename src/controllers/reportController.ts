@@ -985,7 +985,7 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
         FROM
           policies 
         WHERE
-          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') AND partner_id = :partner_id
+          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') AND partner_id = :partner_id AND policy_status = 'paid'
         GROUP BY
           day_of_week
         ORDER BY
@@ -1033,7 +1033,7 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
-      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0), //HERE
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };
@@ -1079,7 +1079,7 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
           EXTRACT(MONTH FROM policy_paid_date) AS month,
           EXTRACT(DAY FROM policy_paid_date) AS day,
           policy_id,
-          SUM(policy_deduction_amount) AS total_amount,
+          SUM(premium) AS total_amount,
           COUNT(DISTINCT user_id) AS total_users -- Added this line
         FROM
           policies 
@@ -1147,7 +1147,7 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
-      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0), // HERE
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };
@@ -1202,7 +1202,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
           EXTRACT(MONTH FROM policy_paid_date) AS month,
           EXTRACT(DAY FROM policy_paid_date) AS day,
           policy_id,
-          SUM(policy_deduction_amount) AS total_amount,
+          SUM(premium) AS total_amount,
           COUNT(DISTINCT user_id) AS total_users
         FROM
           policies 
