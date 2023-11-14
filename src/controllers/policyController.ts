@@ -113,6 +113,10 @@ const getPolicies = async (req, res) => {
       dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
     }
 
+    if (start_date && end_date) {
+      dateFilters.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+    }
+
     // Prepare the search filters based on the provided filter string
     const searchFilters: any = {};
     if (filter) {
@@ -122,9 +126,8 @@ const getPolicies = async (req, res) => {
         { policy_status: { [Op.iLike]: `%${filter}%` } },
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
-        { "$user.first_name$": { [Op.iLike]: `%${filter}%` } },
-        { "$user.last_name$": { [Op.iLike]: `%${filter}%` } },
-        { "$user.name$": { [Op.iLike]: `%${filter}%` } },
+        { first_name: { [Op.iLike]: `%${filter}%` } },
+        { last_name: { [Op.iLike]: `%${filter}%` } }
       
       ];
     }
