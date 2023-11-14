@@ -26,16 +26,16 @@ app.disable("etag").disable("x-powered-by");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors(
-  // {
-  //   origin: '*',
-  //   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  //   allowedHeaders: ['Content-Type', 'Authorization']
-  // }
-));
+app.use(cors());
 //app.use(session({secret: "Shh, its a secret!"}));
 app.use(compression());
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://mainboard.s3-website-us-east-1.amazonaws.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
 // log only 4xx and 5xx responses to console
 app.use(
