@@ -1026,14 +1026,14 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
         partner_id: req.query.partner_id,
       },
     });
-
+console.log("RESULTS", results)
 
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
-      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0), //HERE
+      total_amount: results[results.length -1].total_amount,
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };
@@ -1142,12 +1142,14 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
       },
     });
 
+    console.log("RESULTS", results)
+
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
-      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0), // HERE
+      total_amount:  results[results.length -1].total_amount,
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };
@@ -1198,27 +1200,27 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
     }
 
     const query = `
-        SELECT
-          EXTRACT(MONTH FROM policy_paid_date) AS month,
-          EXTRACT(DAY FROM policy_paid_date) AS day,
-          policy_id,
-          SUM(premium) AS total_amount,
-          COUNT(DISTINCT user_id) AS total_users
-        FROM
-          policies 
-        WHERE
-          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') 
-          AND EXTRACT(MONTH FROM policy_paid_date) = :filterMonth -- Apply the month filter
-          AND policy_status = 'paid'
-          AND partner_id = :partner_id
-        GROUP BY
-          EXTRACT(MONTH FROM policy_paid_date),
-          EXTRACT(DAY FROM policy_paid_date),
-          policy_id
-        ORDER BY
-          month,
-          day,
-          policy_id;
+    SELECT
+    EXTRACT(MONTH FROM payment_date) AS month,
+    EXTRACT(DAY FROM payment_date) AS day,
+    payment_id,
+    SUM(payment_amount) AS total_amount,
+    COUNT(DISTINCT user_id) AS total_users
+FROM
+    public.payments
+WHERE
+    payment_date BETWEEN DATE_TRUNC('month', payment_date) AND (DATE_TRUNC('month', payment_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+    AND EXTRACT(MONTH FROM payment_date) = :filterMonth 
+    AND payment_status = 'paid'
+    AND partner_id = 2
+GROUP BY
+    EXTRACT(MONTH FROM payment_date),
+    EXTRACT(DAY FROM payment_date),
+    payment_id
+ORDER BY
+    month,
+    day,
+    payment_id;
       `;
 
     // Execute the query using your database connection
@@ -1261,6 +1263,9 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
       '31',
     ];
 
+
+   
+
     const datasets = [
       {
         label: 'Policy Sales',
@@ -1286,13 +1291,14 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
       },
     });
 
+  
 
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
       total_customers: results.length,
-      total_amount: results.reduce((total, item) => total + Number(item.total_amount), 0),
+      total_amount:  results.reduce((a, b) => a + parseInt(b.total_amount), 0),
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };

@@ -46,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        
     })
 
     Payment.belongsTo(sequelize.models.claim, {

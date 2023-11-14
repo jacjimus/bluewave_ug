@@ -321,6 +321,7 @@ router.all("/callback", async (req, res) => {
           payment_description: message,
           payment_date: new Date(),
           payment_metadata: req.body,
+          partner_id: partner_id,
         });
 
         console.log("Payment  for failed record created");
