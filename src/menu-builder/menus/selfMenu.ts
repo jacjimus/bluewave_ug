@@ -157,6 +157,9 @@ const selfMenu = async (args, db) => {
                 product_id: "d18424d6-5316-4e12-9826-302b866a380c",
                 user_id: existingUser.user_id,
                 phone_number: phoneNumber,
+                first_name: existingUser.first_name,
+                last_name: existingUser.last_name,
+                
 
             }
 

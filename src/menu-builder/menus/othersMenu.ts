@@ -437,7 +437,9 @@ const othersMenu = async (args, db) => {
         user_id: existingUser.user_id,
         phone_number: phoneNumber,
         total_member_number: selectedPolicyType.code_name,
-        bought_for: otherUser.user_id
+        bought_for: otherUser.user_id,
+        first_name: existingUser.first_name,
+        last_name: existingUser.last_name,
       }
 
       try {
