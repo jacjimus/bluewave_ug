@@ -411,14 +411,7 @@ const login = async (req: any, res: any) => {
         //remove password from the user object
         user.password = undefined;
 
-        // await Log.create({
-        //   log_id: uuidv4(),
-        //   timestamp: new Date(),
-        //   message: 'User fetched successfully',
-        //   level: 'info',
-        //   user: user.user_id,
-        //   partner_id: user.partner_id,
-        // });
+  
         return res
           .status(201)
           .json({
