@@ -3,25 +3,29 @@ const faqsMenu = async (args) => {
     let { response, currentStep, userText } = args;
 
     const faqs = [
+       
+
+
+
         {
             question: "Eligibility",
-            answer: "Persons between the age of 18 and 65 are eligible to purchase Medical cover Policy"
+            answer: " Persons between the ages of 18 and 65 are eligible to purchase Medical cover Policy."
         },
         {
-            question: "Mini cover",
-            answer: "Inpatient Cover with 1.5M Inpatient and 1M Funeral Limits per covered person."
+            question: "Bamba cover",
+            answer: " You get KShs 4,500 / night of hospitalisation up to a Maximum of 30 days after one day of being hospitalized. "
         },
         {
-            question: "Midi Cover",
-            answer: "Inpatient limit of UGX 3M and Funeral Limit of UGX 1.5M per covered person"
+            question: "AfyaShua Zidi Cover",
+            answer: "You get Inpatient for KShs 300,000 and Maternity for KShs 100,000 Can cover up to 6 dependents."
         },
         {
-            question: "Biggie cover",
-            answer: "Inpatient limit of UGX 5,000,000 and Funeral benefit of UGX 2,000,000 per covered person."
+            question: "AfyaShua Smarta cover",
+            answer: "You get Inpatient for KShs 400,000, Outpatient for 30,000 and Maternity for Kshs 100,0000. Can cover up to 6 dependents."
         },
         {
             question: "Waiting period",
-            answer: "1. No waiting period on Accident cases\n2. (30)-day waiting period on illness hospitalization\n3. 6-months waiting period on chronic illness hospitalizations"
+            answer: "1. No waiting period on Accident cases 2.  (30)-day waiting period on illness treatment 3. 10-months waiting period on maternity and pre-existing conditions"
         },
         {
             question: "Waiting period meaning",
@@ -29,26 +33,31 @@ const faqsMenu = async (args) => {
         },
         {
             question: "When to make claim",
-            answer: "Claims will be paid directly to the hospital"
+            answer: "Admission and treatment claims will be paid directly to the hospital "
         },
         {
-            question: "Claim Payment",
-            answer: "Death claims will be paid directly to the next of Kin.\nInpatient Claims within the cover limit will be directly to the hopsital after discharge"
+            question: "Treatment Claim",
+            answer: "Admission and treatment claims will be paid directly to the hospital"
         },
+        {
+            question: "Hospital Cash Claim",
+            answer: "Hospital cash benefits will be paid to the insured upon discharge from the hospitall"
+        },
+
         {
             question: "Renewal",
-            answer: "Premiums are either paid monthly or on annual basis. Premium due notices will be send to you via SMS on your Airtel Line."
+            answer: "Premiums are either paid monthly or on annual basis. Premium due notices will be send to you via SMS on your Airtel Line.."
         },
         {
             question: "Insured Name",
-            answer: "The insured is the Person who is registerd on the Airtel Money SIM, their chosen dependents or the persons who the Subscriber has purchased cover for."
+            answer: "The insured is the Person who is registerd on the Airtel Money SIM, their chosen dependents or the persons who the Subscriber has purchased cover for.."
         }
     ]
 
     if (userText === '0' || currentStep === 1) {
         response = "CON FAQs" +
             faqs.map((faq, index) => {
-                return `\n${index + 1}. ${faq.question}` 
+                return `\n${index + 1}. ${faq.question }  `  
             }).join("") +
             "\n0. Back" +
             "\n00. Main Menu"
@@ -61,7 +70,7 @@ const faqsMenu = async (args) => {
             response = "END Invalid option";
             return response;
         }
-        response = `CON ${faq.answer}\n0.Back`
+        response = `CON ${faq.answer + ' Ts&Cs apply'}\n0.Back`
     }
 
     return response;

@@ -115,7 +115,8 @@ const accountMenu = async (args: any, db: any) => {
                             where: {
                                 policy_id: paidPolicies[0].policy_id,
                                 payment_status: "paid"
-                            }
+                            },
+                            limit: 3,
                         });
                         console.log("PAYMENTS", payments.length)
                         let proratedPercentage = calculateProrationPercentage(payments.length)
@@ -150,7 +151,11 @@ const accountMenu = async (args: any, db: any) => {
                     where: {
                         phone_number: smsPhone.replace("+", ""),
                         policy_status: "paid"
-                    }
+                    },
+                    order: [
+                        ['policy_id', 'DESC'],
+                    ],
+                    limit: 6
                 });
                 // last 6 unpaid policies
                 const existingUser = await db.users.findOne({
@@ -226,7 +231,11 @@ const accountMenu = async (args: any, db: any) => {
             where: {
                 phone_number: smsPhone.replace("+", ""),
                 policy_status: "paid"
-            }
+            },
+            order: [
+                ['policy_id', 'DESC'],
+            ],
+            limit: 6
         });
 if(policies.length == 0){
     response = "END You have no paid policies"

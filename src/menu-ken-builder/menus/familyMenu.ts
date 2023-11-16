@@ -40,6 +40,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 300000,
           outpatient_cover: 0,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -71,6 +72,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 400000,
           outpatient_cover: 400000,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -108,6 +110,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 300000,
           outpatient_cover: 0,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -177,6 +180,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 300000,
           outpatient_cover: 0,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -208,6 +212,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 400000,
           outpatient_cover: 400000,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -245,6 +250,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 300000,
           outpatient_cover: 0,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -276,6 +282,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 400000,
           outpatient_cover: 400000,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -314,6 +321,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 300000,
           outpatient_cover: 0,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -383,6 +391,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 300000,
           outpatient_cover: 0,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -414,6 +423,7 @@ const familyMenu = async (args, db) => {
           inpatient_cover: 400000,
           outpatient_cover: 400000,
           hospital_cash: 0,
+          maternity: 0,
           payment_options: [
             {
               name: 'Monthly',
@@ -578,6 +588,10 @@ const familyMenu = async (args, db) => {
         total_member_number: selectedPolicyType.code_name,
         first_name: existingUser?.first_name,
         last_name: existingUser?.last_name,
+        inpatient_cover:  selectedPackage.inpatient_cover,
+        outpatient_cover: selectedPackage.outpatient_cover,
+        maternity_cover: selectedPackage.maternity,
+        hospital_cash: selectedPackage.hospital_cash,
       }
 
       let policy = await db.policies.create(policyObject);

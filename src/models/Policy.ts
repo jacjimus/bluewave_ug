@@ -198,7 +198,23 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ARRAY(DataTypes.STRING),
             allowNull: true
         },
-
+        inpatient_cover: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+        outpatient_cover: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+        hospital_cash: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+        maternity_cover: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+        },
+        
     },
 
         { timestamps: true },)

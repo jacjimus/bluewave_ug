@@ -1,7 +1,7 @@
 import sendSMS from "../../services/sendSMS";
 import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aar";
 import { v4 as uuidv4 } from 'uuid';
-import { airtelMoney } from "../../services/payment";
+import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
 
@@ -11,6 +11,7 @@ const accountMenu = async (args: any, db: any) => {
 
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
     const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
+    console.log("============== PHONE ================ ", smsPhone)
 
     const currentUser = await db.users.findOne({
         where: {
@@ -21,14 +22,21 @@ const accountMenu = async (args: any, db: any) => {
 
     let paidPolicies = await db.policies.findAll({
         where: {
-            phone_number: smsPhone,
+            user_id: currentUser.user_id,
             policy_status: "paid"
-        }
+        },
+        order: [
+            ['policy_id', 'DESC'],
+        ],
+        limit : 6
     });
+
+    console.log("PAID POLICIES", paidPolicies.length)
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
 
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
+        //  ATTENTION HERE ON MERTERNITY AND INPATIENT
+        return `AfyaShua ${policy.policy_type} Inpatient Kshs ${policy?.inpatient_cover|| 0} and Maternity benefit Kshs ${policy?.maternity_cover|| 0} is ${policy.policy_status.toUpperCase()} and paid to ${new Date(policy.installment_date).toDateString()}`
     });
 
 
@@ -50,7 +58,7 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "2":
                 console.log("phoneNumber", smsPhone);
-                 paidPolicies = await db.policies.findAll({
+                paidPolicies = await db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
                         policy_status: "paid"
@@ -63,27 +71,27 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 else {
                     // response = "CON PAY " +
-                    //     `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
-                    //     `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
+                    //     `\n1 Kshs ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
+                    //     `\n2 Kshs ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
 
 
                     // list all the pending policies
                     response = "CON " + paidPolicies.map((policy: any, index: number) => {
-                        return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
+                        return `\n${index + 1}. ${policy.policy_type} ${policy.beneficiary.toUpperCase()}  at Kshs ${policy.premium.toLocaleString()} `
                     }
                     ).join("");
                 }
                 break;
             case "3":
 
-               
+
                 console.log("paidPolicies", paidPolicies)
                 console.log("policyMessages", policyMessages)
-                
+
 
 
                 if (paidPolicies.length > 0) {
-                    response = `CON ${policyMessages[policyMessages.length -1]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
+                    response = `CON ${policyMessages[policyMessages.length - 1]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
                 }
                 else {
                     response = "END You have no policies"
@@ -105,8 +113,8 @@ const accountMenu = async (args: any, db: any) => {
                     response = `CON ${policyMessages[1]}\n1. Next`
                 } else if (userText == "1" && paidPolicies.length == 1) {
                     if (paidPolicies[0].installment_type == 1) {
-                        response = `END Your available inpatient limit is UGX ${formatAmount(paidPolicies[0].sum_insured)
-                            } and Funeral expense of UGX ${formatAmount(paidPolicies[0].last_expense_insured)
+                        response = `END Your available inpatient limit is Kshs ${formatAmount(paidPolicies[0].inpatient_cover)
+                            } and Maternity expense of Kshs ${formatAmount(paidPolicies[0].maternity_cover)
                             }`
 
                     } else {
@@ -115,11 +123,13 @@ const accountMenu = async (args: any, db: any) => {
                             where: {
                                 policy_id: paidPolicies[0].policy_id,
                                 payment_status: "paid"
-                            }
+                            },
+                            limit: 3,
+
                         });
                         console.log("PAYMENTS", payments.length)
                         let proratedPercentage = calculateProrationPercentage(payments.length)
-                        console.log("PRORATED PERCENTAGE", paidPolicies[0].sum_insured / proratedPercentage)
+                        console.log("PRORATED PERCENTAGE", paidPolicies[0].inpatient_cover / proratedPercentage)
 
                         // add 3 months to the policy start date
                         let policyStartDate = new Date(paidPolicies[0].policy_start_date)
@@ -129,13 +139,13 @@ const accountMenu = async (args: any, db: any) => {
 
 
                         if (policyStartDate > new Date() && paidPolicies[0].installment_type == 2) {
-                            response = `END Your available inpatient limit is UGX ${(paidPolicies[0].sum_insured / proratedPercentage).toLocaleString()
-                                } and Funeral expense of UGX ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()
+                            response = `END Your available inpatient limit is Kshs ${(paidPolicies[0].inpatient_cover / proratedPercentage).toLocaleString()
+                                } and Maternity  expense of Kshs ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()
                                 }`
                         } else {
-                            response = `END Your outstanding premium is UGX ${(paidPolicies[0].premium).toLocaleString()
-                                }\nYour available inpatient limit is UGX ${(paidPolicies[0].sum_insured / proratedPercentage).toLocaleString()
-                                } and Funeral expense of UGX ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()
+                            response = `END Your outstanding premium is Kshs ${(paidPolicies[0].premium).toLocaleString()
+                                }\nYour available inpatient limit is Kshs ${(paidPolicies[0].inpatient_cover / proratedPercentage).toLocaleString()
+                                } and Maternity  expense of Kshs ${(paidPolicies[0].inpatient_cover / proratedPercentage).toLocaleString()
                                 }`
                         }
 
@@ -145,12 +155,16 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "2":
                 console.log("allSteps", allSteps, allSteps[2]);
-
-                 paidPolicies = await db.policies.findAll({
+                response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+                paidPolicies = await db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
                         policy_status: "paid"
-                    }
+                    },
+                    order: [
+                        ['policy_id', 'DESC'],
+                    ],
+                    limit: 6
                 });
                 // last 6 unpaid policies
                 const existingUser = await db.users.findOne({
@@ -172,18 +186,41 @@ const accountMenu = async (args: any, db: any) => {
                     }
                 });
                 console.log("CHOOSEN POLICY", choosenPolicy)
-                await airtelMoney(
+
+
+                const airtelMoneyPromise = airtelMoneyKenya(
                     existingUser.user_id,
-                    2,
                     choosenPolicy.policy_id,
                     phoneNumber.replace("+", "").substring(3),
                     choosenPolicy.premium,
                     existingUser.membership_id,
-                    "UG",
-                    "UGX"
-
                 );
-                response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+
+
+
+                const timeout = 3000;
+
+                Promise.race([
+                    airtelMoneyPromise,
+                    new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            reject(new Error('Airtel Money operation timed out'));
+                        }, timeout);
+                    }),
+                ]).then((result) => {
+                    console.log("============== END TIME - FAMIY ================ ", phoneNumber, new Date());
+                    response = 'END Payment successful';
+                    console.log("RESPONSE WAS CALLED", result);
+                    return response;
+                })
+                    .catch((error) => {
+                        response = 'END Payment failed';
+                        console.log("RESPONSE WAS CALLED EER", error);
+                        return response;
+                    })
+
+                console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, new Date());
+
 
                 break;
             case "3":
@@ -226,12 +263,16 @@ const accountMenu = async (args: any, db: any) => {
             where: {
                 phone_number: smsPhone.replace("+", ""),
                 policy_status: "paid"
-            }
+            },
+            order: [
+                ['policy_id', 'DESC'],
+            ],
+            limit: 6
         });
-if(policies.length == 0){
-    response = "END You have no paid policies"
-}
-       let myPolicy = policies[policies.length - 1]
+        if (policies.length == 0) {
+            response = "END You have no paid policies"
+        }
+        let myPolicy = policies[policies.length - 1]
         const nextOfKinDetails = {
             beneficiary_id: uuidv4(),
             name: allSteps[2],
@@ -239,10 +280,10 @@ if(policies.length == 0){
             user_id: existingUser.user_id,
             bonus: allSteps[2],
         }
-       
+
 
         await db.beneficiaries.create(nextOfKinDetails);
-        const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`
+        const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your AfyaShua Cover. Any benefits on the cover will be payable to your next of Kin.`
         await sendSMS(smsPhone, sms);
         response = `END ${sms}`
     }

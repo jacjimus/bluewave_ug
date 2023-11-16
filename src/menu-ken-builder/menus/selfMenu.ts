@@ -163,6 +163,10 @@ const selfMenu = async (args, db) => {
                 phone_number: phoneNumber,
                 first_name: existingUser?.first_name,
                 last_name: existingUser?.last_name,
+                inpatient_cover: selectedPolicyType.inPatient,
+                outpatient_cover: selectedPolicyType.outPatient,
+                maternity_cover: selectedPolicyType.maternity,
+                hospital_cash: selectedPolicyType.hospitalCash,
                 
 
             }
