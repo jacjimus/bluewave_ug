@@ -1,5 +1,7 @@
 import express from "express";
 import ussdUgaMenuBuilder from "../menu-builder";
+import ussdKenMenuBuilder from "../menu-ken-builder"
+
 import sendSMS from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
@@ -34,6 +36,11 @@ router.post("/uga", async (req: any, res: any) => {
 router.post("/uat/uga", async (req: any, res: any) => {
 
   await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
+});
+
+router.post("/uat/ken", async (req: any, res: any) => {
+
+  await handleUSSDRequest(req, res, ussdKenMenuBuilder);
 });
 
 const findTransactionById = async (transactionId) => {
@@ -86,16 +93,6 @@ const updateUserPolicyStatus = async (policy, amount, installment_order, install
   return policy;
 
 };
-// {
-//   "transaction": {
-//     "id": "BBZMiscxy",
-//     "message": "Paid UGX 5,000 to TECHNOLOGIES LIMITED Charge UGX 140, Trans ID MP210603.1234.L06941.",
-//     "status_code": "TS",
-//     "airtel_money_id": "MP210603.1234.L06941"
-//   }
-// }
-
-
 
 
 // POST and GET request handler

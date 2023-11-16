@@ -146,14 +146,6 @@ const getProducts = async (req: any, res: any) => {
       items: resultProduct,
     };
 
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Products fetched successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
 
     return res.status(status.code).json({   code: 200,result: status.result });
   } catch (error) {

@@ -39,6 +39,43 @@ async function getAuthToken() {
   }
 }
 
+
+
+async function getAuthKenyaToken() {
+  try {
+    let response: any;
+
+
+    let KENYA_AIRTEL_AUTH_TOKEN_URL = 'https://openapiuat.airtel.africa/auth/oauth2/token'
+    let KENYA_AIRTEL_UGX_CLIENT_ID ='1d625007-fb96-4b08-bd07-d7316629922e'
+    let KENYA_AIRTEL_UGX_CLIENT_SECRET ='76b8a757-583e-4436-a767-b3b370c775ee'
+
+    response = await axios.post(KENYA_AIRTEL_AUTH_TOKEN_URL,
+      {
+
+        client_id: KENYA_AIRTEL_UGX_CLIENT_ID,
+        client_secret:  KENYA_AIRTEL_UGX_CLIENT_SECRET,
+        grant_type: 'client_credentials',
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    //console.log('====================== AUTH TOKEN RESPONSE =================', response.data);
+    if (response.status === 200) {
+      const { access_token } = response.data;
+      return access_token;
+    } else {
+      throw new Error(`Failed to get authentication token: ${response.statusText}`);
+    }
+  } catch (error) {
+    throw new Error(`An error occurred while getting the authentication token: ${error.message}`);
+  }
+}
+
 async function createTransaction(user_id: any, partner_id: any, policy_id: any, transactionId: any, amount: any) {
   try {
     //console.log('TRANSACTION ID', transactionId, 'AMOUNT', amount, 'USER ID', user_id, 'POLICY ID', policy_id, 'PARTNER ID', partner_id);
@@ -133,6 +170,76 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
   }
 }
 
+
+async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, reference,) {
+  const status = {
+    code: 200,
+    result: "",
+    message: 'Payment successfully initiated'
+  };
+
+  try {
+    const token = await getAuthKenyaToken();
+
+    const paymentData = {
+      reference: reference,
+      subscriber: {
+        country: "KE",
+        currency: "KES",
+        msisdn: phoneNumber,
+      },
+      transaction: {
+        amount: amount,
+        country: "KE",
+        currency: "KES",
+        id: policy_id
+      },
+    };
+
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: '/',
+      'X-Country': "KE",
+      'X-Currency': "KES",
+      Authorization: `${token}`,
+    };
+
+    const KENYA_AIRTEL_PAYMENT_URL = 'https://openapiuat.airtel.africa/merchant/v1/payments/';
+
+    // Parallelize the Airtel Money payment request and transaction creation
+
+    //let paymentResponse;
+    new Promise((resolve, reject) => {
+      setTimeout(async() => {
+        console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+        resolve( await axios.post(KENYA_AIRTEL_PAYMENT_URL, paymentData, { headers }))
+  
+      }, 3000)
+
+    }).then((paymentResponse: any) => {
+      console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+      status.result = paymentResponse.data.status;
+      console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date())
+      createTransaction(user_id, 1, policy_id, paymentData.transaction.id, amount);
+      return status;
+    }).catch((error) => {
+      console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+      status.code = 500;
+      status.result = error;
+      status.message = 'Sorry, Transaction failed';
+      return status;
+    }
+    );
+  
+   
+  } catch (error) {
+    console.error('ERROR:', error);
+    status.code = 500;
+    status.result = error;
+    status.message = 'Sorry, Payment Transaction failed';
+    return status;
+  }
+}
 
 
 async function initiateConsent(product: any, start_date: any, end_date: any, phoneNumber: any, amount: any, premium: any, country: any, currency: any) {
@@ -467,5 +574,6 @@ export {
   sendCallbackToPartner,
   initiateRecoveryPayment,
   inquireRecoveryTransaction,
-  refundRecoveryTransaction
+  refundRecoveryTransaction,
+  airtelMoneyKenya
 };

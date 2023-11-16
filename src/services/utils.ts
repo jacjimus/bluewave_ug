@@ -132,6 +132,76 @@ export function calculatePaymentOptions(policyType: string, paymentOption: numbe
   return { period, installmentType, sumInsured, premium };
 }
 
+export function calculatePaymentOptionsKenya(policyType: string, paymentOption: number) {
+  let period, installmentType, sumInsured, premium, inPatient, outPatient, maternity, hospitalCash;
+
+  console.log("POLICY TYPE", policyType);
+  
+
+if (policyType === "BAMBA") {
+  period = "yearly";
+  installmentType = 1;
+  inPatient = 0;
+  outPatient = 0;
+  maternity = 0;
+  hospitalCash = 4500;
+
+  if (paymentOption === 1) {
+    period = "monthly";
+    premium = 3294
+    installmentType = 2;
+  }
+
+  sumInsured = 0;
+  premium =300
+}
+
+
+if (policyType === "ZIDI") {
+  period = "yearly";
+  installmentType = 1;
+
+  inPatient = 300000;
+  outPatient = 0;
+  maternity = 100000;
+
+  if (paymentOption === 1) {
+    period = "monthly";
+    premium = 650;
+    installmentType = 2;
+  }
+  premium = 7140;
+  sumInsured = 0;
+  hospitalCash = 0;
+
+}
+
+
+if (policyType === "SMARTA") {
+  period = "yearly";
+  installmentType = 1;
+ 
+  inPatient = 400000;
+  outPatient = 30000;
+  maternity = 100000;
+  hospitalCash = 0;
+
+  if (paymentOption === 1) {
+    period = "monthly";
+    premium = 1400; 
+    installmentType = 2;
+  }
+
+  sumInsured = 0;
+  premium = 15873;
+}
+
+
+
+  return { period, installmentType, sumInsured, premium , hospitalCash, inPatient, outPatient, maternity};
+}
+
+
 export const parseAmount = (amount) => {
   // Remove commas and any trailing white spaces
   amount = amount.replace(/,/g, "").trim();
