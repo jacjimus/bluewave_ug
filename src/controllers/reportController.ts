@@ -55,11 +55,12 @@ const Log = db.logs;
  */
 const getPolicySummary = async (req: any, res: any) => {
   console.log("getPolicySummary");
+
   try {
     const partner_id = req.query.partner_id;
-    const today = req.query.today === "true"; // Convert to a boolean value
-    const this_week = req.query.this_week === "true"; // Convert to a boolean value
-    const this_month = req.query.this_month === "true"; // Convert to a boolean value
+    const today = req.query.today === "true";
+    const this_week = req.query.this_week === "true";
+    const this_month = req.query.this_month === "true";
 
     const twentyFourHoursAgo = new Date();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
@@ -67,127 +68,82 @@ const getPolicySummary = async (req: any, res: any) => {
     let startDate, endDate;
 
     if (today) {
-      // For today
       startDate = new Date(twentyFourHoursAgo);
       endDate = new Date();
     } else if (this_week) {
-      // For this week
       startDate = new Date();
-      startDate.setDate(
-        twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay()
-      );
+      startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
       startDate.setHours(0, 0, 0, 0);
 
       endDate = new Date();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
-      // For this month
-      startDate = new Date(
-        twentyFourHoursAgo.getFullYear(),
-        twentyFourHoursAgo.getMonth(),
-        1
-      );
+      startDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth(), 1);
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date(
-        twentyFourHoursAgo.getFullYear(),
-        twentyFourHoursAgo.getMonth() + 1,
-        0
-      );
+      endDate = new Date(twentyFourHoursAgo.getFullYear(), twentyFourHoursAgo.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
     } else {
-      // Handle the case when none of the filtering options are provided
-      startDate = new Date(0); // A distant past date (or you can set it to your default start date)
-      endDate = new Date(); // Current date
+      startDate = new Date(0);
+      endDate = new Date();
     }
 
-    let policy, policyCount;
-    if (partner_id == 1) {
-      policy = await Policy.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
+    let policyQuery = {
+      where: {
+        createdAt: {
+          [Op.between]: [startDate, endDate],
         },
-      });
-    } else {
-      policy = await Policy.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [startDate, endDate],
-          },
-          partner_id: partner_id,
-        },
-      });
-    }
+        ...(partner_id != 1 && { partner_id }),
+      },
+      limit: 100, 
+    };
+
+    let policy = await Policy.findAll(policyQuery);
+    console.log("POLICY", policy);
 
     if (!policy || policy.length === 0) {
       return res.status(404).json({ message: "No policies found" });
     }
 
-     
-  
-        const allUsersCount = await db.users.count({
-          where: {
-            partner_id: partner_id,
-          },
-        });
-
-          let total_payment_premium = await db.payments.sum("payment_amount", {
-            where: {
-              payment_status: "paid",
-              partner_id: partner_id,
-            },
-          });
-
-        policyCount = await db.policies.count({
-          where: {
-            policy_status: "paid",
-            partner_id: partner_id,
-          },
-        });
-  
-       
-    let summary = {
-      total_policies: policyCount,
-      total_users: allUsersCount,
-      total_policies_pending: policy.filter(
-        (policy: any) => policy.policy_status == "pending"
-      ).length,
-      total_policies_paid: policy.filter(
-        (policy: any) => policy.policy_status == "paid"
-      ).length,
-      total_preimum_amount: total_payment_premium,
-      total_paid_payment: await db.payments.count({
-        where: {
-          payment_status: "paid",
-          partner_id: partner_id,
-        },
-      }),
-    };
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Policy summary fetched successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-    const partnerCountry = await Partner.findOne({  
+    let total_payment_premium = await db.payments.sum("payment_amount", {
       where: {
-        partner_id: partner_id,
+        payment_status: "paid",
+        partner_id,
       },
     });
 
- 
-  
+    let summary = {
+      total_policies: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
+      total_users: await db.users.count({ where: { partner_id } }),
+      total_policies_pending: policy.filter((p: any) => p.policy_status === "pending").length,
+      total_policies_paid: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
+      total_preimum_amount: total_payment_premium,
+      total_paid_payment: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
+    };
+
+    let country_code, currency_code;
+    
+    const partnerCountries = {
+      1: { country_code: "KE", currency_code: "KES" },
+      2: { country_code: "UG", currency_code: "UGX" },
+      // Add more partner countries as needed
+    };
+
+    const selectedPartner = partnerCountries[partner_id];
+
+    if (selectedPartner) {
+      country_code = selectedPartner.country_code;
+      currency_code = selectedPartner.currency_code;
+    } else {
+      console.error("Invalid partner_id");
+    }
     
     return res.status(200).json({
       result: {
         code: 200,
-        countryCode: partnerCountry.country_code,
-        currencyCode: partnerCountry.currency_code,
+        countryCode: country_code,
+        currencyCode: currency_code,
         items: summary,
       },
     });
@@ -476,6 +432,7 @@ const getAllReportSummary = async (req: any, res: any) => {
           policy_status: "paid",
           ...(partner_id !== 1 && { partner_id: partner_id }), // Include partner_id condition if applicable
         },
+        limit: 100, 
       }),
   
     ]);
@@ -561,6 +518,7 @@ const getDailyPolicySalesReport = async (req, res) => {
         },
         partner_id: partner_id,
       },
+      limit: 100, 
     });
 
     console.log("DAILY REPORT", dailyResult);
@@ -577,6 +535,7 @@ const getDailyPolicySalesReport = async (req, res) => {
         },
         partner_id: partner_id,
       },
+      limit: 100, 
     });
 
     console.log("WEEKLY REPORT", weeklyResult);
@@ -593,6 +552,7 @@ const getDailyPolicySalesReport = async (req, res) => {
         },
         partner_id: partner_id,
       },
+      limit: 100, 
     });
 
     console.log("MONTHLY REPORT", monthlyResult);
@@ -609,6 +569,7 @@ const getDailyPolicySalesReport = async (req, res) => {
         },
         partner_id: partner_id,
       },
+      limit: 100, 
     });
 
     console.log("YEARLY REPORT", yearlyResult);
@@ -765,6 +726,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
           attributes: ["product_name"],
         },
       ],
+      limit: 100, 
     };
 
     let policies = await Policy.findAll(options);

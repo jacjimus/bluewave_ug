@@ -663,7 +663,8 @@ const deleteClaim = async (req: any, res: any) => {
             where: {
                 claim_id: claim_id,
                 partner_id: partner_id
-            }
+            },
+            limit: 100, 
         });
         // await Log.create({
         //     log_id: uuidv4(),

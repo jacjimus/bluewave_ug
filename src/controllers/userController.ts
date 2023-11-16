@@ -176,7 +176,7 @@ const signup = async (req: any, res: any) => {
     userData.name = first_name + " " + last_name;
 
     //checking if the user already exists
-    let user: any = await User.findAll({ where: { email: email } });
+    let user: any = await User.findAll({ where: { email: email }, limit: 100 });
 
     //check if national id exists
     // let nationalIdExists: any = await User.findAll({
@@ -633,6 +633,7 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
       where: {
         user_id: user.user_id,
       },
+      limit: 100, 
     });
     user.dataValues.number_of_policies = policies.length;
 
@@ -1127,7 +1128,7 @@ async function adminSignup(req: any, res: any) {
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'Incomplete data provided' });
   }
-  let user: any = await User.findAll({ where: { email: email } });
+  let user: any = await User.findAll({ where: { email: email }, limit: 100 });
   if (user && user.length > 0) {
     return res.status(409).json({ code: 409, message: "Sorry, Customer already exists with the same email" });
   }

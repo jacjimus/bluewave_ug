@@ -246,7 +246,8 @@ const getPolicyPayments = async (req: any, res: any) => {
             where: {
                 policy_id: policy_id,
                 partner_id: partner_id
-            }
+            },
+            limit: 100, 
         });
 
         if (payments.length > 0) {
@@ -335,6 +336,7 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
                 partner_id: partner_id
 
             }
+        ,limit: 100, 
         });
 
         if (user_payments.length === 0) {

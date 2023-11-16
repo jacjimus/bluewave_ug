@@ -155,7 +155,8 @@ const getPolicies = async (req, res) => {
         }
       ],
       offset,
-      limit
+      limit,
+   
     });
 
     if (policies.count === 0) {
@@ -331,7 +332,8 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
         partner_id: partner_id,
         ...dateFilters, // Apply the date filters to the query
 
-      }
+      },
+      limit: 100, 
     })
 
     // policy.total_premium = policy.premium
@@ -505,7 +507,8 @@ const updatePolicy = async (req: any, res: any) => {
     let policy = await Policy.findAll({
       where: {
         policy_id: req.params.policy_id
-      }
+      },
+      limit: 100, 
     })
     if (!policy) {
       return res.status(404).json({ message: "No policy found" });
