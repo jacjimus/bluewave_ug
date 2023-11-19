@@ -1,7 +1,7 @@
 
 import axios from 'axios';
-require('dotenv').config()
-
+import dotenv from 'dotenv'
+dotenv.config()
 
 async function authToken(partner_id: number) {
     try {
