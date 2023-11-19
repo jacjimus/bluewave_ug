@@ -560,14 +560,29 @@ router.all("/callback/kenya", async (req, res) => {
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate()-1): new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate()-1);
   
         let congratText = "";
-
+       
+        
+        
          if(policy.beneficiary == "FAMILY"){
-          congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of  Kshs ${inPatientCover} and Maternity benefit of  Kshs ${maternityCover}. Cover valid till ${thisDayThisMonth.toDateString()}` 
-        } else if(policy.beneficiary == "SELF")
-        congratText =  `Congratulations! You are covered for Inpatient benefit of Kshs ${inPatientCover} and Matrnity benefit of UGX ${maternityCover}. Cover valid till ${thisDayThisMonth.toDateString()}`;
-        else if (policy.beneficiary == "OTHER"){
-          congratText =   `${user.first_name} has bought for you AfyaShua Care for Inpatient ${inPatientCover} and Maternity benefit of ${maternityCover}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+          congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of  Kshs ${policy.inpatient_cover}  and Maternity benefit of  Kshs ${policy.maternity_cover} . Cover valid till ${thisDayThisMonth.toDateString()}` 
+        } else if(policy.beneficiary == "SELF"){
+          if(policy.policy_type.toUpperCase() == "BAMBA"){
+            congratText =  `Congratulations! You are bought AfyaShua Mamba cover for Kshs 4,500/night  of hospitalisation up to a Maximum of 30 days.  Pay KShs ${policy.premium} every ${policy.policy_deduction_day} to stay covered `;
+
+          }else if(policy.policy_type.toUpperCase() == "ZIDI"){
+            congratText = ` Congratulations! You bought AfyaShua Zidi cover for Inpatient KShs ${policy.inpatient_cover} and Maternity for KShs ${policy.maternity_cover} Pay KShs ${policy.premium} every ${policy.policy_deduction_day} to stay covered`
+          }else{
+            congratText =`Congratulations! You bought AfyaShua Smarta cover for Inpatient ${policy.inpatient_cover} Outpatient for ${policy.outpatient_cover} and Maternity for Kshs ${policy.maternity_cover}. Pay KShs ${policy.premium} every ${policy.policy_deduction_day} to stay covered`
+          }
+         } else if (policy.beneficiary == "OTHER"){
+          if(policy.policy_type.toUpperCase() == "BAMBA"){
+            congratText =`${user.first_name} has bought for you AfyaShua cover for Kshs 4,500 per night up to a Maximum of 30 days after one day of being hospitalized.
+               Dial *334*7*3# on Airtel  to enter next of kin & view more details`
+          }else if(policy.policy_type.toUpperCase() == "ZIDI"){
+          congratText =   `${user.first_name} has bought for you AfyaShua cover for Inpatient ${inPatientCover} and Maternity benefit of ${maternityCover}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+
         }
+      }
 
         await sendSMS(to, congratText);
 

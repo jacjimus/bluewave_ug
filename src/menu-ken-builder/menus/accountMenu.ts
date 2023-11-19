@@ -251,41 +251,52 @@ const accountMenu = async (args: any, db: any) => {
                 break;
         }
     } else if (currentStep == 4) {
+        switch (userText) {
+            case "1":
+                response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}\n1. Next` : "END You have no more paid policy"
+                break;
+            case "4":
+                const existingUser = await db.users.findOne({
+                    where: {
+                        [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+                    },
+                    limit: 1,
+                });
+        
+                let policies = await db.policies.findAll({
+                    where: {
+                        phone_number: smsPhone.replace("+", ""),
+                        policy_status: "paid"
+                    },
+                    order: [
+                        ['policy_id', 'DESC'],
+                    ],
+                    limit: 6
+                });
+                if (policies.length == 0) {
+                    response = "END You have no paid policies"
+                }
+                let myPolicy = policies[policies.length - 1]
+                const nextOfKinDetails = {
+                    beneficiary_id: uuidv4(),
+                    name: allSteps[2],
+                    phone_number: userText,
+                    user_id: existingUser.user_id,
+                    bonus: allSteps[2],
+                }
+        
+        
+                await db.beneficiaries.create(nextOfKinDetails);
+                const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your AfyaShua Cover. Any benefits on the cover will be payable to your next of Kin.`
+                await sendSMS(smsPhone, sms);
+                response = `END ${sms}`
+                break;
+            default:
+                response = "END Invalid option selected"
+                break;
+            }
 
-        const existingUser = await db.users.findOne({
-            where: {
-                [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-            },
-            limit: 1,
-        });
-
-        let policies = await db.policies.findAll({
-            where: {
-                phone_number: smsPhone.replace("+", ""),
-                policy_status: "paid"
-            },
-            order: [
-                ['policy_id', 'DESC'],
-            ],
-            limit: 6
-        });
-        if (policies.length == 0) {
-            response = "END You have no paid policies"
-        }
-        let myPolicy = policies[policies.length - 1]
-        const nextOfKinDetails = {
-            beneficiary_id: uuidv4(),
-            name: allSteps[2],
-            phone_number: userText,
-            user_id: existingUser.user_id,
-            bonus: allSteps[2],
-        }
-
-
-        await db.beneficiaries.create(nextOfKinDetails);
-        const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your AfyaShua Cover. Any benefits on the cover will be payable to your next of Kin.`
-        await sendSMS(smsPhone, sms);
-        response = `END ${sms}`
+        
     }
 
 

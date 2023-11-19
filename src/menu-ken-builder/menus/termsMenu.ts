@@ -6,11 +6,11 @@ const termsAndConditions = async (args) => {
 
     phoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`; 
 
-           const message = 'To view Medical cover Terms &Conditions Visit https://rb.gy/g4hyk';
+           const message = 'To view Terms and Conditions, visit Afyashua Ts & Cs https://rb.gy/g4hyk';
             const sms = await sendSMS(phoneNumber, message);
             console.log("SMS", sms)
 
-            response = 'END Visit https://rb.gy/g4hyk to Terms & Conditions. A link will also be sent by SMS'
+            response = 'END Visit [LINK TBC] to view Terms & Conditions. A link will also be sent by SMS.'
 
          return response;
 

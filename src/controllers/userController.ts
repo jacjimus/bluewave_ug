@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 import { db } from "../models/db";
 import { registerDependant, registerPrincipal, updatePremium } from "../services/aar";
+import welcomeTemplate from "../services/emailTemplates/welcome";
+import sendEmail from "../services/sendEmail";
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 import {
@@ -390,6 +392,7 @@ const login = async (req: any, res: any) => {
       return res.status(401).json({ code: 401, message: "Invalid credentials" });
     }
 
+ 
     //if user email is found, compare password with bcrypt
     if (user) {
       const isSame = await bcrypt.compare(password, user.password);
@@ -1114,34 +1117,42 @@ const createUserFunction = async (userData: any) => {
  *         description: Invalid request
  */
 async function adminSignup(req: any, res: any) {
+  try {
+    const { username, email, password, role, partner_id } = req.body;
 
-  const { username, email, password, role, partner_id } = req.body;
+    // Perform validation on the data
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Incomplete data provided' });
+    }
+    let user: any = await User.findAll({ where: { email: email }, limit: 100 });
+    if (user && user.length > 0) {
+      return res.status(409).json({ code: 409, message: "Sorry, Customer already exists with the same email" });
+    }
+  
+    // Logic for admin signup goes here
+    // You can store the admin data in a database, hash the password, etc.
+    const admin = {
+      name: username,
+      email,
+      password: await bcrypt.hash(password, 10),
+      role,
+      partner_id,
+    };
+  
+    //save admin to database
+    let newAdmin = await User.create(admin);
 
-  // Perform validation on the data
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: 'Incomplete data provided' });
+    await sendEmail(admin, "Admin Registration", welcomeTemplate)
+
+  
+    console.log("NEW ADMIN", newAdmin);
+    // Return a success response
+    return res.status(200).json({ code: 200, message: 'Admin registered successfully' });
+    
+  } catch (error) {
+    return res.status(500).json({code: 200, message: error.message})
+    
   }
-  let user: any = await User.findAll({ where: { email: email }, limit: 100 });
-  if (user && user.length > 0) {
-    return res.status(409).json({ code: 409, message: "Sorry, Customer already exists with the same email" });
-  }
-
-  // Logic for admin signup goes here
-  // You can store the admin data in a database, hash the password, etc.
-  const admin = {
-    name: username,
-    email,
-    password: await bcrypt.hash(password, 10),
-    role,
-    partner_id,
-  };
-
-  //save admin to database
-  let newAdmin = await User.create(admin);
-
-  console.log("NEW ADMIN", newAdmin);
-  // Return a success response
-  return res.status(200).json({ code: 200, message: 'Admin registered successfully' });
 
 }
 

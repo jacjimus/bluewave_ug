@@ -101,13 +101,13 @@ const selfMenu = async (args, db) => {
         if (userText == "1") {
 
             response = 'END Please wait for Airtel Money Pin prompt to complete the payment'
-            console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber, new Date());
+            console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", phoneNumber, new Date());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
             if (!existingUser) {
-                console.log("USER DOES NOT EXIST SELF");
+                console.log("USER DOES NOT EXIST SELF KENYA ");
                 let user = await getAirtelKenyaUser(phoneNumber);
 
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
@@ -125,7 +125,7 @@ const selfMenu = async (args, db) => {
                     nationality: "KENYA",
                 });
 
-                const message = `Dear ${user.first_name}, welcome to AfyaSure. Membership ID: ${membershipId} Dial *127*7*6# to access your account.`;
+                const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
                 await sendSMS(fullPhone, message);
 
             }
@@ -174,7 +174,7 @@ const selfMenu = async (args, db) => {
 
             let policy = await db.policies.create(policyObject);
 
-            console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
+            console.log("============== START TIME - SELFKENYA   ================ ", phoneNumber, new Date());
 
             const airtelMoneyPromise = airtelMoneyKenya(
                 existingUser.user_id,
@@ -192,22 +192,22 @@ const selfMenu = async (args, db) => {
                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        reject(new Error('Airtel Money operation timed out'));
+                        reject(new Error('Airtel Money kenya operation timed out'));
                     }, timeout);
                 })
             ]).then((result) => {
                 // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                console.log("============== END TIME - SELF KENYA  ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
-                console.log("RESPONSE WAS CALLED", result);
+                console.log("RESPONSE WAS CALLED KENYA ", result);
                 return response;
             }).catch((error) => {
                 response = 'END Payment failed';
-                console.log("RESPONSE WAS CALLED", error);
+                console.log("RESPONSE WAS CALLED KENYA ", error);
                 return response;
             });
 
-            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+            console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", phoneNumber, new Date());
 
         } else {
             response = "END Thank you for using AfyaSure"

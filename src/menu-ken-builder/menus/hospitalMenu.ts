@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import { v4 as uuidv4 } from 'uuid';
+import sendSMS from "../../services/sendSMS";
 
 const hospitalMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -7,160 +8,117 @@ const hospitalMenu = async (args: any, db: any) => {
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
     const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
 
+    const user = await db.users.findOne({
+        where: {
+            phone_number: trimmedPhoneNumber
+        },
+        limit: 1,
+    });
+
+
     if (currentStep == 1) {
-        response = "CON Select Region" +
-            "\n1. Central" +
-            "\n2. Western" +
-            "\n3. Nothern" +
-            "\n4. Eastern" +
-            "\n5. West Nile" +
-            "\n6. Karamoja" + "\n0. Back \n00. Main Menu";
+        response = "CON Type your hospital e.g Nairibi hospital";
     } else if (currentStep == 2) {
-        response = "CON Type your district e.g Kampala";
-    } else if (currentStep == 3) {
-        const userTextLower = userText.toLowerCase(); // Convert user input to lowercase
-        const hospitals = await db.hospitals.findAll({
+        const userText = allSteps[1]
+        const userTextLower = userText.toLowerCase();
+        const hospitals = await db.hospitals_kenya.findAll({
             where: {
-                district: {
-                    [Op.iLike]: `%${userText}%`
-                }
+                [Op.or]: [
+                    {
+                        region: {
+                            [Op.iLike]: `%${userTextLower}%`
+                        }
+                    },
+                    {
+                        provider_name: {
+                            [Op.iLike]: `%${userTextLower}%`
+                        }
+                    },
+                    // Add more conditions as needed
+                ]
             },
             order: [
-                ['district', 'ASC'],
+                ['provider_name', 'ASC'],
             ],
-            limit: 10,
+            limit: 6,
         });
+
 
         // if no hospitals are found, return an error message
         if (hospitals.length == 0) {
-            response = "CON No district found" + "\n0. Back \n00. Main Menu";
+            response = "CON No hospital found" + "\n0. Back \n00. Main Menu";
         } else {
-            // if hospitals are found, return a list of unique districts
-            const districts = hospitals.map((hospital: any) => hospital.district);
-
-            const uniqueDistricts = [...new Set(districts)];
-
-            const districtMessages = uniqueDistricts?.slice(0, 6).map((district: any, index: number) => {
-                return `${index + 1}. ${district}`
-            });
 
 
-            response = `CON Confirm your district` +
-                `\n${districtMessages.join("\n")}`;
-        }
-    } else if (currentStep == 4) {
-        const hospitals = await db.hospitals.findAll({
-            where: {
-                district: {
-                    [Op.iLike]: `%${allSteps[2]}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
-            limit: 10,
-        });
-
-        const districtSelected = hospitals[parseInt(allSteps[3]) - 1];
-
-
-        response = `CON Type your Hospital to search e.g ${districtSelected.hospital_name}`;
-    } else if (currentStep == 5) {
-        const districts = await db.hospitals.findAll({
-            where: {
-                district: {
-                    [Op.iLike]: `%${allSteps[2]}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
-        });
-
-        const districtSelected = districts[parseInt(allSteps[3]) - 1];
-
-
-        const hospitals = await db.hospitals.findAll({
-            where: {
-                district: districtSelected.district,
-                hospital_name: {
-                    [Op.iLike]: `%${userText}%`
-                }
-            },
-            order: [
-                ['hospital_name', 'ASC'],
-            ],
-            limit: 10,
-        });
-
-        const hospitalMessages = hospitals?.slice(0, 6).map((hospital: any, index: number) => {
-            return `${index + 1}. ${hospital.hospital_name}`
-        });
-
-        response = `CON Confirm your hospital` +
-            `\n${hospitalMessages.join("\n")}`;
-
-    } else if (currentStep == 6) {
-        const districts = await db.hospitals.findAll({
-            where: {
-                district: {
-                    [Op.iLike]: `%${allSteps[2]}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
-        });
-
-        const districtSelected = districts[parseInt(allSteps[3]) - 1];
-        const hospitals = await db.hospitals.findAll({
-            where: {
-                district: districtSelected.district,
-                hospital_name: {
-                    [Op.iLike]: `%${allSteps[4]}%`
-                }
-            },
-            order: [
-                ['hospital_name', 'ASC'],
-            ],
-            limit: 10,
-        });
-
-
-        console.log("ALL STEPS", allSteps)
-
-        const hospitalSelected = hospitals[parseInt(allSteps[5]) - 1];
-
-        console.log("HOSPITAL SELECTED", hospitalSelected)
-
-        const hospital = await db.hospitals.findOne({
-            where: {
-                hospital_id: hospitalSelected.hospital_id
+            const hospitalList = hospitals?.slice(0, 6).map((hospital: any, index: number) => {
+                return `${index + 1}. ${hospital.provider_name}`
             }
-        });
+            );
 
-        const user = await db.users.findOne({
+            response = `CON select hospital` +
+                `\n${hospitalList.join("\n")}`;
+        }
+
+
+    } else if (currentStep == 3) {
+
+        const hospitalSelectedIndex = parseInt(allSteps[2]) - 1;
+        const userTextLower = allSteps[1].toLowerCase()
+
+        const hospitals = await db.hospitals_kenya.findAll({
             where: {
-                phone_number: trimmedPhoneNumber
+                region: {
+                    [Op.iLike]: `%${userTextLower}%`
+                },
+                provider_name: {
+                    [Op.iLike]: `%${userTextLower}%`
+                }
             },
-            limit: 1,
+            order: [
+                ['provider_name', 'ASC'],
+            ],
+            limit: 6,
         });
 
-        await db.user_hospitals.create({
-            user_hospital_id: uuidv4(),
-            user_id: user.user_id,
-            hospital_id: hospital.hospital_id
-        });
+        const hospitalChoosen = hospitals[hospitalSelectedIndex]
 
-        response = `CON You have selected ${hospital.hospital_name} as your preferred facility.` +
-            // `\n${hospital.hospital_name}` +
-            `\nContact: ${hospital.hospital_contact}` +
-            `\nLocation: ${hospital.hospital_address}` + "\n0. Back \n00. Main Menu";
+        const userHospitalCount = await db.user_hospitals.findAndCountAll({
+            where: {
+                user_id: user.user_id
 
+            },
+            limit: 3
+        })
+
+        if (userHospitalCount < 1) {
+
+            await db.user_hospitals.create({
+                user_hospital_id: uuidv4(),
+                user_id: user.user_id,
+                hospital_id: hospitalChoosen.hospital_id
+            });
+        } else {
+
+            await db.user_hospitals.update(
+                { hospital_id: hospitalChoosen.hospital_id },
+                {
+                    where: { user_id: user.user_id }
+                })
+        }
+
+
+
+        let message = `Congratulations, you have selected  ${hospitalChoosen.provider_name} as your preferred Hospital. Below are the Hospital details:
+                        Contact Number:  ${hospitalChoosen.hospital_contact}
+                        Location: ${hospitalChoosen.hospital_address}`
+
+        await sendSMS(smsPhone, message)
+
+        response = `CON You have selected ${hospitalChoosen.provider_name} as your preferred facility.` +
+            `\nContact: ${hospitalChoosen.hospital_contact}` +
+            `\nLocation: ${hospitalChoosen.hospital_address}` + "\n0. Back \n00. Main Menu";
 
     }
-
-
 
 
     return response;

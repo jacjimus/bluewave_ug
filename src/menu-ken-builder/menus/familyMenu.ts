@@ -528,7 +528,7 @@ const familyMenu = async (args, db) => {
     await Beneficiary.create(beneficiary);
 
     if (!existingUser) {
-      console.log("USER DOES NOT EXIST FAMILY");
+      console.log("USER DOES NOT EXIST FAMILY KENYA ");
       let user = await getAirtelKenyaUser(phoneNumber);
       let membershierId = Math.floor(100000 + Math.random() * 900000);
       existingUser = await db.users.create({
@@ -543,7 +543,7 @@ const familyMenu = async (args, db) => {
         nationality: "KENYA"
       });
       console.log("USER DOES NOT EXIST", user);
-      const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *127*7*6# to access your account.`;
+      const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membershierId} Dial *334*7*3# to access your account.`;
       await sendSMS(fullPhone, message);
 
     }
@@ -560,7 +560,7 @@ const familyMenu = async (args, db) => {
       // NOT WORK
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE - FAMILY =======", new Date());
+      console.log("=============== END SCREEN USSD RESPONCE - FAMILY KENYA  =======", new Date());
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
@@ -596,7 +596,7 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-      console.log("============== START TIME - FAMILY ================ ",phoneNumber, new Date());
+      console.log("============== START TIME - FAMILY KENYA  ================ ",phoneNumber, new Date());
 
 
         const airtelMoneyPromise = airtelMoneyKenya(
@@ -613,11 +613,11 @@ const familyMenu = async (args, db) => {
           airtelMoneyPromise,
           new Promise((resolve, reject) => {
             setTimeout(() => {
-              reject(new Error('Airtel Money operation timed out'));
+              reject(new Error('Airtel Money kenya operation timed out'));
             }, timeout);
           }),
         ]).then((result) => {
-          console.log("============== END TIME - FAMIY ================ ",phoneNumber, new Date());
+          console.log("============== END TIME - FAMIY KENYA  ================ ",phoneNumber, new Date());
           response = 'END Payment successful'; 
           console.log("RESPONSE WAS CALLED", result);
           return response;
@@ -628,10 +628,10 @@ const familyMenu = async (args, db) => {
           return response;
         })
         
-        console.log("============== AFTER CATCH  TIME - FAMILY ================ ",phoneNumber, new Date());
+        console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ",phoneNumber, new Date());
         
       } else {
-        response = "END Thank you for using Ddwaliro Care"
+        response = "END Thank you for using AfyaShua Care"
       }
     }
     

@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             allowNull: true
         },
+        
         hospital_name: {
             type: DataTypes.STRING,
             allowNull: true
