@@ -7,13 +7,11 @@ dotenv.config();
 const User = db.users;
 const Transaction = db.transactions;
 
-let AIRTEL_AUTH_TOKEN_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
-
 async function getAuthToken() {
   try {
     let response: any;
 
-    response = await axios.post(AIRTEL_AUTH_TOKEN_URL,
+    response = await axios.post(process.env.PROD_AIRTEL_AUTH_TOKEN_URL,
       {
 
         client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,

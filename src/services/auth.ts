@@ -9,7 +9,7 @@ async function authToken(partner_id: number) {
 
         switch (partner_id) {
             case 1:
-                AUTH_TOKEN_URL = 'https://openapiuat.airtel.africa/auth/oauth2/token'
+                AUTH_TOKEN_URL = process.env.AIRTEL_AUTH_TOKEN_URL_UAT
                 inputBody = {
                     client_id: process.env.AIRTEL_KEN_CLIENT_ID,
                     client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
@@ -17,18 +17,16 @@ async function authToken(partner_id: number) {
                 };
                 break;
                 case 2:
-               AUTH_TOKEN_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
+               AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL
                 inputBody = {
-                    client_id: 'f42013ed-a169-4b69-a7fb-960e56e80911',
-                    //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_UGX_CLIENT_ID: process.env.AIRTEL_UGX_CLIENT_ID,
-                    client_secret:'845908cd-8f22-463a-bb2b-8a5243b6efbe',
-                    //process.env.ENVIROMENT == 'PROD' ?  process.env.PROD_AIRTEL_UGX_CLIENT_SECRET : process.env.AIRTEL_UGX_CLIENT_SECRET,
+                    client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
+                    client_secret:process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
                 
                 break;
             default:
-                AUTH_TOKEN_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
+                AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL
                 inputBody = {
                     client_id: process.env.AIRTEL_CLIENT_ID,
                     client_secret: process.env.AIRTEL_CLIENT_SECRET,
@@ -42,11 +40,11 @@ async function authToken(partner_id: number) {
         };
 
 
-        
-        //process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL : process.env.AIRTEL_AUTH_TOKEN_URL;
+      
+
         console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL)
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
-       // console.log("RESPONSE", response);
+      
 
         if (response.status === 200) {
             const token = response.data.access_token;

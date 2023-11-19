@@ -2,17 +2,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../models/db';
 import dotenv from 'dotenv';
+dotenv.config()
 import { calculateProrationPercentage } from './utils';
-
-//const User = db.users;
-
-function randomDateOfBirth() {
-  const start = new Date(1950, 0, 1);
-  const end = new Date(2000, 0, 1);
-  const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-  return date.toISOString().split('T')[0];
-
-}
 
 async function arr_uganda_login() {
   try {
@@ -326,7 +317,7 @@ async function updatePremium(user: any, policy: any) {
       maxBodyLength: Infinity,
       url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
       headers: {
-        'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTY5OTM1NjkwOCwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.ZVx50eJNbswUpCOnhY_GVbw3YixLODN2yIIemFn8BXVmfAS4mQggCGCUsBXDNEUyAnCnFVNZLWVFEjjFBzz6cwzORg6K48ZInx33BGjfWDUAGh8udMMsRczsv1TpCFAVCKgz68KFiPjapIpRaLSFrdzXiP_p8in8SznmmP1nzRQVRooxzcpEW88rANqrGdB3YaGydKWGtlaFXnPPoIUFVljk1d3ZvHUZJdMdh-kyplD0R2ilo3RBRxmT2tN8CaY1ehQo86N3io54lrpY_B93hirZKfUNoZZ36r5TByXUcw6hpDW6TRv9aboaiyTi1gGEwYumyeuBkydAW6HjNtnBtg',
+        'Authorization': 'Bearer ' +  + await arr_uganda_login(),
         'Content-Type': 'application/json'
       },
       data: JSON.stringify(requestData),

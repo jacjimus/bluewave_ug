@@ -15,7 +15,7 @@ async function sendEmail(user: any, subject: string, message: any) {
         const emailData = {
             name: name,
             email: email,
-            login_url: 'http://mainboard.s3-website-us-east-1.amazonaws.com/login',
+            login_url: process.env.DASHBOARD_LOGIN,
             // ... other dynamic values
           };
           
@@ -54,7 +54,7 @@ async function sendEmail(user: any, subject: string, message: any) {
         });
 
         let mailOptions = {
-            from: "admin@bluewave.insure",
+            from: process.env.MAIL_USERNAME,
             to: email,
             subject: subject,
             html: emailHtml   // text
