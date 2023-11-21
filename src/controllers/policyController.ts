@@ -166,7 +166,7 @@ const getPolicies = async (req, res) => {
     const result = {
       message: "Policies fetched successfully",
       count: policies.count,
-      item: policies.rows
+      items: policies.rows
     };
     return res.status(200).json({
       code: 200,
