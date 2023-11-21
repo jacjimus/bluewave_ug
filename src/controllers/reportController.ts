@@ -502,97 +502,72 @@ const countClaimsByStatus = (claims: any[], status: string): number => {
  *       400:
  *         description: Invalid request
  */
-const getDailyPolicySalesReport = async (req, res) => {
+const getSalesReportByPeriod = async (req, res, periodType) => {
   const { partner_id } = req.query;
 
   try {
     const today = new Date();
-    const startOfDay = new Date(today);
-    startOfDay.setHours(0, 0, 0, 0);
+    const startOfPeriod = new Date(today);
+    const report = {};
 
-    // Fetch daily sales data
-    const dailyResult = await Policy.findAll({
+    switch (periodType) {
+      case 'daily':
+        startOfPeriod.setHours(0, 0, 0, 0);
+        break;
+      case 'weekly':
+        startOfPeriod.setHours(0, 0, 0, 0);
+        startOfPeriod.setDate(today.getDate() - today.getDay());
+        break;
+      case 'monthly':
+        startOfPeriod.setHours(0, 0, 0, 0);
+        startOfPeriod.setDate(1);
+        break;
+      case 'yearly':
+        startOfPeriod.setHours(0, 0, 0, 0);
+        startOfPeriod.setMonth(0, 1);
+        break;
+      default:
+        throw new Error('Invalid period type');
+    }
+
+    // Fetch sales data based on the specified period
+    const result = await db.payments.findAll({
       where: {
         createdAt: {
-          [Op.between]: [startOfDay, today],
+          [Op.between]: [startOfPeriod, today],
         },
+        payment_status: 'paid',
         partner_id: partner_id,
       },
-      limit: 100, 
     });
 
-    console.log("DAILY REPORT", dailyResult);
+  
 
-    // Fetch weekly sales data
-    const startOfWeek = new Date(today);
-    startOfWeek.setHours(0, 0, 0, 0);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+    // Count policies by status for the specified period
+    report[periodType] = result.length;
 
-    const weeklyResult = await Policy.findAll({
+    return report;
+  } catch (error) {
+    console.error(`Error fetching ${periodType} sales report:`, error);
+    throw error;
+  }
+};
+
+const getDailyPolicySalesReport = async (req, res) => {
+  try {
+    // Fetch sales reports for different periods
+    const [dailyReport, weeklyReport, monthlyReport, yearlyReport] = await Promise.all([
+      getSalesReportByPeriod(req, res, 'daily'),
+      getSalesReportByPeriod(req, res, 'weekly'),
+      getSalesReportByPeriod(req, res, 'monthly'),
+      getSalesReportByPeriod(req, res, 'yearly'),
+    ]);
+
+    // Additional logic or logging can be added here if needed
+
+    const partnerCountry = await Partner.findOne({
       where: {
-        createdAt: {
-          [Op.between]: [startOfWeek, today],
-        },
-        partner_id: partner_id,
-      },
-      limit: 100, 
-    });
-
-    console.log("WEEKLY REPORT", weeklyResult);
-
-    // Fetch monthly sales data
-    const startOfMonth = new Date(today);
-    startOfMonth.setHours(0, 0, 0, 0);
-    startOfMonth.setDate(1);
-
-    const monthlyResult = await Policy.findAll({
-      where: {
-        createdAt: {
-          [Op.between]: [startOfMonth, today],
-        },
-        partner_id: partner_id,
-      },
-      limit: 100, 
-    });
-
-    console.log("MONTHLY REPORT", monthlyResult);
-
-    // Fetch yearly sales data
-    const startOfYear = new Date(today);
-    startOfYear.setHours(0, 0, 0, 0);
-    startOfYear.setMonth(0, 1);
-
-    const yearlyResult = await Policy.findAll({
-      where: {
-        createdAt: {
-          [Op.between]: [startOfYear, today],
-        },
-        partner_id: partner_id,
-      },
-      limit: 100, 
-    });
-
-    console.log("YEARLY REPORT", yearlyResult);
-
-    const report = {
-      daily: countPoliciesByStatus(dailyResult, "paid"),
-      weekly: countPoliciesByStatus(weeklyResult, "paid"),
-      monthly: countPoliciesByStatus(monthlyResult, "paid"),
-      yearly: countPoliciesByStatus(yearlyResult, "paid"),
-    };
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Daily policy sales fetched successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-
-    const partnerCountry = await Partner.findOne({  
-      where: {
-        partner_id: partner_id,
+        partner_id: req.query.partner_id,
       },
     });
 
@@ -601,14 +576,15 @@ const getDailyPolicySalesReport = async (req, res) => {
         code: 200,
         countryCode: partnerCountry.country_code,
         currencyCode: partnerCountry.currency_code,
-        items: report,
+        items: { daily: dailyReport, weekly: weeklyReport, monthly: monthlyReport, yearly: yearlyReport },
       },
     });
   } catch (error) {
-    console.error("Error fetching sales report:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error fetching sales report:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 /**
  * @swagger
@@ -813,13 +789,9 @@ const generatePolicyExcelReport = async (policies) => {
 
   // Define columns for data in Excel. Key must match data key
   worksheet.columns = [
-    { header: "Product Name", key: "product_name", width: 20 },
-    { header: "Product ID", key: "product_id", width: 20 },
-    { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
-    { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
-    { header: "AAR Member Number", key: "arr_member_number", width: 20 },
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
+    { header: "Customer ID", key: "user_id", width: 20 },
     { header: "Policy Category", key: "beneficiary", width: 20 },
     { header: "Policy Type", key: "policy_type", width: 20 },
     { header: "Family Size", key: "total_member_number", width: 20 },
@@ -828,35 +800,40 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_paid_date", width: 20 },
     { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
-    {
-      header: "Policy Deduction Amount",
-      key: "policy_deduction_amount",
-      width: 20,
-    },
-    { header: "Customer ID", key: "user_id", width: 20 },
+    // {
+    //   header: "Policy Deduction Amount",
+    //   key: "policy_deduction_amount",
+    //   width: 20,
+    // },
+    { header: "Premium", key: "premium", width: 20 },
+    { header: "Sum Insured", key: "sum_insured", width: 20 },
+    { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
+    { header: "AAR Member Number", key: "arr_member_number", width: 20 },
+    { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
+    { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
+    
     {
       header: "Policy Next Deduction Date",
       key: "policy_next_deduction_date",
       width: 20,
     },
-    { header: "Policy Deduction Day", key: "policy_deduction_day", width: 20 },
+    // { header: "Policy Deduction Day", key: "policy_deduction_day", width: 20 },
     { header: "Installment Order", key: "installment_order", width: 20 },
-    { header: "Installment Date", key: "installment_date", width: 20 },
-    {
-      header: "Installment Alert Date",
-      key: "installment_alert_date",
-      width: 20,
-    },
+    // { header: "Installment Date", key: "installment_date", width: 20 },
+    // {
+    //   header: "Installment Alert Date",
+    //   key: "installment_alert_date",
+    //   width: 20,
+    // },
     // { header: "Tax Rate VAT", key: "tax_rate_vat", width: 20 },
     // { header: "Tax Rate EXT", key: "tax_rate_ext", width: 20 },
-    { header: "Premium", key: "premium", width: 20 },
-    { header: "Sum Insured", key: "sum_insured", width: 20 },
-    { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
-    { header: "Excess Premium", key: "excess_premium", width: 20 },
-    { header: "Discount Premium", key: "discount_premium", width: 20 },
+   
+    // { header: "Excess Premium", key: "excess_premium", width: 20 },
+    // { header: "Discount Premium", key: "discount_premium", width: 20 },
     { header: "Hospital Details", key: "hospital_details", width: 20 },
     { header: "Currency Code", key: "currency_code", width: 20 },
     { header: "Country Code", key: "country_code", width: 20 },
+    { header: "Product Name", key: "product_name", width: 20 },
     { header: "Partner ID", key: "partner_id", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
     { header: "Updated At", key: "updatedAt", width: 20 },
@@ -990,15 +967,15 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
     });
 console.log("RESULTS", results)
 
-    const data = {
-      labels: labels,
-      datasets: datasets,
-      total_policies: results.length,
-      total_customers: results.length,
-      total_amount: results[results.length -1].total_amount,
-      countryCode: partnerData.country_code,
-      currencyCode: partnerData.currency_code,
-    };
+const data = {
+  labels: labels,
+  datasets: datasets,
+  total_policies: results.length,
+  total_customers: results[0] ? results[0].total_users : 0, // Adjusted for distinct users
+  total_amount: results[results.length - 1] ? results[results.length - 1].total_amount : 0,
+  countryCode: partnerData.country_code,
+  currencyCode: partnerData.currency_code,
+};
 
     // Send the results as a response
     res.status(200).json({ data });
@@ -1037,25 +1014,26 @@ console.log("RESULTS", results)
 const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
   try {
     const query = `
-        SELECT
-          EXTRACT(MONTH FROM policy_paid_date) AS month,
-          EXTRACT(DAY FROM policy_paid_date) AS day,
-          policy_id,
-          SUM(premium) AS total_amount,
-          COUNT(DISTINCT user_id) AS total_users -- Added this line
-        FROM
-          policies 
-        WHERE
-          policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day')   AND policy_status = 'paid' AND partner_id = :partner_id
-        GROUP BY
-          EXTRACT(MONTH FROM policy_paid_date),
-          EXTRACT(DAY FROM policy_paid_date),
-          policy_id
-        ORDER BY
-          month,
-          day,
-          policy_id;
-      `;
+      SELECT
+        EXTRACT(MONTH FROM policy_paid_date) AS month,
+        EXTRACT(DAY FROM policy_paid_date) AS day,
+        policy_id,
+        SUM(premium) AS total_amount,
+        COUNT(DISTINCT user_id) AS total_users
+      FROM
+        policies 
+      WHERE
+        policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day')
+        AND policy_status = 'paid' AND partner_id = :partner_id
+      GROUP BY
+        EXTRACT(MONTH FROM policy_paid_date),
+        EXTRACT(DAY FROM policy_paid_date),
+        policy_id
+      ORDER BY
+        month,
+        day,
+        policy_id;
+    `;
 
     // Execute the query using your database connection
     const results = await db.sequelize.query(query, {
@@ -1104,14 +1082,14 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
       },
     });
 
-    console.log("RESULTS", results)
+    console.log("RESULTS", results);
 
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
-      total_customers: results.length,
-      total_amount:  results[results.length -1].total_amount,
+      total_customers: results[0] ? results[0].total_users : 0, // Adjusted for distinct users
+      total_amount: results[results.length - 1] ? results[results.length - 1].total_amount : 0,
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };
@@ -1154,79 +1132,42 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
  */
 const getAggregatedMonthlySalesReport = async (req, res) => {
   try {
-    const filterMonth = req.query.month; // Get the month filter from the query
+    const filterMonth = req.query.month;
 
-    // Validate and sanitize the input
     if (!filterMonth || isNaN(filterMonth) || filterMonth < 1 || filterMonth > 12) {
       return res.status(400).json({ message: 'Invalid or missing month filter' });
     }
 
     const query = `
-    SELECT
-    EXTRACT(MONTH FROM payment_date) AS month,
-    EXTRACT(DAY FROM payment_date) AS day,
-    payment_id,
-    SUM(payment_amount) AS total_amount,
-    COUNT(DISTINCT user_id) AS total_users
-FROM
-    public.payments
-WHERE
-    payment_date BETWEEN DATE_TRUNC('month', payment_date) AND (DATE_TRUNC('month', payment_date) + INTERVAL '1 month' - INTERVAL '1 day') 
-    AND EXTRACT(MONTH FROM payment_date) = :filterMonth 
-    AND payment_status = 'paid'
-    AND partner_id = 2
-GROUP BY
-    EXTRACT(MONTH FROM payment_date),
-    EXTRACT(DAY FROM payment_date),
-    payment_id
-ORDER BY
-    month,
-    day,
-    payment_id;
-      `;
+      SELECT
+        EXTRACT(MONTH FROM payment_date) AS month,
+        EXTRACT(DAY FROM payment_date) AS day,
+        payment_id,
+        SUM(payment_amount) AS total_amount,
+        COUNT(DISTINCT user_id) AS total_users
+      FROM
+        public.payments
+      WHERE
+        payment_date BETWEEN DATE_TRUNC('month', payment_date) AND (DATE_TRUNC('month', payment_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+        AND EXTRACT(MONTH FROM payment_date) = :filterMonth 
+        AND payment_status = 'paid'
+        AND partner_id = :partner_id
+      GROUP BY
+        EXTRACT(MONTH FROM payment_date),
+        EXTRACT(DAY FROM payment_date),
+        payment_id
+      ORDER BY
+        month,
+        day,
+        payment_id;
+    `;
 
-    // Execute the query using your database connection
     const results = await db.sequelize.query(query, {
       replacements: { partner_id: req.query.partner_id, filterMonth: filterMonth },
       type: QueryTypes.SELECT,
     });
-    // Prepare the response data
-    const labels = [
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-      '11',
-      '12',
-      '13',
-      '14',
-      '15',
-      '16',
-      '17',
-      '18',
-      '19',
-      '20',
-      '21',
-      '22',
-      '23',
-      '24',
-      '25',
-      '26',
-      '27',
-      '28',
-      '29',
-      '30',
-      '31',
-    ];
 
-
-   
+    const labels = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 
     const datasets = [
       {
@@ -1253,25 +1194,23 @@ ORDER BY
       },
     });
 
-  
-
     const data = {
       labels: labels,
       datasets: datasets,
       total_policies: results.length,
-      total_customers: results.length,
-      total_amount:  results.reduce((a, b) => a + parseInt(b.total_amount), 0),
+      total_customers: new Set(results.map((item) => item.day)).size, // Adjusted for distinct users
+      total_amount: results.reduce((acc, item) => acc + parseInt(item.total_amount), 0),
       countryCode: partnerData.country_code,
       currencyCode: partnerData.currency_code,
     };
 
-    // Send the results as a response
     res.status(200).json({ data });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 /**
@@ -1499,5 +1438,5 @@ module.exports = {
   getAggregatedMonthlySalesReport ,
   handlePolicyDownload,
   handleClaimDownload,
-  getClaimExcelReportDownload
+  getClaimExcelReportDownload,
 };
