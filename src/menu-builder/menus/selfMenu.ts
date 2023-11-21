@@ -52,17 +52,16 @@ const selfMenu = async (args, db) => {
                 //     return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
                 // }
                 // ).join("");
-
-
                 // response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
-
-                // create a raw menu with the cover types without looping
                 response = "CON Buy for self " +
                     "\n1. MINI at UGX 10,000" +
                     "\n2. MIDI at UGX 14,000" +
                     "\n3. BIGGIE at UGX 18,000" +
                     "\n0. Back \n00. Main Menu";
 
+                break;
+            default:
+                response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
                 break;
 
         }

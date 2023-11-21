@@ -52,14 +52,14 @@ export default function (args: RequestBody, db: any) {
       let allSteps = text.split("*");
 
       // if the allsteps array includes '129' and '9902'  remove them from the array and retain the rest
-      if (allSteps.includes("334") && allSteps.includes("7")  && allSteps.includes("3")) {
-        allSteps = allSteps.filter((step) => step !== "334" && step !== "7" && step !== "3");
-        console.log("allSteps", allSteps)
-        // remove empty strings from the array
-        allSteps = allSteps.filter((step) => step !== "");
-        text = allSteps.join("*").replace("*334*7*3#", "");
-        console.log("text", text);
-      }
+      // if (allSteps.includes("334") && allSteps.includes("7")  && allSteps.includes("3")) {
+      //   allSteps = allSteps.filter((step) => step !== "334" && step !== "7" && step !== "3");
+      //   console.log("KEN allSteps", allSteps)
+      //   // remove empty strings from the array
+      //   allSteps = allSteps.filter((step) => step !== "");
+      //   text = allSteps.join("*").replace("*334*7*3#", "");
+      //   console.log("text", text);
+      // }
 
 
       if (allSteps[allSteps.length - 1] == "00") {
@@ -72,7 +72,7 @@ export default function (args: RequestBody, db: any) {
         if (index > -1) {
 
           console.log("index", index);
-          console.log("allSteps", allSteps);
+          console.log("KEN allSteps", allSteps);
 
           allSteps.splice(index - 1, 2)
           text = allSteps.join("*");
@@ -94,7 +94,7 @@ export default function (args: RequestBody, db: any) {
       let previousStep = currentStep - 1;
       let userText = allSteps[allSteps.length - 1];
 
-      console.log("allStepsAfter", allSteps);
+      console.log("KEN allStepsAfter", allSteps);
 
       const params = {
         phoneNumber,

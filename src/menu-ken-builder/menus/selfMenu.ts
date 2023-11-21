@@ -1,17 +1,13 @@
 import { airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import sendSMS from "../../services/sendSMS";
-import {  calculatePaymentOptionsKenya, parseAmount } from "../../services/utils";
+import { calculatePaymentOptionsKenya, parseAmount } from "../../services/utils";
 import { getAirtelKenyaUser } from "../../services/getAirtelUser";
 
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
     let phone = phoneNumber?.replace('+', "")?.substring(3);
-    let existingUser = await db.users.findOne({
-        where: {
-            phone_number: phone,
-        },
-    });
+
 
     const coverTypes = [{
         name: "BAMBA",
@@ -61,19 +57,21 @@ const selfMenu = async (args, db) => {
     if (currentStep === 1) {
         switch (userText) {
             case "1":
-        
-                // create a raw menu with the cover types without looping
-                response = "CON" +
-                    "\n1. AfyaShua Bamba at KShs 300" +
-                    "\n2. AfyaShua Zidi at KShs 650" +
-                    "\n3. AfyaShua Smarta at KShs 1,400" +
-                    "\n\n0. Back \n00. Main Menu";
 
+                // create a raw menu with the cover types without looping
+                response = "CON " +
+                    "\n1. Bamba at KShs 300" +
+                    "\n2. Zidi at KShs 650" +
+                    "\n3. Smarta at KShs 1,400" +
+                    "\n0. Back \n00. Main Menu";
+
+                break;
+            default:
+                response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
                 break;
 
         }
-    }
-    else if (currentStep === 2) {
+    } else if (currentStep === 2) {
         let coverType = coverTypes[parseInt(userText) - 1];
         if (!coverType) {
             response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -105,6 +103,12 @@ const selfMenu = async (args, db) => {
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+            let existingUser = await db.users.findOne({
+                where: {
+                    phone_number: phone,
+                    partner_id: 1,
+                },
+            });
 
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF KENYA ");
@@ -140,7 +144,7 @@ const selfMenu = async (args, db) => {
             let policyObject = {
                 policy_id: uuidv4(),
                 installment_type: installment_type == 1 ? 2 : 1,
-                installment_order:  installment_type == 1 ? 0 : 1,
+                installment_order: installment_type == 1 ? 0 : 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: ultimatePremium.premium,
@@ -167,7 +171,7 @@ const selfMenu = async (args, db) => {
                 outpatient_cover: selectedPolicyType.outPatient,
                 maternity_cover: selectedPolicyType.maternity,
                 hospital_cash: selectedPolicyType.hospitalCash,
-                
+
 
             }
 

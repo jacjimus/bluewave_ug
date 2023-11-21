@@ -13,6 +13,7 @@ const othersMenu = async (args, db) => {
   let existingUser = await db.users.findOne({
     where: {
       phone_number: phone,
+      partner_id: 1,
     },
     limit: 1,
   });
