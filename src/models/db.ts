@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize')
 import { v4 as uuidv4 } from 'uuid'
+import cron from 'node-cron';
 import { fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
 
 require('dotenv').config()
@@ -40,11 +41,57 @@ db.hospitals_kenya = require('./HospitalKenya')(sequelize, DataTypes)
 db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
 
 
+db.users.hasMany(db.policies, { foreignKey: 'user_id' });
+db.policies.belongsTo(db.users, { foreignKey: 'user_id' });
+
 // const agenda = new Agenda({
 //   db: { instance: db, collection: 'beneficiaries' }, // Replace 'agendaJobs' with your table name
 // });
 //449 priincipal
 // policy 535
+
+// Your actual code
+const updatePolicies = () => {
+  db.sync() // This ensures that the tables are created before running the queries
+    .then(() => {
+      return db.payments.findAll({
+        where: {
+          payment_status: 'paid',
+        },
+      });
+    })
+    .then((payments) => {
+      return Promise.all(
+        payments.map((payment) => {
+          return db.policies.findAll({
+            where: {
+              policy_id: payment.policy_id,
+              policy_status: 'paid',
+            },
+          })
+            .then((policies) => {
+              return db.users.update(
+                { number_of_policies: policies.length },
+                { where: { user_id: payment.user_id } }
+              );
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        })
+      );
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+// Schedule the updatePolicies function to run every hour
+// cron.schedule('0 * * * *', () => {
+//   console.log('Running updateUserPolicies...');
+//   updatePolicies();
+//   console.log('Done.');
+// });
 
 
 // // // Define a function to create the dependent
@@ -242,7 +289,136 @@ async function getAllUsers() {
 
 
 
+// let payment_data =[
+//   { "phone_number": 707435246, "amount": 10000 },
+//   { "phone_number": 751049130, "amount": 208000 },
+//   { "phone_number": 706221424, "amount": 10000 },
+//   { "phone_number": 756256667, "amount": 10000 },
+//   { "phone_number": 752004558, "amount": 10000 },
+//   { "phone_number": 741921576, "amount": 10000 },
+//   { "phone_number": 753881127, "amount": 18000 },
+//   { "phone_number": 704054344, "amount": 18000 },
+//   { "phone_number": 752261049, "amount": 10000 },
+//   { "phone_number": 740733972, "amount": 10000 },
+//   { "phone_number": 755066981, "amount": 10000 },
+//   { "phone_number": 709964362, "amount": 10000 },
+//   { "phone_number": 753961676, "amount": 14000 },
+//   { "phone_number": 703232255, "amount": 10000 },
+//   { "phone_number": 752124320, "amount": 18000 },
+//   { "phone_number": 744029899, "amount": 10000 },
+//   { "phone_number": 757130372, "amount": 10000 },
+//   { "phone_number": 743566845, "amount": 10000 },
+//   { "phone_number": 708717752, "amount": 120000 },
+//   { "phone_number": 758122393, "amount": 18000 },
+//   { "phone_number": 700408523, "amount": 10000 },
+//   { "phone_number": 706417423, "amount": 10000 },
+//   { "phone_number": 706977279, "amount": 18000 },
+//   { "phone_number": 708127676, "amount": 10000 },
+//   { "phone_number": 704218308, "amount": 108000 },
+//   { "phone_number": 759349269, "amount": 10000 },
+//   { "phone_number": 756770737, "amount": 18000 },
+//   { "phone_number": 753081661, "amount": 10000 },
+//   { "phone_number": 742493662, "amount": 10000 },
+//   { "phone_number": 701046300, "amount": 10000 },
+//   { "phone_number": 704327265, "amount": 10000 },
+//   { "phone_number": 701915814, "amount": 18000 },
+//   { "phone_number": 703414915, "amount": 18000 },
+//   { "phone_number": 744706599, "amount": 10000 },
+//   { "phone_number": 701611993, "amount": 10000 },
+//   { "phone_number": 709199151, "amount": 10000 },
+//   { "phone_number": 700480272, "amount": 14000 },
+//   { "phone_number": 709171407, "amount": 20000 },
+//   { "phone_number": 700825044, "amount": 18000 },
+//   { "phone_number": 756611025, "amount": 18000 },
+//   { "phone_number": 705406897, "amount": 10000 },
+//   { "phone_number": 709641543, "amount": 10000 },
+//   { "phone_number": 756613732, "amount": 18000 },
+//   { "phone_number": 743711785, "amount": 10000 },
+//   { "phone_number": 709060253, "amount": 10000 },
+//   { "phone_number": 709211649, "amount": 14000 },
+//   { "phone_number": 753407715, "amount": 10000 },
+//   { "phone_number": 709104617, "amount": 10000 },
+//   { "phone_number": 704977612, "amount": 10000 },
+//   { "phone_number": 755450017, "amount": 10000 },
+//   { "phone_number": 753162332, "amount": 10000 },
+//   { "phone_number": 701101451, "amount": 18000 },
+//   { "phone_number": 758925177, "amount": 10000 },
+//   { "phone_number": 753066923, "amount": 10000 },
+//   { "phone_number": 759315147, "amount": 18000 },
+//   { "phone_number": 752306916, "amount": 10000 },
+//   { "phone_number": 741952443, "amount": 14000 },
+//   { "phone_number": 704674642, "amount": 40000 },
+//   { "phone_number": 756111390, "amount": 10000 }
+// ]
 
+
+  // let combinedPayments = payment_numbers.map((phoneNumber, index) => {
+  //   return {
+  //     phone_number: phoneNumber,
+  //     amount: payment_amount[index],
+  //   };
+  // });
+  
+  // console.log("Combined Payments:", combinedPayments);
+  // //write this  to a file
+  // fs.writeFile('payments.json', JSON.stringify(combinedPayments))
+  //   .then(() => {
+  //     console.log('File written successfully');
+  //   })
+  //   .catch((err: any) => {
+  //     console.error('Error writing file:', err);
+  //   });
+
+// let policies = [];
+
+// Promise.all(payment_data.map(async (payment) => {
+//   let user = await db.users.findOne({
+//     where: {
+//       phone_number: payment.phone_number.toString(),
+//     },
+//   });
+
+//   let userPolicies = await db.policies.findAll({
+//     where: {
+//       user_id: user.user_id,
+//       policy_status: 'paid',
+//       premium: payment.amount
+      
+//     },
+//   });
+
+//   // Add the policies for the current user to the overall policies array
+//   policies.push(...userPolicies);
+// }))
+//   .then(async() => {
+//     console.log("POLICIES", policies);
+// // update policy_status to paid for policies 
+//   // Use Promise.all to update policy and payment statuses simultaneously
+//   await Promise.all(policies.map(async (policy) => {
+//     // Update policy_status to 'paid' for policies
+//     await db.policies.update(
+//       { policy_status: 'paid' },
+//       { where: { policy_id: policy.policy_id } }
+//     );
+
+//     // Update payment_status to 'paid' for corresponding payments
+//     await db.payments.update(
+//       { payment_status: 'paid' },
+//       { where: { policy_id: policy.policy_id } }
+//     );
+//   }));
+//     // Write the policies to a file
+//     fs.writeFile('policies.json', JSON.stringify(policies))
+//       .then(() => {
+//         console.log('File written successfully');
+//       })
+//       .catch((err) => {
+//         console.error('Error writing file:', err);
+//       });
+//   })
+//   .catch((error) => {
+//     console.error("Error fetching policies:", error);
+//   });
 
 
 
@@ -614,7 +790,6 @@ async function updatePremiumArr() {
 // ).catch((err: any) => {
 //   console.log(err)
 // })
-
 
 
 module.exports = { db }

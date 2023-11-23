@@ -1,5 +1,6 @@
 
 import { uuid } from 'uuidv4';
+import { db } from './db';
 
 module.exports = (sequelize: any, DataTypes: any) => {
     const User = sequelize.define("user", {
@@ -145,4 +146,5 @@ module.exports = (sequelize: any, DataTypes: any) => {
 
     return User
 }
+
 

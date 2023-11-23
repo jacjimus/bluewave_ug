@@ -8,85 +8,59 @@ const hospitalMenu = async (args: any, db: any) => {
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
     const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
 
+    // if (currentStep == 1) {
+    //     response = "CON Select Region" +
+    //         "\n1. Central" +
+    //         "\n2. Western" +
+    //         "\n3. Nothern" +
+    //         "\n4. Eastern" +
+    //         "\n5. West Nile" +
+    //         "\n6. Karamoja" + "\n0. Back \n00. Main Menu";
+    // } else 
     if (currentStep == 1) {
-        response = "CON Select Region" +
-            "\n1. Central" +
-            "\n2. Western" +
-            "\n3. Nothern" +
-            "\n4. Eastern" +
-            "\n5. West Nile" +
-            "\n6. Karamoja" + "\n0. Back \n00. Main Menu";
+        response = "CON Type your hospital name to search";
     } else if (currentStep == 2) {
-        response = "CON Type your district e.g Kampala";
-    } else if (currentStep == 3) {
-        const userTextLower = userText.toLowerCase(); // Convert user input to lowercase
+        const userTextLower = userText.toLowerCase();
+        console.log("USER TEXT", userTextLower)
         const hospitals = await db.hospitals.findAll({
             where: {
-                district: {
-                    [Op.iLike]: `%${userText}%`
-                }
+               
+                hospital_name: {    
+                    [Op.iLike]: `%${userTextLower}%`
+                },
+              
+
             },
             order: [
-                ['district', 'ASC'],
+                ['hospital_name', 'ASC'],
             ],
             limit: 10,
         });
 
         // if no hospitals are found, return an error message
         if (hospitals.length == 0) {
-            response = "CON No district found" + "\n0. Back \n00. Main Menu";
+            response = "CON No hospital found" + "\n0. Back \n00. Main Menu";
         } else {
-            // if hospitals are found, return a list of unique districts
-            const districts = hospitals.map((hospital: any) => hospital.district);
-
-            const uniqueDistricts = [...new Set(districts)];
-
-            const districtMessages = uniqueDistricts?.slice(0, 6).map((district: any, index: number) => {
-                return `${index + 1}. ${district}`
+            //list the hospitals
+            const hospitalMessages = hospitals?.slice(0, 6).map((hospital: any, index: number) => {
+                return `${index + 1}. ${hospital.hospital_name}`
             });
-
-
-            response = `CON Confirm your district` +
-                `\n${districtMessages.join("\n")}`;
+            response = `CON Select your preferred hospital` +
+            `\n${hospitalMessages.join("\n")}` + "\n0. Back \n00. Main Menu";
         }
-    } else if (currentStep == 4) {
+  
+    
+    } else if (currentStep == 3) {
+      
+        const userChoice = allSteps[1].toLowerCase(); 
+        console.log("USER CHOICE", userChoice)
         const hospitals = await db.hospitals.findAll({
             where: {
-                district: {
-                    [Op.iLike]: `%${allSteps[2]}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
-            limit: 10,
-        });
-
-        const districtSelected = hospitals[parseInt(allSteps[3]) - 1];
-
-
-        response = `CON Type your Hospital to search e.g ${districtSelected.hospital_name}`;
-    } else if (currentStep == 5) {
-        const districts = await db.hospitals.findAll({
-            where: {
-                district: {
-                    [Op.iLike]: `%${allSteps[2]}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
-        });
-
-        const districtSelected = districts[parseInt(allSteps[3]) - 1];
-
-
-        const hospitals = await db.hospitals.findAll({
-            where: {
-                district: districtSelected.district,
-                hospital_name: {
-                    [Op.iLike]: `%${userText}%`
-                }
+               
+                hospital_name: {    
+                    [Op.iLike]: `%${userChoice}%`
+                },
+               
             },
             order: [
                 ['hospital_name', 'ASC'],
@@ -94,43 +68,7 @@ const hospitalMenu = async (args: any, db: any) => {
             limit: 10,
         });
 
-        const hospitalMessages = hospitals?.slice(0, 6).map((hospital: any, index: number) => {
-            return `${index + 1}. ${hospital.hospital_name}`
-        });
-
-        response = `CON Confirm your hospital` +
-            `\n${hospitalMessages.join("\n")}`;
-
-    } else if (currentStep == 6) {
-        const districts = await db.hospitals.findAll({
-            where: {
-                district: {
-                    [Op.iLike]: `%${allSteps[2]}%`
-                }
-            },
-            order: [
-                ['district', 'ASC'],
-            ],
-        });
-
-        const districtSelected = districts[parseInt(allSteps[3]) - 1];
-        const hospitals = await db.hospitals.findAll({
-            where: {
-                district: districtSelected.district,
-                hospital_name: {
-                    [Op.iLike]: `%${allSteps[4]}%`
-                }
-            },
-            order: [
-                ['hospital_name', 'ASC'],
-            ],
-            limit: 10,
-        });
-
-
-        console.log("ALL STEPS", allSteps)
-
-        const hospitalSelected = hospitals[parseInt(allSteps[5]) - 1];
+        const hospitalSelected = hospitals[parseInt(allSteps[2]) - 1];
 
         console.log("HOSPITAL SELECTED", hospitalSelected)
 

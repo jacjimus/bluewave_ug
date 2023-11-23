@@ -6,14 +6,19 @@
         "target": "es6",
         "noImplicitAny": false,
         "sourceMap": false,
-        "outDir": "build"
+        "outDir": "build",
+        "incremental": true,
+        "skipLibCheck": true 
+       
   },
   "exclude": [
       "node_modules",
       "**/*.spec.ts",
       "**/*.test.ts",
-      "./src/**/__tests__/*.ts"
+      "./src/**/__tests__/*.ts",
+      "./build/**/*"
   ],
   "include": [
       "src/**/*.ts", "app.ts"]
 }   
+
