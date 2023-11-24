@@ -257,9 +257,9 @@ async function getAllUsers() {
       try {
         const user = await db.users.findOne({
           where: {
-            arr_member_number: {
-              [db.Sequelize.Op.not]: null,
-            },
+            // arr_member_number: {
+            //   [db.Sequelize.Op.not]: null,
+            // },
             partner_id: 2,
             user_id: policy.user_id,
           },

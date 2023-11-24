@@ -56,5 +56,8 @@
     "uuidv4": "^6.2.13",
     "xlsx": "^0.18.5"
   },
-  "repository": "https://github.com/bluewaveinsuranceke/airtel_health_ussd.git"
+  "repository": "https://github.com/bluewaveinsuranceke/airtel_health_ussd.git",
+  "devDependencies": {
+    "@types/node-cron": "^3.0.11"
+  }
 }

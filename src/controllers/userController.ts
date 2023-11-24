@@ -422,6 +422,7 @@ const login = async (req: any, res: any) => {
               code: 201,
               message: "login successfully",
               token: token,
+              role: user.role,
               partner_name: partner.partner_name,
               partner_id: partner.partner_id,
               countryCode: partner.country_code,
