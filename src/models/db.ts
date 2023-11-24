@@ -125,113 +125,117 @@ async function createDependant(existingUser: any, myPolicy: any) {
  
 
   
-  //   if (existingUser.arr_member_number == null) {
-  //     console.log("REGISTER PRINCIPAL");
-  //     // Introduce a delay before calling registerPrincipal
-  //     await new Promise(resolve => {
-  //       setTimeout(async () => {
-  //         arr_member = await registerPrincipal(existingUser, myPolicy);
-  //         console.log("ARR PRINCIPAL CREATED", arr_member);
-  //         resolve(true);
-  //       }, 1000); // Adjust the delay as needed (1 second in this example)
-  //     });
-  //   }else{
-  //   // Fetch member status data or register principal based on the condition
-  //   await new Promise(resolve => {
-  //     setTimeout(async () => {
-  //       arr_member = await fetchMemberStatusData({
-  //         member_no: existingUser.arr_member_number,
-  //         unique_profile_id: existingUser.membership_id + "",
-  //       });
-  //       console.log("AAR MEMBER FOUND", arr_member);
-  //       if (number_of_dependants > 0) {
+    if (existingUser.arr_member_number == null) {
+      console.log("REGISTER PRINCIPAL");
+      // Introduce a delay before calling registerPrincipal
+      await new Promise(resolve => {
+        setTimeout(async () => {
+          arr_member = await registerPrincipal(existingUser, myPolicy);
+          console.log("ARR PRINCIPAL CREATED", arr_member);
+          resolve(true);
+        }, 1000); // Adjust the delay as needed (1 second in this example)
+      });
+    }else{
+    // Fetch member status data or register principal based on the condition
+    await new Promise(resolve => {
+      setTimeout(async () => {
+        arr_member = await fetchMemberStatusData({
+          member_no: existingUser.arr_member_number,
+          unique_profile_id: existingUser.membership_id + "",
+        });
+        console.log("AAR MEMBER FOUND", arr_member);
+        if (number_of_dependants > 0) {
 
-  //         for (let i = 1; i <= number_of_dependants; i++) {
-  //           let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
-  //           let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
-  //           let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
+          for (let i = 1; i <= number_of_dependants; i++) {
+            let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
+            let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
+            let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
 
-  //           if (arr_member.policy_no != null && arr_member.code == 200) {
-  //             // Use a Promise with setTimeout to control the creation
-  //             await new Promise(resolve => {
-  //               setTimeout(async () => {
-  //                 dependant = await registerDependant({
-  //                   member_no: existingUser.arr_member_number,
-  //                   surname: dependant_surname,
-  //                   first_name: dependant_first_name,
-  //                   other_names: dependant_other_names,
-  //                   gender: 1,
-  //                   dob: "1990-01-01",
-  //                   email: "dependant@bluewave.insure",
-  //                   pri_dep: "25",
-  //                   family_title: "25", // Assuming all dependants are children
-  //                   tel_no: myPolicy.phone_number,
-  //                   next_of_kin: {
-  //                     surname: "",
-  //                     first_name: "",
-  //                     other_names: "",
-  //                     tel_no: "",
-  //                   },
-  //                   member_status: "1",
-  //                   health_option: "64",
-  //                   health_plan: "AIRTEL_" + myPolicy?.policy_type,
-  //                   policy_start_date: myPolicy.policy_start_date,
-  //                   policy_end_date: myPolicy.policy_end_date,
-  //                   unique_profile_id: existingUser.membership_id + "",
-  //                 });
+            if (arr_member.policy_no != null && arr_member.code == 200) {
+              // Use a Promise with setTimeout to control the creation
+              await new Promise(resolve => {
+                setTimeout(async () => {
+                  dependant = await registerDependant({
+                    member_no: existingUser.arr_member_number,
+                    surname: dependant_surname,
+                    first_name: dependant_first_name,
+                    other_names: dependant_other_names,
+                    gender: 1,
+                    dob: "1990-01-01",
+                    email: "dependant@bluewave.insure",
+                    pri_dep: "25",
+                    family_title: "25", // Assuming all dependants are children
+                    tel_no: myPolicy.phone_number,
+                    next_of_kin: {
+                      surname: "",
+                      first_name: "",
+                      other_names: "",
+                      tel_no: "",
+                    },
+                    member_status: "1",
+                    health_option: "64",
+                    health_plan: "AIRTEL_" + myPolicy?.policy_type,
+                    policy_start_date: myPolicy.policy_start_date,
+                    policy_end_date: myPolicy.policy_end_date,
+                    unique_profile_id: existingUser.membership_id + "",
+                  });
 
-  //                 if (dependant.code == 200) {
+                  if (dependant.code == 200) {
 
-  //                   console.log(`Dependant ${i} created:`, dependant);
+                    console.log(`Dependant ${i} created:`, dependant);
 
-  //                   myPolicy.arr_policy_number = arr_member?.policy_no;
-  //                   dependant.unique_profile_id = existingUser.membership_id + "";
-  //                   let updateDependantMemberNo = []
-  //                   updateDependantMemberNo.push(dependant.member_no)
-  //                   await db.policies.update(
-  //                     { dependant_member_numbers: updateDependantMemberNo },
-  //                     { where: { policy_id: myPolicy.policy_id } }
-  //                   );
-  //                   let updatePremiumData = await updatePremium(dependant, myPolicy);
-  //                   if (updatePremiumData.code == 200) {
-  //                     console.log("AAR UPDATE PREMIUM", updatePremiumData);
-  //                     resolve(true)
-  //                   } else{
-  //                     console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-  //                     resolve(true)
+                    myPolicy.arr_policy_number = arr_member?.policy_no;
+                    dependant.unique_profile_id = existingUser.membership_id + "";
+                    let updateDependantMemberNo = []
+                    updateDependantMemberNo.push(dependant.member_no)
+                    await db.policies.update(
+                      { dependant_member_numbers: updateDependantMemberNo },
+                      { where: { policy_id: myPolicy.policy_id } }
+                    );
+                    let updatePremiumData = await updatePremium(dependant, myPolicy);
+                    if (updatePremiumData.code == 200) {
+                      console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                      resolve(true)
+                    } else{
+                      console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+                      resolve(true)
 
-  //                   }
-  //                   resolve(true)
-  //                 }else{
-  //                   console.log("DEPENDANT NOT CREATED", dependant);
-  //                   resolve(true)
-  //                 }
-  //               }, 1000 * i); // Adjust the delay as needed
-  //             });
-  //           } else {
-  //             console.log("NO ARR MEMBER")
-  //           }
-  //         }
-  //       } else {
-  //         let updatePremiumData = await updatePremium(existingUser, myPolicy);
-  //         if (updatePremiumData.code == 200) {
-  //           console.log("AAR UPDATE PREMIUM", updatePremiumData);
-  //           resolve(true)
-  //         }else{
-  //           console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-  //           resolve(true)
-  //         }
-  //       }
-  //       resolve(true);
+                    }
+                    resolve(true)
+                  }else{
+                    console.log("DEPENDANT NOT CREATED", dependant);
+                    resolve(true)
+                  }
+                }, 1000 * i); // Adjust the delay as needed
+              });
+            } else {
+              console.log("NO ARR MEMBER")
+            }
+          }
+        } else {
+          let updatePremiumData = await updatePremium(existingUser, myPolicy);
+          if (updatePremiumData.code == 200) {
+            console.log("AAR UPDATE PREMIUM", updatePremiumData);
+            resolve(true)
+          }else{
+            console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+            resolve(true)
+          }
+        }
+        resolve(true);
 
-  //     }, 1000); // Adjust the delay as needed (1 second in this example)
-  //   });
-  // }
+      }, 1000); // Adjust the delay as needed (1 second in this example)
+    });
+  }
 
   } catch (error) {
     console.error('Error:', error.message);
   }
 }
+
+
+
+
 
 // get all user with arr_member_number is null and partner_id = 2 and email is  null
 async function getAllUsers() {
