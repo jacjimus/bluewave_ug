@@ -4,7 +4,8 @@ const Policy = db.policies;
 const User = db.users;
 const Claim = db.claims;
 const Log = db.logs;
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid_v4 } from "uuid";
+uuid_v4()
 const { Op } = require("sequelize");
 
 

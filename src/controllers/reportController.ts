@@ -100,7 +100,7 @@ const getPolicySummary = async (req: any, res: any) => {
     };
 
     let policy = await Policy.findAll(policyQuery);
-    console.log("POLICY", policy);
+   
 
     if (!policy || policy.length === 0) {
       return res.status(404).json({ message: "No policies found" });
@@ -113,7 +113,7 @@ const getPolicySummary = async (req: any, res: any) => {
       },
     });
 
-    let total_policy_premium_paid = await db.policeis.sum("policy_deduction_amount", {
+    let total_policy_premium_paid = await db.policies.sum("policy_deduction_amount", {
       where: {
         policy_status: "paid",
         partner_id,
@@ -121,6 +121,7 @@ const getPolicySummary = async (req: any, res: any) => {
     });
     const renewalsCount = await db.policies.findAndCountAll({
       where: {
+        policy_status: "paid",
         installment_order: {
           [Op.gt]: 1,
         },
@@ -128,15 +129,24 @@ const getPolicySummary = async (req: any, res: any) => {
       },
     });
 
+    let total_policies_renewed_premium = await db.policies.sum("policy_deduction_amount", {
+      where: {
+        policy_status: "paid",
+        installment_order: {
+          [Op.gt]: 1,
+        },
+        partner_id,
+      },
+    });
 
     let summary = {
       total_users: await db.users.count({ where: { partner_id } }),
-      total_policies_pending: await db.policies.count({ where: { policy_status: "pending", partner_id } }),
       total_policies_paid: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
       total_policies_premium_paid: total_policy_premium_paid,
       total_premium: total_payment_premium,
       total_paid_payment: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
       total_policies_renewed: renewalsCount.count,
+      total_policies_renewed_premium : total_policies_renewed_premium,
     };
 
     let country_code, currency_code;
@@ -166,6 +176,7 @@ const getPolicySummary = async (req: any, res: any) => {
       },
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Internal server error", error });
   }
 };
