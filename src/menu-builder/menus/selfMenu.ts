@@ -1,6 +1,6 @@
 import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser";
 
@@ -121,7 +121,7 @@ const selfMenu = async (args, db) => {
                 });
 
                 const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-                await sendSMS(fullPhone, message);
+                await SMSMessenger.sendSMS(fullPhone, message);
 
             }
 
@@ -135,7 +135,7 @@ const selfMenu = async (args, db) => {
             let policyObject = {
                 policy_id: uuidv4(),
                 installment_type: installment_type == 1 ? 2 : 1,
-                installment_order:  installment_type == 1 ? 0 : 1,
+                installment_order: installment_type == 1 ? 0 : 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: ultimatePremium.premium,
@@ -158,7 +158,7 @@ const selfMenu = async (args, db) => {
                 phone_number: phoneNumber,
                 first_name: existingUser?.first_name,
                 last_name: existingUser?.last_name,
-                
+
 
             }
 

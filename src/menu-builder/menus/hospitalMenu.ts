@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { v4 as uuidv4 } from 'uuid';
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 
 const hospitalMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -24,11 +24,11 @@ const hospitalMenu = async (args: any, db: any) => {
         console.log("USER TEXT", userTextLower)
         const hospitals = await db.hospitals.findAll({
             where: {
-               
-                hospital_name: {    
+
+                hospital_name: {
                     [Op.iLike]: `%${userTextLower}%`
                 },
-              
+
 
             },
             order: [
@@ -46,21 +46,21 @@ const hospitalMenu = async (args: any, db: any) => {
                 return `${index + 1}. ${hospital.hospital_name}`
             });
             response = `CON Select your preferred hospital` +
-            `\n${hospitalMessages.join("\n")}` + "\n0. Back \n00. Main Menu";
+                `\n${hospitalMessages.join("\n")}` + "\n0. Back \n00. Main Menu";
         }
-  
-    
+
+
     } else if (currentStep == 3) {
-      
-        const userChoice = allSteps[1].toLowerCase(); 
+
+        const userChoice = allSteps[1].toLowerCase();
         console.log("USER CHOICE", userChoice)
         const hospitals = await db.hospitals.findAll({
             where: {
-               
-                hospital_name: {    
+
+                hospital_name: {
                     [Op.iLike]: `%${userChoice}%`
                 },
-               
+
             },
             order: [
                 ['hospital_name', 'ASC'],
@@ -95,7 +95,7 @@ const hospitalMenu = async (args: any, db: any) => {
         Contact Number:  ${hospital.hospital_contact}
         Location: ${hospital.hospital_address}`
 
-        await sendSMS(smsPhone, message)
+        await SMSMessenger.sendSMS(smsPhone, message)
 
         response = `CON You have selected ${hospital.hospital_name} as your preferred facility.` +
             // `\n${hospital.hospital_name}` +

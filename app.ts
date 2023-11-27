@@ -41,14 +41,7 @@ app.use(
 );
 
 // log all requests to access.log
-app.use(
-  morgan("common", {
-    stream: fs.createWriteStream(path.join(__dirname, "access.log"), {
-      flags: "a",
-    }),
-  })
-);
-
+app.use(morgan('combined'))
 
 // Swagger configuration options
 const swaggerOptions = {

@@ -96,7 +96,7 @@ const getPolicySummary = async (req: any, res: any) => {
         },
         ...(partner_id != 1 && { partner_id }),
       },
-      limit: 100, 
+      limit: 100,
     };
 
     let policy = await Policy.findAll(policyQuery);
@@ -113,20 +113,38 @@ const getPolicySummary = async (req: any, res: any) => {
       },
     });
 
+    let total_policy_premium_paid = await db.policeis.sum("policy_deduction_amount", {
+      where: {
+        policy_status: "paid",
+        partner_id,
+      },
+    });
+    const renewalsCount = await db.policies.findAndCountAll({
+      where: {
+        installment_order: {
+          [Op.gt]: 1,
+        },
+        partner_id: partner_id,
+      },
+    });
+
+
     let summary = {
-      total_policies: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
       total_users: await db.users.count({ where: { partner_id } }),
-      total_policies_pending: policy.filter((p: any) => p.policy_status === "pending").length,
+      total_policies_pending: await db.policies.count({ where: { policy_status: "pending", partner_id } }),
       total_policies_paid: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
-      total_preimum_amount: total_payment_premium,
+      total_policies_premium_paid: total_policy_premium_paid,
+      total_premium: total_payment_premium,
       total_paid_payment: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
+      total_policies_renewed: renewalsCount.count,
     };
 
     let country_code, currency_code;
-    
+
     const partnerCountries = {
       1: { country_code: "KE", currency_code: "KES" },
       2: { country_code: "UG", currency_code: "UGX" },
+      3: { country_code: "CD", currency_code: "COD" },
       // Add more partner countries as needed
     };
 
@@ -138,7 +156,7 @@ const getPolicySummary = async (req: any, res: any) => {
     } else {
       console.error("Invalid partner_id");
     }
-    
+
     return res.status(200).json({
       result: {
         code: 200,
@@ -277,17 +295,7 @@ const getClaimSummary = async (req: any, res: any) => {
         "dispute_resolved"
       ),
     };
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Claim summary fetched successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-
-    const partnerCountry = await Partner.findOne({  
+    const partnerCountry = await Partner.findOne({
       where: {
         partner_id: partner_id,
       },
@@ -394,7 +402,7 @@ const getAllReportSummary = async (req: any, res: any) => {
       startDate = new Date(0); // A distant past date (or you can set it to your default start date)
       endDate = new Date(); // Current date
     }
-    
+
     const partnerCountry = await Partner.findOne({
       where: {
         partner_id: partner_id,
@@ -432,11 +440,11 @@ const getAllReportSummary = async (req: any, res: any) => {
           policy_status: "paid",
           ...(partner_id !== 1 && { partner_id: partner_id }), // Include partner_id condition if applicable
         },
-        limit: 100, 
+        limit: 100,
       }),
-  
+
     ]);
-    
+
     // Populate user summary
     summary.user.total_users = users.length;
     summary.user.total_users_with_policy = policies.length;
@@ -447,16 +455,16 @@ const getAllReportSummary = async (req: any, res: any) => {
         partner_id: partner_id,
       },
     });
-    
+
     const totalPremiumAmountResult = await db.payments.sum("payment_amount", {
       where: {
         payment_status: "paid",
         partner_id: partner_id,
       },
     });
-    
+
     const totalPremiumAmount = totalPremiumAmountResult || 0;
-    
+
     summary.policy.total_premium_amount = totalPremiumAmount;
 
     // Return the summary
@@ -465,11 +473,6 @@ const getAllReportSummary = async (req: any, res: any) => {
     console.log(error);
     res.status(500).json({ message: "Internal server error", error });
   }
-};
-
-const countPoliciesByStatus = (policies: any[], status: string): number => {
-  return policies.filter((policy: any) => policy.policy_status === status)
-    .length;
 };
 
 
@@ -541,7 +544,7 @@ const getSalesReportByPeriod = async (req, res, periodType) => {
       },
     });
 
-  
+
 
     // Count policies by status for the specified period
     report[periodType] = result.length;
@@ -563,7 +566,6 @@ const getDailyPolicySalesReport = async (req, res) => {
       getSalesReportByPeriod(req, res, 'yearly'),
     ]);
 
-    // Additional logic or logging can be added here if needed
 
     const partnerCountry = await Partner.findOne({
       where: {
@@ -651,26 +653,20 @@ const getPolicyExcelReportDownload = async (req, res) => {
       partner_id: partner_id,
     };
     // moment().format('YYYY-MM-DD')
-  
-  
-      if (filter)
 
-   filter = filter.trim().toLowerCase(); 
+
+    if (filter)
+
+      filter = filter.trim().toLowerCase();
 
     if (filter) {
       whereClause[Op.or] = [
-        // { user_id: { [Op.iLike]: `%${filter}%` } },
-        // { policy_id : { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { policy_status: { [Op.iLike]: `%${filter}%` } },
-        // { sum_insured: { [Op.iLike]: `%${filter}%` } },
-        // { premium: { [Op.iLike]: `%${filter}%` } },
-        // { policy_deduction_day: { [Op.iLike]: `%${filter}%` } },
-       // { installment_order: { [Op.iLike]: `%${filter}%` } },
         { currency_code: { [Op.iLike]: `%${filter}%` } },
         { country_code: { [Op.iLike]: `%${filter}%` } },
-     
+
       ];
     }
 
@@ -680,7 +676,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
       };
     }
 
-    if(start_date && !end_date){
+    if (start_date && !end_date) {
       whereClause.policy_start_date = {
         [Op.gte]: new Date(start_date),
       };
@@ -702,7 +698,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
           attributes: ["product_name"],
         },
       ],
-      limit: 100, 
+      limit: 100,
     };
 
     let policies = await Policy.findAll(options);
@@ -725,18 +721,6 @@ const getPolicyExcelReportDownload = async (req, res) => {
     // Create a URL for the download endpoint including the token
     // the file is located at src/uploads/policy_report.xlsx
     const downloadURL = `${BASE_URL}/api/v1/reports/policy/excel/download?token=${downloadToken}`;
-
-    // Store the download token somewhere (e.g., in-memory cache or database)
-    // This is needed to verify the download request
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Excel policy report generated successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
 
     // Return the download URL to the user
     res.status(200).json({ downloadURL });
@@ -800,36 +784,18 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_paid_date", width: 20 },
     { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
-    // {
-    //   header: "Policy Deduction Amount",
-    //   key: "policy_deduction_amount",
-    //   width: 20,
-    // },
     { header: "Premium", key: "premium", width: 20 },
     { header: "Sum Insured", key: "sum_insured", width: 20 },
     { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
     { header: "AAR Member Number", key: "arr_member_number", width: 20 },
     { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
     { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
-    
     {
       header: "Policy Next Deduction Date",
       key: "policy_next_deduction_date",
       width: 20,
     },
-    // { header: "Policy Deduction Day", key: "policy_deduction_day", width: 20 },
     { header: "Installment Order", key: "installment_order", width: 20 },
-    // { header: "Installment Date", key: "installment_date", width: 20 },
-    // {
-    //   header: "Installment Alert Date",
-    //   key: "installment_alert_date",
-    //   width: 20,
-    // },
-    // { header: "Tax Rate VAT", key: "tax_rate_vat", width: 20 },
-    // { header: "Tax Rate EXT", key: "tax_rate_ext", width: 20 },
-   
-    // { header: "Excess Premium", key: "excess_premium", width: 20 },
-    // { header: "Discount Premium", key: "discount_premium", width: 20 },
     { header: "Hospital Details", key: "hospital_details", width: 20 },
     { header: "Currency Code", key: "currency_code", width: 20 },
     { header: "Country Code", key: "country_code", width: 20 },
@@ -839,9 +805,9 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Updated At", key: "updatedAt", width: 20 },
   ];
 
-  policies.forEach(async(policy) => {
- 
-  
+  policies.forEach(async (policy) => {
+
+
     worksheet.addRow({
       policy_id: policy.policy_id,
       airtel_money_id: policy.airtel_money_id,
@@ -965,17 +931,17 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
         partner_id: req.query.partner_id,
       },
     });
-console.log("RESULTS", results)
+    console.log("RESULTS", results)
 
-const data = {
-  labels: labels,
-  datasets: datasets,
-  total_policies: results.length,
-  total_customers: results[0] ? results[0].total_users : 0, // Adjusted for distinct users
-  total_amount: results[results.length - 1] ? results[results.length - 1].total_amount : 0,
-  countryCode: partnerData.country_code,
-  currencyCode: partnerData.currency_code,
-};
+    const data = {
+      labels: labels,
+      datasets: datasets,
+      total_policies: results.length,
+      total_customers: results[0] ? results[0].total_users : 0, // Adjusted for distinct users
+      total_amount: results[results.length - 1] ? results[results.length - 1].total_amount : 0,
+      countryCode: partnerData.country_code,
+      currencyCode: partnerData.currency_code,
+    };
 
     // Send the results as a response
     res.status(200).json({ data });
@@ -986,7 +952,6 @@ const data = {
 };
 
 
-///aggregated/annual/sales
 
 /**
  * @swagger
@@ -1334,17 +1299,6 @@ const getClaimExcelReportDownload = async (req, res) => {
     // the file is located at src/uploads/claim_report.xlsx
     const downloadURL = `${BASE_URL}/api/v1/reports/claim/excel/download?token=${downloadToken}`;
 
-    // Store the download token somewhere (e.g., in-memory cache or database)
-    // This is needed to verify the download request
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Excel claim report generated successfully',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
 
     // Return the download URL to the user
     res.status(200).json({ downloadURL });
@@ -1368,7 +1322,7 @@ function generateClaimExcelReport(claims: any[]) {
   // Define columns for data in Excel. Key must match data key
 
   worksheet.columns = [
-  
+
     { header: "Claim Number", key: "claim_number", width: 20 },
     { header: "Claim Date", key: "claim_date", width: 20 },
     { header: "Customer Name", key: "full_name", width: 20 },
@@ -1384,7 +1338,7 @@ function generateClaimExcelReport(claims: any[]) {
     { header: "Partner ID", key: "partner_id", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
     { header: "Updated At", key: "updatedAt", width: 20 },
- 
+
   ];
 
   claims.forEach((claim) => {
@@ -1396,7 +1350,6 @@ function generateClaimExcelReport(claims: any[]) {
       limit: 1,
     })
 
-    console.log("I WAS CALLED 3", user)
 
     worksheet.addRow({
       claim_date: moment(claim.claim_date).format("YYYY-MM-DD"),
@@ -1414,7 +1367,7 @@ function generateClaimExcelReport(claims: any[]) {
       updatedAt: moment(claim.updatedAt).format("YYYY-MM-DD"),
       full_name: `${user.first_name} ${user.last_name}`,
       phone_number: user.phone_number,
-  
+
     });
   });
 
@@ -1435,7 +1388,7 @@ module.exports = {
   getPolicyExcelReportDownload,
   getAggregatedDailyPolicySalesReport,
   getAggregatedAnnuallyPolicySalesReport,
-  getAggregatedMonthlySalesReport ,
+  getAggregatedMonthlySalesReport,
   handlePolicyDownload,
   handleClaimDownload,
   getClaimExcelReportDownload,

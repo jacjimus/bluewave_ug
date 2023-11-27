@@ -1,6 +1,6 @@
 import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser"
 
@@ -661,7 +661,7 @@ const familyMenu = async (args, db) => {
       });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
-      await sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(fullPhone, message);
 
     }
 

@@ -1,4 +1,4 @@
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aar";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
@@ -28,7 +28,7 @@ const accountMenu = async (args: any, db: any) => {
         order: [
             ['policy_id', 'DESC'],
         ],
-        limit : 6
+        limit: 6
     });
 
     console.log("PAID POLICIES", paidPolicies.length)
@@ -36,7 +36,7 @@ const accountMenu = async (args: any, db: any) => {
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
 
         //  ATTENTION HERE ON MERTERNITY AND INPATIENT
-        return `AfyaShua ${policy.policy_type} Inpatient Kshs ${policy?.inpatient_cover|| 0} and Maternity benefit Kshs ${policy?.maternity_cover|| 0} is ${policy.policy_status.toUpperCase()} and paid to ${new Date(policy.installment_date).toDateString()}`
+        return `AfyaShua ${policy.policy_type} Inpatient Kshs ${policy?.inpatient_cover || 0} and Maternity benefit Kshs ${policy?.maternity_cover || 0} is ${policy.policy_status.toUpperCase()} and paid to ${new Date(policy.installment_date).toDateString()}`
     });
 
 
@@ -262,7 +262,7 @@ const accountMenu = async (args: any, db: any) => {
                     },
                     limit: 1,
                 });
-        
+
                 let policies = await db.policies.findAll({
                     where: {
                         phone_number: smsPhone.replace("+", ""),
@@ -284,19 +284,19 @@ const accountMenu = async (args: any, db: any) => {
                     user_id: existingUser.user_id,
                     bonus: allSteps[2],
                 }
-        
-        
+
+
                 await db.beneficiaries.create(nextOfKinDetails);
                 const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your AfyaShua Cover. Any benefits on the cover will be payable to your next of Kin.`
-                await sendSMS(smsPhone, sms);
+                await SMSMessenger.sendSMS(smsPhone, sms);
                 response = `END ${sms}`
                 break;
             default:
                 response = "END Invalid option selected"
                 break;
-            }
+        }
 
-        
+
     }
 
 

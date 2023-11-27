@@ -1,6 +1,6 @@
 import { airtelMoney, airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelKenyaUser, getAirtelUser } from "../../services/getAirtelUser"
 
@@ -303,7 +303,7 @@ const familyMenu = async (args, db) => {
             }
           ]
         },
-      
+
 
       ],
     }, {
@@ -373,7 +373,7 @@ const familyMenu = async (args, db) => {
             }
           ]
         },
-        
+
 
       ],
     }, {
@@ -444,7 +444,7 @@ const familyMenu = async (args, db) => {
             }
           ]
         },
-       
+
 
       ],
     }
@@ -482,11 +482,11 @@ const familyMenu = async (args, db) => {
 
   }
   else if (currentStep == 3) {
-  
+
     response = "CON Enter atleast Name of spouse or 1 child\n"
   }
   else if (currentStep == 4) {
-  
+
     response = "CON Enter Phone of spouse (or Main member, if dependent is child)\n"
   }
   else if (currentStep == 5) {
@@ -545,7 +545,7 @@ const familyMenu = async (args, db) => {
       });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membershierId} Dial *334*7*3# to access your account.`;
-      await sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(fullPhone, message);
 
     }
 
@@ -570,7 +570,7 @@ const familyMenu = async (args, db) => {
       let policyObject = {
         policy_id: uuidv4(),
         installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
-        installment_order:  parseInt(allSteps[5])== 1 ? 0 : 1,
+        installment_order: parseInt(allSteps[5]) == 1 ? 0 : 1,
         policy_type: selectedPackage.code_name,
         policy_deduction_amount: ultimatePremium,
         policy_pending_premium: ultimatePremium,
@@ -589,7 +589,7 @@ const familyMenu = async (args, db) => {
         total_member_number: selectedPolicyType.code_name,
         first_name: existingUser?.first_name,
         last_name: existingUser?.last_name,
-        inpatient_cover:  selectedPackage.inpatient_cover,
+        inpatient_cover: selectedPackage.inpatient_cover,
         outpatient_cover: selectedPackage.outpatient_cover,
         maternity_cover: selectedPackage.maternity,
         hospital_cash: selectedPackage.hospital_cash,
@@ -597,49 +597,49 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-      console.log("============== START TIME - FAMILY KENYA  ================ ",phoneNumber, new Date());
+      console.log("============== START TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
 
 
-        const airtelMoneyPromise = airtelMoneyKenya(
-          existingUser.user_id,
-          policy.policy_id,
-          phone,
-          ultimatePremium,
-          existingUser.membership_id,
+      const airtelMoneyPromise = airtelMoneyKenya(
+        existingUser.user_id,
+        policy.policy_id,
+        phone,
+        ultimatePremium,
+        existingUser.membership_id,
       );
 
-        const timeout = 3000;
+      const timeout = 3000;
 
-        Promise.race([
-          airtelMoneyPromise,
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              reject(new Error('Airtel Money kenya operation timed out'));
-            }, timeout);
-          }),
-        ]).then((result) => {
-          console.log("============== END TIME - FAMIY KENYA  ================ ",phoneNumber, new Date());
-          response = 'END Payment successful'; 
-          console.log("RESPONSE WAS CALLED", result);
-          return response;
-        })
+      Promise.race([
+        airtelMoneyPromise,
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error('Airtel Money kenya operation timed out'));
+          }, timeout);
+        }),
+      ]).then((result) => {
+        console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+        response = 'END Payment successful';
+        console.log("RESPONSE WAS CALLED", result);
+        return response;
+      })
         .catch((error) => {
-          response = 'END Payment failed'; 
+          response = 'END Payment failed';
           console.log("RESPONSE WAS CALLED EER", error);
           return response;
         })
-        
-        console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ",phoneNumber, new Date());
-        
-      } else {
-        response = "END Thank you for using AfyaShua Care"
-      }
+
+      console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", phoneNumber, new Date());
+
+    } else {
+      response = "END Thank you for using AfyaShua Care"
     }
-    
-    return response;
   }
-  
-  export default familyMenu;
+
+  return response;
+}
+
+export default familyMenu;
 
 
 

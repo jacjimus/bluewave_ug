@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { v4 as uuidv4 } from 'uuid';
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 
 const hospitalMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
@@ -112,7 +112,7 @@ const hospitalMenu = async (args: any, db: any) => {
                         Contact Number:  ${hospitalChoosen.hospital_contact}
                         Location: ${hospitalChoosen.hospital_address}`
 
-        await sendSMS(smsPhone, message)
+        await SMSMessenger.sendSMS(smsPhone, message)
 
         response = `CON You have selected ${hospitalChoosen.provider_name} as your preferred facility.` +
             `\nContact: ${hospitalChoosen.hospital_contact}` +

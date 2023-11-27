@@ -1,4 +1,4 @@
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aar";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
@@ -258,7 +258,7 @@ const accountMenu = async (args: any, db: any) => {
 
                 await db.beneficiaries.create(nextOfKinDetails);
                 const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`
-                await sendSMS(smsPhone, sms);
+                await SMSMessenger.sendSMS(smsPhone, sms);
                 response = `END ${sms}`
         }
     }

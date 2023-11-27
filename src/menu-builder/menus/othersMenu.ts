@@ -1,4 +1,4 @@
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser";
@@ -360,7 +360,7 @@ const othersMenu = async (args, db) => {
         nationality: "UGANDA"
       });
       const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-      await sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(fullPhone, message);
 
     }
 
@@ -805,7 +805,7 @@ export default othersMenu;
 
           console.log("NEW USER", newUser);
           const message = `Dear ${newUser.first_name}, Welcome to Ddwaliro Care. Membership ID: ${newUser.membership_id}. Dial *187*7*6# to access your account.`;
-          await sendSMS(otherPhone, message);
+          await SMSMessenger.sendSMS(otherPhone, message);
 
           let otherPolicy = await Policy.findOne({
             where: { user_id: existingUser?.user_id, beneficiary: "OTHERS" },

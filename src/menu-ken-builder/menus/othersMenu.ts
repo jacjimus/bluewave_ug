@@ -1,4 +1,4 @@
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelKenyaUser, getAirtelUser } from "../../services/getAirtelUser";
@@ -19,7 +19,7 @@ const othersMenu = async (args, db) => {
   });
   let otherUser: any;
 
- 
+
 
   const covers = [
     {
@@ -72,11 +72,11 @@ const othersMenu = async (args, db) => {
           hospital_cash: 400000,
           maternity: 0,
           lastExpenseInsured: 0
-        
+
         }
       ]
     }, {
-    
+
       name: 'Other+Spouse or Child',
       code_name: 'M+1',
       sum_insured: '',
@@ -84,7 +84,7 @@ const othersMenu = async (args, db) => {
       yearly_premium: '12,480',
       last_expense_insured: '',
       packages: [
-        
+
         {
           name: 'Zidi',
           sum_insured: '',
@@ -120,7 +120,7 @@ const othersMenu = async (args, db) => {
       yearly_premium: '2,800',
       last_expense_insured: '',
       packages: [
-       
+
         {
           name: 'Zidi',
           sum_insured: '',
@@ -155,7 +155,7 @@ const othersMenu = async (args, db) => {
       yearly_premium: '3,156',
       last_expense_insured: '',
       packages: [
-      
+
         {
           name: 'Zidi',
           sum_insured: '',
@@ -191,7 +191,7 @@ const othersMenu = async (args, db) => {
       yearly_premium: '3,450',
       last_expense_insured: '',
       packages: [
-      
+
         {
           name: 'Zidi',
           sum_insured: '',
@@ -227,7 +227,7 @@ const othersMenu = async (args, db) => {
       yearly_premium: '3,726',
       last_expense_insured: '',
       packages: [
-  
+
         {
           name: 'Zidi',
           sum_insured: '',
@@ -336,8 +336,8 @@ const othersMenu = async (args, db) => {
       },
       limit: 1,
     });
-    
-   
+
+
     response = `CON Inpatient cover for ${otherPhone} ${otherName}, Kshs ${selectedCoverPackage.inpatient_cover} a year` +
       "\nPAY " +
       `\n1 Kshs ${selectedCoverPackage.premium} monthly` +
@@ -378,11 +378,11 @@ const othersMenu = async (args, db) => {
         nationality: "KENYA"
       });
       const message = `Dear ${user.first_name}, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-      await sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(fullPhone, message);
 
     }
 
-  
+
     response = `CON Kshs ${ultimatePremium} ${period}.` +
       `\nTerms&Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
@@ -474,7 +474,7 @@ const othersMenu = async (args, db) => {
           phone,
           parseAmount(ultimatePremium),
           existingUser.membership_id,
-      );
+        );
 
         const timeout = 3000;
 
@@ -486,18 +486,18 @@ const othersMenu = async (args, db) => {
             }, timeout);
           }),
         ]).then((result) => {
-          console.log("============== END TIME - FAMIY KENYA  ================ ",phoneNumber, new Date());
-          response = 'END Payment successful'; 
+          console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+          response = 'END Payment successful';
           console.log("RESPONSE WAS CALLED", result);
           return response;
         })
-        .catch((error) => {
-          response = 'END Payment failed'; 
-          console.log("RESPONSE WAS CALLED EER", error);
-          return response;
-        })
-        
-        console.log("============== AFTER CATCH  TIME - FAMILY KENYA  ================ ",phoneNumber, new Date());
+          .catch((error) => {
+            response = 'END Payment failed';
+            console.log("RESPONSE WAS CALLED EER", error);
+            return response;
+          })
+
+        console.log("============== AFTER CATCH  TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
         console.log("RESPONSE WAS CALLED EER", error);

@@ -1,11 +1,14 @@
 const { Sequelize, DataTypes } = require('sequelize')
 import { v4 as uuidv4 } from 'uuid'
+const { Op, QueryTypes } = require("sequelize");
 import cron from 'node-cron';
 import { fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
+import SMSMessenger from '../services/sendSMS';
+
 
 require('dotenv').config()
 const fs = require('fs/promises'); // Use promises-based fs
-const { Op } = require('sequelize');
+
 
 const Agenda = require('agenda');
 
@@ -86,12 +89,7 @@ const updatePolicies = () => {
     });
 };
 
-// Schedule the updatePolicies function to run every hour
-// cron.schedule('0 * * * *', () => {
-//   console.log('Running updateUserPolicies...');
-//   updatePolicies();
-//   console.log('Done.');
-// });
+
 
 
 // // // Define a function to create the dependent
@@ -109,10 +107,10 @@ async function createDependant(existingUser: any, myPolicy: any) {
         reject(new Error("Timeout: The updatePremium process took too long"));
       }, 10000); // Adjust the timeout duration (in milliseconds) as needed
     });
-    
+
     try {
       const result = await Promise.race([updatePremiumPromise, timeoutPromise]);
-      
+
       if (result.code == 200) {
         console.log("AAR UPDATE PREMIUM", result);
       } else {
@@ -121,10 +119,10 @@ async function createDependant(existingUser: any, myPolicy: any) {
     } catch (error) {
       console.error("AAR UPDATE PREMIUM timed out or encountered an error:", error.message);
     }
-    
- 
 
-  
+
+
+
     if (existingUser.arr_member_number == null) {
       console.log("REGISTER PRINCIPAL");
       // Introduce a delay before calling registerPrincipal
@@ -135,98 +133,98 @@ async function createDependant(existingUser: any, myPolicy: any) {
           resolve(true);
         }, 1000); // Adjust the delay as needed (1 second in this example)
       });
-    }else{
-    // Fetch member status data or register principal based on the condition
-    await new Promise(resolve => {
-      setTimeout(async () => {
-        arr_member = await fetchMemberStatusData({
-          member_no: existingUser.arr_member_number,
-          unique_profile_id: existingUser.membership_id + "",
-        });
-        console.log("AAR MEMBER FOUND", arr_member);
-        if (number_of_dependants > 0) {
+    } else {
+      // Fetch member status data or register principal based on the condition
+      await new Promise(resolve => {
+        setTimeout(async () => {
+          arr_member = await fetchMemberStatusData({
+            member_no: existingUser.arr_member_number,
+            unique_profile_id: existingUser.membership_id + "",
+          });
+          console.log("AAR MEMBER FOUND", arr_member);
+          if (number_of_dependants > 0) {
 
-          for (let i = 1; i <= number_of_dependants; i++) {
-            let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
-            let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
-            let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
+            for (let i = 1; i <= number_of_dependants; i++) {
+              let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
+              let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
+              let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
 
-            if (arr_member.policy_no != null && arr_member.code == 200) {
-              // Use a Promise with setTimeout to control the creation
-              await new Promise(resolve => {
-                setTimeout(async () => {
-                  dependant = await registerDependant({
-                    member_no: existingUser.arr_member_number,
-                    surname: dependant_surname,
-                    first_name: dependant_first_name,
-                    other_names: dependant_other_names,
-                    gender: 1,
-                    dob: "1990-01-01",
-                    email: "dependant@bluewave.insure",
-                    pri_dep: "25",
-                    family_title: "25", // Assuming all dependants are children
-                    tel_no: myPolicy.phone_number,
-                    next_of_kin: {
-                      surname: "",
-                      first_name: "",
-                      other_names: "",
-                      tel_no: "",
-                    },
-                    member_status: "1",
-                    health_option: "64",
-                    health_plan: "AIRTEL_" + myPolicy?.policy_type,
-                    policy_start_date: myPolicy.policy_start_date,
-                    policy_end_date: myPolicy.policy_end_date,
-                    unique_profile_id: existingUser.membership_id + "",
-                  });
+              if (arr_member.policy_no != null && arr_member.code == 200) {
+                // Use a Promise with setTimeout to control the creation
+                await new Promise(resolve => {
+                  setTimeout(async () => {
+                    dependant = await registerDependant({
+                      member_no: existingUser.arr_member_number,
+                      surname: dependant_surname,
+                      first_name: dependant_first_name,
+                      other_names: dependant_other_names,
+                      gender: 1,
+                      dob: "1990-01-01",
+                      email: "dependant@bluewave.insure",
+                      pri_dep: "25",
+                      family_title: "25", // Assuming all dependants are children
+                      tel_no: myPolicy.phone_number,
+                      next_of_kin: {
+                        surname: "",
+                        first_name: "",
+                        other_names: "",
+                        tel_no: "",
+                      },
+                      member_status: "1",
+                      health_option: "64",
+                      health_plan: "AIRTEL_" + myPolicy?.policy_type,
+                      policy_start_date: myPolicy.policy_start_date,
+                      policy_end_date: myPolicy.policy_end_date,
+                      unique_profile_id: existingUser.membership_id + "",
+                    });
 
-                  if (dependant.code == 200) {
+                    if (dependant.code == 200) {
 
-                    console.log(`Dependant ${i} created:`, dependant);
+                      console.log(`Dependant ${i} created:`, dependant);
 
-                    myPolicy.arr_policy_number = arr_member?.policy_no;
-                    dependant.unique_profile_id = existingUser.membership_id + "";
-                    let updateDependantMemberNo = []
-                    updateDependantMemberNo.push(dependant.member_no)
-                    await db.policies.update(
-                      { dependant_member_numbers: updateDependantMemberNo },
-                      { where: { policy_id: myPolicy.policy_id } }
-                    );
-                    let updatePremiumData = await updatePremium(dependant, myPolicy);
-                    if (updatePremiumData.code == 200) {
-                      console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                      myPolicy.arr_policy_number = arr_member?.policy_no;
+                      dependant.unique_profile_id = existingUser.membership_id + "";
+                      let updateDependantMemberNo = []
+                      updateDependantMemberNo.push(dependant.member_no)
+                      await db.policies.update(
+                        { dependant_member_numbers: updateDependantMemberNo },
+                        { where: { policy_id: myPolicy.policy_id } }
+                      );
+                      let updatePremiumData = await updatePremium(dependant, myPolicy);
+                      if (updatePremiumData.code == 200) {
+                        console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                        resolve(true)
+                      } else {
+                        console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+                        resolve(true)
+
+                      }
                       resolve(true)
-                    } else{
-                      console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+                    } else {
+                      console.log("DEPENDANT NOT CREATED", dependant);
                       resolve(true)
-
                     }
-                    resolve(true)
-                  }else{
-                    console.log("DEPENDANT NOT CREATED", dependant);
-                    resolve(true)
-                  }
-                }, 1000 * i); // Adjust the delay as needed
-              });
+                  }, 1000 * i); // Adjust the delay as needed
+                });
+              } else {
+                console.log("NO ARR MEMBER")
+              }
+            }
+          } else {
+            let updatePremiumData = await updatePremium(existingUser, myPolicy);
+            if (updatePremiumData.code == 200) {
+              console.log("AAR UPDATE PREMIUM", updatePremiumData);
+              resolve(true)
             } else {
-              console.log("NO ARR MEMBER")
+              console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+              resolve(true)
             }
           }
-        } else {
-          let updatePremiumData = await updatePremium(existingUser, myPolicy);
-          if (updatePremiumData.code == 200) {
-            console.log("AAR UPDATE PREMIUM", updatePremiumData);
-            resolve(true)
-          }else{
-            console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-            resolve(true)
-          }
-        }
-        resolve(true);
+          resolve(true);
 
-      }, 1000); // Adjust the delay as needed (1 second in this example)
-    });
-  }
+        }, 1000); // Adjust the delay as needed (1 second in this example)
+      });
+    }
 
   } catch (error) {
     console.error('Error:', error.message);
@@ -354,24 +352,168 @@ async function getAllUsers() {
 //   { "phone_number": 704674642, "amount": 40000 },
 //   { "phone_number": 756111390, "amount": 10000 }
 // ]
+// let payment_data = [
+//   { "phone_number": 701377572, "amount": 10000 },
+//   { "phone_number": 758303153, "amount": 10000 },
+//   { "phone_number": 709551279, "amount": 10000 },
+//   { "phone_number": 743453953, "amount": 14000 },
+//   { "phone_number": 700440544, "amount": 10000 },
+//   { "phone_number": 709278507, "amount": 10000 },
+//   { "phone_number": 759773977, "amount": 10000 },
+//   { "phone_number": 704811422, "amount": 10000 },
+//   { "phone_number": 751085268, "amount": 10000 },
+//   { "phone_number": 751194038, "amount": 10000 },
+//   { "phone_number": 753714841, "amount": 14000 },
+//   { "phone_number": 752883692, "amount": 10000 },
+//   { "phone_number": 707774730, "amount": 10000 },
+//   { "phone_number": 752225351, "amount": 10000 },
+//   { "phone_number": 752560013, "amount": 10000 },
+//   { "phone_number": 708510859, "amount": 14000 },
+//   { "phone_number": 742524333, "amount": 10000 },
+//   { "phone_number": 754072548, "amount": 10000 },
+//   { "phone_number": 700835797, "amount": 10000 },
+//   { "phone_number": 707640557, "amount": 10000 },
+//   { "phone_number": 705520531, "amount": 14000 },
+//   { "phone_number": 755014764, "amount": 10000 },
+//   { "phone_number": 701792283, "amount": 35000 },
+//   { "phone_number": 754155216, "amount": 10000 },
+//   { "phone_number": 704794563, "amount": 10000 },
+//   { "phone_number": 752909225, "amount": 14000 },
+//   { "phone_number": 702502728, "amount": 10000 },
+//   { "phone_number": 751224476, "amount": 10000 },
+//   { "phone_number": 701435756, "amount": 10000 },
+//   { "phone_number": 708504613, "amount": 14000 },
+//   { "phone_number": 740504201, "amount": 14000 },
+//   { "phone_number": 705100734, "amount": 10000 },
+//   { "phone_number": 752162722, "amount": 10000 },
+//   { "phone_number": 705762881, "amount": 10000 },
+//   { "phone_number": 704563728, "amount": 10000 },
+//   { "phone_number": 705758296, "amount": 10000 },
+//   { "phone_number": 742256068, "amount": 30000 },
+//   { "phone_number": 753201326, "amount": 10000 },
+//   { "phone_number": 742088772, "amount": 10000 },
+//   { "phone_number": 706617599, "amount": 10000 },
+//   { "phone_number": 751014859, "amount": 10000 },
+//   { "phone_number": 754997400, "amount": 18000 },
+//   { "phone_number": 759705276, "amount": 10000 },
+//   { "phone_number": 754897284, "amount": 18000 },
+//   { "phone_number": 741859475, "amount": 10000 },
+//   { "phone_number": 700787003, "amount": 10000 },
+//   { "phone_number": 740937765, "amount": 10000 },
+//   { "phone_number": 709892072, "amount": 10000 },
+//   { "phone_number": 744860116, "amount": 10000 },
+//   { "phone_number": 753177466, "amount": 10000 },
+//   { "phone_number": 702256430, "amount": 18000 },
+//   { "phone_number": 755168928, "amount": 65000 },
+//   { "phone_number": 742141392, "amount": 10000 },
+//   { "phone_number": 704017842, "amount": 10000 },
+//   { "phone_number": 704665960, "amount": 10000 },
+//   { "phone_number": 709358793, "amount": 14000 },
+//   { "phone_number": 754761340, "amount": 10000 },
+//   { "phone_number": 740305224, "amount": 10000 },
+//   { "phone_number": 740305224, "amount": 18000 },
+//   { "phone_number": 757802457, "amount": 10000 },
+//   { "phone_number": 756283736, "amount": 18000 },
+//   { "phone_number": 703174487, "amount": 10000 },
+//   { "phone_number": 704608746, "amount": 10000 },
+//   { "phone_number": 708472125, "amount": 18000 },
+//   { "phone_number": 741267721, "amount": 10000 },
+//   { "phone_number": 759799954, "amount": 10000 },
+//   { "phone_number": 750911250, "amount": 28000 },
+//   { "phone_number": 744673144, "amount": 10000 },
+//   { "phone_number": 701732579, "amount": 10000 },
+//   { "phone_number": 740601387, "amount": 20000 },
+//   { "phone_number": 708589868, "amount": 10000 },
+//   { "phone_number": 753324580, "amount": 10000 },
+//   { "phone_number": 704929742, "amount": 14000 },
+//   { "phone_number": 757507158, "amount": 10000 },
+//   { "phone_number": 742220443, "amount": 10000 },
+//   { "phone_number": 758222374, "amount": 10000 },
+//   { "phone_number": 753025215, "amount": 14000 },
+//   { "phone_number": 743090525, "amount": 10000 },
+//   { "phone_number": 740844901, "amount": 14000 },
+//   { "phone_number": 750623235, "amount": 14000 },
+//   { "phone_number": 741845024, "amount": 10000 },
+//   { "phone_number": 740434872, "amount": 10000 },
+//   { "phone_number": 703276752, "amount": 10000 },
+//   { "phone_number": 759136143, "amount": 20000 },
+//   { "phone_number": 706271701, "amount": 10000 },
+//   { "phone_number": 759010393, "amount": 10000 },
+//   { "phone_number": 753982893, "amount": 10000 },
+//   { "phone_number": 708797784, "amount": 10000 },
+//   { "phone_number": 700415511, "amount": 10000 },
+//   { "phone_number": 708800974, "amount": 10000 },
+//   { "phone_number": 750036676, "amount": 10000 },
+//   { "phone_number": 700508006, "amount": 10000 },
+//   { "phone_number": 705672015, "amount": 10000 },
+//   { "phone_number": 758096188, "amount": 10000 },
+//   { "phone_number": 743747835, "amount": 18000 },
+//   { "phone_number": 750555263, "amount": 18000 },
+//   { "phone_number": 755816648, "amount": 10000 },
+//   { "phone_number": 757644045, "amount": 10000 },
+//   { "phone_number": 742268243, "amount": 40000 },
+//   { "phone_number": 740221932, "amount": 10000 },
+//   { "phone_number": 753225052, "amount": 18000 },
+//   { "phone_number": 707870424, "amount": 10000 },
+//   { "phone_number": 703194029, "amount": 40000 },
+//   { "phone_number": 742509158, "amount": 10000 },
+//   { "phone_number": 709442925, "amount": 18000 },
+//   { "phone_number": 708765324, "amount": 10000 },
+//   { "phone_number": 707089636, "amount": 20000 },
+//   { "phone_number": 705742068, "amount": 10000 },
+//   { "phone_number": 751367007, "amount": 208000 },
+//   { "phone_number": 754350170, "amount": 10000 },
+//   { "phone_number": 758055077, "amount": 10000 },
+//   { "phone_number": 706065420, "amount": 10000 },
+//   { "phone_number": 744058090, "amount": 14000 },
+//   { "phone_number": 743119584, "amount": 10000 },
+//   { "phone_number": 706305075, "amount": 10000 },
+//   { "phone_number": 755897591, "amount": 14000 },
+//   { "phone_number": 751061015, "amount": 10000 },
+//   { "phone_number": 755789817, "amount": 10000 },
+//   { "phone_number": 707426133, "amount": 10000 },
+//   { "phone_number": 707823891, "amount": 10000 },
+//   { "phone_number": 759703643, "amount": 10000 },
+//   { "phone_number": 759003963, "amount": 10000 },
+//   { "phone_number": 753122043, "amount": 10000 },
+//   { "phone_number": 700892883, "amount": 10000 },
+//   { "phone_number": 708745039, "amount": 10000 },
+//   { "phone_number": 753316969, "amount": 10000 },
+//   { "phone_number": 705371938, "amount": 10000 },
+//   { "phone_number": 751088515, "amount": 10000 },
+//   { "phone_number": 757535290, "amount": 10000 },
+//   { "phone_number": 706203037, "amount": 10000 },
+//   { "phone_number": 706207210, "amount": 10000 },
+//   { "phone_number": 743581162, "amount": 14000 },
+//   { "phone_number": 702694286, "amount": 18000 },
+//   { "phone_number": 709924865, "amount": 10000 },
+//   { "phone_number": 741043747, "amount": 20000 },
+//   { "phone_number": 757762761, "amount": 30000 },
+//   { "phone_number": 708383934, "amount": 10000 },
+//   { "phone_number": 704561720, "amount": 10000 },
+//   { "phone_number": 754452522, "amount": 10000 },
+//   { "phone_number": 704066209, "amount": 93000 },
+//   { "phone_number": 702082482, "amount": 10000 },
+//   { "phone_number": 702283160, "amount": 18000 }
+// ]
 
 
-  // let combinedPayments = payment_numbers.map((phoneNumber, index) => {
-  //   return {
-  //     phone_number: phoneNumber,
-  //     amount: payment_amount[index],
-  //   };
-  // });
-  
-  // console.log("Combined Payments:", combinedPayments);
-  // //write this  to a file
-  // fs.writeFile('payments.json', JSON.stringify(combinedPayments))
-  //   .then(() => {
-  //     console.log('File written successfully');
-  //   })
-  //   .catch((err: any) => {
-  //     console.error('Error writing file:', err);
-  //   });
+// let combinedPayments = payment_numbers.map((phoneNumber, index) => {
+//   return {
+//     phone_number: phoneNumber,
+//     amount: payment_amount[index],
+//   };
+// });
+
+// console.log("Combined Payments:", combinedPayments);
+// //write this  to a file
+// fs.writeFile('payments.json', JSON.stringify(combinedPayments))
+//   .then(() => {
+//     console.log('File written successfully');
+//   })
+//   .catch((err: any) => {
+//     console.error('Error writing file:', err);
+//   });
 
 // let policies = [];
 
@@ -385,9 +527,9 @@ async function getAllUsers() {
 //   let userPolicies = await db.policies.findAll({
 //     where: {
 //       user_id: user.user_id,
-//       policy_status: 'paid',
+//       // policy_status: 'paid',
 //       premium: payment.amount
-      
+
 //     },
 //   });
 
@@ -580,18 +722,6 @@ async function getAllUsers() {
 
 // }
 
-// delete users with user_id a1a3721d-18f8-4fd9-baca-0c1de553d182 and 5c7ae55c-76bf-43b7-979e-5fc16bfaab43
-// db.users.destroy({
-//     where: {
-//       user_id: '5c7ae55c-76bf-43b7-979e-5fc16bfaab43'
-//     }
-//   }).then((user:any) => {
-//     console.log("DELETED USER: ", user)
-
-//   }).catch((err:any) => {
-//     console.log(err)
-//   })
-
 
 
 
@@ -604,19 +734,6 @@ async function getAllUsers() {
 //   console.log(err)
 // })
 
-
-//clear the arr_member_number column in users table
-//  db.users.update(
-//     { arr_member_number: null },{where :{partner_id: 2}},{ multi: true }
-//   ).then((user:any) => {
-//     console.log("UPDATED USER: ", user)
-
-//   }
-//   ).catch((err:any) => {
-//     console.log(err)
-//   })
-
-// get all users with policy_status == "paid" in polices table and no arr_member_number and partner_id = 2
 
 
 async function allPaidPolicies() {
@@ -743,25 +860,7 @@ async function updatePremiumArr() {
 //   console.log(err)
 // })
 
-// get all paid trnasactions and sum the amount paid
 
-// db.transactions.findAll(
-//   {
-//     where: {
-//       status: 'paid'
-//     }
-//   }
-// ).then((transaction: any) => {
-//   let total = 0
-//   transaction.forEach((transaction: any) => {
-//     total += transaction.amount
-//   })
-//   console.log('TOTAL', total);
-
-// }
-// ).catch((err: any) => {
-//   console.log(err)
-// })
 
 
 // get all paid installments  per unique policy_id and sum the amount paid
@@ -794,6 +893,49 @@ async function updatePremiumArr() {
 // ).catch((err: any) => {
 //   console.log(err)
 // })
+
+
+
+// RENEWAL
+async function sendPolicyAnniversaryReminders() {
+  const query = `
+    SELECT *
+    FROM policies
+    WHERE 
+      DATE_PART('year', policy_start_date) = DATE_PART('year', CURRENT_DATE)
+      AND DATE_PART('month', policy_start_date) = DATE_PART('month', CURRENT_DATE)
+      AND EXTRACT(DAY FROM policy_start_date) = EXTRACT(DAY FROM CURRENT_DATE) - 3
+      AND policy_status = 'paid'
+      AND partner_id = 2`;
+
+  const policies = await db.sequelize.query(query, { type: QueryTypes.SELECT });
+
+  console.log("POLICIES", policies.length);
+
+  policies.forEach(async (policy) => {
+    const { policy_start_date, premium, policy_type, phone_number, beneficiary } = policy;
+
+    const message = `Your monthly premium payment for ${beneficiary} ${policy_type} Medical cover of UGX ${premium} is DUE in 3-days on ${policy_start_date.toDateString()}.`;
+
+    console.log("MESSAGE", message);
+
+    // Call the function to send an SMS
+    await SMSMessenger.sendSMS(phone_number, message);
+  });
+
+  return policies;
+}
+
+
+// Call the function to send policy anniversary reminders
+//sendPolicyAnniversaryReminders();
+// Schedule the updatePolicies function to run every hour
+// cron.schedule('0 * * * *', () => {
+//   console.log('Running updateUserPolicies...');
+//   updatePolicies();
+//   console.log('Done.');
+// });
+
 
 
 module.exports = { db }

@@ -1,6 +1,6 @@
 import { airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptionsKenya, parseAmount } from "../../services/utils";
 import { getAirtelKenyaUser } from "../../services/getAirtelUser";
 
@@ -130,7 +130,7 @@ const selfMenu = async (args, db) => {
                 });
 
                 const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-                await sendSMS(fullPhone, message);
+                await SMSMessenger.sendSMS(fullPhone, message);
 
             }
 

@@ -1,6 +1,6 @@
 
 import { generateClaimId } from "../../services/utils";
-import sendSMS from "../../services/sendSMS";
+import SMSMessenger from "../../services/sendSMS";
 
 
 const claimMenu = async (args, db) => {
@@ -57,7 +57,7 @@ const claimMenu = async (args, db) => {
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
                 break;
             case "2":
-                response = "CON Enter phone of next of Kin e.g 0759608107" 
+                response = "CON Enter phone of next of Kin e.g 0759608107"
                 break;
         }
     }
@@ -77,7 +77,7 @@ const claimMenu = async (args, db) => {
             deceasedName: allSteps[4],
             dateOfDeath: allSteps[5],
         }
-    
+
         // CREATE CLAIM
         let claim_type = "Death Claim";
         let user = await db.users.findOne({
@@ -88,19 +88,19 @@ const claimMenu = async (args, db) => {
         });
         console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
 
-        if(!user) {
+        if (!user) {
             response = "CON No user found with that phone number" + "\n0. Back \n00. Main Menu";
             return response;
         }
 
         let policy = await db.policies.findAll({
             where: {
-                user_id:  user.user_id,
+                user_id: user.user_id,
                 policy_status: "paid",
             },
         });
         console.log("POLICY", policy);
-        policy = policy[ policy.length - 1];
+        policy = policy[policy.length - 1];
 
         console.log("POLICY2", policy);
 
@@ -122,7 +122,7 @@ const claimMenu = async (args, db) => {
                 }  ${policy.policy_type.toUpperCase()} ${policy.beneficiary.toUpperCase()} policy`,
             claim_type: claim_type,
             claim_amount: policy.sum_insured,
-            claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) :  "2021-01-01",
+            claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
 
         // update beneficiary
@@ -144,7 +144,7 @@ const claimMenu = async (args, db) => {
         const userPhone = user.phone_number?.startsWith('+') ? user.phone_number : `+${user.phone_number}`;
 
         const sms = 'Your claim documents have been received. Your claim is being processed.';
-        await sendSMS( userPhone, sms);
+        await SMSMessenger.sendSMS(userPhone, sms);
 
         response = `END Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`;
     }

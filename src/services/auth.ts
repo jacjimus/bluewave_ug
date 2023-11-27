@@ -2,7 +2,9 @@
 import axios from 'axios';
 import dotenv from 'dotenv'
 dotenv.config()
-console.log(process.env.PROD_AIRTEL_AUTH_TOKEN_URL, process.env.PROD_AIRTEL_UGX_CLIENT_ID , process.env.PROD_AIRTEL_UGX_CLIENT_SECRET)
+
+
+
 async function authToken(partner_id: number) {
     try {
         let inputBody: any, AUTH_TOKEN_URL: string;
