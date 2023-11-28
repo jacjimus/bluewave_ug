@@ -215,10 +215,28 @@ const SessionModel = db.sessions;
   };
 
 
-  function ussdSessions(req, res){
+  async function ussdSessions(req, res){
    try {
-    const {sessionId, serviceCode, phoneNumber, text} = req.body;
+    const {sessionId,networkCode, durationInMillis, errorMessage,serviceCode,lastAppResponse, hopsCount,phoneNumber, cost, date, input, status} = req.body;
     console.log("SESSIONS", req.body);
+
+    await db.sessions.create({
+      sessionId: sessionId,
+      networkCode: networkCode,
+      durationInMillis: durationInMillis,
+      errorMessage: errorMessage,
+      serviceCode: serviceCode,
+      lastAppResponse: lastAppResponse,
+      hopsCount: hopsCount,
+      phoneNumber: phoneNumber,
+      cost: cost,
+      date: date,
+      input: input,
+      status: status
+    });
+
+
+   
     //let response = '';
    res.status(200).json({
       message: 'Sessions fetched successfully from AfricanStalking',

@@ -37,6 +37,42 @@ module.exports = (sequelize, DataTypes) => {
       phone_number: {
         type: DataTypes.STRING,
       },
+      sessionId: {
+        type: DataTypes.STRING,
+      },
+      networkCode: {
+        type: DataTypes.STRING,
+      },
+      durationInMillis: {
+        type: DataTypes.STRING,
+      },
+      errorMessage: {
+        type: DataTypes.STRING,
+      },
+      serviceCode: {
+        type: DataTypes.STRING,
+      },
+      lastAppResponse: {
+        type: DataTypes.STRING,
+      },
+      hopsCount: {
+        type: DataTypes.STRING,
+      },
+      phoneNumber: {
+        type: DataTypes.STRING,
+      },
+      cost: {
+        type: DataTypes.STRING,
+      },
+      date: {
+        type: DataTypes.DATE,
+      },
+      input: {
+        type: DataTypes.STRING,
+      },
+      status: {
+        type: DataTypes.STRING,
+      },
     },
 
     { timestamps: true }

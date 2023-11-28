@@ -38,6 +38,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.INTEGER,
             allowNull: true
         },
+        
     }, { timestamps: true });
 
     return Logs;
