@@ -70,7 +70,6 @@ const hospitalMenu = async (args: any, db: any) => {
 
         const hospitalSelected = hospitals[parseInt(allSteps[2]) - 1];
 
-        console.log("HOSPITAL SELECTED", hospitalSelected)
 
         const hospital = await db.hospitals.findOne({
             where: {

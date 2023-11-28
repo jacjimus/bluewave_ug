@@ -106,12 +106,18 @@ const getPolicySummary = async (req: any, res: any) => {
       return res.status(404).json({ message: "No policies found" });
     }
 
-    let total_payment_premium = await db.payments.sum("payment_amount", {
+    let total_payment_premium =  db.payments.sum("payment_amount", {
       where: {
         payment_status: "paid",
         partner_id,
       },
     });
+    // await db.payments.sum("payment_amount", {
+    //   where: {
+    //     payment_status: "paid",
+    //     partner_id,
+    //   },
+    // });
 
     let total_policy_premium_paid = await db.policies.sum("policy_deduction_amount", {
       where: {
@@ -1114,29 +1120,52 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or missing month filter' });
     }
 
+    // const query = `
+    //   SELECT
+    //     EXTRACT(MONTH FROM payment_date) AS month,
+    //     EXTRACT(DAY FROM payment_date) AS day,
+    //     payment_id,
+    //     SUM(payment_amount) AS total_amount,
+    //     COUNT(DISTINCT user_id) AS total_users
+    //   FROM
+    //     public.payments
+    //   WHERE
+    //     payment_date BETWEEN DATE_TRUNC('month', payment_date) AND (DATE_TRUNC('month', payment_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+    //     AND EXTRACT(MONTH FROM payment_date) = :filterMonth 
+    //     AND payment_status = 'paid'
+    //     AND partner_id = :partner_id
+    //   GROUP BY
+    //     EXTRACT(MONTH FROM payment_date),
+    //     EXTRACT(DAY FROM payment_date),
+    //     payment_id
+    //   ORDER BY
+    //     month,
+    //     day,
+    //     payment_id;
+    // `;
     const query = `
-      SELECT
-        EXTRACT(MONTH FROM payment_date) AS month,
-        EXTRACT(DAY FROM payment_date) AS day,
-        payment_id,
-        SUM(payment_amount) AS total_amount,
-        COUNT(DISTINCT user_id) AS total_users
-      FROM
-        public.payments
-      WHERE
-        payment_date BETWEEN DATE_TRUNC('month', payment_date) AND (DATE_TRUNC('month', payment_date) + INTERVAL '1 month' - INTERVAL '1 day') 
-        AND EXTRACT(MONTH FROM payment_date) = :filterMonth 
-        AND payment_status = 'paid'
-        AND partner_id = :partner_id
-      GROUP BY
-        EXTRACT(MONTH FROM payment_date),
-        EXTRACT(DAY FROM payment_date),
-        payment_id
-      ORDER BY
-        month,
-        day,
-        payment_id;
-    `;
+    SELECT
+      EXTRACT(MONTH FROM policy_start_date) AS month,
+      EXTRACT(DAY FROM policy_start_date) AS day,
+      policy_id,
+      SUM(premium) AS total_amount,
+      COUNT(DISTINCT user_id) AS total_users
+    FROM
+      public.policies
+    WHERE
+    policy_start_date BETWEEN DATE_TRUNC('month', policy_start_date) AND (DATE_TRUNC('month', policy_start_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+      AND EXTRACT(MONTH FROM policy_start_date) = :filterMonth 
+      AND policy_status = 'paid'
+      AND partner_id = :partner_id
+    GROUP BY
+      EXTRACT(MONTH FROM policy_start_date),
+      EXTRACT(DAY FROM policy_start_date),
+      policy_id
+    ORDER BY
+      month,
+      day,
+      policy_id;
+  `;
 
     const results = await db.sequelize.query(query, {
       replacements: { partner_id: req.query.partner_id, filterMonth: filterMonth },

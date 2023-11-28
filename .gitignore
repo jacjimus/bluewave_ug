@@ -75,3 +75,4 @@ snippets/
 .cache_ggshield
 
 access.log
+error_log.json

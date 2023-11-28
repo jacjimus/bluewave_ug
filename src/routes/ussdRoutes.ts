@@ -111,7 +111,7 @@ router.all("/callback", async (req, res) => {
       }
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
-      console.log("TRANSACTION DATA", transactionData);
+      //console.log("TRANSACTION DATA", transactionData);
 
       const user = await Users.findOne({ where: { user_id } });
       let policy = await db.policies.findOne({ where: { policy_id } });
@@ -126,7 +126,7 @@ router.all("/callback", async (req, res) => {
       // latest policy
       // policy = policy[policy.length - 1];
 
-      console.log("======= POLICY =========", policy);
+      //console.log("======= POLICY =========", policy);
 
       if (!policy || !policy.airtel_money_id) {
         console.log("Policy not found");
@@ -381,7 +381,7 @@ router.all("/callback/kenya", async (req, res) => {
       }
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
-      console.log("TRANSACTION DATA", transactionData);
+      //console.log("TRANSACTION DATA", transactionData);
 
       const user = await Users.findOne({ where: { user_id } });
       let policy = await db.policies.findOne({ where: { policy_id } });
@@ -396,7 +396,7 @@ router.all("/callback/kenya", async (req, res) => {
       // latest policy
       // policy = policy[policy.length - 1];
 
-      console.log("======= POLICY =========", policy);
+      //console.log("======= POLICY =========", policy);
 
       if (!policy || !policy.airtel_money_id) {
         console.log("Policy not found");

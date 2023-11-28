@@ -819,7 +819,7 @@ const getPartner = async (req: any, res: any) => {
         partner_id: partner_id + "",
       },
     });
-    console.log(partner);
+   // console.log(partner);
 
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "No partner found" });
