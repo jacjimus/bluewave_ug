@@ -184,7 +184,7 @@ const getClaims = async (req: any, res: any) => {
   */
 const getClaim = async (req: any, res: any) => {
     try {
-        const claim_id = parseInt(req.params.claim_id);
+        const claim_id = req.params.claim_id
 
         const claim = await Claim.findByPk(claim_id, {
             include: [
@@ -446,8 +446,8 @@ const getPolicyClaims = async (req: any, res: any) => {
  */
 const createClaim = async (req: any, res: any) => {
     try {
-        const policy_id = parseInt(req.query.policy_id);
-        const user_id = parseInt(req.query.user_id);
+        const policy_id = req.query.policy_id
+        const user_id = req.query.user_id
         const partner_id = parseInt(req.query.partner_id);
 
         const {
@@ -526,14 +526,7 @@ const createClaim = async (req: any, res: any) => {
 
 
         console.log("NEW CLAIM", newClaim);
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: `Claim created successfully`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
+      
 
         return res.status(201).json({
             code: 201, message: "Claim created successfully", claim: newClaim
@@ -596,9 +589,9 @@ const createClaim = async (req: any, res: any) => {
 const updateClaim = async (req: any, res: any) => {
     try {
         const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments } = req.body;
-        const claim_id = parseInt(req.params.claim_id)
-        const policy_id = parseInt(req.query.policy_id)
-        const user_id = parseInt(req.query.user_id)
+        const claim_id = req.params.claim_id
+        const policy_id = req.query.policy_i
+        const user_id = req.query.user_id
         const partner_id = req.query.partner_id
         let claim = await Claim.findAll({
             where: {

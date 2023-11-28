@@ -26,6 +26,7 @@ const claimMenu = async (args, db) => {
                 });
                 console.log("USER ID", user.user_id);
 
+
                 const policy = await db.policies.findOne({
                     where: {
                         user_id: user.user_id,
@@ -35,14 +36,14 @@ const claimMenu = async (args, db) => {
 
                 console.log("POLICY", policy);
 
-                if (!policy) {
+                if (!policy || !user) {
                     response = "CON No policy found" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
 
                 const claimId = generateClaimId();
 
-                const newClaim = await db.claims.create({
+                 await db.claims.create({
                     claim_number: claimId,
                     policy_id: policy.policy_id,
                     user_id: user.user_id,
@@ -99,10 +100,8 @@ const claimMenu = async (args, db) => {
                 policy_status: "paid",
             },
         });
-        console.log("POLICY", policy);
+    
         policy = policy[policy.length - 1];
-
-        console.log("POLICY2", policy);
 
         if (!policy) {
             response = "CON No policy found" + "\n0. Back \n00. Main Menu";
@@ -111,7 +110,7 @@ const claimMenu = async (args, db) => {
 
         const claimId = generateClaimId();
 
-        const newClaim = await db.claims.create({
+         await db.claims.create({
             claim_number: claimId,
             policy_id: policy.policy_id,
             user_id: user.user_id,
@@ -125,22 +124,7 @@ const claimMenu = async (args, db) => {
             claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
 
-        // update beneficiary
-        // const beneficiary = await db.beneficiaries.findOne({
-        //     where: {
-        //         user_id: user.user_id,
-        //         //beneficiary_type: "NEXTOFKIN",
-        //     },
-        // });
-
-        //console.log("BENEFICIARY", beneficiary);
-
-        // if (!beneficiary) {
-        //     response = "CON No beneficiary found" + "\n0. Back \n00. Main Menu";
-        //     return response;
-        // }
-
-        //const beneficiaryPhone = beneficiary.phone_number?.startsWith('+') ? beneficiary.phone_number : `+${beneficiary.phone_number}`;
+     
         const userPhone = user.phone_number?.startsWith('+') ? user.phone_number : `+${user.phone_number}`;
 
         const sms = 'Your claim documents have been received. Your claim is being processed.';
