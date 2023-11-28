@@ -213,8 +213,31 @@ const SessionModel = db.sessions;
   
     return { sessions, totalSessionsCount };
   };
+
+
+  function ussdSessions(req, res){
+   try {
+    const {sessionId, serviceCode, phoneNumber, text} = req.body;
+    console.log("SESSIONS", req.body);
+    //let response = '';
+   res.status(200).json({
+      message: 'Sessions fetched successfully from AfricanStalking',
+      sessions: req.body,
+     
+    });
+    
+   } catch (error) {
+    res.status(400).json({
+      code: 400,
+      message: 'Invalid request',
+      error: error.message
+    });
+    
+   }
+  }
   
 module.exports = {
+    ussdSessions,
     getLogs ,
     getSessions
 
