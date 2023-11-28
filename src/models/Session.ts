@@ -17,26 +17,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
 
-      active_state: {
-        type: DataTypes.STRING,
-      },
-
-      language: {
-        type: DataTypes.STRING,
-      },
-
       full_input: {
         type: DataTypes.STRING,
       },
       masked_input: {
         type: DataTypes.STRING,
       },
-      hash: {
-        type: DataTypes.STRING,
-      },
-      phone_number: {
-        type: DataTypes.STRING,
-      },
+  
       sessionid: {
         type: DataTypes.STRING,
       },
