@@ -79,7 +79,7 @@ const errorHandler = (error: any, req: any, res: any, next: any) => {
 };
 
 //route health check
-app.get("/status", (req: any, res: any) =>
+app.get("/", (req: any, res: any) =>
   res.send({ status: "I'm up and running - Bluewave Insurance" })
 );
 
