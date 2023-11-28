@@ -37,28 +37,28 @@ module.exports = (sequelize, DataTypes) => {
       phone_number: {
         type: DataTypes.STRING,
       },
-      sessionId: {
+      sessionid: {
         type: DataTypes.STRING,
       },
-      networkCode: {
+      networkcode: {
         type: DataTypes.STRING,
       },
-      durationInMillis: {
+      durationinmillis: {
         type: DataTypes.STRING,
       },
-      errorMessage: {
+      errormessage: {
         type: DataTypes.STRING,
       },
-      serviceCode: {
+      servicecode: {
         type: DataTypes.STRING,
       },
-      lastAppResponse: {
+      lastappresponse: {
         type: DataTypes.STRING,
       },
-      hopsCount: {
+      hopscount: {
         type: DataTypes.STRING,
       },
-      phoneNumber: {
+      phonenumber: {
         type: DataTypes.STRING,
       },
       cost: {

@@ -218,17 +218,17 @@ const SessionModel = db.sessions;
   async function ussdSessions(req, res){
    try {
     const {sessionId,networkCode, durationInMillis, errorMessage,serviceCode,lastAppResponse, hopsCount,phoneNumber, cost, date, input, status} = req.body;
-    console.log("SESSIONS", req.body);
+   
 
     await db.sessions.create({
-      sessionId: sessionId,
-      networkCode: networkCode,
-      durationInMillis: durationInMillis,
-      errorMessage: errorMessage,
-      serviceCode: serviceCode,
-      lastAppResponse: lastAppResponse,
-      hopsCount: hopsCount,
-      phoneNumber: phoneNumber,
+      sessionid: sessionId,
+      networkcode: networkCode,
+      durationinmillis: durationInMillis,
+      errormessage: errorMessage,
+      servicecode: serviceCode,
+      lastappresponse: lastAppResponse,
+      hopscount: hopsCount,
+      phonenumber: phoneNumber,
       cost: cost,
       date: date,
       input: input,
