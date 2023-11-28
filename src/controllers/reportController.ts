@@ -106,7 +106,7 @@ const getPolicySummary = async (req: any, res: any) => {
       return res.status(404).json({ message: "No policies found" });
     }
 
-    let total_payment_premium =  db.payments.sum("payment_amount", {
+    let total_payment_premium = await db.payments.sum("payment_amount", {
       where: {
         payment_status: "paid",
         partner_id,
