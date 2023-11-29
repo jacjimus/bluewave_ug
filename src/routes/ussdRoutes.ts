@@ -88,6 +88,10 @@ const updateUserPolicyStatus = async (policy, amount, installment_order, install
     policy.renewal_date = new Date();
     policy.renewal_order = parseInt(policy.renewal_order) + 1;
   }
+
+  let policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid" } });
+  let updateUserNumberOfPolices = await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
+  console.log("UPDATE USER NUMBER OF POLICIES", updateUserNumberOfPolices);
   await policy.save();
 
   return policy;
@@ -247,8 +251,7 @@ router.all("/callback", async (req, res) => {
           const date = new Date();
           const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
 
-          let installment_order = await db.installments.count({ where: { policy_id } });
-          installment_order++;
+          let installment_order = policy.installment_order + 1;
 
           installment = await db.installments.create({
             installment_id: uuidv4(),
@@ -279,7 +282,6 @@ router.all("/callback", async (req, res) => {
 
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
         console.log("MEMBERS", members, policy.total_member_number);
-
 
 
         const sumInsured = formatAmount(policy.sum_insured);
@@ -517,8 +519,7 @@ router.all("/callback/kenya", async (req, res) => {
           const date = new Date();
           const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
 
-          let installment_order = await db.installments.count({ where: { policy_id } });
-          installment_order++;
+          let installment_order = policy.installment_order + 1;
 
           installment = await db.installments.create({
             installment_id: uuidv4(),
