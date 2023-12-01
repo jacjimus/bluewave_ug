@@ -659,7 +659,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
   let {
     partner_id,
     page = 1,
-    limit = 50,
+    limit = 1000,
     filter,
     start_date,
     end_date,
@@ -668,6 +668,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
   try {
     const whereClause: any = {
       partner_id: partner_id,
+      policy_status: "paid",
     };
     // moment().format('YYYY-MM-DD')
 
@@ -715,7 +716,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
           attributes: ["product_name"],
         },
       ],
-      limit: 100,
+      limit: 1000,
     };
 
     let policies = await Policy.findAll(options);
