@@ -2,11 +2,7 @@
 import { db } from "../models/db";
 const Policy = db.policies;
 const User = db.users;
-const Product = db.products;
 const Partner = db.partners;
-const Log = db.logs;
-const Beneficiary = db.beneficiaries;
-const Payment = db.payments;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
 import { globalSearch } from "../services/utils";
@@ -148,7 +144,7 @@ const getPolicies = async (req, res) => {
     // Find query
     const policies = await Policy.findAndCountAll({
       where: whereCondition,
-      order: [["policy_id", "DESC"]],
+      order: [["policy_start_date", "DESC"]],
       include: [
         {
           model: User,
@@ -157,6 +153,7 @@ const getPolicies = async (req, res) => {
       ],
       offset,
       limit,
+    
    
     });
 
