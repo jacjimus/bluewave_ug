@@ -136,6 +136,7 @@ const getPolicies = async (req, res) => {
     // Prepare the where condition based on the provided filters
     const whereCondition: any = {
       partner_id: partner_id,
+      policy_status: 'paid',
       ...dateFilters, // Apply the date filters to the query
       ...searchFilters, // Apply the search filters to the query
     };
@@ -224,6 +225,7 @@ const getPolicy = async (req: any, res: any) => {
       where: {
         policy_id: policy_id,
         partner_id: partner_id,
+        policy_status: 'paid'
       },
     });
 
@@ -329,6 +331,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
     let policy = await Policy.findAll({
       where: {
         user_id: user_id,
+        olicy_status: 'paid',
         partner_id: partner_id,
         ...dateFilters, // Apply the date filters to the query
 

@@ -284,8 +284,11 @@ async function createDependant( existingUser: any, myPolicy: any) {
 async function updatePremium(user: any, policy: any) {
 
   try {
+    if(user.user_id !== policy.user_id){
+      throw new Error(" POLICY NOT FOR USER");
+    }
 
-  console.log('UPDATE PREMIUM',user.name, policy.policy_type, policy.total_member_number)
+  console.log('UPDATE PREMIUM',user.name, policy.policy_type, user.total_member_number)
     const main_benefit_limit =  policy.sum_insured 
     const last_expense_limit =  policy.last_expense_insured 
 

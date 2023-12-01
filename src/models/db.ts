@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require('sequelize')
 import { v4 as uuidv4 } from 'uuid'
 const { Op, QueryTypes } = require("sequelize");
 import cron from 'node-cron';
-import { fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
+import { createDependant, fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
 import SMSMessenger from '../services/sendSMS';
 
 
@@ -420,55 +420,49 @@ async function registerPrincipalArr(phone_numbers) {
 
 
 // get all user with arr_member_number is null and partner_id = 2 and email is  null
-// async function getAllUsers() {
-
-//   let policies = await db.policies.findAll({
-//     where: {
-//       policy_status: 'paid',
-//       //installment_type: 2
-//     }
-//   });
-
-//   if (!policies) {
-//     throw new Error("NO POLICY FOUND");
-//   }
 
 
-//   async function processUsers() {
-//     for (const policy of policies) {
-//       try {
-//         const user = await db.users.findOne({
-//           where: {
-//             // arr_member_number: {
-//             //   [db.Sequelize.Op.not]: null,
-//             // },
-//             partner_id: 2,
-//             user_id: policy.user_id,
-//           },
-//         });
+  async function processUsersPolicyAAR() {
+    // settimeout
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    let policies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        //installment_type: 2
+      }
+    });
+    for (const policy of policies) {
+      try {
+        const user = await db.users.findOne({
+          where: {
+            arr_member_number: {
+              [db.Sequelize.Op.not]: null,
+            },
+            partner_id: 2,
+            user_id: policy.user_id,
+          },
+        });
+        if (!user) {
+          console.log("NO USER FOUND");
+          continue
+        }
 
 
-//         if (!user) {
-//           console.log("NO USER FOUND");
-//           continue
-//         }
+        console.log("user", user.phone_number);
 
-//         console.log("user", user.phone_number);
-//         await createDependant(user, policy);
-//         console.log(`Dependant created for user with phone number: ${user.phone_number}`);
-//       } catch (error) {
-//         console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
-//       }
-//     }
-//   }
+        await updatePremium(user, policy);
+        // Add a delay between iterations (adjust the delay time as needed)
+        await delay(2000);
+        console.log(`Dependant created for user with phone number: ${user.phone_number}`);
+      } catch (error) {
+        console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
+      }
+    }
+  }
 
-//   try {
-//     await processUsers();
-//     console.log("All dependants created successfully.");
-//   } catch (err) {
-//     console.error("Error processing users:", err);
-//   }
-// }
+  //processUsersPolicyAAR()
+
+ 
 
 // Call the function to start the process
 //getAllUsers();
@@ -1783,7 +1777,6 @@ async function updateNumberOfPolicies() {
 // Phone Number: 741206226, Repeated 2 times
 // Phone Number: 742316854, Repeated 2 times
 // Phone Number: 743105154, Repeated 2 times
-
 // Phone Number: 743797986, Repeated 3 times
 // Phone Number: 751511450, Repeated 2 times
 // Phone Number: 752322768, Repeated 2 times
