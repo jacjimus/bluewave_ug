@@ -573,7 +573,7 @@ const familyMenu = async (args, db) => {
         installment_order: parseInt(allSteps[5]) == 1 ? 0 : 1,
         policy_type: selectedPackage.code_name,
         policy_deduction_amount: ultimatePremium,
-        policy_pending_premium: ultimatePremium,
+        policy_pending_premium:parseAmount(selectedPackage.year_premium) - ultimatePremium,
         sum_insured: selectedPackage.sumInsured,
         premium: ultimatePremium,
         yearly_premium: parseAmount(selectedPackage.year_premium),

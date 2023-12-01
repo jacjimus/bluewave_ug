@@ -415,7 +415,44 @@ async function registerPrincipalArr(phone_numbers) {
 //   }
 // }
 
+async function updatePendingPremium() {
+  try {
 
+    let allPaidPolicies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
+      },
+      include: [
+        {
+          model: db.users,
+          as: 'user',
+        },
+      ],
+    });
+
+    for(const policy of allPaidPolicies){
+      let pending_premium = policy.yearly_premium - policy.premium
+      let updatedPolicy = await db.policies.update(
+        { policy_pending_premium: pending_premium },
+        { where: { policy_id: policy.policy_id } }
+      );
+      console.log(  "updatedPolicy", updatedPolicy)
+      await db.users.update(
+        { number_of_policies : 1 },
+        { where: { user_id: policy.user_id ,
+          partner_id: 2,
+          number_of_policies: 0
+        } }
+      );
+    }
+    
+  } catch (error) {
+    
+  }
+}
+
+//updatePendingPremium()
 
 
 

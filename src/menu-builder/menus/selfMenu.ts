@@ -141,7 +141,7 @@ const selfMenu = async (args, db) => {
                 installment_order: installment_type == 1 ? 0 : 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
-                policy_pending_premium: ultimatePremium.premium,
+                policy_pending_premium:selectedPolicyType.yearPemium - ultimatePremium.premium,
                 sum_insured: selectedPolicyType.sumInsured,
                 premium: ultimatePremium.premium,
                 yearly_premium: selectedPolicyType.yearPemium,

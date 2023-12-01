@@ -423,7 +423,7 @@ const othersMenu = async (args, db) => {
         installment_order,
         policy_type: policyType.name.toUpperCase(),
         policy_deduction_amount: parseAmount(ultimatePremium),
-        policy_pending_premium: parseAmount(ultimatePremium),
+        policy_pending_premium:  parseAmount(policyType.yearly_premium) - parseAmount(ultimatePremium),
         sum_insured: policyType.sumInsured,
         premium: parseAmount(ultimatePremium),
         yearly_premium: parseAmount(policyType.yearly_premium),

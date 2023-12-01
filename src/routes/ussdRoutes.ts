@@ -75,7 +75,7 @@ const updateUserPolicyStatus = async (policy, amount, installment_order, install
   if (policy.policy_paid_amount !== policy.premium) {
 
     policy.policy_paid_amount += amount;
-    policy.policy_pending_premium -= amount;
+    policy.premium -= amount;
   }
 
   policy.bluewave_transaction_id = payment.payment_id;
