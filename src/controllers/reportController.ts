@@ -803,7 +803,6 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Premium", key: "premium", width: 20 },
     { header: "Sum Insured", key: "sum_insured", width: 20 },
     { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
-    { header: "AAR Member Number", key: "arr_member_number", width: 20 },
     { header: "Installment Order", key: "installment_order", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
 
