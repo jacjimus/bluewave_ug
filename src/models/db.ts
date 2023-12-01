@@ -851,7 +851,7 @@ async function updateNumberOfPolicies() {
 }
 
 // Call the function
-updateNumberOfPolicies();
+//updateNumberOfPolicies();
 
 
 
