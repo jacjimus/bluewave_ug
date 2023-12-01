@@ -792,34 +792,22 @@ const generatePolicyExcelReport = async (policies) => {
   worksheet.columns = [
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
-    { header: "Customer ID", key: "user_id", width: 20 },
     { header: "Policy Category", key: "beneficiary", width: 20 },
     { header: "Policy Type", key: "policy_type", width: 20 },
     { header: "Family Size", key: "total_member_number", width: 20 },
     { header: "Policy Status", key: "policy_status", width: 20 },
     { header: "Policy Start Date", key: "policy_start_date", width: 20 },
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
-    { header: "Policy Paid Date", key: "policy_paid_date", width: 20 },
+    { header: "Policy Paid Date", key: "policy_start_date", width: 20 },
     { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
     { header: "Premium", key: "premium", width: 20 },
     { header: "Sum Insured", key: "sum_insured", width: 20 },
     { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
     { header: "AAR Member Number", key: "arr_member_number", width: 20 },
-    { header: "Bluewave Transaction ID", key: "bluewave_transaction_id", width: 20 },
-    { header: "Airtel Transaction ID", key: "airtel_money_id", width: 20 },
-    {
-      header: "Policy Next Deduction Date",
-      key: "policy_next_deduction_date",
-      width: 20,
-    },
     { header: "Installment Order", key: "installment_order", width: 20 },
-    { header: "Hospital Details", key: "hospital_details", width: 20 },
-    { header: "Currency Code", key: "currency_code", width: 20 },
-    { header: "Country Code", key: "country_code", width: 20 },
-    { header: "Product Name", key: "product_name", width: 20 },
-    { header: "Partner ID", key: "partner_id", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
-    { header: "Updated At", key: "updatedAt", width: 20 },
+
+
   ];
 
   policies.forEach(async (policy) => {

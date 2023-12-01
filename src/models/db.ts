@@ -816,36 +816,42 @@ async function registerPrincipalArr(phone_numbers) {
 // updatePremiumArr()
 
 // update number_of_policies in users table with the number of paid policies a user has
-// db.users.findAll(
-//   {
-//     where: {
-//        arr_member_number: {
-//           [Op.ne]: null
-//         },
-//     }
-//   }
-// ).then((user: any) => {
-//   user.forEach((user: any) => {
-//     db.policies.findAll({
-//       where: {
-//         user_id: user.user_id,
-//         policy_status: 'paid'
-//       }
-//     }).then((policy: any) => {
+async function updateNumberOfPolicies() {
+  try {
+    // Fetch all users with partner_id = 2
+    const users = await db.users.findAll({
+      where: {
+        partner_id: 2,
+      },
+    });
 
-//       db.users.update(
-//         { number_of_policies: policy.length },
-//         { where: { user_id: user.user_id } }
-//       )
-//     }).catch((err: any) => {
-//       console.log(err)
-//     })
-//   })
+    // Iterate over each user
+    for (const user of users) {
+      try {
+        // Fetch all paid policies for the current user
+        const policies = await db.policies.findAll({
+          where: {
+            user_id: user.user_id,
+            policy_status: 'paid',
+          },
+        });
 
-// }
-// ).catch((err: any) => {
-//   console.log(err)
-// })
+        // Update the user with the number of policies
+        await db.users.update(
+          { number_of_policies: policies.length },
+          { where: { user_id: user.user_id } }
+        );
+      } catch (policyError) {
+        console.error(policyError);
+      }
+    }
+  } catch (userError) {
+    console.error(userError);
+  }
+}
+
+// Call the function
+updateNumberOfPolicies();
 
 
 
