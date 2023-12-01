@@ -100,12 +100,12 @@ module.exports = (sequelize: any, DataTypes: any) => {
         is_active: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
-            defaultValue: false,
+            defaultValue: true,
         },
         is_verified: {
             type: DataTypes.BOOLEAN,
             allowNull: true,
-            defaultValue: false,
+            defaultValue: true,
         },
         pin: {
             type: DataTypes.INTEGER,
@@ -125,7 +125,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         },
         number_of_policies:{
             type: DataTypes.INTEGER,
-            defaultValue: 0
+            defaultValue: 1
 
         },
         arr_member_number: {
@@ -134,7 +134,8 @@ module.exports = (sequelize: any, DataTypes: any) => {
         },
         total_member_number: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
+            defaultValue: "M"
         },
         cover_type: {
             type: DataTypes.STRING,

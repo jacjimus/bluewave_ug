@@ -81,7 +81,10 @@ interface PrincipalRegistration {
 
 
 async function registerPrincipal(user: any, policy: any) {
-  console.log( user.first_name )
+  if (user.user_id !== policy.user_id) {
+    throw new Error(" POLICY NOT FOR USER");
+  }
+ 
   const userData: PrincipalRegistration = {
     surname: user.last_name || `256${user.phone_number}`,
     first_name: user.first_name || `256${user.phone_number}`,
@@ -108,7 +111,7 @@ async function registerPrincipal(user: any, policy: any) {
     money_transaction_id: policy.airtel_money_id,
     
   }
-  console.log("REGISTER PRINCIPAL AAR", userData);
+ 
   
   try {
     const config = {

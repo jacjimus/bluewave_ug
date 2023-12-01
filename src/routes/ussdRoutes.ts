@@ -338,6 +338,7 @@ router.all("/callback", async (req, res) => {
 
 async function processPolicy(user: any, policy: any, memberStatus: any) {
   // Determine the number of dependants
+  console.log(policy?.total_member_number)
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
   console.log("Number of dependants:", number_of_dependants);
 

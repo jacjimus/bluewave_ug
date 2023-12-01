@@ -54,11 +54,13 @@ module.exports = (sequelize, DataTypes) => {
         },
         policy_deduction_amount: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         policy_next_deduction_date: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
+            default: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1))
         },
         policy_deduction_day: {
             type: DataTypes.INTEGER,
@@ -77,11 +79,13 @@ module.exports = (sequelize, DataTypes) => {
         },
         installment_date: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
+            default: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
         },
         installment_alert_date: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
+            default: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
         },
         tax_rate_vat: {
             type: DataTypes.NUMBER,
@@ -89,7 +93,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         tax_rate_ext: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         premium: {
             type: DataTypes.NUMBER,
@@ -109,11 +114,13 @@ module.exports = (sequelize, DataTypes) => {
         },
         excess_premium: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         discount_premium: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         currency_code: {
             type: DataTypes.STRING,
@@ -131,15 +138,18 @@ module.exports = (sequelize, DataTypes) => {
         },
         policy_paid_date: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
+            defaultValue: new Date()
         },
         policy_paid_amount: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         policy_pending_premium: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         arr_policy_number: {
             type: DataTypes.STRING,
@@ -168,7 +178,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         total_member_number: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 'M'
         },
         airtel_money_id: {
             type: DataTypes.STRING,
@@ -188,31 +199,39 @@ module.exports = (sequelize, DataTypes) => {
       },
         renewal_order: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            default: 1,
+            enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] // monthly
         },  
         renewal_status: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
+            default: "pending",
         },
         dependant_member_numbers: {
             type: DataTypes.ARRAY(DataTypes.STRING),
-            allowNull: true
+            allowNull: true,
+            default: []
         },
         inpatient_cover: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            default: 0
         },
         outpatient_cover: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            default: 0
         },
         hospital_cash: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            default: 0
         },
         maternity_cover: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            default: 0
         },
         
     },
