@@ -147,7 +147,7 @@ const getPolicySummary = async (req: any, res: any) => {
 
     let summary = {
       total_users: await db.users.count({ where: { partner_id } }),
-      total_policies_paid_amount: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
+      total_policies_paid: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
       total_policies_premium_paid: total_policy_premium_paid,
       total_preimum_amount: total_policy_premium_paid,
       total_paid_payment_amount: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
