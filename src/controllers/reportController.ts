@@ -1,10 +1,15 @@
 import { db } from "../models/db";
+import { processPolicy, updateUserPolicyStatus } from "../routes/ussdRoutes";
+import { fetchMemberStatusData } from "../services/aar";
+import SMSMessenger from "../services/sendSMS";
+import { formatAmount } from "../services/utils";
 const { Op, QueryTypes } = require("sequelize");
 const moment = require("moment");
 const excelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const XLSX = require("xlsx");
 
 const Policy = db.policies;
 const User = db.users;
@@ -100,7 +105,7 @@ const getPolicySummary = async (req: any, res: any) => {
     };
 
     let policy = await Policy.findAll(policyQuery);
-   
+
 
     if (!policy || policy.length === 0) {
       return res.status(404).json({ message: "No policies found" });
@@ -152,7 +157,7 @@ const getPolicySummary = async (req: any, res: any) => {
       total_preimum_amount: total_policy_premium_paid,
       total_paid_payment_amount: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
       total_policies_renewed: renewalsCount.count,
-      total_policies_renewed_premium : total_policies_renewed_premium,
+      total_policies_renewed_premium: total_policies_renewed_premium,
     };
 
     let country_code, currency_code;
@@ -1136,7 +1141,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
       EXTRACT(MONTH FROM policy_start_date) AS month,
       EXTRACT(DAY FROM policy_start_date) AS day,
       policy_id,
-      SUM(premium) AS total_amount,
+      SUM(policy_paid_amount) AS total_amount,
       COUNT(DISTINCT user_id) AS total_users
     FROM
       public.policies
@@ -1186,7 +1191,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
         partner_id: req.query.partner_id,
       },
     });
-
+console.log("RESULTS", results)
     const data = {
       labels: labels,
       datasets: datasets,
@@ -1345,10 +1350,7 @@ function generateClaimExcelReport(claims: any[]) {
   const workbook = new excelJS.Workbook(); // Create a new workbook
   const worksheet = workbook.addWorksheet("Claim Report");
 
-
-  console.log("I WAS CALLED 2", claims)
   // Define columns for data in Excel. Key must match data key
-
   worksheet.columns = [
 
     { header: "Claim Number", key: "claim_number", width: 20 },
@@ -1408,7 +1410,212 @@ function generateClaimExcelReport(claims: any[]) {
 
 
 
+/**
+ * @swagger
+ * /api/v1/reports/reconciliation:
+ *   post:
+ *     tags:
+ *       - Reports
+ *     description: Reconciliation
+ *     operationId: Reconciliation
+ *     summary: Reconciliation
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:   # Change content type to multipart/form-data
+ *           schema:
+ *             type: object
+ *             properties:
+ *               payment_file:   # Specify the parameter name for the Excel file
+ *                 type: file  # Set the type as 'file' to indicate a file upload
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+const paymentReconciliation = async (req, res) => {
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const partner_id = req.query.partner_id;
+    const payment_file = req.file;
+    console.log("payment_file", payment_file);
+
+    // Read the uploaded Excel file
+    const workbook = XLSX.readFile(payment_file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[1]];
+
+    // Convert worksheet data to an array of objects
+    const paymentDataArray = XLSX.utils.sheet_to_json(worksheet);
+
+    let userPhoneNumbers = [];
+    for (let payment of paymentDataArray) {
+      let existingUser = await db.users.findOne({
+        where: {
+          phone_number: `${payment['Sender Mobile Number']}`,
+          partner_id: partner_id,
+        },
+        limit: 1,
+      });
+      console.log("existingUser", existingUser.name)
+      if (!existingUser) {
+        throw new Error("User not found");  
+      }
+
+
+      console.log("payment", payment)
+      userPhoneNumbers.push({
+        phone_number: payment['Sender Mobile Number'],
+        premium: payment['Approved value'],
+        airtel_money_id: payment['Transaction ID'],
+        payment_id: payment['External Reference'],
+        policy_paid_date: payment['Transaction Date'],
+      });
+
+      let myPolicy = await db.policies.findOne({
+        where: {
+          phone_number: `+256${payment['Sender Mobile Number']}`,
+          premium: payment['Approved value'],
+          policy_status: "pending",
+          //airtel_money_id: payment['Transaction ID'].toString(),
+        },
+        limit: 1,
+        order: [["createdAt", "DESC"]],
+      });
+      console.log("myPolicy", myPolicy)
+      let policy_paid_date = new Date(payment['Transaction Date']) || myPolicy.policy_start_date;
+      if(myPolicy) {
+        
+
+      let updatePoliciesPaid = await db.policies.update({
+        policy_status: "paid",
+        policy_paid_amount: payment['Approved value'],
+        policy_paid_date: policy_paid_date,
+
+      }, {
+        where: {
+          policy_paid_date: myPolicy.policy_start_date,
+          phone_number: `+256${payment['Sender Mobile Number']}`,
+          policy_status: "pending",
+          premium: payment['Approved value'],
+          policy_id: myPolicy.policy_id,
+        }
+      });
+      console.log("updatePoliciesPaid", updatePoliciesPaid)
+    
+      const policyType = myPolicy.policy_type.toUpperCase();
+      const period = myPolicy.installment_type == 1 ? "yearly" : "monthly";
+
+      let updatePayment = await db.payments.update({
+        payment_status: "paid",
+        payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
+        message: `PAID UGX ${payment['Approved value']} to AAR Uganda for ${policyType} Cover, TID: ${payment['Transaction ID']}. Date: ${payment['Transaction Date']}`
+      }, {
+        where: {
+         policy_id: myPolicy.policy_id,
+          payment_status: "pending",
+          payment_amount: payment['Approved value'],
+        }
+      });
+
+      console.log("updatePayment", updatePayment)
+
+      let updateTransactions = await db.transactions.update({
+        transaction_status: "paid",
+      }, {
+        where: {
+          policy_id: myPolicy.policy_id,
+          transaction_status: "pending",
+          transaction_amount: payment['Approved value'],
+        }
+      });
+
+      console.log("updateTransactions", updateTransactions)
+      const memberStatus = await fetchMemberStatusData({ member_no: existingUser.arr_member_number, unique_profile_id: existingUser.membership_id + "" });
+
+      console.log("memberStatus", memberStatus)
+
+      // if (myPolicy.installment_order >= 1 && myPolicy.installment_order < 12 && myPolicy.installment_type == 2 && myPolicy.policy_status == "paid") {
+      //   console.log("INSTALLMENT ORDER", myPolicy.installment_order, myPolicy.installment_type);
+      //   const date = myPolicy.policy_start_date
+      //   const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
+
+      //   let installment_order = myPolicy.installment_order + 1;
+
+      //   let installment = await db.installments.create({
+      //     installment_id: uuidv4(),
+      //     policy_id: myPolicy.policy_id,
+      //     installment_order,
+      //     installment_date: new Date(),
+      //     installment_alert_date,
+      //     tax_rate_vat: myPolicy.tax_rate_vat,
+      //     tax_rate_ext: myPolicy.tax_rate_ext,
+      //     installment_deduction_amount: myPolicy.policy_deduction_amount,
+      //     premium: myPolicy.premium,
+      //     sum_insured: myPolicy.sum_insured,
+      //     excess_premium: myPolicy.excess_premium,
+      //     discount_premium: myPolicy.discount_premium,
+      //     currency_code: myPolicy.currency_code,
+      //     country_code: myPolicy.country_code,
+      //   });
+
+      // }
+      // let updatedPolicy = await updateUserPolicyStatus(myPolicy, parseInt(myPolicy.premium), myPolicy.installment_order, myPolicy.installment_type, payment, payment['Transaction ID'],);
+
+      // console.log("updatedPolicy", updatedPolicy)
+
+      const members = myPolicy.total_member_number?.match(/\d+(\.\d+)?/g);
+      console.log("MEMBERS", members, myPolicy.total_member_number);
+
+
+      const sumInsured = formatAmount(myPolicy.sum_insured);
+      const lastExpenseInsured = formatAmount(myPolicy.last_expense_insured);
+      console.log("SUM INSURED", sumInsured);
+      console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+
+      const thisDayThisMonth = myPolicy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+
+      let congratText = "";
+
+      if (myPolicy.beneficiary == "FAMILY") {
+        congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
+      } else if (myPolicy.beneficiary == "SELF")
+        congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+      else if (myPolicy.beneficiary == "OTHER") {
+        congratText = `${existingUser.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+      }
+
+     // await SMSMessenger.sendSMS(`+256${payment['Sender Mobile Number']}`, congratText);
+
+      // Call the function with the relevant user, policy, and memberStatus
+    //  await processPolicy(existingUser, myPolicy, memberStatus);
+    let policyPaidCountOfUser = await db.policies.count({ where: { user_id: myPolicy.user_id, policy_status: "paid" } });
+    await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: myPolicy.user_id } });
+    await db.policies.update({ policy_paid_date: policy_paid_date  }, { where: { policy_id: myPolicy.policy_id , policy_status: "paid" } });
+
+    }
+    }
+
+    return res.status(200).json({ message: "Reconciliation done successfully", data: userPhoneNumbers });
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
 module.exports = {
+  paymentReconciliation,
   getPolicySummary,
   getClaimSummary,
   getAllReportSummary,

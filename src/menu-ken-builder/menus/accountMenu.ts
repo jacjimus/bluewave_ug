@@ -47,11 +47,14 @@ const accountMenu = async (args: any, db: any) => {
             "\n1. Policy Status" +
             "\n2. Pay Now" +
             "\n3. Cancel Policy" +
-            "\n4. Add Next of Kin"
+            "\n4. Add Next of Kin" +
+            "\n5. Update Gender and Date of birth"+
+            "\n6. Add Dependants" ;
+
     }
     else if (currentStep == 2) {
         // console.log('Current step', currentStep);
-        // console.log('User text', userText)
+         console.log('User text', userText)
         switch (userText) {
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
@@ -99,6 +102,14 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "4":
                 response = "CON Enter Name of your Next of Kin (Above 18 years of age)"
+                break;
+            case "5":
+                response = 'CON Choose your Gender ' +
+                 "\n1. Male" +
+                 "\n2. Female" ;
+                break;
+            case "6":
+                response = 'CON Dependant full name ' ;
                 break;
             default:
                 response = "END Invalid option selected"
@@ -283,6 +294,7 @@ const accountMenu = async (args: any, db: any) => {
                     phone_number: userText,
                     user_id: existingUser.user_id,
                     bonus: allSteps[2],
+                    category : "KIN"
                 }
 
 
@@ -297,6 +309,26 @@ const accountMenu = async (args: any, db: any) => {
         }
 
 
+    } else if (currentStep == 5){
+        console.log('==5 userText',userText)
+        console.log(" ===5 ALLSTEPS", allSteps)
+      // update gender and dob
+      const existingUser = await db.users.findOne({
+        where: {
+            [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+        },
+        limit: 1,
+    });
+   response = 'CON whats your date of birth in the format YYYY-MM-DD'
+
+    }else if(currentStep == 6){
+
+        console.log('==6 userText',userText)
+        console.log(" ===6 ALLSTEPS", allSteps)
+        //update dependant
+
+        response = 'CON whats your dependant date of birth in the format YYYY-MM-DD'
+
     }
 
 
@@ -304,3 +336,8 @@ const accountMenu = async (args: any, db: any) => {
 }
 
 export default accountMenu;
+
+
+// [4:27 pm, 01/12/2023] Kennedy Nyosro: On the USSD, it is agent to add the update Gender and Date of birth so that the SMS are sent to the customers
+// [4:27 pm, 01/12/2023] Kennedy Nyosro: Under my Policy, they should update next of kin, then add Gender then Date of Birth
+// [4:28 pm, 01/12/2023] Kennedy Nyosro: The add details of dependents if they have for family, then that data can always be sent to AAR

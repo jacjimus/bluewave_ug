@@ -39,7 +39,9 @@ const accountMenu = async (args: any, db: any) => {
             "\n1. Policy Status" +
             "\n2. Pay Now" +
             "\n3. Cancel Policy" +
-            "\n4. Add Next of Kin"
+            "\n4. Add Next of Kin"+
+            "\n5. Update Gender and Date of birth"+
+            "\n6. Add Dependants" ;
     }
     else if (currentStep == 2) {
         // console.log('Current step', currentStep);
@@ -91,6 +93,14 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "4":
                 response = "CON Enter Name of your Next of Kin (Above 18 years of age)"
+                break;
+            case "5":
+                response = 'CON Choose your Gender ' +
+                     "\n1. Male" +
+                     "\n2. Female" ;
+                break;
+            case "6":
+                response = 'CON whats the Dependant full name ' ;
                 break;
             default:
                 response = "END Invalid option selected"
@@ -261,6 +271,26 @@ const accountMenu = async (args: any, db: any) => {
                 await SMSMessenger.sendSMS(smsPhone, sms);
                 response = `END ${sms}`
         }
+    } else if (currentStep == 5){
+        console.log('==5 userText',userText)
+        console.log(" ===5 ALLSTEPS", allSteps)
+      // update gender and dob
+    
+    response = 'CON whats your date of birth? (dd/mm/yyyy)'
+
+    }else if(currentStep == 6){
+        // const existingUser = await db.users.findOne({
+        //     where: {
+        //         [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+        //     },
+        //     limit: 1,
+        // });
+
+        console.log('==6 userText',userText)
+        console.log(" ===6 ALLSTEPS", allSteps)
+        //update dependant
+
+
     }
 
 

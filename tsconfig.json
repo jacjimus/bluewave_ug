@@ -8,7 +8,9 @@
         "sourceMap": false,
         "outDir": "build",
         "incremental": true,
-        "skipLibCheck": true 
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+
        
   },
   "exclude": [
@@ -16,7 +18,9 @@
       "**/*.spec.ts",
       "**/*.test.ts",
       "./src/**/__tests__/*.ts",
-      "./build/**/*"
+      "./build/**/*",
+      "./src/**/__menu-ken-builder__/*.ts",
+      "./src/**/__controllers__/*.ts"
   ],
   "include": [
       "src/**/*.ts", "app.ts"]

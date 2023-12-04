@@ -100,7 +100,6 @@ const getPolicies = async (req, res) => {
 
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
-    // Prepare the date range filters based on the provided start_date and end_date
     const dateFilters: any = {};
     if (start_date) {
       dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
@@ -118,7 +117,6 @@ const getPolicies = async (req, res) => {
     if (filter) {
       
       searchFilters[Op.or] = [
-        // { policy_id: { [Op.like]: `%${filter}%` } },
         { policy_status: { [Op.iLike]: `%${filter}%` } },
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
@@ -128,18 +126,16 @@ const getPolicies = async (req, res) => {
       ];
     }
   
-
     // Prepare the where condition based on the provided filters
     const whereCondition: any = {
       partner_id: partner_id,
       policy_status: 'paid',
-      ...dateFilters, // Apply the date filters to the query
-      ...searchFilters, // Apply the search filters to the query
+      ...dateFilters,
+      ...searchFilters, 
     };
 
     // Calculate the offset
     const offset = (page - 1) * limit;
-
 
     // Find query
     const policies = await Policy.findAndCountAll({
@@ -154,7 +150,6 @@ const getPolicies = async (req, res) => {
       offset,
       limit,
     
-   
     });
 
     if (policies.count === 0) {
@@ -238,8 +233,6 @@ const getPolicy = async (req: any, res: any) => {
     const paid_premium = policy.policy_deduction_amount;
     const pending_premium = total_premium - paid_premium;
 
-
-
     const result = {
       item: {
         ...policy.dataValues,
@@ -316,7 +309,6 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
 
-    // Prepare the date range filters based on the provided start_date and end_date
     const dateFilters: any = {};
     if (start_date) {
       dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
@@ -330,22 +322,22 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
         user_id: user_id,
         olicy_status: 'paid',
         partner_id: partner_id,
-        ...dateFilters, // Apply the date filters to the query
+        ...dateFilters, 
 
       },
       limit: 100, 
     })
 
     // policy.total_premium = policy.premium
-    // policy.paid_premium = policy.policy_deduction_amount
-    // policy.pending_premium = policy.premium - policy.policy_deduction_amount
+    policy.policy_paid_premium = policy.policy_deduction_amount
+    policy.policy_pending_premium = policy.yearly_premium - policy.premium
 
     //for every policy, add paid premium and pending premium
 
     for (let i = 0; i < policy.length; i++) {
       policy[i].total_premium = policy[i].premium
-      policy[i].paid_premium = policy[i].policy_deduction_amount
-      policy[i].pending_premium = policy[i].premium - policy[i].policy_deduction_amount
+      policy[i].policy_paid_premium = policy[i].policy_deduction_amount
+      policy[i].policy_pending_premium = policy[i].premium - policy[i].policy_deduction_amount
     }
 
     if (!policy || policy.length === 0) {
@@ -403,29 +395,16 @@ const createPolicy = async (req: any, res: any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
     let partner = await Partner.findOne({ where: { partner_id } })
-
-    console.log('PARTNER', partner, partner_id)
     const policy: Policy = req.body;
 
     policy.currency_code = partner.currency_code
     policy.country_code = partner.country_code
 
-    console.log("Policy", policy)
-
-
-
     const newPolicy = await Policy.create(policy);
     if (!newPolicy) {
       return res.status(500).json({ message: "Error creating policy" });
     }
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: `User ${req?.user_id} created policy ${newPolicy.policy_id}`,
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
+   
     return res.status(200).json({
       result: {
         code: 200,
@@ -440,10 +419,7 @@ const createPolicy = async (req: any, res: any) => {
       message: "Internal server error", error: error
     });
   }
-
 }
-
-
 
 
 
@@ -540,21 +516,12 @@ const updatePolicy = async (req: any, res: any) => {
       policy_documents
     };
 
-    //saving the policy
     await Policy.update(data, {
       where: {
         policy_id: req.params.policy_id,
       },
     });
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: `User ${req?.user_id} updated policy ${req.params.policy_id}`,
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-    //send policy details
+    
     return res.status(201).json({
       result: {
         code: 200, message: "Policy updated successfully"
@@ -599,15 +566,7 @@ const deletePolicy = async (req: any, res: any) => {
         policy_id: req.params.policy_id,
       },
     });
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: `User ${req?.user_id} deleted policy ${req.params.policy_id}`,
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-    //send policy details
+   
     return res.status(201).json({
       result: {
         code: 201, message: "Policy deleted successfully"

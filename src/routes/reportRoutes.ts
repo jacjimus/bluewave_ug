@@ -13,8 +13,14 @@ const {
 
 } = require('../middleware/userAuth');
 
-const router = express.Router()
 
+import { storage } from '../services/storageConfig';
+
+import multer from 'multer';
+import { excelFilter } from '../services/utils';
+
+const router = express.Router();
+const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
 
@@ -28,6 +34,7 @@ router.get('/aggregated/annual/sales', isSuperAdmin,reportController.getAggregat
 router.post('/policy/excel',isSuperAdmin, reportController.getPolicyExcelReportDownload)
 router.get('/policy/excel/download', reportController.handlePolicyDownload)
 router.post('/claim/excel',isSuperAdmin, reportController.getClaimExcelReportDownload)
+router.post('/reconciliation', upload.single('payment_file'), reportController.paymentReconciliation)
 router.get('/claim/excel/download', reportController.handleClaimDownload)
 
 module.exports = router

@@ -51,7 +51,7 @@ const findTransactionById = async (transactionId) => {
   });
 };
 
-const updateUserPolicyStatus = async (policy, amount, installment_order, installment_type, payment, airtel_money_id) => {
+export const updateUserPolicyStatus = async (policy, amount, installment_order, installment_type, payment, airtel_money_id) => {
   console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type)
   let date = new Date();
 
@@ -336,7 +336,7 @@ router.all("/callback", async (req, res) => {
 });
 
 
-async function processPolicy(user: any, policy: any, memberStatus: any) {
+export async function processPolicy(user: any, policy: any, memberStatus: any) {
   // Determine the number of dependants
   console.log(policy?.total_member_number)
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;

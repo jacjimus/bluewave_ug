@@ -1,8 +1,8 @@
 
-import { db } from "../models/db";
+const { db } = require("../models/db");
 import { v4 as uuidv4 } from 'uuid';
 const Product = db.products;
-const Log = db.logs;
+
 const Op = db.Sequelize.Op;
 
 
@@ -76,7 +76,7 @@ const getProducts = async (req: any, res: any) => {
     let product: any;
 
     if (!filter || filter == "") {
-      filter = filter?.trim().toLowerCase(); 
+      filter = filter?.trim().toLowerCase();
       product = await Product.findAll({
         order: [["createdAt", "DESC"]],
       });
@@ -147,10 +147,10 @@ const getProducts = async (req: any, res: any) => {
     };
 
 
-    return res.status(status.code).json({   code: 200,result: status.result });
+    return res.status(status.code).json({ code: 200, result: status.result });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({  code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
 };
 
@@ -201,19 +201,10 @@ const getProduct = async (req: any, res: any) => {
       item: product
     };
 
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Product fetched successfully by id ' + product_id + '',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-
-    return res.status(status.code).json({   code: 200,result: status.result });
+    return res.status(status.code).json({ code: 200, result: status.result });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({  code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
 
 }
@@ -251,14 +242,7 @@ const createProduct = async (req: any, res: any) => {
       return res.status(500).json({ message: "Error creating product" });
     }
 
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Product created successfully ' + newProduct.product_name + '',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
+
     return res.status(200).json({
       result: {
         code: 200,
@@ -268,7 +252,7 @@ const createProduct = async (req: any, res: any) => {
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({  code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
   }
 
 }
@@ -313,16 +297,11 @@ const updateProduct = async (req: any, res: any) => {
       product_type,
       product_category,
       product_premium,
-
       product_image,
       product_status,
-
       product_duration,
       underwriter,
-
       benefits
-
-
     } = req.body;
 
 
@@ -355,21 +334,17 @@ const updateProduct = async (req: any, res: any) => {
         id: req.params.product_id,
       },
     });
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Product updated successfully' + req.params.product_id + '',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-    //send product details
-    return res.status(201).json({ result: {
-      code: 200, message: "Product updated successfully" } });
+
+    return res.status(201).json({
+      result: {
+        code: 200, message: "Product updated successfully"
+      }
+    });
   } catch (error) {
     console.log(error)
     return res.status(500).json({
-      code: 500, message: "Internal server error", error: error });
+      code: 500, message: "Internal server error", error: error
+    });
   }
 }
 
@@ -403,27 +378,21 @@ const deleteProduct = async (req: any, res: any) => {
         id: req.params.product_id,
       },
     });
-    //send product details
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'Product deleted successfully ' + req.params.product_id + '',
-    //   level: 'info',
-    //   user: req?.user_id,
-    //   partner_id: req?.partner_id,
-    // });
-    return res.status(201).json({ result: { 
-      code: 200,message: "Product deleted successfully" } });
+
+    return res.status(201).json({
+      result: {
+        code: 200, message: "Product deleted successfully"
+      }
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       code: 200,
-       message: "Internal server error", error: error });
+      message: "Internal server error", error: error
+    });
 
   }
 }
-
-
 
 
 
@@ -433,8 +402,6 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
-
-
 }
 
 

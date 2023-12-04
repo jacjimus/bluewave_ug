@@ -590,6 +590,19 @@ const familyMenu = async (args, db) => {
       response = "END Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
     }
+    let existingPolicy = await db.policies.findOne({
+      where: {
+          phone_number: `+256${phone}`,
+          policy_status: "paid",
+          policy_type: selectedCover.code_name
+      },
+      
+      
+  });
+  if(existingPolicy) {
+      response = "END You already have an active policy"
+      return response;
+  }
     const packages = selectedCover.packages.map((coverType, index) => {
       return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
     }
@@ -600,6 +613,7 @@ const familyMenu = async (args, db) => {
 
   }
   else if (currentStep == 3) {
+    
     response = "CON Enter atleast Name of spouse or 1 child\n"
   }
   else if (currentStep == 4) {

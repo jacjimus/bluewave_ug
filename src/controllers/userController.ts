@@ -1068,7 +1068,7 @@ const bulkUserRegistration = async (req: any, res: any) => {
       };
 
       // Use your preferred method to create users (e.g., Sequelize's create())
-      const createdUser = await createUserFunction(user_data); // Replace with your create user function
+      const createdUser = await createUserFunction(user_data)  || {};
       createdUsers.push(createdUser);
     }
 
@@ -1274,7 +1274,7 @@ async function arrMemberRegistration(req: any, res: any) {
 
                     policy.arr_policy_number = arr_member?.policy_no;
                     dependant.unique_profile_id = existingUser.membership_id + "";
-                    let updateDependantMemberNo = []
+                    let updateDependantMemberNo: string[] =[]
                     updateDependantMemberNo.push(dependant.member_no)
                     await db.policies.update(
                       { dependant_member_numbers: updateDependantMemberNo },

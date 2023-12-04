@@ -1,224 +1,21 @@
-import { db } from "../models/db";
+const { db } = require("../models/db");
 const Claim = db.claims;
 const User = db.users;
 const Policy = db.policies;
-const Partner = db.partners;
 const { Op } = require("sequelize");
+const { globalSearch } = require("../services/utils");
 
-const Log = db.logs;
-import { v4 as uuidv4 } from 'uuid';
-import {
-    getRandomInt,
-    isValidEmail,
-    globalSearch
-} from "../services/utils";
-
-
-
-/**
-    * @swagger
-    * /api/v1/claims:
-    *   get:
-    *     tags:
-    *       - Claims
-    *     description: List Claims
-    *     operationId: listClaims
-    *     summary: List Claims
-    *     security:
-    *       - ApiKeyAuth: []
-    *     parameters:
-    *       - name: partner_id
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: number
-    *       - name: filter
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: string
-    *       - name: page
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: number
-    *       - name: limit
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: number
-    *       - name: start_date
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: string
-    *           format: date
-    *       - name: end_date
-    *         in: query
-    *         required: false
-    *         schema:
-    *           type: string
-    *           format: date
-    *     responses:
-    *       200:
-    *         description: Information fetched successfully
-    *       400:
-    *         description: Invalid request
-    */
-const getClaims = async (req: any, res: any) => {
-    const partner_id = req.query.partner_id;
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    let filter = req.query.filter // Search term as string, e.g., "john"
-    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
-    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
-
-    try {
-
-        if(!partner_id){
-            return res.status(400).json({
-                code: 400, message: "Please provide a partner_id"
-            });
-        }
-        let claim: any;
-        const claimWhere: any = { partner_id: partner_id };
-
-        // Add date filters to the 'claimWhere' object based on the provided start_date and end_date
-        if (start_date && end_date) {
-            claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
-        } else if (start_date) {
-            claimWhere.createdAt = { [Op.gte]: new Date(start_date) };
-        } else if (end_date) {
-            claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
-        }
-
-
-        // Check if a filter is provided to include additional search criteria
-        if (filter) {
-            filter = filter?.trim().toLowerCase(); 
-            // Convert the filter to lowercase for case-insensitive search
-            const search = filter.toLowerCase();
-
-            // Use the filter() method to find objects matching the search term
-            claim = await Claim.findAll({
-                where: claimWhere,
-                order: [["createdAt", "DESC"]],
-                include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
-            });
-
-            // Use the globalSearch() method to find objects matching the search term
-            claim = globalSearch(claim, search);
-        } else {
-            // Retrieve claims based on the 'claimWhere' filter object
-            claim = await Claim.findAll({
-                where: claimWhere,
-                order: [["createdAt", "DESC"]],
-                include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
-            });
-        }
-
-        console.log("CLAIM", claim);
-
-        if (!claim || claim.length === 0) {
-            return res.status(404).json({ message: "No claims found" });
-        }
-
-        if (page && limit) {
-            let offset = page * limit - limit;
-            let paginatedClaims = claim.slice(offset, offset + limit);
-            return res.status(200).json({
-                result: {
-                    code: 200,
-                    count: claim.length,
-                    items: paginatedClaims,
-                },
-            });
-        }
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: `Claims fetched successfully`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
-        return res.status(200).json({
-            code: 200,
-            result: claim
-        });
-    } catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({
-            code: 200,
-            message: "Error fetching claims", error: error
-        });
-    }
-};
-/**
-  * @swagger
-  * /api/v1/claims/{claim_id}:
-  *   get:
-  *     tags:
-  *       - Claims
-  *     description: Claim Details
-  *     operationId: getClaim
-  *     summary: Claim Details
-  *     security:
-  *       - ApiKeyAuth: []
-  *     parameters:
-  *       - name: partner_id
-  *         in: query
-  *         required: false
-  *         schema:
-  *           type: number
-  *       - name: claim_id
-  *         in: path
-  *         required: true
-  *         schema:
-  *           type: number
-  *     responses:
-  *       200:
-  *         description: Information fetched successfully
-  *       400:
-  *         description: Invalid request
-  */
-const getClaim = async (req: any, res: any) => {
-    try {
-        const claim_id = req.params.claim_id
-
-        const claim = await Claim.findByPk(claim_id, {
-            include: [
-                { model: User, as: 'user' },
-                { model: Policy, as: 'policy' }
-            ]
-        });
-
-        if (!claim) {
-            return res.status(404).json({ message: 'Claim not found' });
-        }
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: `Claim fetched successfully`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
-        return res.status(200).json({
-            result: {
-                code: 200,
-                message: 'Claim fetched successfully',
-                item: claim
-            }
-        });
-    } catch (error) {
-        console.error('Error getting claim:', error);
-        return res.status(500).json({
-            code: 500, message: 'Internal server error', error: error.message
-        });
+const validatePartnerId = (partnerId) => {
+    if (!partnerId) {
+        throw { code: 400, message: "Please provide a partner_id" };
     }
 };
 
+const validateClaimsExistence = (claims) => {
+    if (!claims || claims.length === 0) {
+        throw { code: 404, message: "No claims found" };
+    }
+};
 
 
 /**
@@ -259,59 +56,49 @@ const getClaim = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-const findUserByPhoneNumberClaims = async (req: any, res: any) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const partner_id = req.query.partner_id;
-
+const getClaims = async (req, res) => {
     try {
-        const user_id = parseInt(req.params.user_id);
-        const claims = await Claim.findAll({
-            where: {
-                user_id: user_id,
-                partner_id: partner_id,
+        const { partner_id, page = 1, limit = 10, filter, start_date, end_date } = req.query;
+        validatePartnerId(partner_id);
+
+        const claimWhere:any = { partner_id };
+
+        if (start_date && end_date) {
+            claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+        } else if (start_date) {
+            claimWhere.createdAt = { [Op.gte]: new Date(start_date) };
+        } else if (end_date) {
+            claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
+        }
+
+        let claims = await Claim.findAll({
+            where: claimWhere,
+            order: [["createdAt", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+        });
+
+        if (filter) {
+            const search = filter.trim().toLowerCase();
+            claims = globalSearch(claims, search);
+        }
+
+        validateClaimsExistence(claims);
+
+        const offset = (page - 1) * limit;
+        const paginatedClaims = claims.slice(offset, offset + limit);
+
+        return res.status(200).json({
+            result: {
+                code: 200,
+                count: claims.length,
+                items: paginatedClaims,
             },
-            order: [['createdAt', 'DESC']],
-            include: [
-                { model: User, as: 'user' },
-                { model: Policy, as: 'policy' }
-            ]
         });
-
-        if (!claims || claims.length === 0) {
-            return res.status(404).json({ message: 'No claims found' });
-        }
-
-        if (page && limit) {
-            const offset = (page - 1) * limit;
-            const paginatedClaims = claims.slice(offset, offset + limit);
-            return res.status(200).json({
-                result: {
-                    code: 200,
-                    message: 'Claims fetched successfully',
-                    count: claims.length,
-                    items: paginatedClaims
-                }
-            });
-        }
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: `User Claims fetched successfully`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
-
-        return res.status(200).json(claims);
     } catch (error) {
-        console.error('Error fetching claims:', error);
-        return res.status(500).json({
-            code: 500, message: 'Internal server error', error: error.message
-        });
+        console.error("Error fetching claims:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
     }
 };
-
 
 /**
 * @swagger
@@ -351,59 +138,88 @@ const findUserByPhoneNumberClaims = async (req: any, res: any) => {
 *       400:
 *         description: Invalid request
 */
-const getPolicyClaims = async (req: any, res: any) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const partner_id = req.query.partner_id;
-
+const getClaim = async (req, res) => {
     try {
-        const policy_id = parseInt(req.params.policy_id);
-        const claims = await Claim.findAll({
-            where: {
-                policy_id: policy_id,
-                partner_id: partner_id
+        const { claim_id } = req.params;
+        const claim = await Claim.findByPk(claim_id, {
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+        });
+
+        if (!claim) {
+            throw { code: 404, message: "Claim not found" };
+        }
+
+        return res.status(200).json({
+            result: {
+                code: 200,
+                message: "Claim fetched successfully",
+                item: claim,
             },
-            order: [['createdAt', 'DESC']],
-            include: [
-                { model: User, as: 'user' },
-                { model: Policy, as: 'policy' }
-            ]
         });
-
-        if (!claims || claims.length === 0) {
-            return res.status(404).json({
-                code: 404, message: 'No claims found'
-            });
-        }
-
-        if (page && limit) {
-            const offset = (page - 1) * limit;
-            const paginatedClaims = claims.slice(offset, offset + limit);
-            return res.status(200).json({
-                result: {
-                    code: 200,
-                    count: claims.length,
-                    items: paginatedClaims
-                }
-            });
-        }
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: `Policy Claims fetched successfully`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
-        return res.status(200).json(claims);
     } catch (error) {
-        console.error('Error fetching claims:', error);
-        return res.status(500).json({
-            code: 500, message: 'Internal server error', error: error.message
-        });
+        console.error("Error getting claim:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
     }
 };
 
+const findUserByPhoneNumberClaims = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const { partner_id, page = 1, limit = 10 } = req.query;
+
+        const claims = await Claim.findAll({
+            where: { user_id, partner_id },
+            order: [["createdAt", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+        });
+
+        validateClaimsExistence(claims);
+
+        const offset = (page - 1) * limit;
+        const paginatedClaims = claims.slice(offset, offset + limit);
+
+        return res.status(200).json({
+            result: {
+                code: 200,
+                message: "Claims fetched successfully",
+                count: claims.length,
+                items: paginatedClaims,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching claims:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
+    }
+};
+
+const getPolicyClaims = async (req, res) => {
+    try {
+        const { policy_id } = req.params;
+        const { partner_id, page = 1, limit = 10 } = req.query;
+
+        const claims = await Claim.findAll({
+            where: { policy_id, partner_id },
+            order: [["createdAt", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+        });
+
+        validateClaimsExistence(claims);
+
+        const offset = (page - 1) * limit;
+        const paginatedClaims = claims.slice(offset, offset + limit);
+
+        return res.status(200).json({
+            result: {
+                code: 200,
+                count: claims.length,
+                items: paginatedClaims,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching claims:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
+    }
+};
 
 /**
  * @swagger
@@ -444,74 +260,24 @@ const getPolicyClaims = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-const createClaim = async (req: any, res: any) => {
+const createClaim = async (req, res) => {
     try {
-        const policy_id = req.query.policy_id
-        const user_id = req.query.user_id
-        const partner_id = parseInt(req.query.partner_id);
+        const { policy_id, user_id, partner_id } = req.query;
+        const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments } = req.body;
 
-        const {
-            claim_date,
-            claim_status,
-            claim_amount,
-            claim_description,
-            claim_type,
-            claim_documents,
-            claim_comments,
-        } = req.body;
+        const policy = await Policy.findOne({ where: { policy_id, partner_id } });
+        if (!policy) throw { code: 404, message: "No policy found" };
 
-        // Check if policy exists
-        const policy = await Policy.findOne({
-            where: {
-                policy_id: policy_id,
-                partner_id: partner_id,
-            }
-        });
-
-        if (!policy) {
-            return res.status(404).json({
-                code: 404, message: "No policy found"
-            });
-        }
-
-        // Check if user exists
         const user = await User.findByPk(user_id);
-        if (!user) {
-            return res.status(404).json({
-                code: 404, message: "User not found"
-            });
-        }
+        if (!user) throw { code: 404, message: "User not found" };
 
-        // Check if user has the policy
-        const userPolicy = await Policy.findOne({
-            where: {
-                policy_id: policy_id,
-                user_id: user_id,
-            }
-        });
+        const userPolicy = await Policy.findOne({ where: { policy_id, user_id } });
+        if (!userPolicy) throw { code: 404, message: "User does not have the policy" };
 
-        if (!userPolicy) {
-            return res.status(404).json({
-                code: 404, message: "User does not have the policy"
-            });
-        }
+        const existingClaim = await Claim.findOne({ where: { policy_id } });
+        if (existingClaim) throw { code: 409, message: "Policy already has an active claim" };
 
-        // Check if the policy already has an active claim
-        const existingClaim = await Claim.findOne({
-            where: {
-                policy_id: policy_id,
-            }
-        });
-
-        if (existingClaim) {
-            return res.status(409).json({
-                code: 400, message: "Policy already has an active claim"
-            });
-        }
-
-
-        // Create the new claim
-        let newClaim = await Claim.create({
+        const newClaim = await Claim.create({
             claim_date,
             claim_status,
             claim_amount,
@@ -524,23 +290,18 @@ const createClaim = async (req: any, res: any) => {
             partner_id,
         });
 
-
         console.log("NEW CLAIM", newClaim);
-      
 
         return res.status(201).json({
-            code: 201, message: "Claim created successfully", claim: newClaim
+            code: 201,
+            message: "Claim created successfully",
+            claim: newClaim,
         });
     } catch (error) {
-        console.log("ERROR", error);
-        return res.status(500).json({
-            code: 500, message: "Error creating claim", error: error.message
-        });
+        console.error("Error creating claim:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
     }
 };
-
-
-
 
 /**
  * @swagger
@@ -586,104 +347,67 @@ const createClaim = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-const updateClaim = async (req: any, res: any) => {
+const updateClaim = async (req, res) => {
     try {
+        const { claim_id } = req.params;
         const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments } = req.body;
-        const claim_id = req.params.claim_id
-        const policy_id = req.query.policy_i
-        const user_id = req.query.user_id
-        const partner_id = req.query.partner_id
-        let claim = await Claim.findAll({
-            where: {
-                claim_id: claim_id,
-                partner_id: partner_id
-            }
-        });
-        if (!claim || claim.length === 0) {
-            return res.status(404).json({ message: "Claims dont exists" });
-        }
+        const { partner_id, policy_id, user_id } = req.query;
 
-        const updateClaim = await Claim.update({
-            claim_date: claim_date,
-            claim_status: claim_status,
-            claim_amount: claim_amount,
-            claim_description: claim_description,
-            claim_type: claim_type,
-            claim_documents: claim_documents,
-            claim_comments: claim_comments,
-            user_id: user_id,
-            policy_id: policy_id,
-            partner_id: partner_id
-        }, {
-            where: {
-                claim_id: claim_id
-            }
+        let claim = await Claim.findOne({
+            where: { claim_id, partner_id },
         });
 
-        // //update policy pendng premium
+        if (!claim) throw { code: 404, message: "Claim does not exist" };
 
-        // const updatePolicy = await Policy.update({
-        //     policy_pending_premium: claim_amount,
-        // }, {
-        //     where: {
-        //         policy_id: policy_id
-        //     }
-        // });
-
-        if (updateClaim) {
-            return res.status(200).json({
-                result: {
-                    code: 200,
-                    message: 'Claim updated successfully'
-                }
-            })
-        }
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            code: 500, message: "Error updating claim", error: error
-        });
-
-    }
-}
-
-//deleting a claim
-const deleteClaim = async (req: any, res: any) => {
-    try {
-        const claim_id = parseInt(req.params.claim_id)
-        const partner_id = req.query.partner_id
-        const deleteClaim = await Claim.destroy({
-            where: {
-                claim_id: claim_id,
-                partner_id: partner_id
+        await Claim.update(
+            {
+                claim_date,
+                claim_status,
+                claim_amount,
+                claim_description,
+                claim_type,
+                claim_documents,
+                claim_comments,
+                user_id,
+                policy_id,
+                partner_id,
             },
-            limit: 100, 
-        });
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: `Claim deleted successfully`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
-        if (deleteClaim) {
-            return res.status(200).json({
+            {
+                where: { claim_id },
+            }
+        );
+
+        return res.status(200).json({
+            result: {
                 code: 200,
-                message: 'Claim deleted successfully'
-            })
-        }
+                message: "Claim updated successfully",
+            },
+        });
     } catch (error) {
-        console.log("ERROR", error)
-        return res.status(500).json({
-            code: 500, message: "Error deleting claim", error: error
+        console.error("Error updating claim:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
+    }
+};
+
+const deleteClaim = async (req, res) => {
+    try {
+        const { claim_id } = req.params;
+        const { partner_id } = req.query;
+
+        await Claim.destroy({
+            where: { claim_id, partner_id },
+            limit: 100,
         });
 
+        return res.status(200).json({
+            code: 200,
+            message: "Claim deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting claim:", error);
+        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
     }
-}
-
-
-
+};
 
 module.exports = {
     getClaims,
@@ -692,5 +416,5 @@ module.exports = {
     findUserByPhoneNumberClaims,
     getPolicyClaims,
     updateClaim,
-    deleteClaim
-}
+    deleteClaim,
+};

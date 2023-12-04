@@ -508,6 +508,36 @@ async function fetchMemberStatusData({ member_no, unique_profile_id }) {
 }
 
 
+async function processPolicy(user: any, policy: any, memberStatus: any) {
+  // Determine the number of dependants
+  console.log(policy?.total_member_number)
+  const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+  console.log("Number of dependants:", number_of_dependants);
+
+  if (memberStatus.code === 200) {
+    // If the member status is 200, proceed with processing the policy
+    console.log("MEMBER STATUS:", memberStatus);
+    policy.arr_policy_number = memberStatus?.policy_no;
+  } else {
+    // If the member status is not 200, register the AAR user
+    const registerAARUser = await registerPrincipal(user, policy);
+
+    if (registerAARUser.code === 200) {
+      // If the AAR user registration is successful
+      user.arr_member_number = registerAARUser.member_no;
+      await user.save();
+    }
+
+    if (number_of_dependants > 0) {
+      // If there are dependants, create them
+      await createDependant(user, policy);
+    } else {
+      // If there are no dependants, update the premium
+      const updatePremiumData = await updatePremium(user, policy);
+      console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
+    }
+  }
+}
 
 
-export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant };
+export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy };

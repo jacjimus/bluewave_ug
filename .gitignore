@@ -24,7 +24,7 @@ pids
 dist/
 build/
 tmp/
-
+uploads/
 # ssl dir
 ssl/
 *.pem

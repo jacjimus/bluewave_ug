@@ -250,3 +250,17 @@ export const formatAmount=(number: number)=> {
           return 10;
       }
   }
+
+  // fileFilter.js
+export const excelFilter = (req, file, cb) => {
+  if (
+    file.mimetype.includes("excel") ||
+    file.mimetype.includes("spreadsheetml") ||
+    file.mimetype.includes("xls") ||
+    file.mimetype.includes("xlsx")
+  ) {
+    cb(null, true);
+  } else {
+    cb("Please upload only excel files.", false);
+  }
+};

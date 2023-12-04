@@ -72,6 +72,21 @@ const selfMenu = async (args, db) => {
             response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
             return response;
         }
+
+        let existingPolicy = await db.policies.findOne({
+            where: {
+                phone_number: `+256${phone}`,
+                policy_status: "paid",
+                policy_type: coverType.name
+            },
+            
+            
+        });
+        if(existingPolicy) {
+            response = "END You already have an active policy"
+            return response;
+        }
+
         let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
         response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
             "\nPAY " +
@@ -85,17 +100,12 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-    
-
-
         response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions https://rb.gy/g4hyk\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
 
     }
     else if (currentStep === 4) {
 
         if (userText == "1") {
-
-            //  WORKING WELL
 
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
             console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber, new Date());

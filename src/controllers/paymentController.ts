@@ -81,8 +81,8 @@ const getPayments = async (req: any, res: any) => {
         }
 
         // Check if a filter is provided to include additional search criteria
-        if (filter) { 
-             filter = filter?.trim().toLowerCase(); 
+        if (filter) {
+            filter = filter?.trim().toLowerCase();
 
             paymentWhere[Op.or] = [
                 { payment_description: { [Op.iLike]: `%${filter}%` } },
@@ -105,14 +105,7 @@ const getPayments = async (req: any, res: any) => {
                 message: "No payments found"
             });
         }
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: ` ${req?.user_id} performed operation listPayments`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
+
         return res.status(200).json({
             result: {
                 code: 200,
@@ -168,16 +161,11 @@ const getPayment = async (req: any, res: any) => {
             where: {
                 payment_id: payment_id,
                 partner_id: partner_id
-            }
+            },
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
+            limit:1
         });
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: ` ${req?.user_id} performed operation getPayment`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
+
 
         if (payment) {
             res.status(200).json({
@@ -248,7 +236,8 @@ const getPolicyPayments = async (req: any, res: any) => {
                 policy_id: policy_id,
                 partner_id: partner_id
             },
-            limit: 100, 
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
+            limit: 100,
         });
 
         if (payments.length > 0) {
@@ -256,16 +245,6 @@ const getPolicyPayments = async (req: any, res: any) => {
             const startIndex = (page - 1) * limit;
             const endIndex = page * limit;
             const results = payments.slice(startIndex, endIndex);
-
-//             await Log.create({
-//                 log_id: uuidv4(),
-//                 timestamp: new Date(),
-//                 message: `
-//  ${req?.user_id} performed operation listPolicyPayments`,
-//                 level: 'info',
-//                 user: req?.user_id,
-//                 partner_id: req?.partner_id,
-//             });
 
             res.status(200).json({
                 result: {
@@ -337,7 +316,7 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
                 partner_id: partner_id
 
             }
-        ,limit: 100, 
+            , limit: 100,
         });
 
         if (user_payments.length === 0) {
@@ -348,14 +327,6 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
         const paginatedPayments = user_payments.slice(startIndex, endIndex);
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: ` ${req?.user_id} performed operation listUserPayments`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
 
         return res.status(200).json({
             result: {
@@ -406,15 +377,6 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
 const createPayment = async (req: any, res: any) => {
     try {
         const payment = await Payment.create(req.body);
-
-        // await Log.create({
-        //     log_id: uuidv4(),
-        //     timestamp: new Date(),
-        //     message: ` ${req?.user_id} performed operation createPayment`,
-        //     level: 'info',
-        //     user: req?.user_id,
-        //     partner_id: req?.partner_id,
-        // });
         return res.status(201).json({
             result: {
                 code: 201,
