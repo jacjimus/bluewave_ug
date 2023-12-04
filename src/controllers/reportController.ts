@@ -796,6 +796,7 @@ const generatePolicyExcelReport = async (policies) => {
 
   // Define columns for data in Excel. Key must match data key
   worksheet.columns = [
+    { header: "Policy Number", key: "policy_number", width: 20 },
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
     { header: "Policy Category", key: "beneficiary", width: 20 },
@@ -1494,7 +1495,12 @@ const paymentReconciliation = async (req, res) => {
         order: [["createdAt", "DESC"]],
       });
       console.log("myPolicy", myPolicy)
-      let policy_paid_date = new Date(payment['Transaction Date']) || myPolicy.policy_start_date;
+      let policy_paid_date = new Date(payment['Transaction Date']);
+
+      if (isNaN(policy_paid_date.getTime())) {
+        policy_paid_date = myPolicy.policy_start_date;
+      }
+      
       if(myPolicy) {
         
 
@@ -1502,13 +1508,12 @@ const paymentReconciliation = async (req, res) => {
         policy_status: "paid",
         policy_paid_amount: payment['Approved value'],
         policy_paid_date: policy_paid_date,
+        premium: payment['Approved value'],
 
       }, {
         where: {
-          policy_paid_date: myPolicy.policy_start_date,
           phone_number: `+256${payment['Sender Mobile Number']}`,
           policy_status: "pending",
-          premium: payment['Approved value'],
           policy_id: myPolicy.policy_id,
         }
       });

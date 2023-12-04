@@ -171,6 +171,7 @@ const selfMenu = async (args, db) => {
                 outpatient_cover: selectedPolicyType.outPatient,
                 maternity_cover: selectedPolicyType.maternity,
                 hospital_cash: selectedPolicyType.hospitalCash,
+                policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
 
 
             }

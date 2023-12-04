@@ -440,6 +440,7 @@ const othersMenu = async (args, db) => {
         bought_for: otherUser.user_id,
         first_name: existingUser?.first_name,
         last_name: existingUser?.last_name,
+        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
       }
 
       try {

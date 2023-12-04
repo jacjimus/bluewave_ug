@@ -593,6 +593,7 @@ const familyMenu = async (args, db) => {
         outpatient_cover: selectedPackage.outpatient_cover,
         maternity_cover: selectedPackage.maternity,
         hospital_cash: selectedPackage.hospital_cash,
+        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
       }
 
       let policy = await db.policies.create(policyObject);

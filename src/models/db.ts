@@ -1822,5 +1822,28 @@ async function updateNumberOfPolicies() {
 // Phone Number: 758653832, Repeated 2 times
 // Phone Number: 759349269, Repeated 2 times
 
+
+//policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+async function generatePolicyNumber() {  
+ 
+    let allPolicies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+      },
+
+     
+    });
+    console.log("ALL POLICIES", allPolicies.length)
+    for(let policy of allPolicies){
+      console.log("POLICY", policy.phone_number)
+      let policy_number = "BW" + policy.phone_number?.replace('+', "")?.substring(3)
+      await db.policies.update(
+        { policy_number: policy_number },
+        { where: { policy_id: policy.policy_id } }
+      );
+    }
+  }
+
+ // generatePolicyNumber()
 module.exports = { db }
 

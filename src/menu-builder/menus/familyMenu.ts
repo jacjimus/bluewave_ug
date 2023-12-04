@@ -717,6 +717,7 @@ const familyMenu = async (args, db) => {
         total_member_number: selectedPolicyType.code_name,
         first_name: existingUser?.first_name,
         last_name: existingUser?.last_name,
+        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
       }
 
       let policy = await db.policies.create(policyObject);

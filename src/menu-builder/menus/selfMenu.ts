@@ -171,6 +171,7 @@ const selfMenu = async (args, db) => {
                 phone_number: phoneNumber,
                 first_name: existingUser?.first_name,
                 last_name: existingUser?.last_name,
+                policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
 
 
             }

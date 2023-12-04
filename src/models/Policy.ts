@@ -233,6 +233,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
             default: 0
         },
+        policy_number: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         
     },
 

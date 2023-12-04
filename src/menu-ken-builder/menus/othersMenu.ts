@@ -462,6 +462,7 @@ const othersMenu = async (args, db) => {
         outpatient_cover: policyType.outpatient_cover,
         maternity_cover: policyType.maternity,
         hospital_cash: policyType.hospital_cash,
+        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
       }
 
       try {
