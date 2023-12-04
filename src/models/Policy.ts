@@ -89,7 +89,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         tax_rate_vat: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         tax_rate_ext: {
             type: DataTypes.NUMBER,

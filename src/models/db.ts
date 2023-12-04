@@ -860,7 +860,7 @@ async function updateNumberOfPolicies() {
     for (const user of users) {
       try {
         // Fetch all paid policies for the current user
-        const policies = await db.policies.findAll({
+        const policies = await db.policies.findAndCountAll({
           where: {
             user_id: user.user_id,
             policy_status: 'paid',
@@ -869,7 +869,7 @@ async function updateNumberOfPolicies() {
 
         // Update the user with the number of policies
         await db.users.update(
-          { number_of_policies: policies.length },
+          { number_of_policies: policies.count },
           { where: { user_id: user.user_id } }
         );
       } catch (policyError) {
@@ -882,7 +882,7 @@ async function updateNumberOfPolicies() {
 }
 
 // Call the function
-//updateNumberOfPolicies();
+updateNumberOfPolicies();
 
 
 
@@ -953,12 +953,7 @@ async function updateNumberOfPolicies() {
 
 // Call the function to send policy anniversary reminders
 //sendPolicyAnniversaryReminders();
-// Schedule the updatePolicies function to run every hour
-// cron.schedule('0 * * * *', () => {
-//   console.log('Running updateUserPolicies...');
-//   updatePolicies();
-//   console.log('Done.');
-// });
+
 // let all_phone_numbers= [
 //   757205929
 // 750431090
@@ -1829,6 +1824,7 @@ async function generatePolicyNumber() {
     let allPolicies = await db.policies.findAll({
       where: {
         policy_status: 'paid',
+        
       },
 
      
@@ -1844,6 +1840,13 @@ async function generatePolicyNumber() {
     }
   }
 
- // generatePolicyNumber()
+
+
+ // Schedule the updatePolicies function to run every hour
+// cron.schedule('0 * * * *', () => {
+//   console.log('Running updateUserPolicies...');
+//   updatePolicies();
+//   console.log('Done.');
+// });
 module.exports = { db }
 

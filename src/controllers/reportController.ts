@@ -803,10 +803,8 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Policy Type", key: "policy_type", width: 20 },
     { header: "Family Size", key: "total_member_number", width: 20 },
     { header: "Policy Status", key: "policy_status", width: 20 },
-    { header: "Policy Start Date", key: "policy_start_date", width: 20 },
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_start_date", width: 20 },
-    { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
     { header: "Premium", key: "premium", width: 20 },
     { header: "Sum Insured", key: "sum_insured", width: 20 },
     { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
@@ -862,6 +860,7 @@ const generatePolicyExcelReport = async (policies) => {
       full_name: `${policy.user?.dataValues?.first_name} ${policy.user?.dataValues?.last_name}`,
       phone_number: policy.user?.dataValues?.phone_number,
       product_name: policy.product.product_name,
+
     });
   });
 
