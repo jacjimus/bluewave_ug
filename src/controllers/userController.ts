@@ -1311,6 +1311,53 @@ async function arrMemberRegistration(req: any, res: any) {
   }
 }
 
+/**
+ * @swagger
+ * /api/v1/users/vehicle/{user_id}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     description: Get User Vehicle
+ *     operationId: findUserVehicle
+ *     summary: Get User Vehicle
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+async function findUserVehicle (req: any, res: any){
+  const {user_id, partner_id} = req.query
+try {
+  
+  const userVehicle = await db.vehicles.findAll({
+    where:{
+      partner_id: partner_id,
+      user_id: user_id
+  
+    }
+  })
+
+  res.status(200).json({message: "succesfully fetched user vehicles", vehicles:userVehicle })
+} catch (error) {
+  return res.status(500).json({ message: "Internal server error" });
+}
+
+
+}
 
 
 
@@ -1328,5 +1375,6 @@ module.exports = {
   partnerSwitch,
   bulkUserRegistration,
   listPartners,
-  arrMemberRegistration
+  arrMemberRegistration,
+  findUserVehicle
 };

@@ -145,6 +145,18 @@ const selfMenu = async (args, db) => {
             let ultimatePremium = calculatePaymentOptions(policy_type, installment_type);
             let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
+            let checkPaidPolicy = await db.policies.findAndCountAll({
+                where: {
+                  user_id: existingUser.user_id,
+                  policy_status: 'paid',
+                },
+              });
+              
+              let policyNumber =
+                checkPaidPolicy.count > 0
+                  ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1 }`
+                  : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
+              
             let policyObject = {
                 policy_id: uuidv4(),
                 installment_type: installment_type == 1 ? 2 : 1,
@@ -171,7 +183,7 @@ const selfMenu = async (args, db) => {
                 phone_number: phoneNumber,
                 first_name: existingUser?.first_name,
                 last_name: existingUser?.last_name,
-                policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+                policy_number: policyNumber
 
 
             }

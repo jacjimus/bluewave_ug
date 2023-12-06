@@ -18,9 +18,9 @@ class SMSMessenger {
 
     try {
       const response = await sms.send(options);
-      console.log(response);
+      console.log('AFRICASLKING RESPONSE ',response);
     } catch (error) {
-      console.log(error);
+      console.log("AFRICASTALKING ERR ",error);
     }
   }
 }

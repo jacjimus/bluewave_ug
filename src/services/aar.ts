@@ -18,10 +18,11 @@ async function arr_uganda_login() {
       }
     };
 
-    console.log("CONFIG", config);
+  
 
     const response = await axios.request(config);
-    console.log(JSON.stringify(response.data));
+    console.log(response)
+
     return response.data.token;
   } catch (error) {
     throw error;
@@ -323,7 +324,7 @@ async function updatePremium(user: any, policy: any) {
       maxBodyLength: Infinity,
       url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
       headers: {
-        'Authorization': 'Bearer ' +  + await arr_uganda_login(),
+        'Authorization': 'Bearer ' +  await arr_uganda_login(),
         'Content-Type': 'application/json'
       },
       data: JSON.stringify(requestData),

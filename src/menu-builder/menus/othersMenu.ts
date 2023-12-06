@@ -416,6 +416,18 @@ const othersMenu = async (args, db) => {
         otherUser = await db.users.create(otherData);
         // console.log("OTHER USER CREATED", otherUser)
       }
+      let checkPaidPolicy = await db.policies.findAndCountAll({
+        where: {
+          user_id: existingUser.user_id,
+          policy_status: 'paid',
+        },
+      });
+      
+      let policyNumber =
+        checkPaidPolicy.count > 0
+          ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1} `
+          : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
+      
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -440,7 +452,7 @@ const othersMenu = async (args, db) => {
         bought_for: otherUser.user_id,
         first_name: existingUser?.first_name,
         last_name: existingUser?.last_name,
-        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+        policy_number: policyNumber
       }
 
       try {

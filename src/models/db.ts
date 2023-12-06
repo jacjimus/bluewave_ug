@@ -1,17 +1,10 @@
-const { Sequelize, DataTypes } = require('sequelize')
-import { v4 as uuidv4 } from 'uuid'
-const { Op, QueryTypes } = require("sequelize");
+const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 import cron from 'node-cron';
 import { createDependant, fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
 import SMSMessenger from '../services/sendSMS';
-
-
-
+const Agenda = require('agenda');
 require('dotenv').config()
 const fs = require('fs/promises'); // Use promises-based fs
-
-
-const Agenda = require('agenda');
 
 
 const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres" })
@@ -24,8 +17,8 @@ sequelize.authenticate().then(() => {
 })
 
 export const db: any = {}
-db.Sequelize = Sequelize
-db.sequelize = sequelize
+db.Sequelize = Sequelize;
+db.sequelize = sequelize;
 
 //connecting to model
 db.users = require('./User')(sequelize, DataTypes)
@@ -43,6 +36,7 @@ db.user_hospitals = require('./UserHospital')(sequelize, DataTypes)
 db.hospitals = require('./Hospital')(sequelize, DataTypes)
 db.hospitals_kenya = require('./HospitalKenya')(sequelize, DataTypes)
 db.policy_schedules = require('./PolicySchedule')(sequelize, DataTypes)
+db.vehicles = require('./Vehicle')(sequelize, DataTypes)
 
 
 db.users.hasMany(db.policies, { foreignKey: 'user_id' });
@@ -90,9 +84,9 @@ db.policies.belongsTo(db.users, { foreignKey: 'user_id' });
 //     });
 // };
 // let phones =[ 
-  
-  
-  
+
+
+
 //   ]
 // let all_phone_numbers = [
 //   701741153, 752209897, 755610648, 700963885,
@@ -201,12 +195,12 @@ async function getAllUsers() {
           as: 'policies',
           where: {
             policy_status: 'paid',
-            partner_id : 2
+            partner_id: 2
             // other conditions if needed
           },
         },
       ],
-      group: [ 'user.user_id'],
+      group: ['user.user_id'],
       having: Sequelize.literal('COUNT(DISTINCT policies.policy_id) > 1'),
     });
 
@@ -277,143 +271,60 @@ async function registerPrincipalArr(phone_numbers) {
 
 
 // // // Define a function to create the dependent
-// async function createDependant( existingUser: any, myPolicy: any) {
-//   try {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-//     let arr_member: any;
-//     let dependant: any;
-//     let number_of_dependants = parseFloat(myPolicy?.total_member_number?.split("")[2]) || 0;
-//     console.log("number_of_dependants ", number_of_dependants)
+async function updatingAARPremium() {
+  try {
+    let policies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
+      },
+      include: [
+        {
+          model: db.users,
+          as: 'user',
+        },
+      ],
+    });
 
-//     const updatePremiumPromise = updatePremium(existingUser, myPolicy);
-//     const timeoutPromise = new Promise((resolve, reject) => {
-//       setTimeout(() => {
-//         reject(new Error("Timeout: The updatePremium process took too long"));
-//       }, 10000); // Adjust the timeout duration (in milliseconds) as needed
-//     });
+    for (let myPolicy of policies) {
+      let retries = 3; // Set the maximum number of retries
 
-//     try {
-//       const result = await Promise.race([updatePremiumPromise, timeoutPromise]);
+      while (retries > 0) {
+        try {
+          const result = await updatePremium(myPolicy.user, myPolicy);
 
-//       if (result.code == 200) {
-//         console.log("AAR UPDATE PREMIUM", result);
-//       } else {
-//         console.log("AAR NOT UPDATE PREMIUM", result);
-//       }
-//     } catch (error) {
-//       console.error("AAR UPDATE PREMIUM timed out or encountered an error:", error.message);
-//     }
+          if (result.code === 200) {
+            console.log("AAR UPDATE PREMIUM", result);
+            break; // Exit the loop if successful
+          } else {
+            console.log("AAR NOT UPDATE PREMIUM", result);
+            throw new Error("Failed to update premium");
+          }
+        } catch (error) {
+          console.error("Error updating AAR premium:", error.message);
+          retries--;
 
+          if (retries > 0) {
+            const backoffTime = Math.pow(2, 3 - retries) * 1000; // Exponential backoff
+            console.log(`Retrying in ${backoffTime / 1000} seconds...`);
+            await sleep(backoffTime);
+          } else {
+            console.error("Max retries reached. Unable to update AAR premium.");
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("AAR UPDATE PREMIUM timed out or encountered an error:", error.message);
+  }
+}
 
+//updatingAARPremium();
 
-
-//     if (existingUser.arr_member_number == null) {
-//       console.log("REGISTER PRINCIPAL");
-//       // Introduce a delay before calling registerPrincipal
-//       await new Promise(resolve => {
-//         setTimeout(async () => {
-//           arr_member = await registerPrincipal(existingUser, myPolicy);
-//           console.log("ARR PRINCIPAL CREATED", arr_member);
-//           resolve(true);
-//         }, 1000); // Adjust the delay as needed (1 second in this example)
-//       });
-//     } else {
-//       // Fetch member status data or register principal based on the condition
-//       await new Promise(resolve => {
-//         setTimeout(async () => {
-//           arr_member = await fetchMemberStatusData({
-//             member_no: existingUser.arr_member_number,
-//             unique_profile_id: existingUser.membership_id + "",
-//           });
-//           console.log("AAR MEMBER FOUND", arr_member);
-//           if (number_of_dependants > 0) {
-
-//             for (let i = 1; i <= number_of_dependants; i++) {
-//               let dependant_first_name = `first_name__${existingUser.membership_id}_${i}`;
-//               let dependant_other_names = `other_names__${existingUser.membership_id}_${i}`;
-//               let dependant_surname = `surname__${existingUser.membership_id}_${i}`;
-
-//               if (arr_member.policy_no != null && arr_member.code == 200) {
-//                 // Use a Promise with setTimeout to control the creation
-//                 await new Promise(resolve => {
-//                   setTimeout(async () => {
-//                     dependant = await registerDependant({
-//                       member_no: existingUser.arr_member_number,
-//                       surname: dependant_surname,
-//                       first_name: dependant_first_name,
-//                       other_names: dependant_other_names,
-//                       gender: 1,
-//                       dob: "1990-01-01",
-//                       email: "dependant@bluewave.insure",
-//                       pri_dep: "25",
-//                       family_title: "25", // Assuming all dependants are children
-//                       tel_no: myPolicy.phone_number,
-//                       next_of_kin: {
-//                         surname: "",
-//                         first_name: "",
-//                         other_names: "",
-//                         tel_no: "",
-//                       },
-//                       member_status: "1",
-//                       health_option: "64",
-//                       health_plan: "AIRTEL_" + myPolicy?.policy_type,
-//                       policy_start_date: myPolicy.policy_start_date,
-//                       policy_end_date: myPolicy.policy_end_date,
-//                       unique_profile_id: existingUser.membership_id + "",
-//                     });
-
-//                     if (dependant.code == 200) {
-
-//                       console.log(`Dependant ${i} created:`, dependant);
-
-//                       myPolicy.arr_policy_number = arr_member?.policy_no;
-//                       dependant.unique_profile_id = existingUser.membership_id + "";
-//                       let updateDependantMemberNo = []
-//                       updateDependantMemberNo.push(dependant.member_no)
-//                       await db.policies.update(
-//                         { dependant_member_numbers: updateDependantMemberNo },
-//                         { where: { policy_id: myPolicy.policy_id } }
-//                       );
-//                       let updatePremiumData = await updatePremium(dependant, myPolicy);
-//                       if (updatePremiumData.code == 200) {
-//                         console.log("AAR UPDATE PREMIUM", updatePremiumData);
-//                         resolve(true)
-//                       } else {
-//                         console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-//                         resolve(true)
-
-//                       }
-//                       resolve(true)
-//                     } else {
-//                       console.log("DEPENDANT NOT CREATED", dependant);
-//                       resolve(true)
-//                     }
-//                   }, 1000 * i); // Adjust the delay as needed
-//                 });
-//               } else {
-//                 console.log("NO ARR MEMBER")
-//               }
-//             }
-//           } else {
-//             let updatePremiumData = await updatePremium(existingUser, myPolicy);
-//             if (updatePremiumData.code == 200) {
-//               console.log("AAR UPDATE PREMIUM", updatePremiumData);
-//               resolve(true)
-//             } else {
-//               console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-//               resolve(true)
-//             }
-//           }
-//           resolve(true);
-
-//         }, 1000); // Adjust the delay as needed (1 second in this example)
-//       });
-//     }
-
-//   } catch (error) {
-//     console.error('Error:', error.message);
-//   }
-// }
 
 async function updatePendingPremium() {
   try {
@@ -431,24 +342,27 @@ async function updatePendingPremium() {
       ],
     });
 
-    for(const policy of allPaidPolicies){
+    for (const policy of allPaidPolicies) {
       let pending_premium = policy.yearly_premium - policy.premium
       let updatedPolicy = await db.policies.update(
         { policy_pending_premium: pending_premium },
         { where: { policy_id: policy.policy_id } }
       );
-      console.log(  "updatedPolicy", updatedPolicy)
+      console.log("updatedPolicy", updatedPolicy)
       await db.users.update(
-        { number_of_policies : 1 },
-        { where: { user_id: policy.user_id ,
-          partner_id: 2,
-          number_of_policies: 0
-        } }
+        { number_of_policies: 1 },
+        {
+          where: {
+            user_id: policy.user_id,
+            partner_id: 2,
+            number_of_policies: 0
+          }
+        }
       );
     }
-    
+
   } catch (error) {
-    
+
   }
 }
 
@@ -459,47 +373,47 @@ async function updatePendingPremium() {
 // get all user with arr_member_number is null and partner_id = 2 and email is  null
 
 
-  async function processUsersPolicyAAR() {
-    // settimeout
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    let policies = await db.policies.findAll({
-      where: {
-        policy_status: 'paid',
-        //installment_type: 2
-      }
-    });
-    for (const policy of policies) {
-      try {
-        const user = await db.users.findOne({
-          where: {
-            arr_member_number: {
-              [db.Sequelize.Op.not]: null,
-            },
-            partner_id: 2,
-            user_id: policy.user_id,
+async function processUsersPolicyAAR() {
+  // settimeout
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let policies = await db.policies.findAll({
+    where: {
+      policy_status: 'paid',
+      //installment_type: 2
+    }
+  });
+  for (const policy of policies) {
+    try {
+      const user = await db.users.findOne({
+        where: {
+          arr_member_number: {
+            [db.Sequelize.Op.not]: null,
           },
-        });
-        if (!user) {
-          console.log("NO USER FOUND");
-          continue
-        }
-
-
-        console.log("user", user.phone_number);
-
-        await updatePremium(user, policy);
-        // Add a delay between iterations (adjust the delay time as needed)
-        await delay(2000);
-        console.log(`Dependant created for user with phone number: ${user.phone_number}`);
-      } catch (error) {
-        console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
+          partner_id: 2,
+          user_id: policy.user_id,
+        },
+      });
+      if (!user) {
+        console.log("NO USER FOUND");
+        continue
       }
+
+
+      console.log("user", user.phone_number);
+
+      await updatePremium(user, policy);
+      // Add a delay between iterations (adjust the delay time as needed)
+      await delay(2000);
+      console.log(`Dependant created for user with phone number: ${user.phone_number}`);
+    } catch (error) {
+      console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
     }
   }
+}
 
-  //processUsersPolicyAAR()
+//processUsersPolicyAAR()
 
- 
+
 
 // Call the function to start the process
 //getAllUsers();
@@ -882,897 +796,55 @@ async function updateNumberOfPolicies() {
 }
 
 // Call the function
-updateNumberOfPolicies();
+//updateNumberOfPolicies();
 
 
 
 
-// get all paid installments  per unique policy_id and sum the amount paid
-// db.policies.findAll(
-//   {
-//     where: {
-//       policy_status: 'paid'
-//     }
-//   }
-// ).then((policy: any) => {
-//   let total = 0
-//   policy.forEach((policy: any) => {
-//     db.installments.findAll({
-//       where: {
-//         policy_id: policy.policy_id,
-//       }
-//     }).then((installment: any) => {
-//       installment.forEach((installment: any) => {
-//         total += installment.premium
-//   console.log('TOTAL', total);
-
-//       })
-//     }).catch((err: any) => {
-//       console.log(err)
-//     })
-//   })
-//   console.log('TOTAL', total);
-
-// }
-// ).catch((err: any) => {
-//   console.log(err)
-// })
 
 
 
 // RENEWAL
-// async function sendPolicyAnniversaryReminders() {
-//   const query = `
-//     SELECT *
-//     FROM policies
-//     WHERE 
-//       DATE_PART('year', policy_start_date) = DATE_PART('year', CURRENT_DATE)
-//       AND DATE_PART('month', policy_start_date) = DATE_PART('month', CURRENT_DATE)
-//       AND EXTRACT(DAY FROM policy_start_date) = EXTRACT(DAY FROM CURRENT_DATE) - 3
-//       AND policy_status = 'paid'
-//       AND partner_id = 2`;
+async function sendPolicyAnniversaryReminders() {
+  const query = `
+    SELECT *
+    FROM policies
+    WHERE 
+      DATE_PART('year', policy_start_date) = DATE_PART('year', CURRENT_DATE)
+      AND DATE_PART('month', policy_start_date) = DATE_PART('month', CURRENT_DATE)
+      AND EXTRACT(DAY FROM policy_start_date) = EXTRACT(DAY FROM CURRENT_DATE) - 3
+      AND policy_status = 'paid'
+      AND partner_id = 2`;
 
-//   const policies = await db.sequelize.query(query, { type: QueryTypes.SELECT });
+  const policies = await db.sequelize.query(query, { type: QueryTypes.SELECT });
 
-//   console.log("POLICIES", policies.length);
+  console.log("POLICIES", policies.length);
 
-//   policies.forEach(async (policy) => {
-//     const { policy_start_date, premium, policy_type, phone_number, beneficiary } = policy;
+  policies.forEach(async (policy) => {
+    const { policy_start_date, premium, policy_type, phone_number, beneficiary } = policy;
 
-//     const message = `Your monthly premium payment for ${beneficiary} ${policy_type} Medical cover of UGX ${premium} is DUE in 3-days on ${policy_start_date.toDateString()}.`;
+    const message = `Your monthly premium payment for ${beneficiary} ${policy_type} Medical cover of UGX ${premium} is DUE in 3-days on ${policy_start_date.toDateString()}.`;
 
-//     console.log("MESSAGE", message);
+    console.log("MESSAGE", message);
 
-//     // Call the function to send an SMS
-//     await SMSMessenger.sendSMS(phone_number, message);
-//   });
+    // Call the function to send an SMS
+    await SMSMessenger.sendSMS(phone_number, message);
+  });
 
-//   return policies;
-// }
+  return policies;
+}
 
 
-// Call the function to send policy anniversary reminders
+//Call the function to send policy anniversary reminders
 //sendPolicyAnniversaryReminders();
 
 // let all_phone_numbers= [
-//   757205929
-// 750431090
-// 704086824
-// 705814213
-// 705952252
-// 705211707
-// 701565319
-// 707886771
-// 700993744
-// 703695296
-// 757728878
-// 701106857
-// 754177440
-// 700787003
-// 702559647
-// 759750610
-// 709011694
-// 707420393
-// 751754051
-// 742877919
-// 755941923
-// 700456469
-// 707609316
-// 759916803
-// 702906710
-// 754008281
-// 707320708
-// 754416580
-// 759015513
-// 702790183
-// 707121789
-// 701072656
-// 702029927
-// 700787848
-// 759203499
-// 742316854
-// 742316854
-// 759074907
-// 709247131
-// 700659605
-// 701377572
-// 758303153
-// 709551279
-// 743453953
-// 700440544
-// 709278507
-// 759773977
-// 704811422
-// 751085268
-// 751194038
-// 753714841
-// 752883692
-// 707774730
-// 752225351
-// 752560013
-// 708510859
-// 742524333
-// 754072548
-// 700835797
-// 707640557
-// 705520531
-// 755014764
-// 701792283
-// 754155216
-// 704794563
-// 752909225
-// 702502728
-// 751224476
-// 701435756
-// 708504613
-// 740504201
-// 705100734
-// 752162722
-// 705762881
-// 704563728
-// 705758296
-// 742256068
-// 753201326
-// 742088772
-// 706617599
-// 751014859
-// 754997400
-// 759705276
-// 754897284
-// 741859475
-// 700787003
-// 740937765
-// 709892072
-// 744860116
-// 753177466
-// 702256430
-// 755168928
-// 742141392
-// 704017842
-// 704665960
-// 709358793
-// 754761340
-// 740305224
-// 740305224
-// 757802457
-// 756283736
-// 703174487
-// 704608746
-// 708472125
-// 741267721
-// 759799954
-// 750911250
-// 744673144
-// 701732579
-// 740601387
-// 708589868
-// 753324580
-// 704929742
-// 757507158
-// 742220443
-// 758222374
-// 753025215
-// 743090525
-// 740844901
-// 750623235
-// 741845024
-// 740434872
-// 703276752
-// 759136143
-// 706271701
-// 759010393
-// 753982893
-// 708797784
-// 700415511
-// 708800974
-// 750036676
-// 700508006
-// 705672015
-// 758096188
-// 743747835
-// 750555263
-// 755816648
-// 757644045
-// 742268243
-// 740221932
-// 753225052
-// 707870424
-// 703194029
-// 742509158
-// 709442925
-// 708765324
-// 707089636
-// 705742068
-// 751367007
-// 754350170
-// 758055077
-// 706065420
-// 744058090
-// 743119584
-// 706305075
-// 755897591
-// 751061015
-// 755789817
-// 707426133
-// 707823891
-// 759703643
-// 759003963
-// 753122043
-// 700892883
-// 708745039
-// 753316969
-// 705371938
-// 751088515
-// 757535290
-// 706203037
-// 706207210
-// 743581162
-// 702694286
-// 709924865
-// 741043747
-// 757762761
-// 708383934
-// 704561720
-// 754452522
-// 704066209
-// 702082482
-// 702283160
-// 707435246
-// 751049130
-// 706221424
-// 756256667
-// 752004558
-// 741921576
-// 753881127
-// 704054344
-// 752261049
-// 740733972
-// 755066981
-// 709964362
-// 753961676
-// 703232255
-// 752124320
-// 744029899
-// 757130372
-// 743566845
-// 708717752
-// 758122393
-// 700408523
-// 706417423
-// 706977279
-// 708127676
-// 704218308
-// 759349269
-// 756770737
-// 753081661
-// 742493662
-// 701046300
-// 704327265
-// 701915814
-// 703414915
-// 744706599
-// 701611993
-// 709199151
-// 700480272
-// 709171407
-// 700825044
-// 756611025
-// 705406897
-// 709641543
-// 756613732
-// 743711785
-// 709060253
-// 709211649
-// 753407715
-// 709104617
-// 704977612
-// 755450017
-// 753162332
-// 701101451
-// 758925177
-// 753066923
-// 759315147
-// 752306916
-// 741952443
-// 704674642
-// 756111390
-// 742921390
-// 708858959
-// 703692206
-// 704993584
-// 705900852
-// 708541034
-// 754301513
-// 704873781
-// 750247436
-// 709190777
-// 751389100
-// 751389100
-// 757074034
-// 742660947
-// 752528015
-// 755554903
-// 754131666
-// 740060706
-// 741534177
-// 743167407
-// 742583470
-// 743058415
-// 759708522
-// 755549305
-// 740926173
-// 704703905
-// 701612191
-// 759349269
-// 751511450
-// 709118912
-// 708472056
-// 705235153
-// 700445532
-// 705289018
-// 707441525
-// 705382496
-// 753818298
-// 755138863
-// 708812139
-// 756579757
-// 759391420
-// 754122501
-// 709391319
-// 759686152
-// 755907412
-// 707287508
-// 706410444
-// 703170689
-// 743767634
-// 742770092
-// 742675445
-// 700786688
-// 756338737
-// 758996023
-// 705645432
-// 742859812
-// 754791035
-// 705634704
-// 742788543
-// 750620251
-// 743375864
-// 742692873
-// 701113168
-// 708999528
-// 708026028
-// 743814765
-// 740719927
-// 707566493
-// 705528994
-// 704703905
-// 706186932
-// 740621201
-// 752872046
-// 702727425
-// 753687310
-// 742449630
-// 707337877
-// 754602660
-// 759681061
-// 706358331
-// 755424614
-// 707851533
-// 707851533
-// 703276809
-// 708196191
-// 705865163
-// 709720806
-// 759052877
-// 707594526
-// 743429050
-// 707594526
-// 707594526
-// 701448227
-// 741209819
-// 757176888
-// 704553694
-// 752972897
-// 757128019
-// 701848842
-// 752322768
-// 758723052
-// 706421786
-// 744260248
-// 706115719
-// 744259959
-// 754524554
-// 702756152
-// 744259951
-// 706624033
-// 756387454
-// 704522458
-// 752674759
-// 753878429
-// 701776166
-// 708524288
-// 750581018
-// 700971789
-// 701424177
-// 743714101
-// 742004204
-// 751511450
-// 752609663
-// 752163731
-// 709398800
-// 743750040
-// 704767924
-// 741206226
-// 740581613
-// 741206226
-// 740581613
-// 701114820
-// 758209165
-// 701798119
-// 740882180
-// 740168566
-// 755262744
-// 751354329
-// 708797835
-// 706863970
-// 756664374
-// 701044006
-// 708796141
-// 704679923
-// 709071978
-// 751592377
-// 750908439
-// 741611526
-// 753413173
-// 755849465
-// 754458663
-// 752385211
-// 701208835
-// 704181277
-// 759922923
-// 707019738
-// 704698178
-// 744260375
-// 750608824
-// 741033984
-// 752766008
-// 704443846
-// 754507549
-// 743954152
-// 752537737
-// 751882389
-// 742716619
-// 757274430
-// 750187328
-// 751671811
-// 742249990
-// 757159453
-// 759400303
-// 759280945
-// 706740260
-// 752939973
-// 741464976
-// 753305044
-// 705806992
-// 703196342
-// 706470044
-// 744397163
-// 708549663
-// 742276513
-// 754442697
-// 759633893
-// 744042513
-// 708854691
-// 752960192
-// 759957653
-// 751034967
-// 750936957
-// 706332850
-// 740111391
-// 700736746
-// 742932853
-// 706234793
-// 755992935
-// 751123031
-// 751246617
-// 705433878
-// 701974000
-// 743935905
-// 758849307
-// 742536986
-// 702615748
-// 706556371
-// 708914135
-// 700249855
-// 707359014
-// 752961878
-// 705190635
-// 744390994
-// 708417179
-// 756100717
-// 743105154
-// 759785803
-// 743105154
-// 754649203
-// 701323264
-// 701585832
-// 702145122
-// 754696066
-// 754034758
-// 704676228
-// 702422135
-// 753849297
-// 708166399
-// 706608096
-// 759328487
-// 744566816
-// 754382831
-// 755326045
-// 755326045
-// 753193623
-// 702422135
-// 704427414
-// 701710882
-// 708847210
-// 750130327
-// 707046253
-// 741521048
-// 707546356
-// 707546356
-// 740648803
-// 700114189
-// 756382501
-// 753933751
-// 744758018
-// 743085710
-// 700346734
-// 757641157
-// 740538509
-// 744535345
-// 741353516
-// 700301829
-// 744387090
-// 743221064
-// 706871388
-// 757259108
-// 706000363
-// 701741153
-// 743800625
-// 759020160
-// 704057299
-// 758771181
-// 706666923
-// 705354222
-// 752006729
-// 707841849
-// 700197703
-// 702640983
-// 708633631
-// 706866816
-// 707082130
-// 709425504
-// 708208101
-// 709647478
-// 756675109
-// 752815271
-// 752928241
-// 708930717
-// 753737847
-// 753702871
-// 703793609
-// 701575696
-// 708437592
-// 757460866
-// 751358484
-// 744063922
-// 758444378
-// 758546762
-// 755979078
-// 740659851
-// 709486201
-// 706030750
-// 702072357
-// 702584602
-// 703273922
-// 743419090
-// 743091044
-// 708968403
-// 752169337
-// 701030486
-// 743774334
-// 751851144
-// 702637953
-// 741321213
-// 744848091
-// 701644295
-// 706598380
-// 740439467
-// 755945150
-// 706072312
-// 754400114
-// 751161435
-// 759056204
-// 741438374
-// 702601259
-// 744845994
-// 755358636
-// 743348242
-// 740719927
-// 702871522
-// 708554367
-// 704046796
-// 704046796
-// 741307430
-// 701471443
-// 759112253
-// 743093236
-// 752745529
-// 758598269
-// 753847669
-// 702494612
-// 707572675
-// 740174855
-// 757623931
-// 702218355
-// 706857421
-// 741135388
-// 702623800
-// 741296176
-// 701310915
-// 757687798
-// 704826610
-// 743746171
-// 709282624
-// 705086870
-// 753419472
-// 759685046
-// 708235415
-// 750545006
-// 708969575
-// 757497018
-// 740258784
-// 750759077
-// 742093892
-// 707423070
-// 753878280
-// 706312451
-// 703336282
-// 741863662
-// 751045196
-// 740868993
-// 708979712
-// 752322768
-// 740868993
-// 750924432
-// 702744954
-// 741908173
-// 700238213
-// 756073577
-// 702728821
-// 703245258
-// 759207018
-// 744291204
-// 741730491
-// 707171523
-// 741903253
-// 700115569
-// 750798790
-// 758478086
-// 751966786
-// 756676903
-// 709169061
-// 758195415
-// 705279415
-// 707105583
-// 754685152
-// 759881281
-// 707033083
-// 755066582
-// 705358503
-// 709833186
-// 703593059
-// 701774061
-// 705161286
-// 759730720
-// 754093939
-// 750722088
-// 704728761
-// 703741034
-// 755309306
-// 752883695
-// 752374321
-// 752209897
-// 756720651
-// 701349009
-// 705283369
-// 743951688
-// 759663348
-// 744053622
-// 703430090
-// 743797986
-// 751374896
-// 743797986
-// 743797986
-// 756975915
-// 751736769
-// 758653832
-// 758653832
-// 753850675
-// 757990266
-// 701368830
-// 755903048
-// 708117742
-// 752601181
-// 758149530
-// 708389895
-// 741007366
-// 708104857
-// 702072230
-// 707709478
-// 700226929
-// 758049297
-// 706097985
-// 706000691
-// 704965086
-// 757891741
-// 758414445
-// 705857706
-// 753342934
-// 705685612
-// 759640308
-// 703658093
-// 704017833
-// 702582291
-// 707271181
-// 701168622
-// 743316982
-// 740729585
-// 701600858
-// 703427249
-// 754747002
-// 701109454
-// 743645877
-// 755068231
-// 754863995
-// 708383165
-// 743675045
-// 705670701
-// 757461024
-// 700371943
-// 752071226
-// 751060363
-// 753038978
-// 707786656
-// 742114361
-// 750160998
-// 753330942
-// 702020561
-// 752729882
-// 707974120
-// 754175276
-// 741051402
-// 704121675
-// 708464605
-// 706084975
-// 751164547
-// 706484411
-// 758364491
-// 707267292
-// 755610648
-// 754120461
-// 751611675
-// 753096236
-// 700963885
-// 708850008
-// 708646256
-// 707583722
-// 758982871
-// 759753856
-// 740937212
-// 709370881
-// 756086992
-// 744237497
-// 743787789
-// 742642472
-// 743047718
-// 754315234
-// 759604887
-// 743157641
-// 742335529
-// 700436475
-// 709612345
-// 751733533
-// 754178456
-// 755946293
-// 741136729
-// 758453207
-// 740827567
-// 757998947
-// 757244303
-// 757352503
-// 702555180
-// 752329881
-// 759928029
-// 700265195
-// 758922822
-// 752041994
-// 704096538
-// 740825822
-// 751100602
-// 707008142
-// 700416908
-// 702889121
-// 700549492
-// 743097846
-// 704581998
-// 708650868
-// 757082835
-// 753312297
-// 752423278
-// 705333430
-// 709609610
-// 756802504
-// 752375232
-// 754814369
-// 754381794
-// 709834488
-// 753408195
-// 709934133
-// 705299831
-// 706399340
-// 751310088
-// 751717053
-// 702542828
-// 754177440
-// 703688428
-// 744676343
-// 743136197
-// 754926594
-// 752493160
-// 709626453
+
 // 700860551
 // 703571290
 // 704201991
 // 701237357
-// 702210391
-// 740875681
-// 758369029
-// 750192578
-// 759691881
-// 701785673
-// 704798015
-// 701785673
-// 702901263
-// 742924472
-// 759541169
-// 756114141
-// 752598863
-// 703738003
-// 750255737
-// 700350154
-// 706629024
-// 704166578
-// 741652220
+
 // ]
 
 
@@ -1819,34 +891,150 @@ updateNumberOfPolicies();
 
 
 //policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
-async function generatePolicyNumber() {  
- 
-    let allPolicies = await db.policies.findAll({
-      where: {
-        policy_status: 'paid',
-        
-      },
+async function generatePolicyNumber() {
 
-     
-    });
-    console.log("ALL POLICIES", allPolicies.length)
-    for(let policy of allPolicies){
-      console.log("POLICY", policy.phone_number)
-      let policy_number = "BW" + policy.phone_number?.replace('+', "")?.substring(3)
-      await db.policies.update(
-        { policy_number: policy_number },
-        { where: { policy_id: policy.policy_id } }
-      );
-    }
+  let allPolicies = await db.policies.findAll({
+    where: {
+      policy_status: 'paid',
+
+    },
+
+
+  });
+  console.log("ALL POLICIES", allPolicies.length)
+  for (let policy of allPolicies) {
+    console.log("POLICY", policy.phone_number)
+    let policy_number = "BW" + policy.phone_number?.replace('+', "")?.substring(3)
+    await db.policies.update(
+      { policy_number: policy_number },
+      { where: { policy_id: policy.policy_id } }
+    );
   }
+}
 
 
 
- // Schedule the updatePolicies function to run every hour
+
+async function sendWelcomeSMS() {
+  try {
+    let delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+    console.log("i was called")
+    // users with no policy
+    let allUsers = await db.users.findAll(
+      {
+        where: {
+          partner_id: 2,
+        }
+      }
+    )
+
+    for (let user of allUsers) {
+      console.log(user.name, user.user_id)
+      // check if user has not policy
+      let policy = db.policies.findAll({
+        where:{
+          user_id: user.user_id
+        }
+       
+      })
+
+      if (policy.length == 0) {
+
+        let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
+        await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
+        delay(1000)
+      }
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+//sendWelcomeSMS()
+
+
+async function getUsersWithoutPolicyAndSendSMS() {
+  try {
+    // Find users without policies
+    const usersWithoutPolicy = await db.users.findAll({
+      where: {
+        // Assuming there's a foreign key relationship between users and policies
+        // Adjust the condition based on your database schema
+        '$policies.policy_id$': null,
+      },
+      include: [
+        {
+          model: db.policies,
+          as: 'policies',
+          required: false,
+        },
+      ],
+    });
+
+    // Send SMS to each user without a policy
+    for (const user of usersWithoutPolicy) {
+      let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
+      await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
+     
+    }
+
+    console.log('SMS sent to users without policies.');
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Call the function to get users without policies and send SMS
+//getUsersWithoutPolicyAndSendSMS();
+
+// send sms to users
+
+// Schedule the updatePolicies function to run every hour
 // cron.schedule('0 * * * *', () => {
 //   console.log('Running updateUserPolicies...');
 //   updatePolicies();
 //   console.log('Done.');
 // });
+
+
+async function updatePolicyNumber() {
+  try {
+    // Find duplicate policies based on policy_number
+    const duplicatePolicies = await db.policies.findAll({
+      attributes: ['policy_number', [db.sequelize.fn('COUNT', 'policy_number'), 'policy_count']],
+      group: ['policy_number'],
+      having: db.sequelize.literal('COUNT(policy_number) > 1'),
+      where: {
+        policy_status: 'paid'
+      },
+    });
+
+    // Update policy numbers for duplicate policies
+    for (const duplicatePolicy of duplicatePolicies) {
+      const policiesToUpdate = await db.policies.findAll({
+        where: {
+          policy_number: duplicatePolicy.policy_number,
+          policy_status: 'paid'
+        },
+      });
+
+      // Update policy numbers with a unique identifier (e.g., append a suffix)
+      for (let i = 0; i < policiesToUpdate.length; i++) {
+        console.log(policiesToUpdate[i].first_name,policiesToUpdate[i].policy_number)
+        policiesToUpdate[i].policy_number = `${policiesToUpdate[i].policy_number}_${i + 1}`;
+        await policiesToUpdate[i].save();
+      }
+    }
+
+    console.log('Policy numbers updated for duplicates.');
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Call the function to update policy numbers for duplicates
+//updatePolicyNumber();
+
+
+
 module.exports = { db }
 

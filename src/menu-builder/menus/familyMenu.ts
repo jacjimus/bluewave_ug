@@ -695,6 +695,19 @@ const familyMenu = async (args, db) => {
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
 
+      let checkPaidPolicy = await db.policies.findAndCountAll({
+        where: {
+          user_id: existingUser.user_id,
+          policy_status: 'paid',
+        },
+      });
+      
+      let policyNumber =
+        checkPaidPolicy.count > 0
+          ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1}`
+          : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
+      
+
       let policyObject = {
         policy_id: uuidv4(),
         installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
@@ -717,7 +730,7 @@ const familyMenu = async (args, db) => {
         total_member_number: selectedPolicyType.code_name,
         first_name: existingUser?.first_name,
         last_name: existingUser?.last_name,
-        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+        policy_number: policyNumber
       }
 
       let policy = await db.policies.create(policyObject);

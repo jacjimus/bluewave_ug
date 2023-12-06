@@ -675,13 +675,8 @@ const getPolicyExcelReportDownload = async (req, res) => {
       partner_id: partner_id,
       policy_status: "paid",
     };
-    // moment().format('YYYY-MM-DD')
-
-
     if (filter)
-
       filter = filter.trim().toLowerCase();
-
     if (filter) {
       whereClause[Op.or] = [
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
@@ -755,10 +750,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
 
 // Download endpoint handler
 const handlePolicyDownload = (req, res) => {
-  const { token } = req.query;
-
   const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
-
   // Stream the file for download
   res.setHeader(
     "Content-Type",
@@ -803,6 +795,7 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Policy Type", key: "policy_type", width: 20 },
     { header: "Family Size", key: "total_member_number", width: 20 },
     { header: "Policy Status", key: "policy_status", width: 20 },
+    { header: "Installment Type", key: "installment_type", width: 20 },
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_start_date", width: 20 },
     { header: "Premium", key: "policy_paid_amount", width: 20 },
@@ -815,8 +808,6 @@ const generatePolicyExcelReport = async (policies) => {
   ];
 
   policies.forEach(async (policy) => {
-
-
     worksheet.addRow({
       policy_id: policy.policy_id,
       airtel_money_id: policy.airtel_money_id,
@@ -835,6 +826,7 @@ const generatePolicyExcelReport = async (policies) => {
       ).format("YYYY-MM-DD"),
       policy_deduction_day: policy.policy_deduction_day,
       installment_order: policy.installment_order,
+      installment_type: policy.installment_type == 2 ? "Monthly" : "Yearly",
       installment_date: moment(policy.installment_date).format("YYYY-MM-DD"),
       installment_alert_date: moment(policy.installment_alert_date).format(
         "YYYY-MM-DD"

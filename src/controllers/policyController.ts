@@ -581,6 +581,86 @@ const deletePolicy = async (req: any, res: any) => {
   }
 }
 
+/**
+ * @swagger
+ * /api/v1/policies/vehicle/registration:
+ *   post:
+ *     tags:
+ *       - Policies
+ *     description: Register a new vehicle for a policy
+ *     operationId: registerVehicle
+ *     summary: Register a new vehicle
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: {"user_id": 58094169, "product_id": 1, "partner_id": "1", "vehicle_category": "Sedan", "vehicle_make": "Toyota", "vehicle_model": "Camry", "vehicle_year": 2022, "vehicle_vin": "12345678901234567", "vehicle_license_plate": "ABC123", "vehicle_registration": "ABCDEF", "vehicle_registration_expiration": "2023-12-31", "vehicle_insurance": "XYZInsurance", "vehicle_insurance_expiration": "2023-12-31", "vehicle_purchase_price": 25000, "vehicle_purchase_mileage": 10000, "vehicle_purchase_location": "Dealer", "vehicle_purchase_comments": "Brand new vehicle"}
+ *     responses:
+ *       200:
+ *         description: Vehicle registration successful
+ *       400:
+ *         description: Invalid request
+ */
+async function vehicleRegistration(req: any, res:any) {
+  try {
+    // Destructure the request body to extract necessary information
+    const {
+      user_id,
+      product_id,
+      partner_id,
+      vehicle_category,
+      vehicle_make,
+      vehicle_model,
+      vehicle_year,
+      vehicle_vin,
+      vehicle_license_plate,
+      vehicle_registration,
+      vehicle_insurance_expiration,
+      vehicle_purchase_price,
+      vehicle_mileage,
+    } = req.body;
+
+    // Check if required fields are present in the request
+    if (!user_id || !product_id || !partner_id || !vehicle_category || !vehicle_make ) {
+      return res.status(400).json({ message: 'Invalid request. Missing required fields.' });
+    }
+
+    // Create a new vehicle record in the database
+    const registeredVehicle = await db.vehicles.create({
+      user_id,
+      product_id,
+      partner_id,
+      vehicle_category,
+      vehicle_make,
+      vehicle_model,
+      vehicle_year,
+      vehicle_vin,
+      vehicle_license_plate,
+      vehicle_registration,
+      vehicle_insurance_expiration,
+      vehicle_purchase_price,
+      vehicle_mileage
+    });
+
+    // Return a success response with the registered vehicle information
+    return res.status(200).json({
+      message: 'Vehicle registration successful',
+      vehicle: registeredVehicle,
+    });
+  } catch (error) {
+    // Handle any errors that occur during the registration process
+    console.error('Error registering vehicle:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+}
+
+// Export the function for use in other parts of your application
+module.exports = {
+  vehicleRegistration,
+};
 
 
 
@@ -591,7 +671,7 @@ module.exports = {
   createPolicy,
   updatePolicy,
   deletePolicy,
-
+vehicleRegistration
 }
 
 

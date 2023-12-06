@@ -29,17 +29,19 @@ module.exports = (sequelize, DataTypes) => {
         policy_status: {
             type: DataTypes.STRING,
             defaultValue: "pending",
-            allowNull: true
+            allowNull: true,
+            enum: ["pending", "paid"]
             
         },
         beneficiary: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
+            enum: ["SELF", "FAMILY", "OTHER"]
         },
         policy_type: {
             type: DataTypes.STRING,
             allowNull: false,
-            enum: ["MINI", "MIDI", "BIGGIE"]
+            enum: ["MINI", "MIDI", "BIGGIE","BAMBA","ZIDI","SMARTA", "COMPREHENSIVE", "FT", "TPO"]
         },
         policy_start_date: {
             type: DataTypes.DATE,
@@ -107,7 +109,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         sum_insured: {
             type: DataTypes.NUMBER,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 0
         },
         last_expense_insured: {
             type: DataTypes.NUMBER,
