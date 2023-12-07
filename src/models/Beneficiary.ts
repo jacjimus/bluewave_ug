@@ -62,10 +62,6 @@ module.exports = (sequelize, DataTypes) => {
         date_of_death: { type: Date },
         dependant_member_number: { type: String },
         principal_phone_number: { type: String },
-        category: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
 
 
 

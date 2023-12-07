@@ -6,6 +6,7 @@ import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
 
 
+
 const accountMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
@@ -44,8 +45,8 @@ const accountMenu = async (args: any, db: any) => {
             "\n6. Add Dependants" ;
     }
     else if (currentStep == 2) {
-        // console.log('Current step', currentStep);
-        // console.log('User text', userText)
+        console.log('Current step', currentStep);
+         console.log('User text', userText)
         switch (userText) {
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
@@ -108,6 +109,8 @@ const accountMenu = async (args: any, db: any) => {
         }
 
     } else if (currentStep == 3) {
+        console.log('Current step', currentStep);
+        console.log('User text', userText)
         switch (allSteps[1]) {
             case "1":
 
@@ -224,18 +227,29 @@ const accountMenu = async (args: any, db: any) => {
             case "4":
                 response = "CON Enter Next of Kin Phone number"
                 break;
+            case "5":
+                response = 'CON Enter your date of birth (dd/mm/yyyy)';
+                break;
             default:
-                response = "END Invalid option selected"
+                await db.beneficiaries.create({
+                    beneficiary_id: uuidv4(),
+                    full_name: allSteps[2],
+                    beneficiary_type: "DEPENDANT",
+                    user_id: currentUser.user_id,
+                    principal_phone_number: trimmedPhoneNumber
+                })
+                response = "CON Your dependant name saved successfully"
                 break;
         }
     } else if (currentStep == 4) {
+        console.log('Current step', currentStep);
+        console.log('User text', userText)
         switch (userText) {
 
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
                 break;
             case "4":
-
                 const existingUser = await db.users.findOne({
                     where: {
                         [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
@@ -263,6 +277,9 @@ const accountMenu = async (args: any, db: any) => {
                     phone_number: userText,
                     user_id: existingUser.user_id,
                     bonus: allSteps[2],
+                    beneficiary_type: "KIN",
+                    principal_phone_number: trimmedPhoneNumber
+                    
                 }
 
 
@@ -270,30 +287,28 @@ const accountMenu = async (args: any, db: any) => {
                 const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`
                 await SMSMessenger.sendSMS(smsPhone, sms);
                 response = `END ${sms}`
+            default:
+                let gender = allSteps[2] == "1" ? 'MALE' : 'FEMALE';
+                let dob = new Date(allSteps[3]);
+                console.log(gender, dob);
+
+                await db.users.update(
+                    {
+                        dob: dob,
+                        gender: gender,
+                    },
+                    {
+                        where: {
+                            phone_number: trimmedPhoneNumber,
+                        },
+                    }
+                );
+
+                response = "END Your gender and date of birth updated successfully"
+                break;
+                
         }
-    } else if (currentStep == 5){
-        console.log('==5 userText',userText)
-        console.log(" ===5 ALLSTEPS", allSteps)
-      // update gender and dob
-    
-    response = 'CON whats your date of birth? (dd/mm/yyyy)'
-
-    }else if(currentStep == 6){
-        // const existingUser = await db.users.findOne({
-        //     where: {
-        //         [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-        //     },
-        //     limit: 1,
-        // });
-
-        console.log('==6 userText',userText)
-        console.log(" ===6 ALLSTEPS", allSteps)
-        //update dependant
-
-
-    }
-
-
+    } 
     return response
 }
 

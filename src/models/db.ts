@@ -42,11 +42,6 @@ db.vehicles = require('./Vehicle')(sequelize, DataTypes)
 db.users.hasMany(db.policies, { foreignKey: 'user_id' });
 db.policies.belongsTo(db.users, { foreignKey: 'user_id' });
 
-// const agenda = new Agenda({
-//   db: { instance: db, collection: 'beneficiaries' }, // Replace 'agendaJobs' with your table name
-// });
-//449 priincipal
-// policy 535
 
 // Your actual code
 // const updatePolicies = () => {
