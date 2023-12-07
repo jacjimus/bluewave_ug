@@ -731,7 +731,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
     await workbook.xlsx.writeFile(tempFilePath);
 
     // Get the base URL from environment variable or use a default
-    const BASE_URL = process.env.BASE_URL || "http://localhost:4000";
+    const BASE_URL = process.env.ENVIROMENT == 'PROD' ? process.env.BASE_URL : "http://localhost:4000";
 
     // Generate a unique download token
     const downloadToken = Date.now();
@@ -791,6 +791,7 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Policy Number", key: "policy_number", width: 20 },
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
+    { header: "AAR Member Number", key: "arr_member_number", width: 20 },
     { header: "Policy Category", key: "beneficiary", width: 20 },
     { header: "Policy Type", key: "policy_type", width: 20 },
     { header: "Family Size", key: "total_member_number", width: 20 },
@@ -812,7 +813,7 @@ const generatePolicyExcelReport = async (policies) => {
       policy_id: policy.policy_id,
       airtel_money_id: policy.airtel_money_id,
       bluewave_transaction_id: policy.bluewave_transaction_id,
-      arr_member_number: policy.arr_member_number,
+      arr_member_number: policy.user.dataValues?.arr_member_number,
       policy_number: policy.policy_number,
       policy_type: policy.policy_type,
       beneficiary: policy.beneficiary,
@@ -851,7 +852,9 @@ const generatePolicyExcelReport = async (policies) => {
       updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
       full_name: `${policy.user?.dataValues?.first_name} ${policy.user?.dataValues?.last_name}`,
       phone_number: policy.user?.dataValues?.phone_number,
-      product_name: policy.product.product_name,
+   
+  
+
 
     });
   });
