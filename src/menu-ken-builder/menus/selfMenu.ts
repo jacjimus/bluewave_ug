@@ -144,7 +144,7 @@ const selfMenu = async (args, db) => {
             let policyObject = {
                 policy_id: uuidv4(),
                 installment_type: installment_type == 1 ? 2 : 1,
-                installment_order: installment_type == 1 ? 0 : 1,
+                installment_order: 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium:  selectedPolicyType.yearPemium -ultimatePremium.premium,

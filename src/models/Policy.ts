@@ -72,6 +72,7 @@ module.exports = (sequelize, DataTypes) => {
         installment_order: {
             type: DataTypes.INTEGER,
             allowNull: true,
+            defaultValue: 1,
             enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11, 12] // monthly
         },
         installment_type: {
@@ -82,12 +83,12 @@ module.exports = (sequelize, DataTypes) => {
         installment_date: {
             type: DataTypes.DATE,
             allowNull: true,
-            default: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
+            defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
         },
         installment_alert_date: {
             type: DataTypes.DATE,
             allowNull: true,
-            default: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
+            defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
         },
         tax_rate_vat: {
             type: DataTypes.NUMBER,

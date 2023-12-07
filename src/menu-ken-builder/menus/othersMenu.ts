@@ -402,7 +402,7 @@ const othersMenu = async (args, db) => {
 
       let paymentOption = parseInt(allSteps[5]);
       let installment_type = paymentOption == 1 ? 2 : 1;
-      let installment_order = paymentOption == 1 ? 0 : 1;
+      let installment_order = 1
 
 
       // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
