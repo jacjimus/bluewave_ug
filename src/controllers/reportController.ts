@@ -749,6 +749,20 @@ const getPolicyExcelReportDownload = async (req, res) => {
 };
 
 // Download endpoint handler
+const handleUsersDownload = (req, res) => {
+  const filePath = path.join(__dirname, "uploads", "users_report.xlsx");
+  // Stream the file for download
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=users_report.xlsx"
+  );
+
+  fs.createReadStream(filePath).pipe(res);
+};
 const handlePolicyDownload = (req, res) => {
   const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
   // Stream the file for download
@@ -852,14 +866,169 @@ const generatePolicyExcelReport = async (policies) => {
       updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
       full_name: `${policy.user?.dataValues?.first_name} ${policy.user?.dataValues?.last_name}`,
       phone_number: policy.user?.dataValues?.phone_number,
-   
   
-
-
     });
   });
 
   return workbook;
+};
+
+const generateUserExcelReport = async (users) => {
+
+  const workbook = new excelJS.Workbook(); // Create a new workbook
+  const worksheet = workbook.addWorksheet("User Report");
+
+  // Define columns for data in Excel. Key must match data key
+  worksheet.columns = [
+    { header: "Full Name", key: "full_name", width: 20 },
+    { header: "Phone Number", key: "phone_number", width: 20 },
+    { header: "AAR Member Number", key: "arr_member_number", width: 20 },
+    { header: "Membership ID", key: "membership_id", width: 20},
+    { header: "Number of Policies", key: "number_of_policies", width: 20},
+    { header: "Created At", key: "createdAt", width: 20 },
+  
+  ];
+
+  users.forEach(async (user) => {
+    worksheet.addRow({
+      user_id: user.user_id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone_number: user.phone_number,
+      arr_member_number: user.arr_member_number,
+      country_code: user.country_code,
+      currency_code: user.currency_code,
+      createdAt: moment(user.createdAt).format("YYYY-MM-DD"),
+      updatedAt: moment(user.updatedAt).format("YYYY-MM-DD"),
+      full_name: `${user.first_name} ${user.last_name}`,
+      number_of_policies: user.number_of_policies,
+      membership_id: user.membership_id,
+    });
+  });
+
+  return workbook;
+
+
+}
+/**
+ * @swagger
+ * /api/v1/reports/users/excel:
+ *   post:
+ *     tags:
+ *       - Reports
+ *     description: Excel All user report
+ *     operationId: ExcelUserReport
+ *     summary: Excel All user report
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: filter
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: start_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: end_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Excel file generated successfully
+ *       400:
+ *         description: Invalid request
+ */
+const getUserExcelReportDownload = async (req, res) => {
+  let {
+    partner_id,
+    page = 1,
+    limit = 1000,
+    filter,
+    start_date,
+    end_date,
+  } = req.query;
+
+  try {
+    const whereClause: any = {
+      partner_id: partner_id,
+    };
+    if (filter)
+      filter = filter.trim().toLowerCase();
+    if (filter) {
+      whereClause[Op.or] = [
+        { name: { [Op.iLike]: `%${filter}%` } },
+        { arr_member_number: { [Op.iLike]: `%${filter}%` } },
+        { currency_code: { [Op.iLike]: `%${filter}%` } },
+        { country_code: { [Op.iLike]: `%${filter}%` } },
+
+      ];
+    }
+
+    // if (start_date && end_date) {
+    //   whereClause.policy_start_date = {
+    //     [Op.between]: [new Date(start_date), new Date(end_date)],
+    //   };
+    // }
+
+    // if (start_date && !end_date) {
+    //   whereClause.policy_start_date = {
+    //     [Op.gte]: new Date(start_date),
+    //   };
+    // }
+
+    const options = {
+      where: whereClause,
+    };
+
+    let users = await db.users.findAll(options);
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    const workbook = await generateUserExcelReport(users);
+    // Save the workbook to a temporary file
+    const tempFilePath = path.join(__dirname, "uploads", "users_report.xlsx");
+    await workbook.xlsx.writeFile(tempFilePath);
+
+    // Get the base URL from environment variable or use a default
+    const BASE_URL = process.env.ENVIROMENT == 'PROD' ? process.env.BASE_URL : "http://localhost:4000";
+
+    // Generate a unique download token
+    const downloadToken = Date.now();
+
+    // Create a URL for the download endpoint including the token
+    // the file is located at src/uploads/policy_report.xlsx
+    const downloadURL = `${BASE_URL}/api/v1/reports/users/excel/download?token=${downloadToken}`;
+
+    // Return the download URL to the user
+    res.status(200).json({ downloadURL });
+  } catch (error) {
+    console.error("Error generating users Excel report:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 /**
@@ -1624,6 +1793,8 @@ module.exports = {
   getAggregatedAnnuallyPolicySalesReport,
   getAggregatedMonthlySalesReport,
   handlePolicyDownload,
+  handleUsersDownload,
   handleClaimDownload,
   getClaimExcelReportDownload,
+  getUserExcelReportDownload
 };

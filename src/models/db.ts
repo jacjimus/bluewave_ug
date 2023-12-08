@@ -261,7 +261,59 @@ async function registerPrincipalArr(phone_numbers) {
 
 
 // Call the function with all_phone_numbers
-// registerPrincipalArr(phones);
+let phones = [
+  751440048,
+703870739,
+740475276,
+755692926,
+757204220,
+754376270,
+744078120,
+750521580,
+703007102,
+703482376,
+704279081,
+744567065,
+701011880,
+754581873,
+754997400,
+702325987,
+704043517,
+741076901,
+707664531,
+709426127,
+743791211,
+744394578,
+703086589,
+758960852,
+705645089,
+744168788,
+742694054,
+743774267,
+750793863,
+708695835,
+707375172,
+709228486,
+742935120,
+759263889,
+702206893,
+742172942,
+709879368,
+706593175,
+702385188,
+753859177,
+706394188,
+704859348,
+704411387,
+740946342,
+703229918,
+742904759,
+743711216,
+744033279,
+743392699,
+700784998,
+]
+//registerPrincipalArr(phones);
 
 
 
@@ -361,7 +413,7 @@ async function updatePendingPremium() {
   }
 }
 
-//updatePendingPremium()
+
 
 
 
@@ -371,10 +423,10 @@ async function updatePendingPremium() {
 async function processUsersPolicyAAR() {
   // settimeout
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let count =0
   let policies = await db.policies.findAll({
     where: {
       policy_status: 'paid',
-      //installment_type: 2
     }
   });
   for (const policy of policies) {
@@ -397,9 +449,11 @@ async function processUsersPolicyAAR() {
       console.log("user", user.phone_number);
 
       await updatePremium(user, policy);
+      count++
       // Add a delay between iterations (adjust the delay time as needed)
-      await delay(2000);
+     // await delay(1000);
       console.log(`Dependant created for user with phone number: ${user.phone_number}`);
+      console.log(count)
     } catch (error) {
       console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
     }
@@ -794,11 +848,6 @@ async function updateNumberOfPolicies() {
 //updateNumberOfPolicies();
 
 
-
-
-
-
-
 // RENEWAL
 async function sendPolicyAnniversaryReminders() {
   const query = `
@@ -913,7 +962,7 @@ async function generatePolicyNumber() {
 async function sendWelcomeSMS() {
   try {
     let delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-    console.log("i was called")
+    //console.log("i was called")
     // users with no policy
     let allUsers = await db.users.findAll(
       {
@@ -981,14 +1030,34 @@ async function getUsersWithoutPolicyAndSendSMS() {
 // Call the function to get users without policies and send SMS
 //getUsersWithoutPolicyAndSendSMS();
 
-// send sms to users
 
-// Schedule the updatePolicies function to run every hour
-// cron.schedule('0 * * * *', () => {
-//   console.log('Running updateUserPolicies...');
-//   updatePolicies();
-//   console.log('Done.');
-// });
+
+async function getUsersWithPendingPoliciesAndSendSMS() {
+  try {
+    // Find users with pending policies
+    console.log("i was called")
+    const usersWithPendingPolicies = await db.policies.findAll({
+      where: {
+        '$policies.policy_status$': 'pending', // Adjust based on your policy status field
+      }
+    });
+    console.log('usersWithPendingPolicies', usersWithPendingPolicies)
+
+    // Send SMS to each user with pending policies
+    // for (const user of usersWithPendingPolicies) {
+    //   let message = 'Low on cash? You can now purchase Ddwaliro Care using Airtel Quickloan. Dial *185*6*7# to learn more and get covered.'
+    //   await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
+    // }
+
+    console.log('SMS sent to users with pending policies.');
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+//getUsersWithPendingPoliciesAndSendSMS()
+
+
 
 
 async function updatePolicyNumber() {
@@ -1029,6 +1098,12 @@ async function updatePolicyNumber() {
 // Call the function to update policy numbers for duplicates
 //updatePolicyNumber();
 
+//Schedule the updatePolicies function to run every hour
+cron.schedule('0 1 * * *', () => {
+  console.log('Running cron job...');
+  //updatePendingPremium()
+  console.log('Done.');
+});
 
 
 module.exports = { db }
