@@ -2,6 +2,7 @@ const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 import cron from 'node-cron';
 import { createDependant, fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
 import SMSMessenger from '../services/sendSMS';
+import axios from 'axios';
 const Agenda = require('agenda');
 require('dotenv').config()
 const fs = require('fs/promises'); // Use promises-based fs
@@ -41,6 +42,21 @@ db.vehicles = require('./Vehicle')(sequelize, DataTypes)
 
 db.users.hasMany(db.policies, { foreignKey: 'user_id' });
 db.policies.belongsTo(db.users, { foreignKey: 'user_id' });
+db.payments.belongsTo(db.users, { foreignKey: 'user_id' });
+db.payments.belongsTo(db.policies, { foreignKey: 'policy_id' });
+db.policies.hasMany(db.payments, { foreignKey: 'policy_id' });
+db.policies.hasMany(db.claims, { foreignKey: 'policy_id' });
+db.claims.belongsTo(db.policies, { foreignKey: 'policy_id' });
+db.users.hasMany(db.claims, { foreignKey: 'user_id' });
+db.claims.belongsTo(db.users, { foreignKey: 'user_id' });
+db.users.hasMany(db.sessions, { foreignKey: 'user_id' });
+db.sessions.belongsTo(db.users, { foreignKey: 'user_id' });
+db.users.hasMany(db.beneficiaries, { foreignKey: 'user_id' });
+db.beneficiaries.belongsTo(db.users, { foreignKey: 'user_id' });
+db.users.hasMany(db.transactions, { foreignKey: 'user_id' });
+db.transactions.belongsTo(db.users, { foreignKey: 'user_id' });
+db.policies.hasMany(db.transactions, { foreignKey: 'policy_id' });
+db.transactions.belongsTo(db.policies, { foreignKey: 'policy_id' });
 
 
 // Your actual code
@@ -413,11 +429,96 @@ async function updatePendingPremium() {
   }
 }
 
+const data = [
+  { serialNumber: "UG155848-05", registrationNumber: 256750924432 },
+  { serialNumber: "UG155848-06", registrationNumber: 256750924432 },
+  { serialNumber: "UG155848-07", registrationNumber: 256750924432 },
+  { serialNumber: "UG155848-08", registrationNumber: 256750924432 },
+  { serialNumber: "UG155903-03", registrationNumber: 256740258784 },
+  { serialNumber: "UG155903-04", registrationNumber: 256740258784 },
+  { serialNumber: "UG155943-07", registrationNumber: 256704300201 },
+  { serialNumber: "UG155943-08", registrationNumber: 256704300201 },
+  { serialNumber: "UG155943-09", registrationNumber: 256704300201 },
+  { serialNumber: "UG155943-10", registrationNumber: 256704300201 },
+  { serialNumber: "UG155943-11", registrationNumber: 256704300201 },
+  { serialNumber: "UG155943-12", registrationNumber: 256704300201 },
+  { serialNumber: "UG155945-02", registrationNumber: 256708464605 },
+  { serialNumber: "UG155950-02", registrationNumber: 256753778663 },
+  { serialNumber: "UG155953-02", registrationNumber: 256754152168 },
+  { serialNumber: "UG155962-03", registrationNumber: 256706439557 },
+  { serialNumber: "UG155962-04", registrationNumber: 256706439557 },
+  { serialNumber: "UG156134-01", registrationNumber: 256758771181 },
+  { serialNumber: "UG156149-01", registrationNumber: 256755326045 },
+  { serialNumber: "UG156149-02", registrationNumber: 256755326045 },
+  { serialNumber: "UG156150-01", registrationNumber: 256708166399 },
+  { serialNumber: "UG156150-02", registrationNumber: 256708166399 },
+  { serialNumber: "UG156151-01", registrationNumber: 256754649203 },
+  { serialNumber: "UG156151-02", registrationNumber: 256754649203 },
+  { serialNumber: "UG156152-01", registrationNumber: 256759785803 },
+  { serialNumber: "UG156152-02", registrationNumber: 256759785803 },
+  { serialNumber: "UG156152-03", registrationNumber: 256759785803 },
+  { serialNumber: "UG156178-01", registrationNumber: 256742249990 },
+  { serialNumber: "UG156179-01", registrationNumber: 256751882389 },
+  { serialNumber: "UG156206-02", registrationNumber: 256709190777 },
+  { serialNumber: "UG156207-04", registrationNumber: 256708541034 },
+  { serialNumber: "UG156207-05", registrationNumber: 256708541034 },
+  { serialNumber: "UG156207-06", registrationNumber: 256708541034 },
+  { serialNumber: "UG156212-04", registrationNumber: 256704674642 },
+  { serialNumber: "UG156212-05", registrationNumber: 256704674642 },
+  { serialNumber: "UG156212-06", registrationNumber: 256704674642 },
+  { serialNumber: "UG156285-01", registrationNumber: 256759136143 },
+  { serialNumber: "UG156286-01", registrationNumber: 256750911250 },
+  { serialNumber: "UG156288-01", registrationNumber: 256742256068 },
+  { serialNumber: "UG156288-02", registrationNumber: 256742256068 },
+  { serialNumber: "UG156293-01", registrationNumber: 256751754051 },
+  { serialNumber: "UG156293-02", registrationNumber: 256751754051 },
+  { serialNumber: "UG157245-06", registrationNumber: 256704279081 },
+  { serialNumber: "UG157290-06", registrationNumber: 256757816490 }
+];
 
+//console.log(data);
+let ArrMembersWithNoPolicies = [
+"UG156675-00",
+"UG156676-00",
+"UG156677-00",
+"UG156678-00",
+"UG156679-00",
+"UG156680-00",
+"UG156681-00",
+"UG156682-00",
+"UG156794-00",
+]
+async function updateArrPolicies() {
+  for (const member of ArrMembersWithNoPolicies) {
+    let user = await db.users.findOne({
+      where: {
+        arr_member_number: member,
+        partner_id: 2,
+      },
+    });
+    if (!user) {
+      console.log("NO USER FOUND");
+      continue
+    }
+    let policy = await db.policies.findOne({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
+        user_id: user.user_id
+      }
+    });
+    if (!policy) {
+      console.log("NO POLICY FOUND");
+      continue
+    }
+    console.log("user", user.phone_number);
+    console.log("policy", policy.policy_number);
+    await updatePremium(user, policy);
 
+  }
 
-
-// get all user with arr_member_number is null and partner_id = 2 and email is  null
+}
+//updateArrPolicies()
 
 
 async function processUsersPolicyAAR() {
@@ -461,6 +562,106 @@ async function processUsersPolicyAAR() {
 }
 
 //processUsersPolicyAAR()
+let arrMembersWithnoPolicy = [
+  "UG155285-01",
+  "UG155943-07",
+  "UG155943-08",
+  "UG155943-09",
+  "UG155943-10",
+  "UG155943-11",
+  "UG155943-12",
+  "UG155950-02",
+  "UG155953-02",
+  "UG155962-03",
+  "UG155962-04",
+  "UG156794-00",
+]
+//"UG155285-01""UG156206-02""UG155848-05""UG155848-06""UG155848-07""UG155848-08""UG155903-03""UG155903-04"
+//"UG155943-07""UG155943-08""UG155943-09""UG155943-10""UG155943-11""UG155943-12""UG155945-02""UG155950-02""UG155953-02"
+//"UG155962-03""UG155962-04""UG156212-04""UG156212-05""UG156212-06""UG156207-04""UG156207-05""UG156207-06""UG156285-01"
+//"UG156286-01""UG156288-01""UG156288-02""UG156293-01""UG156293-02""UG156134-01""UG156149-01""UG156149-02""UG156150-01"
+//"UG156150-02""UG156151-01""UG156151-02""UG156152-01""UG156152-02""UG156152-03""UG156178-01""UG156179-01""UG156180-01"
+//"UG156180-02""UG156180-03""UG156180-04""UG156180-05""UG156188-01""UG156188-02""UG156190-01""UG156206-01""UG156207-01"
+//"UG156207-02""UG156207-03""UG156212-01""UG156212-02""UG156212-03""UG156224-01""UG156225-01""UG156225-02""UG156225-03"
+//"UG156225-04""UG156225-05""UG156225-06""UG156232-01""UG156645-01""UG156645-02""UG156675-00""UG156676-00""UG156677-00"
+//"UG156678-00""UG156679-00""UG156680-00""UG156681-00""UG156682-00""UG157164-01""UG157245-01""UG157245-02""UG157245-03"
+//"UG157245-04""UG157245-05""UG157245-06""UG157285-01""UG157290-01""UG157290-02""UG157290-03""UG157290-04""UG157290-05"
+//"UG157290-06""UG155285-01""UG155285-01""UG155285-01""UG155285-01""UG155285-01""UG155285-01""UG155285-01""UG155285-01"
+
+async function processUsersPolicyAARWithAANumber() {
+  // settimeout
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let count =0
+ 
+  for (const member of  arrMembersWithnoPolicy) {
+
+    let principal = member.replace(/-(\d+)$/, '-00');
+    try {
+      const user = await db.users.findOne({
+        where: {
+          arr_member_number: principal,
+          partner_id: 2,
+        },
+      });
+      //if useris null write to file the member
+      if (!user) {
+        fs.appendFile('noPolicy.json', JSON.stringify(member), function (err) {
+          if (err) throw err;
+          console.log('Saved!');
+        }
+        );
+      }
+
+       let policy = await db.policies.findOne({
+       where: {
+      policy_status: 'paid',
+      partner_id: 2,
+      user_id: user.user_id
+    }
+  });
+
+
+      console.log("user", user.phone_number, policy.policy_number );
+      const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+     let ultimatePremium = policy.total_member_number=="M" ?policy.premium : policy.premium/ (parseInt((policy.total_member_number).split("")[2]) + 1) 
+     const main_benefit_limit =  policy.sum_insured 
+     const last_expense_limit =  policy.last_expense_insured 
+
+      const requestData = {
+        member_no: member,
+        unique_profile_id: user?.membership_id + "" ||user?.unique_profile_id + "",
+        health_plan: "AIRTEL_" + policy.policy_type,
+        health_option: "64",
+        premium:ultimatePremium,
+        premium_type: policy.installment_type,
+        premium_installment: policy.renewal_order || 1,
+        main_benefit_limit: main_benefit_limit,
+        last_expense_limit: last_expense_limit,
+        money_transaction_id: policy.airtel_money_id || "123456789",
+      };
+     console.log("requestData", requestData)
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
+        headers: {
+          'Authorization': 'Bearer ' +  'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwMjMyMDQxMiwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.R1PvCgocO5oHS3aVl2n0KxwGfnKgtW9loJ4VosNe4AHXvw4xVZ-dBC5SNawheV06DKhkik9HQC2-NYaVCc8CIXYc-6c3uCmImOa36Bh3sEsWMXASaqiumD9Dm2XuSGm1ITTAd4Rg0oMAjyocXoODM6THX7WPXGJOa-sg_Mwg10cTxtMJXc-ayThWis_SkHbHZ1MMvHZxm5dvsl4l0KaIECzHEFXsw_LR5NDJtOqP2aJDIpSk3esbvLJhWR9FzxCEiDnHKsOuZw_gyN0YAHXN9fHX2g8RhNMs1sWLUHctWppy0Rf2skVvAc3mpzIbQeppPirGX-BVJcpHBPGGmbo8LQ',
+          'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(requestData),
+      };
+      const response = await axios.request(config);
+      count++
+      // Add a delay between iterations (adjust the delay time as needed)
+     // await delay(1000);
+      console.log(`Dependant created for user with phone number: ${user.phone_number}, response: ${JSON.stringify(response.data)}`);
+      console.log(count)
+    } catch (error) {
+      console.error(`Error creating dependant for user with :`, error);
+    }
+  }
+}
+//processUsersPolicyAARWithAANumber()
 
 
 
@@ -962,8 +1163,9 @@ async function generatePolicyNumber() {
 async function sendWelcomeSMS() {
   try {
     let delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-    //console.log("i was called")
-    // users with no policy
+    console.log("i was called")
+  
+    let count = 0
     let allUsers = await db.users.findAll(
       {
         where: {
@@ -971,28 +1173,25 @@ async function sendWelcomeSMS() {
         }
       }
     )
+    
+console.log("ALL USERS", allUsers.length)
 
     for (let user of allUsers) {
       console.log(user.name, user.user_id)
-      // check if user has not policy
-      let policy = db.policies.findAll({
-        where:{
-          user_id: user.user_id
-        }
-       
-      })
 
-      if (policy.length == 0) {
+        let lowFundsMessage = 'Low on cash? You can now purchase Ddwaliro Care using Airtel Quickloan. Dial *185*6*7# to learn more and get covered.'
 
-        let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
-        await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
+        //let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
+        await SMSMessenger.sendSMS(`+256${user.phone_number}`, lowFundsMessage);
+        console.log("SENT TO", user.phone_number, count)
         delay(1000)
-      }
+      
     }
   } catch (error) {
     console.log(error)
   }
 }
+
 //sendWelcomeSMS()
 
 

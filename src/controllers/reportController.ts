@@ -1,6 +1,6 @@
 import { db } from "../models/db";
 import { processPolicy, updateUserPolicyStatus } from "../routes/ussdRoutes";
-import { fetchMemberStatusData } from "../services/aar";
+import { fetchMemberStatusData, reconciliation } from "../services/aar";
 import SMSMessenger from "../services/sendSMS";
 import { formatAmount } from "../services/utils";
 const { Op, QueryTypes } = require("sequelize");
@@ -1622,6 +1622,7 @@ const paymentReconciliation = async (req, res) => {
 
     // Convert worksheet data to an array of objects
     const paymentDataArray = XLSX.utils.sheet_to_json(worksheet);
+    console.log("paymentDataArray", paymentDataArray);
 
     let userPhoneNumbers = [];
     for (let payment of paymentDataArray) {
@@ -1632,7 +1633,8 @@ const paymentReconciliation = async (req, res) => {
         },
         limit: 1,
       });
-      console.log("existingUser", existingUser.name)
+      console.log(`existingUser, ${payment['Sender Mobile Number']}`)
+
       if (!existingUser) {
         throw new Error("User not found");  
       }
@@ -1646,6 +1648,7 @@ const paymentReconciliation = async (req, res) => {
         payment_id: payment['External Reference'],
         policy_paid_date: payment['Transaction Date'],
       });
+      await reconciliation(partner_id,  `+256${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
 
       let myPolicy = await db.policies.findOne({
         where: {
@@ -1714,35 +1717,6 @@ const paymentReconciliation = async (req, res) => {
 
       console.log("memberStatus", memberStatus)
 
-      // if (myPolicy.installment_order >= 1 && myPolicy.installment_order < 12 && myPolicy.installment_type == 2 && myPolicy.policy_status == "paid") {
-      //   console.log("INSTALLMENT ORDER", myPolicy.installment_order, myPolicy.installment_type);
-      //   const date = myPolicy.policy_start_date
-      //   const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
-
-      //   let installment_order = myPolicy.installment_order + 1;
-
-      //   let installment = await db.installments.create({
-      //     installment_id: uuidv4(),
-      //     policy_id: myPolicy.policy_id,
-      //     installment_order,
-      //     installment_date: new Date(),
-      //     installment_alert_date,
-      //     tax_rate_vat: myPolicy.tax_rate_vat,
-      //     tax_rate_ext: myPolicy.tax_rate_ext,
-      //     installment_deduction_amount: myPolicy.policy_deduction_amount,
-      //     premium: myPolicy.premium,
-      //     sum_insured: myPolicy.sum_insured,
-      //     excess_premium: myPolicy.excess_premium,
-      //     discount_premium: myPolicy.discount_premium,
-      //     currency_code: myPolicy.currency_code,
-      //     country_code: myPolicy.country_code,
-      //   });
-
-      // }
-      // let updatedPolicy = await updateUserPolicyStatus(myPolicy, parseInt(myPolicy.premium), myPolicy.installment_order, myPolicy.installment_type, payment, payment['Transaction ID'],);
-
-      // console.log("updatedPolicy", updatedPolicy)
-
       const members = myPolicy.total_member_number?.match(/\d+(\.\d+)?/g);
       console.log("MEMBERS", members, myPolicy.total_member_number);
 
@@ -1766,8 +1740,6 @@ const paymentReconciliation = async (req, res) => {
 
      // await SMSMessenger.sendSMS(`+256${payment['Sender Mobile Number']}`, congratText);
 
-      // Call the function with the relevant user, policy, and memberStatus
-    //  await processPolicy(existingUser, myPolicy, memberStatus);
     let policyPaidCountOfUser = await db.policies.count({ where: { user_id: myPolicy.user_id, policy_status: "paid" } });
     await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: myPolicy.user_id } });
     await db.policies.update({ policy_paid_date: policy_paid_date  }, { where: { policy_id: myPolicy.policy_id , policy_status: "paid" } });
@@ -1778,6 +1750,7 @@ const paymentReconciliation = async (req, res) => {
     return res.status(200).json({ message: "Reconciliation done successfully", data: userPhoneNumbers });
   } catch (error) {
     console.log(error)
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 

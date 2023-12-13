@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 import { db } from "../models/db";
-import { registerDependant, registerPrincipal, updatePremium } from "../services/aar";
+import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 import welcomeTemplate from "../services/emailTemplates/welcome";
 import sendEmail from "../services/sendEmail";
 const jwt = require("jsonwebtoken");
@@ -62,7 +62,7 @@ async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
  *       400:
  *         description: Invalid request
  */
-const signup = async (req: any, res: any) => {
+const signup = async (req, res) => {
   try {
     const {
       first_name,
@@ -71,6 +71,7 @@ const signup = async (req: any, res: any) => {
       email,
       password,
       phone_number,
+      partner_id,
       national_id,
       dob,
       gender,
@@ -85,80 +86,28 @@ const signup = async (req: any, res: any) => {
       voter_id,
     } = req.body;
 
-    let partner_id = req.query.partner_id || req.body.partner_id;
-
-    if (
-      !first_name ||
-      !last_name ||
-      !email ||
-      !password ||
-      !phone_number ||
-      !partner_id
-    ) {
-      return res.status(400).json({ code: 400, message: "Please provide all fields" });
+    // Validate required fields
+    const requiredFields = [first_name, last_name, email, password, phone_number, partner_id];
+    if (requiredFields.some((field) => !field)) {
+      return res.status(400).json({ code: 400, message: "Please provide all required fields" });
     }
 
-    // if (!isValidKenyanPhoneNumber(phone_number)) {
-    //   return res.status(400).json({ message: "Please enter a valid phone number" });
-    // }
+    // Validate email format
     if (!isValidEmail(email)) {
       return res.status(400).json({ code: 400, message: "Please enter a valid email" });
     }
-    let nationalId = national_id.toString();
-    // if (nationalId.length !== 8) {
-    //   return res.status(400).json({ message: "National ID should be 8 digits" });
-    // }
-    //create a user interface
-    interface Person {
 
-      membership_id: number;
-      name: string;
-      first_name: string;
-      middle_name: string;
-      last_name: string;
-      email: string;
-      phone_number: string;
-      national_id: string;
-      password: string;
-      createdAt: Date;
-      updatedAt: Date;
-      pin: number;
-      role: string;
-      dob: Date;
-      gender: string;
-      marital_status: string;
-      addressline: string;
-      nationality: string;
-      title: string;
-      pinzip: string;
-      weight: number;
-      height: number;
-      partner_id: number;
-      driver_licence: string;
-      voter_id: string;
-    }
-
-    // Generate a random integer for the primary key
-    //let randomId = getRandomInt(10000000, 99999999);
-
-    // let userIDcheck: any = await User.findAll({ where: { id: randomId } });
-    // if (userIDcheck.length > 0) {
-    //   randomId = getRandomInt(10000000, 99999999);
-    // }
-
-    const userData: Person = {
-
+    // Validate national ID length
+    const nationalId = national_id.toString();
+  
+    // Create user data object
+    const userData = {
       membership_id: Math.floor(100000 + Math.random() * 900000),
-      first_name,
-      middle_name,
-      last_name,
-      name: first_name + " " + last_name,
+      name: `${first_name} ${last_name}`,
       email,
       phone_number,
       national_id,
       password: await bcrypt.hash(password, 10),
-      createdAt: new Date(),
-      updatedAt: new Date(),
       pin: Math.floor(1000 + Math.random() * 9000),
       role: "user",
       dob,
@@ -173,73 +122,44 @@ const signup = async (req: any, res: any) => {
       partner_id,
       driver_licence,
       voter_id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    userData.name = first_name + " " + last_name;
+    // Check if phone number or email already exists
+    const phoneNumberExists = await User.findOne({ where: { phone_number } });
+    const emailExists = await User.findOne({ where: { email } });
 
-    //checking if the user already exists
-    let user: any = await User.findAll({ where: { email: email }, limit: 100 });
-
-    //check if national id exists
-    // let nationalIdExists: any = await User.findAll({
-    //   where: { national_id: national_id },
-    // });
-    //check if phone number exists
-    let phoneNumberExists: any = await User.findAll({
-      where: { phone_number: phone_number },
-    });
-    // if (nationalIdExists && nationalIdExists.length > 0) {
-    //   return res.status(409).json({code: 200, message: "National ID already exists" });
-    // }
-    if (phoneNumberExists && phoneNumberExists.length > 0) {
-      return res.status(409).json({ code: 409, message: "Sorry, Phone number already exists" });
+    if (phoneNumberExists) {
+      return res.status(409).json({ code: 409, message: "Phone number already exists" });
     }
 
-    if (user && user.length > 0) {
-      return res.status(409).json({ code: 409, message: "Sorry, Customer already exists" });
+    if (emailExists) {
+      return res.status(409).json({ code: 409, message: "Email already exists" });
     }
 
-    console.log("USER DATA", userData);
+    // Create a new user
+    const newUser = await User.create(userData);
 
-    //saving the user
-    const newUser: any = await User.create(userData);
-   
-    // set cookie with the token generated
     if (newUser) {
-      let token = jwt.sign(
-        { user_id: newUser.user_id, role: newUser.role },
-        process.env.JWT_SECRET || "apple123",
-        {
-          expiresIn: 1 * 24 * 60 * 60 * 1000,
-        }
-      );
+      // Generate and set JWT token
+      const token = jwt.sign({ user_id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
+        expiresIn: 1 * 24 * 60 * 60 * 1000,
+      });
 
       res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-      console.log(token);
-      //send users details
 
-      // await Log.create({
-      //   log_id: uuidv4(),
-      //   timestamp: new Date(),
-      //   message: 'User registered successfully',
-      //   level: 'info',
-      //   user: newUser.user_id,
-      //   partner_id: newUser.partner_id,
-      // });
-
-      return res
-        .status(201)
-        .json({
-          result: {
-            code: 200,
-            message: "Customer registered successfully",
-            token: token
-          },
-        });
+      return res.status(201).json({
+        result: {
+          code: 200,
+          message: "Customer registered successfully",
+          token,
+        },
+      });
     }
   } catch (error) {
-    console.log("ERROR", error);
-    return res.status(409).send({ code: 409, message: "Details are not correct" });
+    console.error("ERROR", error);
+    return res.status(500).json({ code: 500, message: "Internal server error", error: error.message });
   }
 };
 
@@ -321,14 +241,7 @@ const partnerRegistration = async (req: any, res: any) => {
 
     // set cookie with the token generated
     if (newPartner) {
-      // await Log.create({
-      //   log_id: uuidv4(),
-      //   timestamp: new Date(),
-      //   message: 'Partner registered successfully',
-      //   level: 'info',
-      //   user: newPartner.user_id,
-      //   partner_id: newPartner.partner_id,
-      // });
+
       return res
         .status(201)
         .json({
@@ -358,100 +271,114 @@ const partnerRegistration = async (req: any, res: any) => {
  *       content:
  *         application/json:
  *           schema:
- *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd@" }
+ *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd" }
  *     responses:
  *       200:
  *         description: Successful authentication
  */
-const login = async (req: any, res: any) => {
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate presence of email and password
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ code: 400, message: "Please provide an email and password" });
+      return res.status(400).json({
+        code: 400,
+        message: "Please provide an email and password",
+      });
     }
 
-    //find a user by their email
+    // Find user by email
     const user = await User.findOne({
       where: {
-        email: email,
+        email,
       },
     });
 
+    // Check if user exists
+    if (!user) {
+      return res.status(401).json({
+        code: 401,
+        message: "Invalid credentials",
+      });
+    }
+
+    // Find partner based on user's partner_id
     const partner = await Partner.findOne({
       where: {
-        partner_id: user.partner_id + ""
+        partner_id: user.partner_id + "",
       },
     });
 
-    console.log("PARTNER", partner);
-    //console.log("USER",user)
-    console.log(!user, user.length == 0);
-    if (!user || user.length === 0) {
-      return res.status(401).json({ code: 401, message: "Invalid credentials" });
-    }
+    // Compare password with bcrypt
+    const isSame = await bcrypt.compare(password, user.password);
 
- 
-    //if user email is found, compare password with bcrypt
-    if (user) {
-      const isSame = await bcrypt.compare(password, user.password);
-      console.log("IS SAME", isSame);
-      //generate token with the user's id and the secretKey in the env file
-      if (isSame) {
-        let token = jwt.sign(
-          { user_id: user.user_id, role: user.role, partner_id: user.partner_id, partner_name: partner.partner_name },
-          process.env.JWT_SECRET || "apple123",
-          {
-            expiresIn: 1 * 24 * 60 * 60 * 1000,
-          }
-        );
+    // Generate token if password is correct
+    if (isSame) {
+      const token = jwt.sign(
+        {
+          user_id: user.user_id,
+          role: user.role,
+          partner_id: user.partner_id,
+          partner_name: partner.partner_name,
+        },
+        process.env.JWT_SECRET || "apple123",
+        {
+          expiresIn: 1 * 24 * 60 * 60 * 1000,
+        }
+      );
 
-        //go ahead and generate a cookie for the user
-        res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-        // store user object in the session
-   
-        //remove password from the user object
-        user.password = undefined;
+      // Generate cookie for the user
+      res.cookie("jwt", token, {
+        maxAge: 1 * 24 * 60 * 60,
+        httpOnly: true,
+      });
 
-  
-        return res
-          .status(201)
-          .json({
-            result: {
-              code: 201,
-              message: "login successfully",
-              token: token,
-              role: user.role,
-              partner_name: partner.partner_name,
-              partner_id: partner.partner_id,
-              countryCode: partner.country_code,
-                currencyCode: partner.currency_code,
-              user: {
-                user_id: user.user_id,
-                full_name: user.name,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                email: user.email,
-                phone_number: user.phone_number,
-                partner_id: user.partner_id,
-                partner_name: partner.partner_name,
-                is_active: user.is_active,
-                is_verified: user.is_verified,
-                countryCode: partner.country_code,
-                currencyCode: partner.currency_code,
-              }
-            },
-          });
-      }
+      // Remove sensitive information from the user object
+      const sanitizedUser = {
+        user_id: user.user_id,
+        full_name: user.name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        phone_number: user.phone_number,
+        partner_id: user.partner_id,
+        partner_name: partner.partner_name,
+        is_active: user.is_active,
+        is_verified: user.is_verified,
+        countryCode: partner.country_code,
+        currencyCode: partner.currency_code,
+      };
+
+      return res.status(201).json({
+        result: {
+          code: 201,
+          message: "Login successful",
+          token,
+          role: user.role,
+          partner_name: partner.partner_name,
+          partner_id: partner.partner_id,
+          countryCode: partner.country_code,
+          currencyCode: partner.currency_code,
+          user: sanitizedUser,
+        },
+      });
+    } else {
+      return res.status(401).json({
+        code: 401,
+        message: "Invalid credentials",
+      });
     }
   } catch (error) {
-    console.log("ERROR", error);
-    return res
-      .status(400)
-      .json({ code: 400, message: "Invalid credentials", error: error });
+    console.error("ERROR", error);
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 
 
@@ -1176,15 +1103,20 @@ async function adminSignup(req: any, res: any) {
  *         schema:
  *           type: number
  *       - name: phoneNumber
- *         in: path
+ *         in: query
  *         required: false
  *         schema:
  *           type: string
  *       - name: arr_member_number
- *         in: path
+ *         in: query
  *         required: false
  *         schema:
  *           type: string
+ *       - name: premium
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -1194,113 +1126,12 @@ async function adminSignup(req: any, res: any) {
 async function arrMemberRegistration(req: any, res: any) {
   try {
     let partner_id = req.query.partner_id;
-    let phoneNumber  = req.params.phoneNumber || "";
-    let arr_member_number  = req.params.arr_member_number || "";
-   
-    const existingUser = await User.findOne({
-      where: {
-        [db.Sequelize.Op.or]: [
-          { phone_number: phoneNumber },
-          { arr_member_number:  arr_member_number }
-        ],
-        partner_id: partner_id
-      },
-    });
-    
-     if(!existingUser) {
-      return res.status(404).json({ code: 404, message: "Sorry, No user found" });
-    }
-    let policy: any = await Policy.findOne({
-      where: {
-        user_id: existingUser.user_id,
-        policy_status: 'paid',
-      },
-    });
-    console.log("POLICY", policy);
-    if(!policy) {
-      return res.status(404).json({ code: 404, message: "Sorry, No policy found" });
-    }
+    let phoneNumber  = req.query.phoneNumber || "";
+   let premium  = req.query.premium || 0
+   let arr_member_number = req.query.arr_member_number || ""
 
-    let arr_member: any, dependant: any;
-    if(!existingUser.arr_member_number) {
-      // create arr member id
-      arr_member = await registerPrincipal(existingUser, policy);
-      console.log("ARR MEMBER", arr_member);
-    }
-    let updatedPremium : any;
-      if(policy.arr_member_id) {
-            updatedPremium =  await updatePremium(existingUser, policy);
-      console.log("UPDATED PREMIUM", updatedPremium);
-      }
-    let number_of_dependants = parseFloat(existingUser?.total_member_number?.split("")[2]) || 0;
-      if(existingUser.total_member_number > 0) {
-          for (let i = 1; i <= number_of_dependants; i++) {
-            let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
-            let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
-            let dependant_surname = `${i}surname${existingUser.membership_id}`;
-
-         if (arr_member.policy_no != null && arr_member.code == 200) {
-              // Use a Promise with setTimeout to control the creation
-              await new Promise(resolve => {
-                setTimeout(async () => {
-                  dependant = await registerDependant({
-                    member_no: existingUser.arr_member_number,
-                    surname: dependant_surname,
-                    first_name: dependant_first_name,
-                    other_names: dependant_other_names,
-                    gender: 1,
-                    dob: "1990-01-01",
-                    email: "dependant@bluewave.insure",
-                    pri_dep: "25",
-                    family_title: "25", // Assuming all dependants are children
-                    tel_no: policy.phone_number,
-                    next_of_kin: {
-                      surname: "",
-                      first_name: "",
-                      other_names: "",
-                      tel_no: "",
-                    },
-                    member_status: "1",
-                    health_option: "64",
-                    health_plan: "AIRTEL_" + policy?.policy_type,
-                    policy_start_date: policy.policy_start_date,
-                    policy_end_date: policy.policy_end_date,
-                    unique_profile_id: existingUser.membership_id + "",
-                  });
-
-                  if (dependant.code == 200) {
-
-                    console.log(`Dependant ${i} created:`, dependant);
-
-                    policy.arr_policy_number = arr_member?.policy_no;
-                    dependant.unique_profile_id = existingUser.membership_id + "";
-                    let updateDependantMemberNo: string[] =[]
-                    updateDependantMemberNo.push(dependant.member_no)
-                    await db.policies.update(
-                      { dependant_member_numbers: updateDependantMemberNo },
-                      { where: { policy_id: policy.policy_id } }
-                    );
-                    let updatePremiumData = await updatePremium(dependant, policy);
-                    if (updatePremiumData.code == 200) {
-                      console.log("AAR UPDATE PREMIUM", updatePremiumData);
-                      resolve(true)
-                    } else{
-                      console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-                      resolve(true)
-
-                    }
-                    resolve(true)
-                  }else{
-                    console.log("DEPENDANT NOT CREATED", dependant);
-                    resolve(true)
-                  }
-                }, 1000 * i); // Adjust the delay as needed
-              });
-
-      }
-    }
-    }
-
+ 
+  let updatedPremium =  reconciliation(partner_id, phoneNumber, arr_member_number, premium)
 
     return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium  });
   } catch (error) {
@@ -1310,6 +1141,9 @@ async function arrMemberRegistration(req: any, res: any) {
     
   }
 }
+
+
+
 
 /**
  * @swagger

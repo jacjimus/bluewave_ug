@@ -541,4 +541,141 @@ async function processPolicy(user: any, policy: any, memberStatus: any) {
 }
 
 
-export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy };
+async function reconciliation(partner_id, phoneNumber, arr_member_number, premium) {
+  const existingUser = await db.users.findOne({
+    where: {
+      [db.Sequelize.Op.or]: [
+        { phone_number: phoneNumber },
+         { arr_member_number:  arr_member_number }
+      ],
+      partner_id: partner_id
+    },
+  });
+  
+   if(!existingUser) {
+    throw new Error("Sorry, No user found")
+  }
+  let policy: any = await db.policies.findOne({
+    where: {
+      user_id: existingUser.user_id,
+      premium: premium
+      //policy_status: 'paid',
+    },
+  });
+  console.log("POLICY", policy);
+  if(!policy) {
+    throw new Error("Sorry, No policy found")
+  }else{
+    //update policy status to paid
+    await db.policies.update(
+      { policy_status: "paid",
+      policy_paid_amount: premium,
+     },
+      { where: { policy_id: policy.policy_id } }
+    );
+    await db.payments.update(
+      { payment_status: "paid" },
+      { where: { policy_id: policy.policy_id,
+        payment_amount: premium,
+       } }
+    );
+  //update number of policies for the user
+  let user_policies = await db.policies.findAll({
+    where: {
+      user_id: existingUser.user_id,
+      policy_status: 'paid',
+    },
+    limit: 100, 
+  });
+
+  await db.users.update(
+    { number_of_policies: user_policies.length
+     },
+    { where: { user_id: existingUser.user_id } }
+  );
+  }
+
+  let arr_member: any, dependant: any;
+  if(!existingUser.arr_member_number) {
+    // create arr member id
+    arr_member = await registerPrincipal(existingUser, policy);
+    console.log("ARR MEMBER", arr_member);
+  }
+  let updatedPremium : any;
+    if(policy?.total_member_number =='') {
+          updatedPremium =  await updatePremium(existingUser, policy);
+    console.log("UPDATED PREMIUM", updatedPremium);
+    }
+  let number_of_dependants = parseFloat(policy?.total_member_number?.split("")[2]) || 0;
+    if(number_of_dependants > 0) {
+        for (let i = 1; i <= number_of_dependants; i++) {
+          let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
+          let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
+          let dependant_surname = `${i}surname${existingUser.membership_id}`;
+
+       if (arr_member.policy_no != null && arr_member.code == 200) {
+            // Use a Promise with setTimeout to control the creation
+            await new Promise(resolve => {
+              setTimeout(async () => {
+                dependant = await registerDependant({
+                  member_no: existingUser.arr_member_number,
+                  surname: dependant_surname,
+                  first_name: dependant_first_name,
+                  other_names: dependant_other_names,
+                  gender: 1,
+                  dob: "1990-01-01",
+                  email: "dependant@bluewave.insure",
+                  pri_dep: "25",
+                  family_title: "25", // Assuming all dependants are children
+                  tel_no: policy.phone_number,
+                  next_of_kin: {
+                    surname: "",
+                    first_name: "",
+                    other_names: "",
+                    tel_no: "",
+                  },
+                  member_status: "1",
+                  health_option: "64",
+                  health_plan: "AIRTEL_" + policy?.policy_type,
+                  policy_start_date: policy.policy_start_date,
+                  policy_end_date: policy.policy_end_date,
+                  unique_profile_id: existingUser.membership_id + "",
+                });
+
+                if (dependant.code == 200) {
+
+                  console.log(`Dependant ${i} created:`, dependant);
+
+                  policy.arr_policy_number = arr_member?.policy_no;
+                  dependant.unique_profile_id = existingUser.membership_id + "";
+                  let updateDependantMemberNo: string[] =[]
+                  updateDependantMemberNo.push(dependant.member_no)
+                  await db.policies.update(
+                    { dependant_member_numbers: updateDependantMemberNo },
+                    { where: { policy_id: policy.policy_id } }
+                  );
+                  let updatePremiumData = await updatePremium(dependant, policy);
+                  if (updatePremiumData.code == 200) {
+                    console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                    resolve(true)
+                  } else{
+                    console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+                    resolve(true)
+
+                  }
+                  resolve(true)
+                }else{
+                  console.log("DEPENDANT NOT CREATED", dependant);
+                  resolve(true)
+                }
+              }, 1000 * i); // Adjust the delay as needed
+            });
+
+    }
+  }
+  }
+
+  return updatedPremium
+ }
+
+export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation};

@@ -142,7 +142,7 @@ const SessionModel = db.sessions;
  */
   const getSessions = async (req: any, res: any) => {
     try {
-      const partner_id = req.query.partner_id;
+      const partner_id = parseInt(req.query.partner_id)
       const user_id = req.query.user_id;
       const phone_number = req.query.phone_number;
       
@@ -155,6 +155,8 @@ const SessionModel = db.sessions;
       
       // Fetch sessions from the database with pagination
       const { sessions, totalSessionsCount } = await fetchSessionsFromDatabase(partner_id, user_id,phone_number, offset, limit);
+      console.log("SESSIONS ",sessions);
+
       
       // Return pagination information along with sessions
       res.status(200).json({
@@ -167,6 +169,7 @@ const SessionModel = db.sessions;
         }
       });
     } catch (error) {
+      console.log("ERROR ",error);
       res.status(400).json({
         code: 400,
         message: 'Invalid request',
@@ -197,17 +200,18 @@ const SessionModel = db.sessions;
         phone_number: phone_number
       };
     }
-
+console.log("WHERE ",whereCondition);
   
     // Example query using Sequelize
-    let sessions = await SessionModel.findAll({
+    let sessions = await  db.sessions.findAll({
       where: whereCondition,
       offset: offset,
       limit: limit
     });
+    console.log("SESSIONS ",sessions);
     
     // Calculate total sessions count based on the query result
-    const totalSessionsCount = await SessionModel.count({
+    const totalSessionsCount = await  db.sessions.count({
       where: whereCondition
     });
   
@@ -217,7 +221,7 @@ const SessionModel = db.sessions;
 
   async function ussdSessions(req, res){
    try {
-    const {sessionId,networkCode, durationInMillis, errorMessage,serviceCode,lastAppResponse, hopsCount,phoneNumber, cost, date, input, status} = req.body;
+    const {sessionId,networkCode, durationInMillis, errorMessage,serviceCode,lastAppResponse, hopsCount,phoneNumber, cost, date, input, status, partner_id=2} = req.body;
    
 
     await db.sessions.create({
@@ -232,7 +236,8 @@ const SessionModel = db.sessions;
       cost: cost,
       date: date,
       input: input,
-      status: status
+      status: status,
+      partner_id: partner_id 
     });
 
 

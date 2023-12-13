@@ -186,7 +186,7 @@ const getPolicies = async (req, res) => {
  *   get:
  *     tags:
  *       - Policies
- *     description: List policies by agreement_id
+ *     description: List policies by policy_id
  *     operationId: listPoliciesByAgreementID
  *     summary: List policies
  *     security:
@@ -213,12 +213,12 @@ const getPolicy = async (req: any, res: any) => {
     const policy_id = req.params.policy_id;
     const partner_id = req.query.partner_id;
 
-    const policy = await Policy.findOne({
+    const policy = await db.policies.findOne({
       where: {
         policy_id: policy_id,
         partner_id: partner_id,
         policy_status: 'paid'
-      },
+      }
     });
 
     if (!policy) {

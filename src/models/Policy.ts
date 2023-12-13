@@ -241,8 +241,7 @@ module.exports = (sequelize, DataTypes) => {
         policy_number: {
             type: DataTypes.STRING,
             allowNull: true
-        },
-        
+        }
     },
 
         { timestamps: true },)
@@ -256,6 +255,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
     });
 
+    // Policy.hasMany(Payment, {
+    //     as: "payments",
+    //     foreignKey: "policy_id",
+    // });
     return Policy
 }
 
