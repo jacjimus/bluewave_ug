@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 import cron from 'node-cron';
-import { createDependant, fetchMemberStatusData, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
+import { createDependant, fetchMemberStatusData, reconciliation, registerDependant, registerPrincipal, updatePremium } from '../services/aar';
 import SMSMessenger from '../services/sendSMS';
 import axios from 'axios';
 const Agenda = require('agenda');
@@ -290,7 +290,6 @@ let phones = [
 703482376,
 704279081,
 744567065,
-701011880,
 754581873,
 754997400,
 702325987,
@@ -428,97 +427,6 @@ async function updatePendingPremium() {
 
   }
 }
-
-const data = [
-  { serialNumber: "UG155848-05", registrationNumber: 256750924432 },
-  { serialNumber: "UG155848-06", registrationNumber: 256750924432 },
-  { serialNumber: "UG155848-07", registrationNumber: 256750924432 },
-  { serialNumber: "UG155848-08", registrationNumber: 256750924432 },
-  { serialNumber: "UG155903-03", registrationNumber: 256740258784 },
-  { serialNumber: "UG155903-04", registrationNumber: 256740258784 },
-  { serialNumber: "UG155943-07", registrationNumber: 256704300201 },
-  { serialNumber: "UG155943-08", registrationNumber: 256704300201 },
-  { serialNumber: "UG155943-09", registrationNumber: 256704300201 },
-  { serialNumber: "UG155943-10", registrationNumber: 256704300201 },
-  { serialNumber: "UG155943-11", registrationNumber: 256704300201 },
-  { serialNumber: "UG155943-12", registrationNumber: 256704300201 },
-  { serialNumber: "UG155945-02", registrationNumber: 256708464605 },
-  { serialNumber: "UG155950-02", registrationNumber: 256753778663 },
-  { serialNumber: "UG155953-02", registrationNumber: 256754152168 },
-  { serialNumber: "UG155962-03", registrationNumber: 256706439557 },
-  { serialNumber: "UG155962-04", registrationNumber: 256706439557 },
-  { serialNumber: "UG156134-01", registrationNumber: 256758771181 },
-  { serialNumber: "UG156149-01", registrationNumber: 256755326045 },
-  { serialNumber: "UG156149-02", registrationNumber: 256755326045 },
-  { serialNumber: "UG156150-01", registrationNumber: 256708166399 },
-  { serialNumber: "UG156150-02", registrationNumber: 256708166399 },
-  { serialNumber: "UG156151-01", registrationNumber: 256754649203 },
-  { serialNumber: "UG156151-02", registrationNumber: 256754649203 },
-  { serialNumber: "UG156152-01", registrationNumber: 256759785803 },
-  { serialNumber: "UG156152-02", registrationNumber: 256759785803 },
-  { serialNumber: "UG156152-03", registrationNumber: 256759785803 },
-  { serialNumber: "UG156178-01", registrationNumber: 256742249990 },
-  { serialNumber: "UG156179-01", registrationNumber: 256751882389 },
-  { serialNumber: "UG156206-02", registrationNumber: 256709190777 },
-  { serialNumber: "UG156207-04", registrationNumber: 256708541034 },
-  { serialNumber: "UG156207-05", registrationNumber: 256708541034 },
-  { serialNumber: "UG156207-06", registrationNumber: 256708541034 },
-  { serialNumber: "UG156212-04", registrationNumber: 256704674642 },
-  { serialNumber: "UG156212-05", registrationNumber: 256704674642 },
-  { serialNumber: "UG156212-06", registrationNumber: 256704674642 },
-  { serialNumber: "UG156285-01", registrationNumber: 256759136143 },
-  { serialNumber: "UG156286-01", registrationNumber: 256750911250 },
-  { serialNumber: "UG156288-01", registrationNumber: 256742256068 },
-  { serialNumber: "UG156288-02", registrationNumber: 256742256068 },
-  { serialNumber: "UG156293-01", registrationNumber: 256751754051 },
-  { serialNumber: "UG156293-02", registrationNumber: 256751754051 },
-  { serialNumber: "UG157245-06", registrationNumber: 256704279081 },
-  { serialNumber: "UG157290-06", registrationNumber: 256757816490 }
-];
-
-//console.log(data);
-let ArrMembersWithNoPolicies = [
-"UG156675-00",
-"UG156676-00",
-"UG156677-00",
-"UG156678-00",
-"UG156679-00",
-"UG156680-00",
-"UG156681-00",
-"UG156682-00",
-"UG156794-00",
-]
-async function updateArrPolicies() {
-  for (const member of ArrMembersWithNoPolicies) {
-    let user = await db.users.findOne({
-      where: {
-        arr_member_number: member,
-        partner_id: 2,
-      },
-    });
-    if (!user) {
-      console.log("NO USER FOUND");
-      continue
-    }
-    let policy = await db.policies.findOne({
-      where: {
-        policy_status: 'paid',
-        partner_id: 2,
-        user_id: user.user_id
-      }
-    });
-    if (!policy) {
-      console.log("NO POLICY FOUND");
-      continue
-    }
-    console.log("user", user.phone_number);
-    console.log("policy", policy.policy_number);
-    await updatePremium(user, policy);
-
-  }
-
-}
-//updateArrPolicies()
 
 
 async function processUsersPolicyAAR() {
@@ -1296,6 +1204,111 @@ async function updatePolicyNumber() {
 
 // Call the function to update policy numbers for duplicates
 //updatePolicyNumber();
+
+
+//702862060
+const transactions = [
+  { senderMobileNumber: '740667358', transactionAmount: 10000 },
+  { senderMobileNumber: '754598184', transactionAmount: 20000 },
+  { senderMobileNumber: '709147127', transactionAmount: 14000 },
+  { senderMobileNumber: '751979437', transactionAmount: 10000 },
+  { senderMobileNumber: '759010551', transactionAmount: 10000 },
+  { senderMobileNumber: '704117165', transactionAmount: 10000 },
+  // { senderMobileNumber: '759655028', transactionAmount: 10000 },
+  { senderMobileNumber: '701970711', transactionAmount: 18000 },
+  // { senderMobileNumber: '752083825', transactionAmount: 10000 },
+  // { senderMobileNumber: '707421476', transactionAmount: 18000 },
+  { senderMobileNumber: '753271430', transactionAmount: 10000 },
+  { senderMobileNumber: '744157491', transactionAmount: 10000 },
+  { senderMobileNumber: '759907336', transactionAmount: 10000 },
+  { senderMobileNumber: '707224451', transactionAmount: 10000 },
+  { senderMobileNumber: '708949729', transactionAmount: 18000 },
+  { senderMobileNumber: '750031808', transactionAmount: 10000 },
+  // { senderMobileNumber: '704180537', transactionAmount: 18000 },
+  { senderMobileNumber: '750838720', transactionAmount: 18000 },
+  { senderMobileNumber: '754347550', transactionAmount: 10000 },
+  // { senderMobileNumber: '700323189', transactionAmount: 20000 },
+  { senderMobileNumber: '757435409', transactionAmount: 10000 },
+  { senderMobileNumber: '708182433', transactionAmount: 10000 },
+  { senderMobileNumber: '757417825', transactionAmount: 10000 },
+  { senderMobileNumber: '705881859', transactionAmount: 14000 },
+  { senderMobileNumber: '702387730', transactionAmount: 10000 },
+  { senderMobileNumber: '709163346', transactionAmount: 10000 },
+  // { senderMobileNumber: '757816490', transactionAmount: 108000 },
+  { senderMobileNumber: '759907303', transactionAmount: 14000 },
+  { senderMobileNumber: '706359487', transactionAmount: 10000 },
+  { senderMobileNumber: '703080163', transactionAmount: 10000 },
+  // { senderMobileNumber: '758017592', transactionAmount: 18000 },
+  // { senderMobileNumber: '703240873', transactionAmount: 18000 },
+  { senderMobileNumber: '751854428', transactionAmount: 10000 },
+  { senderMobileNumber: '754979833', transactionAmount: 14000 },
+  // { senderMobileNumber: '742870415', transactionAmount: 35000 },
+  { senderMobileNumber: '708748714', transactionAmount: 10000 },
+  { senderMobileNumber: '702047633', transactionAmount: 10000 },
+  { senderMobileNumber: '755890764', transactionAmount: 18000 },
+  { senderMobileNumber: '759850091', transactionAmount: 18000 },
+  // { senderMobileNumber: '742460308', transactionAmount: 10000 },
+  //{ senderMobileNumber: '701211724', transactionAmount: 208000 },
+  { senderMobileNumber: '759850091', transactionAmount: 18000 },
+  { senderMobileNumber: '743532794', transactionAmount: 10000 },
+  { senderMobileNumber: '758754962', transactionAmount: 10000 },
+  { senderMobileNumber: '751440048', transactionAmount: 10000 },
+  { senderMobileNumber: '703870739', transactionAmount: 10000 },
+  //{ senderMobileNumber: '740475276', transactionAmount: 18000 },
+  { senderMobileNumber: '755692926', transactionAmount: 10000 },
+  { senderMobileNumber: '757204220', transactionAmount: 10000 },
+  { senderMobileNumber: '754376270', transactionAmount: 10000 },
+  { senderMobileNumber: '744078120', transactionAmount: 18000 },
+  { senderMobileNumber: '750521580', transactionAmount: 14000 },
+  { senderMobileNumber: '703007102', transactionAmount: 10000 },
+  { senderMobileNumber: '703482376', transactionAmount: 10000 },
+ // { senderMobileNumber: '704279081', transactionAmount: 88000 },
+  //{ senderMobileNumber: '744567065', transactionAmount: 10000 },
+  { senderMobileNumber: '754581873', transactionAmount: 18000 },
+  { senderMobileNumber: '754997400', transactionAmount: 10000 },
+  { senderMobileNumber: '702325987', transactionAmount: 10000 },
+ // { senderMobileNumber: '704043517', transactionAmount: 10000 },
+  { senderMobileNumber: '741076901', transactionAmount: 10000 },
+  //{ senderMobileNumber: '707664531', transactionAmount: 14000 },
+  //{ senderMobileNumber: '709426127', transactionAmount: 18000 },
+  { senderMobileNumber: '743791211', transactionAmount: 18000 },
+  { senderMobileNumber: '744394578', transactionAmount: 10000 },
+  { senderMobileNumber: '703086589', transactionAmount: 14000 },
+  { senderMobileNumber: '758960852', transactionAmount: 10000 },
+  //{ senderMobileNumber: '705645089', transactionAmount: 10000 },
+  //{ senderMobileNumber: '744168788', transactionAmount: 10000 },
+  { senderMobileNumber: '742694054', transactionAmount: 10000 },
+  //{ senderMobileNumber: '743774267', transactionAmount: 10000 },
+  { senderMobileNumber: '750793863', transactionAmount: 18000 },
+  { senderMobileNumber: '708695835', transactionAmount: 10000 },
+  //{ senderMobileNumber: '707375172', transactionAmount: 10000 },
+ // { senderMobileNumber: '709228486', transactionAmount: 18000 },
+  //{ senderMobileNumber: '742935120', transactionAmount: 10000 },
+  { senderMobileNumber: '759263889', transactionAmount: 10000 },
+  //{ senderMobileNumber: '702206893', transactionAmount: 10000 },
+  { senderMobileNumber: '742172942', transactionAmount: 10000 },
+  { senderMobileNumber: '709879368', transactionAmount: 10000 },
+  { senderMobileNumber: '706593175', transactionAmount: 18000 },
+ // { senderMobileNumber: '702385188', transactionAmount: 10000 },
+ // { senderMobileNumber: '753859177', transactionAmount: 10000 },
+  //{ senderMobileNumber: '706394188', transactionAmount: 18000 },
+  //{ senderMobileNumber: '704859348', transactionAmount: 18000 },
+  //{ senderMobileNumber: '704411387', transactionAmount: 18000 },
+  { senderMobileNumber: '740946342', transactionAmount: 10000 },
+ // { senderMobileNumber: '703229918', transactionAmount: 10000 },
+  { senderMobileNumber: '742904759', transactionAmount: 10000 },
+  { senderMobileNumber: '743711216', transactionAmount: 10000 },
+  { senderMobileNumber: '744033279', transactionAmount: 10000 },
+  { senderMobileNumber: '743392699', transactionAmount: 14000 },
+  { senderMobileNumber: '700784998', transactionAmount: 18000 },
+  { senderMobileNumber: '704128556', transactionAmount: 10000 },
+  { senderMobileNumber: '703881867', transactionAmount: 18000 }
+];
+
+// transactions.forEach(async (transaction) => {
+  
+//   await reconciliation(2,transaction.senderMobileNumber, null, transaction.transactionAmount);
+// });
 
 //Schedule the updatePolicies function to run every hour
 cron.schedule('0 1 * * *', () => {

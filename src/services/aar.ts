@@ -541,20 +541,23 @@ async function processPolicy(user: any, policy: any, memberStatus: any) {
 }
 
 
-async function reconciliation(partner_id, phoneNumber, arr_member_number, premium) {
+async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null, premium) {
   const existingUser = await db.users.findOne({
     where: {
       [db.Sequelize.Op.or]: [
         { phone_number: phoneNumber },
-         { arr_member_number:  arr_member_number }
+         //{ arr_member_number:  arr_member_number }
       ],
       partner_id: partner_id
     },
+    order: [['createdAt', 'DESC']],
   });
+  console.log(phoneNumber)
   
    if(!existingUser) {
     throw new Error("Sorry, No user found")
   }
+  console.log("EXISTING USER", existingUser.phone_number, existingUser.name);
   let policy: any = await db.policies.findOne({
     where: {
       user_id: existingUser.user_id,
@@ -562,7 +565,7 @@ async function reconciliation(partner_id, phoneNumber, arr_member_number, premiu
       //policy_status: 'paid',
     },
   });
-  console.log("POLICY", policy);
+  console.log("POLICY", policy,  existingUser.phone_number, existingUser.name);
   if(!policy) {
     throw new Error("Sorry, No policy found")
   }else{

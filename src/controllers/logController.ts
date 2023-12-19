@@ -1,7 +1,6 @@
 
 import { db } from "../models/db";
 const LogModel = db.logs;
-const SessionModel = db.sessions;
 
   /**
  * @swagger

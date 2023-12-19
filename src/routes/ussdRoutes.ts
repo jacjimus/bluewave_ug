@@ -1,6 +1,7 @@
 import express from "express";
 import ussdUgaMenuBuilder from "../menu-builder";
 import ussdKenMenuBuilder from "../menu-ken-builder"
+import ussdVodacomMenuBuilder from "../menu-vodacom-builder";
 
 import SMSMessenger from "../services/sendSMS";
 import { db } from "../models/db";
@@ -41,6 +42,11 @@ router.post("/uat/uga", async (req: any, res: any) => {
 router.post("/uat/ken", async (req: any, res: any) => {
 
   await handleUSSDRequest(req, res, ussdKenMenuBuilder);
+});
+
+router.post("/uat/vodacom", async (req: any, res: any) => {
+
+  await handleUSSDRequest(req, res, ussdVodacomMenuBuilder);
 });
 
 const findTransactionById = async (transactionId) => {
