@@ -63,7 +63,7 @@ const accountMenu = async (args: any, db: any) => {
                 console.log("phoneNumber", smsPhone);
                 paidPolicies = await db.policies.findAll({
                     where: {
-                        phone_number: smsPhone.replace("+", ""),
+                        phone_number: smsPhone,
                         policy_status: "paid"
                     }
                 });
@@ -276,7 +276,7 @@ const accountMenu = async (args: any, db: any) => {
 
                 let policies = await db.policies.findAll({
                     where: {
-                        phone_number: smsPhone.replace("+", ""),
+                        phone_number: smsPhone,
                         policy_status: "paid"
                     },
                     order: [

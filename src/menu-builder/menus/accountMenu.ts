@@ -55,10 +55,11 @@ const accountMenu = async (args: any, db: any) => {
                 console.log("phoneNumber", smsPhone);
                 paidPolicies = await db.policies.findAll({
                     where: {
-                        phone_number: smsPhone.replace("+", ""),
+                        phone_number: smsPhone,
                         policy_status: "paid"
                     }
                 });
+                console.log("paidPolicies", paidPolicies)
                 // last 6 unpaid policies
                 paidPolicies = paidPolicies.slice(-6);
                 if (paidPolicies?.length === 0) {
