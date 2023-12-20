@@ -163,7 +163,7 @@ const accountMenu = async (args: any, db: any) => {
 
                 paidPolicies = await db.policies.findAll({
                     where: {
-                        phone_number: smsPhone.replace("+", ""),
+                        phone_number: smsPhone,
                         policy_status: "paid"
                     },
                     order: [
@@ -180,8 +180,10 @@ const accountMenu = async (args: any, db: any) => {
                 });
 
                 paidPolicies = paidPolicies.slice(-6);
+                console.log("paidPolicies", paidPolicies)
 
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
+                console.log("CHOSEN POLICY", choosenPolicy)
                 await db.policies.update({
                     renewal_status: "pending",
                     user_id: existingUser.user_id
