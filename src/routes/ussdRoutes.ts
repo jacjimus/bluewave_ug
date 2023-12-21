@@ -96,6 +96,7 @@ export const updateUserPolicyStatus = async (policy, amount, installment_order, 
   }
 
   let policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid" } });
+  policyPaidCountOfUser = parseInt(policyPaidCountOfUser)  == 0 ? 1 : policyPaidCountOfUser;
   let updateUserNumberOfPolices = await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
   console.log("UPDATE USER NUMBER OF POLICIES", updateUserNumberOfPolices);
   await policy.save();
@@ -170,11 +171,6 @@ router.all("/callback", async (req, res) => {
 
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-
-
-        // policy schedule
-        //find policy schedule with policy id 
-        //if not found create new policy schedule
 
         let policySchedule = await db.policy_schedules.findOne({ where: { policy_id } });
         console.log("POLICY SCHEDULE", policySchedule);
