@@ -597,7 +597,7 @@ const deletePolicy = async (req: any, res: any) => {
  *         application/json:
  *           schema:
  *             type: object
- *             example: {"user_id": 58094169, "product_id": 1, "partner_id": "1", "vehicle_category": "Sedan", "vehicle_make": "Toyota", "vehicle_model": "Camry", "vehicle_year": 2022, "vehicle_vin": "12345678901234567", "vehicle_license_plate": "ABC123", "vehicle_registration": "ABCDEF", "vehicle_registration_expiration": "2023-12-31", "vehicle_insurance": "XYZInsurance", "vehicle_insurance_expiration": "2023-12-31", "vehicle_purchase_price": 25000, "vehicle_purchase_mileage": 10000, "vehicle_purchase_location": "Dealer", "vehicle_purchase_comments": "Brand new vehicle"}
+ *             example: {"user_id": 4d34925f-21d5-4515-b591-72c51db685f6, "partner_id": "3", "vehicle_category": "Sedan", "vehicle_make": "Toyota", "vehicle_model": "Camry", "vehicle_year": 2022, "vehicle_vin": "5678901234567", "vehicle_license_plate": "ABC123Y", "vehicle_registration_number": "ABCDEF", "vehicle_registration_expiration": "2023-12-31",  "vehicle_insurance_expiration": "2023-12-31", "vehicle_purchase_price": 25000, "vehicle_mileage": 10000}
  *     responses:
  *       200:
  *         description: Vehicle registration successful
@@ -609,7 +609,6 @@ async function vehicleRegistration(req: any, res:any) {
     // Destructure the request body to extract necessary information
     const {
       user_id,
-      product_id,
       partner_id,
       vehicle_category,
       vehicle_make,
@@ -617,21 +616,20 @@ async function vehicleRegistration(req: any, res:any) {
       vehicle_year,
       vehicle_vin,
       vehicle_license_plate,
-      vehicle_registration,
+      vehicle_registration_number,
       vehicle_insurance_expiration,
       vehicle_purchase_price,
       vehicle_mileage,
     } = req.body;
 
     // Check if required fields are present in the request
-    if (!user_id || !product_id || !partner_id || !vehicle_category || !vehicle_make ) {
+    if (!user_id ||  !partner_id || !vehicle_category || !vehicle_make ) {
       return res.status(400).json({ message: 'Invalid request. Missing required fields.' });
     }
 
     // Create a new vehicle record in the database
     const registeredVehicle = await db.vehicles.create({
       user_id,
-      product_id,
       partner_id,
       vehicle_category,
       vehicle_make,
@@ -639,7 +637,7 @@ async function vehicleRegistration(req: any, res:any) {
       vehicle_year,
       vehicle_vin,
       vehicle_license_plate,
-      vehicle_registration,
+      vehicle_registration_number,
       vehicle_insurance_expiration,
       vehicle_purchase_price,
       vehicle_mileage

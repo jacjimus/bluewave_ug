@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        vehicle_registration: {
+        vehicle_registration_number: {
             type: DataTypes.STRING,
             allowNull: true
         },

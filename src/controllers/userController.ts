@@ -99,7 +99,7 @@ const signup = async (req, res) => {
 
     // Validate national ID length
     const nationalId = national_id.toString();
-  
+
     // Create user data object
     const userData = {
       membership_id: Math.floor(100000 + Math.random() * 900000),
@@ -444,7 +444,7 @@ const findAllUsers = async (req, res) => {
 
     const offset = Math.max(0, (page - 1) * limit);
 
-    let whereCondition:any = {
+    let whereCondition: any = {
       partner_id: partner_id,
     };
 
@@ -455,7 +455,7 @@ const findAllUsers = async (req, res) => {
     }
 
     if (filter) {
-      filter = filter?.trim().toLowerCase(); 
+      filter = filter?.trim().toLowerCase();
       // Add global filtering for user properties (modify this as needed)
       whereCondition = {
         ...whereCondition,
@@ -495,7 +495,7 @@ const findAllUsers = async (req, res) => {
 
 
     // Send the response
-    if(users && users.count > 0) {
+    if (users && users.count > 0) {
       return res.status(200).json({
         result: { message: "Customers fetched successfully", items: users.rows, count: users.count },
       });
@@ -557,7 +557,7 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
       where: {
         user_id: user.user_id,
       },
-      limit: 100, 
+      limit: 100,
     });
     user.dataValues.number_of_policies = policies.length;
 
@@ -746,7 +746,7 @@ const getPartner = async (req: any, res: any) => {
         partner_id: partner_id + "",
       },
     });
-   // console.log(partner);
+    // console.log(partner);
 
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "No partner found" });
@@ -786,19 +786,19 @@ const listPartners = async (req: any, res: any) => {
 
     // get admin object from cookies
     const admin = req.partner_id;
-    
+
     let partner: any = await Partner.findAll();
-    if(parseInt(req.partner_id) == 4) {
-     
+    if (parseInt(req.partner_id) == 4) {
+
       if (!partner || partner.length === 0) {
-        return res.status(404).json({  message: "Sorry, No partner found" });
+        return res.status(404).json({ message: "Sorry, No partner found" });
       }
       return res
         .status(200)
         .json({
           result: { code: 200, message: "All partners fetched successfully", items: partner },
         });
-    }else{
+    } else {
       partner = await Partner.findAll({
         where: {
           partner_id: admin.toString()
@@ -806,8 +806,8 @@ const listPartners = async (req: any, res: any) => {
       });
     }
 
-    
-  
+
+
 
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
@@ -995,7 +995,7 @@ const bulkUserRegistration = async (req: any, res: any) => {
       };
 
       // Use your preferred method to create users (e.g., Sequelize's create())
-      const createdUser = await createUserFunction(user_data)  || {};
+      const createdUser = await createUserFunction(user_data) || {};
       createdUsers.push(createdUser);
     }
 
@@ -1056,7 +1056,7 @@ async function adminSignup(req: any, res: any) {
     if (user && user.length > 0) {
       return res.status(409).json({ code: 409, message: "Sorry, Customer already exists with the same email" });
     }
-  
+
     // Logic for admin signup goes here
     // You can store the admin data in a database, hash the password, etc.
     const admin = {
@@ -1066,20 +1066,20 @@ async function adminSignup(req: any, res: any) {
       role,
       partner_id,
     };
-  
+
     //save admin to database
     let newAdmin = await User.create(admin);
 
     await sendEmail(admin, "Admin Registration", welcomeTemplate)
 
-  
+
     console.log("NEW ADMIN", newAdmin);
     // Return a success response
     return res.status(200).json({ code: 200, message: 'Admin registered successfully' });
-    
+
   } catch (error) {
-    return res.status(500).json({code: 200, message: error.message})
-    
+    return res.status(500).json({ code: 200, message: error.message })
+
   }
 
 }
@@ -1126,19 +1126,19 @@ async function adminSignup(req: any, res: any) {
 async function arrMemberRegistration(req: any, res: any) {
   try {
     let partner_id = req.query.partner_id;
-    let phoneNumber  = req.query.phoneNumber || "";
-   let premium  = req.query.premium || 0
-   let arr_member_number = req.query.arr_member_number || ""
+    let phoneNumber = req.query.phoneNumber || "";
+    let premium = req.query.premium || 0
+    let arr_member_number = req.query.arr_member_number || ""
 
- 
-  let updatedPremium =  reconciliation(partner_id, phoneNumber, arr_member_number, premium)
 
-    return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium  });
+    let updatedPremium = reconciliation(partner_id, phoneNumber, arr_member_number, premium)
+
+    return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium });
   } catch (error) {
 
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
-    
+
   }
 }
 
@@ -1173,26 +1173,125 @@ async function arrMemberRegistration(req: any, res: any) {
  *       400:
  *         description: Invalid request
  */
-async function findUserVehicle (req: any, res: any){
-  const {user_id, partner_id} = req.query
-try {
-  
-  const userVehicle = await db.vehicles.findAll({
-    where:{
-      partner_id: partner_id,
-      user_id: user_id
-  
+async function findUserVehicle(req: any, res: any) {
+  try {
+    const { partner_id } = req.query
+    const { user_id } = req.params
+    console.log(" req.query", req.query);
+    console.log("USER ID", user_id);
+    console.log("PARTNER ID", partner_id);
+
+    const userVehicle = await db.vehicles.findAll({
+      where: {
+        partner_id: partner_id,
+        user_id: user_id
+
+      }
+    })
+
+    if (!userVehicle || userVehicle.length === 0) {
+      return res.status(404).json({ item: 0, message: "Sorry, No vehicle found" });
     }
-  })
 
-  res.status(200).json({message: "succesfully fetched user vehicles", vehicles:userVehicle })
-} catch (error) {
-  return res.status(500).json({ message: "Internal server error" });
+    res.status(200).json({ message: "succesfully fetched user vehicles", items: userVehicle })
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
 }
 
+/**
+ * @swagger
+ * /api/v1/users/update/vehicle/{user_id}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     description: Update User Vehicle
+ *     operationId: updateUserVehicle
+ *     summary: Update User Vehicle
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: vehicle_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "vehicle_category": "SUV", "vehicle_make": "Toyota", "vehicle_model": "Land Cruiser", "vehicle_year": "2019", "vehicle_vin": "123456789", "vehicle_license_plate": "KCA 123T", "vehicle_registration_number": "123456789", "vehicle_insurance_expiration": "2021-12-12", "vehicle_purchase_price": "1000000", "vehicle_mileage": "100000" }
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+async function updateUserVehicle(req, res) {
+  try {
+    const { vehicle_id } = req.query
+    const { user_id } = req.params
+
+    const {
+      vehicle_category,
+      vehicle_make,
+      vehicle_model,
+      vehicle_year,
+      vehicle_vin,
+      vehicle_license_plate,
+      vehicle_registration_number,
+      vehicle_insurance_expiration,
+      vehicle_purchase_price,
+      vehicle_mileage
+
+    } = req.body
+
+    const userVehicle = await db.vehicles.findAll({
+      where: {
+        vehicle_id: vehicle_id,
+        user_id: user_id
+
+      }
+    })
+
+    if (!userVehicle || userVehicle.length === 0) {
+      return res.status(404).json({ item: 0, message: "Sorry, No vehicle found" });
+    }
+
+    const data = {
+      vehicle_category,
+      vehicle_make,
+      vehicle_model,
+      vehicle_year,
+      vehicle_vin,
+      vehicle_license_plate,
+      vehicle_registration_number,
+      vehicle_insurance_expiration,
+      vehicle_purchase_price,
+      vehicle_mileage
+    }
+
+    await db.vehicles.update(data, {
+      where: {
+        user_id: user_id,
+        vehicle_id: vehicle_id
+      },
+    });
+
+    res.status(200).json({ message: "succesfully updated user vehicles" })
+
+
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
 
 }
-
 
 
 
@@ -1210,5 +1309,6 @@ module.exports = {
   bulkUserRegistration,
   listPartners,
   arrMemberRegistration,
-  findUserVehicle
+  findUserVehicle,
+  updateUserVehicle
 };

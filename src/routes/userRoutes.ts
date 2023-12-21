@@ -37,6 +37,7 @@ router.post('/group/signup', upload.single('excel_file'), userController.bulkUse
 router.post('/partner/register', isBluewave, userController.partnerRegistration)
 router.post('/arr_member_registration', userController.arrMemberRegistration)
 router.put('/:user_id', userController.updateUser)
+router.put('/update/vehicle/:user_id', userController.updateUserVehicle)
 router.delete('/:user_id', userController.deleteUser)
 
 
