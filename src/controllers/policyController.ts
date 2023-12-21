@@ -320,7 +320,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
     let policy = await Policy.findAll({
       where: {
         user_id: user_id,
-        olicy_status: 'paid',
+        policy_status: 'paid',
         partner_id: partner_id,
         ...dateFilters, 
 
