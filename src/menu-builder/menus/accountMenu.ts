@@ -160,6 +160,7 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "2":
                 console.log("allSteps", allSteps, allSteps[2]);
+                response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
                 paidPolicies = await db.policies.findAll({
                     where: {
@@ -193,7 +194,7 @@ const accountMenu = async (args: any, db: any) => {
                     }
                 });
                 console.log("CHOOSEN POLICY", choosenPolicy)
-                await airtelMoney(
+                const airtelMoneyPromise =await airtelMoney(
                     existingUser.user_id,
                     2,
                     choosenPolicy.policy_id,
@@ -204,7 +205,30 @@ const accountMenu = async (args: any, db: any) => {
                     "UGX"
 
                 );
-                response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
+
+
+            const timeout = 1000;
+
+            Promise.race([
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
+                })
+            ]).then((result) => {
+                // Airtel Money operation completed successfully
+                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                response = 'END Payment successful';
+                console.log("RESPONSE WAS CALLED", result);
+                return response;
+            }).catch((error) => {
+                response = 'END Payment failed';
+                console.log("RESPONSE WAS CALLED", error);
+                return response;
+            });
+
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
 
                 break;
             case "3":
