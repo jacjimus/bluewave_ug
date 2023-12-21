@@ -5,9 +5,6 @@ const User = db.users;
 const Partner = db.partners;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
-import { globalSearch } from "../services/utils";
-
-
 
 
 interface Policy {
@@ -91,7 +88,7 @@ interface Policy {
 
 const getPolicies = async (req, res) => {
   try {
-    
+
     const partner_id = req.query.partner_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -115,23 +112,23 @@ const getPolicies = async (req, res) => {
     // Prepare the search filters based on the provided filter string
     const searchFilters: any = {};
     if (filter) {
-      
+
       searchFilters[Op.or] = [
         { policy_status: { [Op.iLike]: `%${filter}%` } },
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
         { first_name: { [Op.iLike]: `%${filter}%` } },
         { last_name: { [Op.iLike]: `%${filter}%` } }
-      
+
       ];
     }
-  
+
     // Prepare the where condition based on the provided filters
     const whereCondition: any = {
       partner_id: partner_id,
       policy_status: 'paid',
       ...dateFilters,
-      ...searchFilters, 
+      ...searchFilters,
     };
 
     // Calculate the offset
@@ -149,7 +146,7 @@ const getPolicies = async (req, res) => {
       ],
       offset,
       limit,
-    
+
     });
 
     if (policies.count === 0) {
@@ -166,7 +163,7 @@ const getPolicies = async (req, res) => {
       result
     });
 
-  
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -322,10 +319,10 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
         user_id: user_id,
         policy_status: 'paid',
         partner_id: partner_id,
-        ...dateFilters, 
+        ...dateFilters,
 
       },
-      limit: 100, 
+      limit: 100,
     })
 
     // policy.total_premium = policy.premium
@@ -346,7 +343,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
       return res.status(status.code).json(status.result);
     }
     let count = policy.length;
- 
+
 
     status.result = {
       count,
@@ -404,7 +401,7 @@ const createPolicy = async (req: any, res: any) => {
     if (!newPolicy) {
       return res.status(500).json({ message: "Error creating policy" });
     }
-   
+
     return res.status(200).json({
       result: {
         code: 200,
@@ -484,7 +481,7 @@ const updatePolicy = async (req: any, res: any) => {
       where: {
         policy_id: req.params.policy_id
       },
-      limit: 100, 
+      limit: 100,
     })
     if (!policy) {
       return res.status(404).json({ message: "No policy found" });
@@ -521,7 +518,7 @@ const updatePolicy = async (req: any, res: any) => {
         policy_id: req.params.policy_id,
       },
     });
-    
+
     return res.status(201).json({
       result: {
         code: 200, message: "Policy updated successfully"
@@ -566,7 +563,7 @@ const deletePolicy = async (req: any, res: any) => {
         policy_id: req.params.policy_id,
       },
     });
-   
+
     return res.status(201).json({
       result: {
         code: 201, message: "Policy deleted successfully"
@@ -604,7 +601,7 @@ const deletePolicy = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-async function vehicleRegistration(req: any, res:any) {
+async function vehicleRegistration(req: any, res: any) {
   try {
     // Destructure the request body to extract necessary information
     const {
@@ -623,7 +620,7 @@ async function vehicleRegistration(req: any, res:any) {
     } = req.body;
 
     // Check if required fields are present in the request
-    if (!user_id ||  !partner_id || !vehicle_category || !vehicle_make ) {
+    if (!user_id || !partner_id || !vehicle_category || !vehicle_make) {
       return res.status(400).json({ message: 'Invalid request. Missing required fields.' });
     }
 
@@ -655,10 +652,340 @@ async function vehicleRegistration(req: any, res:any) {
   }
 }
 
-// Export the function for use in other parts of your application
-module.exports = {
-  vehicleRegistration,
-};
+/**
+ * @swagger
+ * /api/v1/policies/calculate/premium:
+ *   post:
+ *     tags:
+ *       - Policies
+ *     description:
+ *     operationId: 
+ *     summary: 
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: vehicle_category
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: vehicle_type
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: vehicle_cv
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: vehicle_tonnage
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: vehicle_number_of_passengers
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: if_fleet
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Vehicle registration successful
+ *       400:
+ *         description: Invalid request
+ */
+async function calculatePremiumBasedOnVehicleDetails(req, res) {
+  try {
+    let {
+      vehicle_category,
+      vehicle_type,
+      vehicle_cv,
+      vehicle_tonnage,
+      vehicle_number_of_passengers,
+      if_fleet
+    } = req.query;
+    console.log(req.query)
+
+    // Validate required parameters
+    if (!vehicle_category) {
+      return res.status(400).json({
+        code: 400,
+        message: "Invalid request. Please provide vehicle_category and vehicle_type. eg, vehicle_category: CAR, vehicle_type: PRIVATE",
+      });
+    }
+
+    // Descriptive variable name for premium pricing data
+    const vehiclePremiums = {
+      CAR_JEEP_PICKUP: {
+        PRIVATE: {
+          "0-9 CV": 153,
+          "10-13 CV": 200,
+          "14-17 CV": 264,
+          "18+": 349,
+        },
+        CORPORATE: {
+          "0-9 CV": 225,
+          "10-13 CV": 298,
+          "14-17 CV": 340,
+          "18+": 383,
+          "Bus_Minibus_Minivan_15": 650,
+          "Bus_Minibus_Minivan_16-30": 765,
+          "Bus_Minibus_Minivan_31+": 1169,
+        },
+      },
+      TRUCKS: {
+        OWN_ACCOUNT_TRANSPORT: {
+          "Truck_<=3.5T": 464,
+          "Truck_3.6T-8T": 519,
+          "Truck_9T-15T": 582,
+          "Truck_15T+_Tracteur_routier": 652,
+        },
+      },
+      TAXI_BUS_MINIBUS_MINIVAN: {
+        "Taxi_<=5_passengers": 654,
+        "Taxi_>5_passengers": 785,
+        "Bus_Minibus_Minivan_15_paying": 915,
+        "Bus_Minibus_Minivan_16-30_paying": 1177,
+        "Bus_Minibus_Minivan_31+_paying": 1471,
+        "Taxi_Fleet_<=5_passengers": 425,
+        "Taxi_Fleet_>5_passengers": 510,
+      },
+      DRIVING_SCHOOL: {
+        "0-9 CV": 338,
+        "10-13 CV": 446,
+        "14-17 CV": 510,
+        "18+": 574,
+        "Bus_Minibus_Minivan_15_paying": 975,
+        "Bus_Minibus_Minivan_16-30_paying": 1148,
+        "Bus_Minibus_Minivan_31+_paying": 1753,
+        "Truck_<=3.5T": 774,
+        "Truck_3.6T-8T": 866,
+        "Truck_9T-15T": 970,
+        "Truck_15T+_Tracteur_routier": 1084,
+      },
+    };
+
+    let categoryOne = ["CAR", "JEEP", "PICKUP"]
+
+    let categoryTwo = ["TAXI", "BUS", "MINIBUS", "MINIVAN"]
+
+    let categoryThree = ["TRUCKS"]
+
+    vehicle_category = vehicle_category.toUpperCase();
+
+    // Parse vehicle_cv to a numeric value
+    let vehicleCV = parseInt(vehicle_cv);
+    console.log('vehicleCV', vehicleCV)
+    console.log("vehicle_category", vehicle_category)
+    console.log("vehicle_type", vehicle_type)
+    console.log("number of passengers", vehicle_number_of_passengers)
+    console.log("vehicle_tonnage", vehicle_tonnage)
+
+    // Calculate premium based on vehicle details
+    let premium = 0;
+    if (categoryOne.includes(vehicle_category)) {
+      console.log('categoryOne', categoryOne)
+      if (
+        categoryOne.includes(vehicle_category) &&
+        (vehicle_type === "PRIVATE" || vehicle_type === "CORPORATE") &&
+        vehicleCV
+      ) {
+        switch (true) {
+          case vehicleCV >= 0 && vehicleCV < 10:
+            premium = vehiclePremiums["CAR_JEEP_PICKUP"][vehicle_type]["0-9 CV"];
+            break;
+          case vehicleCV >= 10 && vehicleCV < 14:
+            console.log(vehiclePremiums[vehicle_category])
+            premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["10-13 CV"];
+            break;
+          case vehicleCV >= 14 && vehicleCV < 18:
+            premium = vehiclePremiums["CAR_JEEP_PICKUP"][vehicle_type]["14-17 CV"];
+            break;
+          case vehicleCV >= 18:
+            premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["18+"];
+            break;
+          default:
+            // Handle invalid vehicle_cv values
+            return res.status(400).json({
+              code: 400,
+              message: "Invalid vehicle_cv range.",
+            });
+        }
+      }
+
+      // Additional logic for CORPORATE category with specific passenger counts
+      if (categoryOne.includes(vehicle_category) && vehicle_type === "CORPORATE" && vehicle_number_of_passengers) {
+        switch (vehicle_number_of_passengers) {
+          case vehicle_number_of_passengers <= 15:
+            premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_15"];
+            break;
+          case vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30:
+            premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_16-30"];
+            break;
+          case vehicle_number_of_passengers >= 31:
+            premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_31+"];
+            break;
+        }
+      }
+
+    } else if (categoryTwo.includes(vehicle_category)) {
+      console.log('categoryTwo', categoryTwo)
+      console.log('vehicle_number_of_passengers', vehicle_number_of_passengers)
+      vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+
+      if_fleet = JSON.parse(if_fleet);
+
+
+      if (categoryTwo.includes(vehicle_category) && vehicle_number_of_passengers && !if_fleet) {
+        if (vehicle_number_of_passengers <= 5) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_<=5_passengers"];
+        } else if (vehicle_number_of_passengers >= 6 && vehicle_number_of_passengers <= 15) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_>5_passengers"];
+        } else if (vehicle_number_of_passengers === 15) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_15_paying"];
+        } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_16-30_paying"];
+        } else if (vehicle_number_of_passengers >= 31) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_31+_paying"];
+        } else {
+          // Handle invalid vehicle_number_of_passengers values
+          return res.status(400).json({
+            code: 400,
+            message: "Invalid vehicle_number_of_passengers range.",
+          });
+        }
+      }else if(categoryTwo.includes(vehicle_category) && vehicle_number_of_passengers && if_fleet){
+        if (vehicle_number_of_passengers <= 5) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_Fleet_<=5_passengers"];
+        } else if (vehicle_number_of_passengers >= 6 && vehicle_number_of_passengers <= 15) {
+          premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_Fleet_>5_passengers"];
+        }
+      }else{
+        return res.status(400).json({
+          code: 400,
+          message: "Invalid vehicle_number_of_passengers range. Please provide vehicle_number_of_passengers. eg, vehicle_number_of_passengers: 5 0r check if fleet is true or false",
+        });
+      }
+
+
+
+    } else if (vehicle_category === "DRIVING_SCHOOL") {
+      console.log('DRIVING_SCHOOL', vehicle_category)
+      vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+
+      // driver school
+      if (vehicle_category === "DRIVING_SCHOOL" && vehicle_number_of_passengers) {
+        if (vehicle_number_of_passengers <= 15) {
+
+          premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_15_paying"];
+
+        } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
+          premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_16-30_paying"];
+
+        } else if (vehicle_number_of_passengers >= 31) {
+          premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_31+_paying"];
+        }
+      } else if (vehicle_category === "DRIVING_SCHOOL" && vehicleCV) {
+        if (vehicleCV >= 0 && vehicleCV < 10) {
+          premium = vehiclePremiums['DRIVING_SCHOOL']["0-9 CV"];
+        } else if (vehicleCV >= 10 && vehicleCV < 14) {
+          premium = vehiclePremiums['DRIVING_SCHOOL']["10-13 CV"];
+        } else if (vehicleCV >= 14 && vehicleCV < 18) {
+          premium = vehiclePremiums['DRIVING_SCHOOL']["14-17 CV"];
+        } else if (vehicleCV >= 18) {
+          premium = vehiclePremiums['DRIVING_SCHOOL']["18+"];
+        }
+      }
+
+
+    } else if (vehicle_category === "TRUCKS") {
+      console.log('TRUCKS', vehicle_category)
+      // Function to check if a value is within a specific numerical range
+      const isInRange = (value, rangeStart, rangeEnd) => {
+        return value >= rangeStart && value <= rangeEnd;
+      };
+
+      // Check for categoryThree and vehicle_tonnage
+      if (categoryThree.includes(vehicle_category) && vehicle_tonnage) {
+        // Convert vehicle_tonnage to a numeric value
+        const tonnageNumeric = parseFloat(vehicle_tonnage);
+        console.log('tonnageNumeric', tonnageNumeric)
+
+        // Determine the appropriate premium based on the tonnage range
+        if (isInRange(tonnageNumeric, 0, 3.5)) {
+          premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_<=3.5T"];
+        } else if (isInRange(tonnageNumeric, 3.6, 8)) {
+          premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_3.6T-8T"];
+        } else if (isInRange(tonnageNumeric, 9, 15)) {
+          premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_9T-15T"];
+        } else if (tonnageNumeric > 15) {
+          premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_15T+_Tracteur_routier"];
+        } else {
+          return res.status(400).json({
+            code: 400,
+            message: "Invalid vehicle_tonnage range.",
+          });
+        }
+      } else if (categoryThree.includes(vehicle_category) && vehicle_cv) {
+        // Convert vehicle_tonnage to a numeric value
+        console.log('vehicle_cv', vehicle_cv)
+        // Determine the appropriate premium based on the tonnage range
+        if (isInRange(vehicle_cv, 0, 9)) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["0-9 CV"];
+        } else if (isInRange(vehicle_cv, 10, 13)) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["10-13 CV"];
+        } else if (isInRange(vehicle_cv, 14, 17)) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["14-17 CV"];
+        } else if (vehicle_cv > 18) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["18+"];
+        }else{
+          return res.status(400).json({
+            code: 400,
+            message: "Invalid vehicle_cv range.",
+          });
+        }
+      } else if (categoryThree.includes(vehicle_category) && vehicle_number_of_passengers) {
+        // Convert vehicle_tonnage to a numeric value
+        console.log('vehicle_number_of_passengers*', vehicle_number_of_passengers)
+        // Determine the appropriate premium based on the tonnage range
+        if (vehicle_number_of_passengers <= 15) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_15_paying"];
+        } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_16-30_paying"];
+        } else if (vehicle_number_of_passengers >= 31) {
+          premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_31+_paying"];
+        }
+
+      } else {
+        return res.status(400).json({
+          code: 400,
+          message: "Invalid vehicle_tonnage range.",
+        });
+      }
+
+    }
+
+    res.status(200).json({
+      code: 200,
+      message: "Premium calculated successfully",
+      currency_code: "USD",
+      premium,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error",
+      error,
+    });
+  }
+}
 
 
 
@@ -669,7 +996,8 @@ module.exports = {
   createPolicy,
   updatePolicy,
   deletePolicy,
-vehicleRegistration
+  vehicleRegistration,
+  calculatePremiumBasedOnVehicleDetails
 }
 
 
