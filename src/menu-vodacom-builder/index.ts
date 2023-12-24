@@ -2,6 +2,7 @@ import { RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-menu-builder";
+import { all } from "axios";
 
 require("dotenv").config();
 
@@ -306,8 +307,8 @@ export default function (args: RequestBody, db: any) {
           let userVoterNumber = userText;
           let user = await db.users.findOne({
             where: {
-              voter_number: userVoterNumber,
-              partner_id: 1,
+              voter_id: userVoterNumber,
+              partner_id: 3,
             },
             limit: 1,
           });
@@ -316,8 +317,8 @@ export default function (args: RequestBody, db: any) {
           if (allSteps[0] == "1") {
             response =
               "CON Full Name: xxxxx" +
-              "\nNumber : 07xxxxxxxx" +
-              "\nVote Number: xxxxxxx" +
+              "\nNumber :  "+ phone +
+              "\nVote Number: " + userVoterNumber +
               "\nPress 1 to confirm your details " +
               "\n1. Confirm" +
               "\n0. Back" +
@@ -366,6 +367,15 @@ export default function (args: RequestBody, db: any) {
           }
         } else {
           if (allSteps[0] == "1") {
+            console.log(allSteps,currentStep, userText);
+
+
+            await db.users.create({
+              name: "xxxxx",
+              phone_number: phone,
+              voter_id: allSteps[1],
+              partner_id: 3,
+            });
             response =
               "END Thank you for registering on VodaInsure. " +
               "\n Dial *123*6*2# to buy cover";
@@ -494,19 +504,11 @@ export default function (args: RequestBody, db: any) {
         //registration complete
         console.log(allSteps, currentStep, userText);
         if (allSteps[0] == "1") {
-          response =
-            "CON Thank you for registering your vehicle with VodaInsure." +
-            "\nYou will receive email and SMS with more information." +
-            "\nYour Vehicle details have been sent to you via SMS" +
-            "\n0. Back" +
-            "\n00.Main Menu";
+          
+          response = 'END Please wait for Vodacom Pin prompt to complete the payment'
         } else if (allSteps[0] == "2") {
           console.log(currentStep, userText);
-          response =
-            "CON Merci de vous être inscrit sur VodaInsure." +
-            "\nUtilisez votre NIP pour vous connecter" +
-            "\n0. Retour" +
-            "\n00. Menu principal";
+          response ="END Veuillez patienter que Vodacom Pin vous invite à effectuer le paiement";
         }
       }
 
@@ -520,223 +522,3 @@ export default function (args: RequestBody, db: any) {
     }
   });
 }
-
-// "Please confirm the vehicle involved below;;
-
-// 1. DRCE647E
-// 2. DRC456V
-
-// 0.Back 00.Main Menu"	"Please select the nature of the claim below;
-
-// 1. Accident
-// 2. Theft
-
-// 0.Back 00.Main Menu"	"Enter the date of occurence
-
-// 0.Back    00.Main Menu"	"Confirm your claim details below:
-
-// Nature: XXX
-// Date: XXX
-
-// 1. Confirm
-
-// 0.Back    00.Main Menu"	"Your Claim on Vehicle xxx has been successfully submitted.
-
-// You will receive sms with further instruction"
-//	Dear xxx, please share a police abstract, pictures of filled claim form and any other proof via the link that  has been sent via SMS or send to this Whatsapp Number. Thank you
-
-// menu.con(`Welcome to Vodainsure
-
-//                                 Continue in
-//                                 1. English/Anglais
-//                                 2. French/Français
-
-//                                 0.Back 00.Main Menu`);
-
-// menu.con("Welcome to VodaInsure" +
-//     "\n1. Buy Cover" +
-//     "\n2. My Cover" +
-//     "\n3. My Vehicles/Motorcycle" +
-//     "\n4. Make Claim" +
-//     "\n5. FAQS" +
-//     "\n6. Garages" +
-//     "\n7. Terms & Conditions" +
-//     "\n0. Back" +
-//     "\n00. Main Menu"
-// );
-
-// menu.con(`Choose cover type
-//                         1. Comprehensive
-//                         2. Fire and Theft
-//                         3. Third Party Only
-
-//                         0. Back
-
-//                         00. Main Menu`);
-
-// menu.con(`Enter your Voter No.
-//                         1. Identification Number
-//                         0. Back 00.Main Menu`);
-
-// menu.con(`select vehicle category
-//                         1. Private
-//                         2. Corporate
-//                         3. Passenger transport
-//                         4. Truck
-//                         5. Motorcycle
-//                         6. Driving school
-//                         7. Rental vehicle
-//                         8. Construction machinery vehicle
-//                         9. Special vehicle
-//                         10. Trailers
-//                         0. Back 00.Main Menu`);
-
-// menu.con(`Enter Chassis No. of the Vehicle
-//                         0. Back 00.Main Menu`);
-
-// menu.con(`Enter Cv No. of the Vehicle
-//                         0. Back 00.Main Menu`);
-
-// menu.con(`Enter Value of the Vehicle
-//                         0. Back 00.Main Menu`);
-
-// menu.con(`Enter Year of Manufacture
-//                         0. Back 00.Main Menu`);
-
-// } else if (currentStep == 3) {
-//     console.log(allSteps, currentStep, userText);
-
-// } else if (currentStep == 4) {
-//     console.log(allSteps, currentStep, userText);
-//     if (userText == "1" && allSteps[0] == "1") {
-//         response = "CON Full Name: xxxxx" +
-//             "\nNumber : 07xxxxxxxx" +
-//             "\nVote Number: xxxxxxx" +
-//             "\nPress 1 to confirm your details " +
-//             "\n1. Confirm" +
-//             "\n0. Back" +
-//             "\n00.Main Menu"
-//     } else if (userText == "1" && allSteps[0] == "2") {
-//         console.log(currentStep, userText);
-//         response = 'CON Nom complet: xxxxx' +
-//             "\nNuméro : 07xxxxxxxx" +
-//             "\nNuméro de vote: xxxxxxx" +
-//             "\nAppuyez sur 1 pour confirmer vos détails " +
-//             "\n1. Confirmer" +
-//             "\n0. Retour" +
-//             "\n00. Menu principal"
-
-//     }
-
-// }else if (currentStep == 5) {
-//     console.log(allSteps, currentStep, userText);
-//     if (userText == "1" && allSteps[0] == "1") {
-//         response = "CON Thank you for registering on VodaInsure." +
-//             "\nUse your PIN to login"
-//     } else if (userText == "1" && allSteps[0] == "2") {
-//         console.log(currentStep, userText);
-//         response = 'CON Merci de vous être inscrit sur VodaInsure.' +
-//             "\nUtilisez votre NIP pour vous connecter"
-
-//     }
-
-//     }
-
-//    Continue in
-//    1. English/Anglais
-//    2. French/Français
-//    0. Back
-//    00. Main Menu"
-
-// 2. Voter Number Entry
-//    "Enter your Voter No.
-//    1. Identification Number
-//    0. Back
-//    00. Main Menu"
-
-// 3. Confirm Details
-//    "Full Name: xxxxx
-//    Number : 07xxxxxxxx
-//    Vote Number: xxxxxxx
-
-//    Press 1 to confirm your details
-//    1. Confirm
-//    0. Back
-//    00. Main Menu"
-
-// 4. Registration Complete
-//    "Thank you for registering on VodaInsure.
-//    Use your PIN to login"
-
-// . VodaInsure Main Menu
-//    *123*6*2#
-//    "Welcome to Vodainsure
-//    Continue in
-//    1. Voda Motor
-//    2. Voda Health
-//    0. Back
-//    00. Main Menu"
-
-// 10. VodaMotor Options
-//     "Welcome to VodaInsure
-//     1. Buy Cover
-//     2. My Cover
-//     3. My Vehicles/Motorcycle
-//     4. Make Claim
-//     5. FAQS
-//     6. Garages
-//     7. Terms & Conditions
-//     0. Back
-//     00. Main Menu"
-
-// 11. Choose Cover Type
-//     "Choose cover type
-//     1. Comprehensive
-//     2. Fire and Theft
-//     3. Third Party Only
-//     0. Back
-//     00. Main Menu"
-
-// 12. Select Vehicle Category
-//     "Select vehicle category
-//     1. Private
-//     2. Corporate
-//     3. Passenger transport
-//     4. Truck
-//     5. Motorcycle
-//     6. Driving school
-//     7. Rental vehicle
-//     8. Construction machinery vehicle
-//     9. Special vehicle
-//     10. Trailers
-//     0. Back
-//     01. Next
-//     00. Main Menu"
-
-// 13. Vehicle Details Entry
-//     "Enter Chassis No. of the Vehicle
-//     0. Back
-//     00. Main Menu"
-
-// 14. Vehicle Details Entry (continued)
-//     "Enter Cv No. of the Vehicle
-//     0. Back
-//     00. Main Menu"
-
-// 15. Vehicle Details Entry (continued)
-//     "Enter Value of the Vehicle
-//     0. Back
-//     00. Main Menu"
-
-// 16. Vehicle Details Entry (continued)
-//     "Enter Year of Manufacture
-//     0. Back
-//     00. Main Menu"
-
-// 17. Vehicle Registration Complete
-//     "Thank you for registering your vehicle with VodaInsure.
-//     You will receive email and SMS with more information.
-//     Your Vehicle details have been sent to you via SMS"
-
-// 24. VodaHealth Registration Complete
-//     "Thank you for showing interest in Voda Health. We will call you shortly"
