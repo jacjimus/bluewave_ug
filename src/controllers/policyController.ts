@@ -824,7 +824,7 @@ async function calculatePremiumBasedOnVehicleDetails(req, res) {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"company_name": "Umoja CO", "company_address": "Nairobi", "company_phone_number": "254712345678", "company_email": "info@umoja.com","contact_person_name":"John Doe", "number_of_staff": 20,"medical_cover_type":"inpatient","partner_id": 3  }
+  *             example: {"company_name": "Umoja CO", "company_address": "Nairobi", "company_phone_number": "254712345678", "company_email": "info@umoja.com","contact_person_name":"John Doe", "number_of_staff": 20,"medical_cover_type":"inpatient", "admin_email": "admin@bluewave.insure", "partner_id": 3  }
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -839,8 +839,7 @@ const createHealthPolicy = async (req: any, res: any) => {
  
     console.log(req.body)
 
-   let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type } = req.body
-   let email = company_email
+   let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type, admin_email } = req.body
     let subject = "Health Insurance Policy"
     let emailHtml = `<p>Dear Admin,</p>  <p>Request for health insurance provider.
     <p>Company Name: ${company_name}</p>
@@ -851,7 +850,7 @@ const createHealthPolicy = async (req: any, res: any) => {
     <p>Number of Staff: ${number_of_staff}</p>
     <p>Medical Cover Type: ${medical_cover_type}</p>
     <p>Thank you.</p>`
-    await sendEmail( email, subject, emailHtml)
+    await sendEmail( admin_email = "admin@bluewave.insure", subject, emailHtml)
 
    
     return res.status(200).json({
