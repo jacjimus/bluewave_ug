@@ -63,7 +63,7 @@ const accountMenu = async (args: any, db: any) => {
                 console.log("phoneNumber", smsPhone);
                 paidPolicies = await db.policies.findAll({
                     where: {
-                        phone_number: smsPhone,
+                        user_id: currentUser.user_id,
                         policy_status: "paid"
                     }
                 });
