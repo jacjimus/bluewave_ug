@@ -1,5 +1,7 @@
 
 import { db } from "../models/db";
+import { sendEmail } from "../services/emailService";
+
 import { calculatePremium } from "../services/utils";
 const Policy = db.policies;
 const User = db.users;
@@ -806,6 +808,68 @@ async function calculatePremiumBasedOnVehicleDetails(req, res) {
   }
 }
 
+/**
+  * @swagger
+  * /api/v1/policies/health:
+  *   post:
+  *     tags:
+  *       - Policies
+  *     description: buy health insurance
+  *     operationId:  createHealthPolicy
+  *     summary:  create health insurance
+  *     security:
+  *       - ApiKeyAuth: []
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             example: {"company_name": "Umoja CO", "company_address": "Nairobi", "company_phone_number": "254712345678", "company_email": "info@umoja.com","contact_person_name":"John Doe", "number_of_staff": 20,"medical_cover_type":"inpatient","partner_id": 3  }
+  *     responses:
+  *       200:
+  *         description: Information fetched succussfuly
+  *       400:
+  *         description: Invalid request
+  */
+
+const createHealthPolicy = async (req: any, res: any) => {
+  try {
+    let partner_id = (req.body.partner_id).toString()
+    let partner = await Partner.findOne({ where: { partner_id } })
+ 
+    console.log(req.body)
+
+   let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type } = req.body
+   let email = company_email
+    let subject = "Health Insurance Policy"
+    let emailHtml = `<p>Dear Admin,</p>  <p>Request for health insurance provider.
+    <p>Company Name: ${company_name}</p>
+    <p>Company Address: ${company_address}</p>
+    <p>Company Phone Number: ${company_phone_number}</p>
+    <p>Company Email: ${company_email}</p>
+    <p>Contact Person Name: ${contact_person_name}</p>
+    <p>Number of Staff: ${number_of_staff}</p>
+    <p>Medical Cover Type: ${medical_cover_type}</p>
+    <p>Thank you.</p>`
+    await sendEmail( email, subject, emailHtml)
+
+   
+    return res.status(200).json({
+      result: {
+        code: 200,
+        message: "We have received your request. We will get back to you shortly.",
+        policy: req.body
+      }
+    });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error", error: error
+    });
+  }
+}
+
 
 
 module.exports = {
@@ -816,7 +880,8 @@ module.exports = {
   updatePolicy,
   deletePolicy,
   vehicleRegistration,
-  calculatePremiumBasedOnVehicleDetails
+  calculatePremiumBasedOnVehicleDetails,
+  createHealthPolicy
 }
 
 

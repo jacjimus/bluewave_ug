@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 import { db } from "../models/db";
 import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 import welcomeTemplate from "../services/emailTemplates/welcome";
-import sendEmail from "../services/sendEmail";
+import {sendWelcomeEmail} from "../services/emailService";
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 import {
@@ -1070,7 +1070,7 @@ async function adminSignup(req: any, res: any) {
     //save admin to database
     let newAdmin = await User.create(admin);
 
-    await sendEmail(admin, "Admin Registration", welcomeTemplate)
+    await sendWelcomeEmail(admin, "Admin Registration", welcomeTemplate)
 
 
     console.log("NEW ADMIN", newAdmin);
