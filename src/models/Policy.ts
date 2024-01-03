@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: "pending",
             allowNull: true,
-            enum: ["pending", "paid"]
+            enum: ["pending", "paid", "expired"]
             
         },
         beneficiary: {

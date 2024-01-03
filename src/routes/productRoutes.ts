@@ -22,4 +22,4 @@ router.post('/create',isBluewave, productController.createProduct)
 router.put('/:product_id',isBluewave, productController.updateProduct)
 
 
-module.exports = router
+export default router;

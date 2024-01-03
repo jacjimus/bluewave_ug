@@ -21,5 +21,4 @@ router.get('/session', logController.getSessions);
 router.post('/ussdSessions', logController.ussdSessions);
 
 
-
-module.exports = router
+export default router;

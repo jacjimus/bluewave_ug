@@ -39,4 +39,4 @@ router.post('/claim/excel',isSuperAdmin, reportController.getClaimExcelReportDow
 router.post('/reconciliation', upload.single('payment_file'), reportController.paymentReconciliation)
 router.get('/claim/excel/download', reportController.handleClaimDownload)
 
-module.exports = router
+export default router;

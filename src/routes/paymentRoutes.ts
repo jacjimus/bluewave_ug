@@ -21,5 +21,5 @@ router.get('/policy/:policy_id', isSuperAdmin, paymentController.getPolicyPaymen
 router.get('/user/:user_id', isSuperAdmin, paymentController.findUserByPhoneNumberPayments)
 router.post('/create', isSuperAdmin, isSuperAdmin, paymentController.createPayment)
 
-module.exports = router
+export default router;
 

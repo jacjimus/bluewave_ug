@@ -21,7 +21,8 @@ router.get('/policies/:policy_id', isSuperAdmin, isSuperAdmin, claimController.g
 router.put('/:claim_id', isSuperAdmin, claimController.updateClaim)
 router.delete('/:claim_id', isSuperAdmin, claimController.deleteClaim)
 
-module.exports = router
+
+export default router;
 
 
 

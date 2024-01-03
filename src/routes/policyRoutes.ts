@@ -30,4 +30,4 @@ router.delete('/:policy_id', isSuperAdmin, policyController.deletePolicy)
 
 
 
-module.exports = router
+export default router;
