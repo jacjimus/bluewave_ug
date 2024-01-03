@@ -101,7 +101,7 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
       if (policy.renewal_status == "pending") {
         policy.renewal_status = "renewed";
         policy.renewal_date =  installment_alert_date;
-        policy.renewal_order = parseInt(policyPaidCount) + 1;
+        policy.renewal_order = parseInt(paymentPaidCount) + 1;
       }
   }else{
     policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
