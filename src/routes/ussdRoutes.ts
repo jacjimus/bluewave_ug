@@ -2,6 +2,7 @@ import express from "express";
 import ussdUgaMenuBuilder from "../menu-builder";
 import ussdKenMenuBuilder from "../menu-ken-builder"
 import ussdVodacomMenuBuilder from "../menu-vodacom-builder";
+import moment from "moment";
 
 import SMSMessenger from "../services/sendSMS";
 import { db } from "../models/db";
@@ -57,48 +58,65 @@ const findTransactionById = async (transactionId) => {
   });
 };
 
-export const updateUserPolicyStatus = async (policy, amount, installment_order, installment_type, payment, airtel_money_id) => {
-  console.log("UPDATE STATUS WAS CALLED", policy, amount, installment_order, installment_type)
+export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
+  console.log("UPDATE STATUS WAS CALLED", policy)
   let date = new Date();
-
+  const policyPaidCount = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid", premium: amount } });
   amount = parseInt(amount);
-
-  let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, date.getDay() - 3);
   policy.policy_status = "paid";
-  policy.policy_paid_date = new Date();
-
-  if (installment_order == 12) {
-    policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
-  }
-
-  if (installment_type == 2) {
-    policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-    policy.installment_order = installment_order;
-    policy.installment_alert_date = installment_alert_date;
-  }
-
-
-  if (policy.policy_paid_amount !== policy.premium) {
-
-    policy.policy_paid_amount += amount;
-    policy.premium -= amount;
-  }
-
   policy.bluewave_transaction_id = payment.payment_id;
   policy.airtel_transaction_id = airtel_money_id
+  policy.policy_paid_amount = parseInt(amount)
+  policy.policy_deduction_amount = parseInt(amount)
+  policy.tax_rate_ext = 0;
+  policy.tax_rate_vat = 0;
+  policy.excess_premium = 0;
+  policy.discount_premium = 0;
 
-  console.log("UPDATE STATUS WAS CALLED", policy)
-
-  if (policy.renewal_status == "pending") {
-    policy.renewal_status = "renewed";
-    policy.renewal_date = new Date();
-    policy.renewal_order = parseInt(policy.renewal_order) + 1;
+  let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1,  policy.policy_deduction_day - 3);
+  if (policy.policy_deduction_day - 3 < 1) {
+    installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 28);
   }
+  policy.policy_paid_date = new Date();
 
-  let policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid" } });
-  policyPaidCountOfUser = parseInt(policyPaidCountOfUser)  == 0 ? 1 : policyPaidCountOfUser;
-  let updateUserNumberOfPolices = await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
-  console.log("UPDATE USER NUMBER OF POLICIES", updateUserNumberOfPolices);
+
+  // 1 = annual, 2 = monthly
+
+  if (policy.installment_type == 2) {
+    policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
+    policy.installment_order = parseInt(policyPaidCount) + 1;
+    policy.installment_alert_date = installment_alert_date;
+
+    if (policy.policy_paid_amount !== policy.premium) {
+      let allPaidPolicies = await db.policies.findAll({ where: { user_id: policy.user_id, policy_status: "paid", premium : amount } });
+      let totalPaidAmount = 0;
+      allPaidPolicies.forEach((pol) => {
+        totalPaidAmount += pol.premium;
+      });
+      policy.policy_paid_amount = totalPaidAmount;
+      policy.policy_pending_premium = policy.yearly_premium - totalPaidAmount;
+    
+      }
+
+      if (policy.renewal_status == "pending") {
+        policy.renewal_status = "renewed";
+        policy.renewal_date =  installment_alert_date;
+        policy.renewal_order = parseInt(policyPaidCount) + 1;
+      }
+  }else{
+    policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+    if (policy.installment_order == 12 ) {
+      policy.policy_status = "expired";
+      policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+    }
+  }
+ 
+
+  const policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid"} });
+   await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
+
+   console.log("===========POLICY PAID =======", policy);
+ 
   await policy.save();
 
   return policy;
@@ -122,29 +140,26 @@ router.all("/callback", async (req, res) => {
       }
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
-      //console.log("TRANSACTION DATA", transactionData);
+     
 
       const user = await Users.findOne({ where: { user_id } });
-      let policy = await db.policies.findOne({ where: { policy_id } });
-      // policy.sort((a, b) => a.policy_start_date - b.policy_start_date);
-      policy.airtel_money_id = airtel_money_id;
-
       if (!user) {
         console.log("User not found");
         return res.status(404).json({ message: "User not found" });
       }
+      let policy = await db.policies.findOne({ where:
+         { 
+          policy_id ,
+          premium : amount
+      } });
 
-      // latest policy
-      // policy = policy[policy.length - 1];
-
-      //console.log("======= POLICY =========", policy);
-
-      if (!policy || !policy.airtel_money_id) {
+      if (!policy ) {
         console.log("Policy not found");
         return res.status(404).json({ message: "Policy not found" });
       }
 
-      const beneficiary = policy.beneficiary
+      policy.airtel_money_id = airtel_money_id;
+
       const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
       const policyType = policy.policy_type.toUpperCase();
       const period = policy.installment_type == 1 ? "yearly" : "monthly";
@@ -168,112 +183,13 @@ router.all("/callback", async (req, res) => {
           partner_id,
         });
 
+        console.log("Payment record created successfully");
 
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
-        let policySchedule = await db.policy_schedules.findOne({ where: { policy_id } });
-        console.log("POLICY SCHEDULE", policySchedule);
 
-        function calculateOutstandingPremiumForMonth(premium, month) {
-          // Calculate the outstanding premium for the month
-
-          // eg jan 10,000, feb 20, 000, march 30,000
-          const outstandingPremium = premium * (12 - month);
-
-          // Return the outstanding premium
-          return outstandingPremium;
-
-        }
-
-        if (!policySchedule) {
-          // If policy installment type is monthly, create 12 policy schedules
-          if (policy.installment_type == 2) {
-            // Get the policy start date
-            const policyStartDate = new Date(policy.policy_start_date);
-
-            // Define an array to store the 12 policy schedules
-            const policySchedules = [];
-
-            // Loop to create 12 monthly policy schedules
-            for (let i = 0; i < 12; i++) {
-              // Calculate the next due date
-              const nextDueDate = new Date(policyStartDate);
-              nextDueDate.setMonth(policyStartDate.getMonth() + i);
-
-              // Calculate the reminder date (e.g., 5 days before the due date)
-              const reminderDate = new Date(nextDueDate);
-              reminderDate.setDate(reminderDate.getDate() - 5);
-
-              // Create a new policy schedule object
-              const newPolicySchedule = {
-                policy_schedule_id: uuidv4(),
-                policy_id,
-                payment_frequency: period,
-                policy_start_date: policyStartDate,
-                next_payment_due_date: nextDueDate,
-                reminder_date: reminderDate,
-                premium: policy.premium,
-                outstanding_premium: calculateOutstandingPremiumForMonth(policy.premium, i)
-              };
-
-              // Push the new policy schedule into the array
-              policySchedules.push(newPolicySchedule);
-            }
-
-            // Insert all 12 policy schedules into your database
-            await PolicySchedule.bulkCreate(policySchedules);
-
-            // Now you have 12 policy schedules for the monthly installment.
-          } else if (policy.installment_type == 1) {
-            // If the policy installment type is not monthly, create a single policy schedule
-            const newPolicySchedule = {
-              policy_schedule_id: uuidv4(),
-              policy_id,
-              payment_frequency: period,
-              policy_start_date: policy.policy_start_date,
-              next_payment_due_date: policy.policy_end_date,
-              reminder_date: policy.policy_end_date,
-              premium: policy.premium,
-              outstanding_premium: policy.premium
-            };
-
-            // Insert the single policy schedule into your database
-            await PolicySchedule.create(newPolicySchedule);
-          } else {
-            console.log("POLICY INSTALLMENT TYPE NOT FOUND")
-          }
-        }
-
-
-        console.log("Payment record created successfully");
-
-        if (policy.installment_order >= 1 && policy.installment_order < 12 && policy.installment_type == 2 && policy.policy_status == "paid") {
-          console.log("INSTALLMENT ORDER", policy.installment_order, policy.installment_type);
-          const date = new Date();
-          const installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1);
-
-          let installment_order = policy.installment_order + 1;
-
-          installment = await db.installments.create({
-            installment_id: uuidv4(),
-            policy_id,
-            installment_order,
-            installment_date: new Date(),
-            installment_alert_date,
-            tax_rate_vat: policy.tax_rate_vat,
-            tax_rate_ext: policy.tax_rate_ext,
-            installment_deduction_amount: policy.policy_deduction_amount,
-            premium: policy.premium,
-            sum_insured: policy.sum_insured,
-            excess_premium: policy.excess_premium,
-            discount_premium: policy.discount_premium,
-            currency_code: policy.currency_code,
-            country_code: policy.country_code,
-          });
-
-        }
-        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type, payment, airtel_money_id);
+        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
@@ -542,7 +458,7 @@ router.all("/callback/kenya", async (req, res) => {
           });
 
         }
-        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), policy.installment_order, policy.installment_type, payment, airtel_money_id);
+        updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
