@@ -82,10 +82,11 @@ interface PrincipalRegistration {
 
 
 async function registerPrincipal(user: any, policy: any) {
-  if (user.user_id !== policy.user_id) {
-    throw new Error(" POLICY NOT FOR USER");
+  if (user.user_id !== policy?.user_id) {
+   console.log("POLICY NOT FOR USER");
   }
  
+  if(policy && user){
   const userData: PrincipalRegistration = {
     surname: user.last_name || `256${user.phone_number}`,
     first_name: user.first_name || `256${user.phone_number}`,
@@ -136,6 +137,7 @@ async function registerPrincipal(user: any, policy: any) {
   } catch (error) {
     console.error(error);
   }
+}
 }
 
 
@@ -546,6 +548,7 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
     where: {
       [db.Sequelize.Op.or]: [
         { phone_number: phoneNumber },
+    
          //{ arr_member_number:  arr_member_number }
       ],
       partner_id: partner_id
@@ -558,16 +561,22 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
     throw new Error("Sorry, No user found")
   }
   console.log("EXISTING USER", existingUser.phone_number, existingUser.name);
+
   let policy: any = await db.policies.findOne({
     where: {
-      user_id: existingUser.user_id,
+      [db.Sequelize.Op.or]: [
+        { user_id: existingUser.user_id },
+        { phone_number: `+256${existingUser.phone_number}` },
+      ],
       premium: premium
       //policy_status: 'paid',
     },
   });
-  console.log("POLICY", policy,  existingUser.phone_number, existingUser.name);
+  console.log("POLICY", policy, existingUser.phone_number, existingUser.name);
+
+ 
   if(!policy) {
-    throw new Error("Sorry, No policy found")
+    console.log("NO POLICY FOUND");
   }else{
     //update policy status to paid
     await db.policies.update(
@@ -585,7 +594,10 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
   //update number of policies for the user
   let user_policies = await db.policies.findAll({
     where: {
-      user_id: existingUser.user_id,
+      [db.Sequelize.Op.or]: [
+        { user_id: existingUser.user_id },
+        { bought_for: existingUser.user_id },
+      ],
       policy_status: 'paid',
     },
     limit: 100, 
@@ -594,7 +606,11 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
   await db.users.update(
     { number_of_policies: user_policies.length
      },
-    { where: { user_id: existingUser.user_id } }
+    { where: { 
+      [db.Sequelize.Op.or]: [
+        { user_id: existingUser.user_id },
+      ],
+      } }
   );
   }
 
@@ -616,7 +632,7 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
           let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
           let dependant_surname = `${i}surname${existingUser.membership_id}`;
 
-       if (arr_member.policy_no != null && arr_member.code == 200) {
+       if ( arr_member?.code == 200) {
             // Use a Promise with setTimeout to control the creation
             await new Promise(resolve => {
               setTimeout(async () => {
@@ -674,6 +690,8 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
               }, 1000 * i); // Adjust the delay as needed
             });
 
+    }else{
+      console.log("NO ARR MEMBER or Member with same name and dob already exists!")
     }
   }
   }

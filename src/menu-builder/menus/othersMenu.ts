@@ -439,7 +439,7 @@ const othersMenu = async (args, db) => {
         premium: parseAmount(ultimatePremium),
         yearly_premium: parseAmount(policyType.yearly_premium),
         last_expense_insured: policyType.lastExpenseInsured,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
+        membership_id: existingUser.membership_id,
         beneficiary: "OTHER",
         partner_id: 2,
         country_code: "UGA",

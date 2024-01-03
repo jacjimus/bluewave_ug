@@ -171,7 +171,7 @@ const selfMenu = async (args, db) => {
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
                 policy_start_date: new Date(),
                 installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
-                membership_id: Math.floor(100000 + Math.random() * 900000),
+                membership_id: existingUser.membership_id,
                 beneficiary: "SELF",
                 policy_status: "pending",
                 policy_deduction_day: new Date().getDate() - 1,

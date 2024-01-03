@@ -719,7 +719,7 @@ const familyMenu = async (args, db) => {
         premium: ultimatePremium,
         yearly_premium: parseAmount(selectedPackage.year_premium),
         last_expense_insured: selectedPackage.lastExpenseInsured,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
+        membership_id: existingUser.membership_id,
         beneficiary: "FAMILY",
         partner_id: 2,
         country_code: "UGA",

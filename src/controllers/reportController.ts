@@ -1648,7 +1648,7 @@ const paymentReconciliation = async (req, res) => {
         payment_id: payment['External Reference'],
         policy_paid_date: payment['Transaction Date'],
       });
-      await reconciliation(partner_id,  `+256${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
+      await reconciliation(partner_id,  `${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
 
       let myPolicy = await db.policies.findOne({
         where: {
@@ -1664,7 +1664,7 @@ const paymentReconciliation = async (req, res) => {
       let policy_paid_date = new Date(payment['Transaction Date']);
 
       if (isNaN(policy_paid_date.getTime())) {
-        policy_paid_date = myPolicy.policy_start_date;
+        policy_paid_date = myPolicy?.policy_start_date ? myPolicy.policy_start_date : new Date();
       }
       
       if(myPolicy) {
