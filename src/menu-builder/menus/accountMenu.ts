@@ -36,6 +36,11 @@ const accountMenu = async (args: any, db: any) => {
         limit: 6
     });
 
+    if(paidPolicies.length == 0){
+        response = "END You have no paid policies"
+        return response
+    }
+
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
 
