@@ -20,6 +20,10 @@ const accountMenu = async (args: any, db: any) => {
         },
         limit: 1,
     });
+    if(!currentUser){
+        response = "END You are not registered on Dwaliro"
+        return response
+    }
 
     let paidPolicies = await db.policies.findAll({
         where: {
