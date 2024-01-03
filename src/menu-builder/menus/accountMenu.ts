@@ -23,55 +23,44 @@ const accountMenu = async (args: any, db: any) => {
 
     let paidPolicies = await db.policies.findAll({
         where: {
-           user_id: currentUser.user_id,
+            user_id: currentUser.user_id,
             policy_status: "paid"
-        }
+        },
+        order: [
+            ['policy_id', 'DESC'],
+        ],
+        limit: 6
     });
+
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
 
         return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
     });
 
-
-
-
     if (currentStep == 1) {
         response = "CON My Account" +
             "\n1. Policy Status" +
             "\n2. Renew Policy" +
             "\n3. Cancel Policy" +
-            "\n4. Add Next of Kin"+
-            "\n5. Update Gender and Date of birth"+
-            "\n6. Add Dependants" ;
+            "\n4. Add Next of Kin" +
+            "\n5. Update Gender and Date of birth" +
+            "\n6. Add Dependants";
     }
     else if (currentStep == 2) {
         console.log('Current step', currentStep);
-         console.log('User text', userText)
+        console.log('User text', userText)
         switch (userText) {
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
                 break;
             case "2":
-                console.log("phoneNumber", smsPhone);
-                paidPolicies = await db.policies.findAll({
-                    where: {
-                       user_id: currentUser.user_id,
-                        policy_status: "paid"
-                    }
-                });
-                console.log("paidPolicies", paidPolicies)
                 // last 6 unpaid policies
                 paidPolicies = paidPolicies.slice(-6);
                 if (paidPolicies?.length === 0) {
                     response = "END You have no paid policies"
                 }
                 else {
-                    // response = "CON PAY " +
-                    //     `\n1 UGX ${unpaidPolicies[0].premium.toLocaleString()}  monthly` +
-                    //     `\n2 UGX ${unpaidPolicies[0].yearly_premium.toLocaleString()}  yearly`
-
-
                     // list all the pending policies
                     response = "CON " + paidPolicies.map((policy: any, index: number) => {
                         return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
@@ -80,12 +69,6 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 break;
             case "3":
-
-
-                console.log("paidPolicies", paidPolicies)
-                console.log("policyMessages", policyMessages)
-
-
 
                 if (paidPolicies.length > 0) {
                     response = `CON ${policyMessages[policyMessages.length - 1]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
@@ -99,11 +82,11 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "5":
                 response = 'CON Choose your Gender ' +
-                     "\n1. Male" +
-                     "\n2. Female" ;
+                    "\n1. Male" +
+                    "\n2. Female";
                 break;
             case "6":
-                response = 'CON whats the Dependant full name ' ;
+                response = 'CON whats the Dependant full name ';
                 break;
             default:
                 response = "END Invalid option selected"
@@ -154,8 +137,6 @@ const accountMenu = async (args: any, db: any) => {
                                 } and Funeral expense of UGX ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()
                                 }`
                         }
-
-
                     }
                 }
                 break;
@@ -163,16 +144,7 @@ const accountMenu = async (args: any, db: any) => {
                 console.log("allSteps", allSteps, allSteps[2]);
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
-                paidPolicies = await db.policies.findAll({
-                    where: {
-                        user_id: currentUser.user_id,
-                        policy_status: "paid"
-                    },
-                    order: [
-                        ['policy_id', 'DESC'],
-                    ],
-                    limit: 6
-                });
+
                 // last 6 unpaid policies
                 const existingUser = await db.users.findOne({
                     where: {
@@ -185,17 +157,17 @@ const accountMenu = async (args: any, db: any) => {
                 console.log("paidPolicies", paidPolicies)
 
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
-                console.log("CHOSEN POLICY", choosenPolicy)
+
                 await db.policies.update({
-                    renewal_status: "pending",
-                    user_id: existingUser.user_id
+                    renewal_status: "pending"
                 }, {
                     where: {
                         policy_id: choosenPolicy.policy_id
                     }
                 });
+
                 console.log("CHOOSEN POLICY", choosenPolicy)
-                const airtelMoneyPromise =await airtelMoney(
+                const airtelMoneyPromise = await airtelMoney(
                     existingUser.user_id,
                     2,
                     choosenPolicy.policy_id,
@@ -204,40 +176,39 @@ const accountMenu = async (args: any, db: any) => {
                     existingUser.membership_id,
                     "UG",
                     "UGX"
-
                 );
 
+                const timeout = 1000;
 
-            const timeout = 1000;
+                Promise.race([
+                    airtelMoneyPromise,
+                    new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            reject(new Error('Airtel Money operation timed out'));
+                        }, timeout);
+                    })
+                ]).then((result) => {
+                    // Airtel Money operation completed successfully
+                    console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                    response = 'END Payment successful';
+                    console.log("RESPONSE WAS CALLED", result);
+                    return response;
+                }).catch((error) => {
+                    response = 'END Payment failed';
+                    console.log("RESPONSE WAS CALLED", error);
+                    return response;
+                });
 
-            Promise.race([
-                airtelMoneyPromise,
-                new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        reject(new Error('Airtel Money operation timed out'));
-                    }, timeout);
-                })
-            ]).then((result) => {
-                // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
-                response = 'END Payment successful';
-                console.log("RESPONSE WAS CALLED", result);
-                return response;
-            }).catch((error) => {
-                response = 'END Payment failed';
-                console.log("RESPONSE WAS CALLED", error);
-                return response;
-            });
-
-            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+                console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
 
                 break;
             case "3":
-
+                console.log("allSteps", allSteps, allSteps[2]);
+                console.log("User text cancel", userText)
                 if (userText == "1") {
                     const user = await db.users.findOne({
                         where: {
-                            phone_number: phoneNumber
+                            phone_number: phoneNumber.replace("+", "").substring(3),
                         },
                         limit: 1,
                     });
@@ -307,7 +278,7 @@ const accountMenu = async (args: any, db: any) => {
                     bonus: allSteps[2],
                     beneficiary_type: "KIN",
                     principal_phone_number: trimmedPhoneNumber
-                    
+
                 }
 
 
@@ -334,9 +305,9 @@ const accountMenu = async (args: any, db: any) => {
 
                 response = "END Your gender and date of birth updated successfully"
                 break;
-                
+
         }
-    } 
+    }
     return response
 }
 
