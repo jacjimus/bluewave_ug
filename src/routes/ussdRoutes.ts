@@ -61,7 +61,7 @@ const findTransactionById = async (transactionId) => {
 export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
   console.log("UPDATE STATUS WAS CALLED", policy)
   let date = new Date();
-  const policyPaidCount = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid", premium: amount } });
+  const paymentPaidCount = await db.payment.count({ where: { user_id: policy.user_id, paymeent_status: "paid", payment_amount: amount } });
   amount = parseInt(amount);
   policy.policy_status = "paid";
   policy.bluewave_transaction_id = payment.payment_id;
@@ -84,7 +84,7 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
 
   if (policy.installment_type == 2) {
     policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-    policy.installment_order = parseInt(policyPaidCount) + 1;
+    policy.installment_order = parseInt(paymentPaidCount) + 1;
     policy.installment_alert_date = installment_alert_date;
 
     if (policy.policy_paid_amount !== policy.premium) {
