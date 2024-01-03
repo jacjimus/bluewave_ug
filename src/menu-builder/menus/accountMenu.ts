@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
+import moment from "moment";
 
 
 
@@ -316,7 +317,7 @@ const accountMenu = async (args: any, db: any) => {
                 response = `END ${sms}`
             default:
                 let gender = allSteps[2] == "1" ? 'MALE' : 'FEMALE';
-                let dob = new Date(allSteps[3]);
+                let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
                 console.log(gender, dob);
 
                 await db.users.update(
