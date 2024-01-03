@@ -1,6 +1,6 @@
-const { v4: uuidv4 } = require('uuid'); // Import the uuid package and generate unique IDs
+const { v4: uuidv4 } = require('uuid'); 
 
-const userApiKeys = new Map(); // Map to store user API keys (user ID as the key, API key as the value)
+const userApiKeys = new Map(); 
 
 
 const genAPIKey = () => {

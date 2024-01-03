@@ -10,6 +10,7 @@ import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 import compression from "compression";
 import router from "./src/routes/index"
+import { loggingMiddleware } from "./src/middleware/loggingMiddleware";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(
     },
   })
 );
+
 
 
 const swaggerOptions = {
@@ -66,6 +68,8 @@ app.get("/", (req: any, res: any) =>
 );
 
 app.use("/api/v1", router);
+
+app.use(loggingMiddleware);
 
 app.use(errorHandler);
 

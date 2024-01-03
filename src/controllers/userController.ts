@@ -280,6 +280,9 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log("LOGIN", req.body);
+
+
     // Validate presence of email and password
     if (!email || !password) {
       return res.status(400).json({
@@ -463,6 +466,7 @@ const findAllUsers = async (req, res) => {
           { name: { [Op.like]: `%${filter}%` } },
           { first_name: { [Op.like]: `%${filter}%` } },
           { last_name: { [Op.like]: `%${filter}%` } },
+
           // Add more fields as needed
         ],
       };
@@ -478,20 +482,6 @@ const findAllUsers = async (req, res) => {
         exclude: ["password", "pin"],
       },
     });
-
-
-    const usersWithPolicyCount: any = await Promise.all(
-      users.rows.map(async (user: any) => {
-        const policies = await db.policies.findAndCountAll({
-          where: {
-            user_id: user.user_id,
-          },
-          limit: 6,
-        });
-        user.dataValues.number_of_policies = policies.count;
-        return user
-      })
-    );
 
 
     // Send the response
@@ -560,15 +550,6 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
       limit: 100,
     });
     user.dataValues.number_of_policies = policies.length;
-
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'User fetched successfully',
-    //   level: 'info',
-    //   user: user.user_id,
-    //   partner_id: partner_id,
-    // });
 
     return res
       .status(200)
@@ -696,15 +677,6 @@ const deleteUser = async (req: any, res) => {
       },
     });
 
-    // await Log.create({
-    //   log_id: uuidv4(),
-    //   timestamp: new Date(),
-    //   message: 'User deleted successfully',
-    //   level: 'info',
-    //   user: req.params.user_id,
-    //   partner_id: req.query.partner_id,
-    // });
-    //send users details
     return res
       .status(201)
       .json({ result: { code: 201, message: "Customer deleted successfully" } });
@@ -783,9 +755,7 @@ const getPartner = async (req: any, res: any) => {
  */
 const listPartners = async (req: any, res: any) => {
   try {
-
-    // get admin object from cookies
-    const admin = req.partner_id;
+ 
 
     let partner: any = await Partner.findAll();
     if (parseInt(req.partner_id) == 4) {
@@ -801,12 +771,10 @@ const listPartners = async (req: any, res: any) => {
     } else {
       partner = await Partner.findAll({
         where: {
-          partner_id: admin.toString()
+          partner_id: req.partner_id.toString()
         },
       });
     }
-
-
 
 
     if (!partner || partner.length === 0) {
@@ -851,28 +819,23 @@ const listPartners = async (req: any, res: any) => {
  */
 const partnerSwitch = async (req: any, res: any) => {
   try {
-    let partner_id_to_update = req.query.partner_id;
-    let user_id = req.user_id;
-
-    let partner_id = req.partner_id;
-
+  
     let partner = await Partner.findOne({
       where: {
-        id: partner_id
+        id: req.partner_id
       },
     });
     console.log("PARTNER", partner);
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
     }
-    //update the partner id
-    let updatedUser = await User.update(
-      { partner_id: partner_id_to_update },
-      { where: { user_id: user_id } }
-    );
-    //saving the user
 
-    //send users details
+    let updatedUser = await User.update(
+      { partner_id: req.query.partner_id },
+      { where: { user_id: req.user_id
+      } }
+    );
+    
     console.log("updated user", updatedUser);
     return res.status(201).json({ code: 201, message: "Partner updated successfully" });
   } catch (error) {
@@ -994,7 +957,6 @@ const bulkUserRegistration = async (req: any, res: any) => {
         role: "user",
       };
 
-      // Use your preferred method to create users (e.g., Sequelize's create())
       const createdUser = await createUserFunction(user_data) || {};
       createdUsers.push(createdUser);
     }
@@ -1048,7 +1010,6 @@ async function adminSignup(req: any, res: any) {
   try {
     const { username, email, password, role, partner_id } = req.body;
 
-    // Perform validation on the data
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'Incomplete data provided' });
     }
@@ -1057,8 +1018,6 @@ async function adminSignup(req: any, res: any) {
       return res.status(409).json({ code: 409, message: "Sorry, Customer already exists with the same email" });
     }
 
-    // Logic for admin signup goes here
-    // You can store the admin data in a database, hash the password, etc.
     const admin = {
       name: username,
       email,
@@ -1067,14 +1026,12 @@ async function adminSignup(req: any, res: any) {
       partner_id,
     };
 
-    //save admin to database
     let newAdmin = await User.create(admin);
 
     await sendWelcomeEmail(admin, "Admin Registration", welcomeTemplate)
 
 
     console.log("NEW ADMIN", newAdmin);
-    // Return a success response
     return res.status(200).json({ code: 200, message: 'Admin registered successfully' });
 
   } catch (error) {
@@ -1125,13 +1082,10 @@ async function adminSignup(req: any, res: any) {
  */
 async function arrMemberRegistration(req: any, res: any) {
   try {
-    let partner_id = req.query.partner_id;
-    let phoneNumber = req.query.phoneNumber || "";
-    let premium = req.query.premium || 0
-    let arr_member_number = req.query.arr_member_number || ""
+   
+      const { phoneNumber, premium, arr_member_number} = req.body
 
-
-    let updatedPremium = reconciliation(partner_id, phoneNumber, arr_member_number, premium)
+    let updatedPremium = reconciliation(2, phoneNumber, arr_member_number, premium)
 
     return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium });
   } catch (error) {
