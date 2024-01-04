@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../models/db';
 import dotenv from 'dotenv';
 dotenv.config()
-import { calculateProrationPercentage } from './utils';
+import { calculateProrationPercentage, formatAmount } from './utils';
 
 async function arr_uganda_login() {
   try {
@@ -287,6 +287,7 @@ async function createDependant( existingUser: any, myPolicy: any) {
 async function updatePremium(user: any, policy: any) {
 
   try {
+    console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if(user.user_id !== policy.user_id){
       throw new Error(" POLICY NOT FOR USER");
     }
@@ -553,13 +554,13 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
       ],
       partner_id: partner_id
     },
-    order: [['createdAt', 'DESC']],
+    order: [['createdAt', 'ASC']],
   });
   console.log(phoneNumber)
   
    if(!existingUser) {
-    throw new Error("Sorry, No user found")
-  }
+    console.log("USER NOT FOUND");
+  }else{
   console.log("EXISTING USER", existingUser.phone_number, existingUser.name);
 
   let policy: any = await db.policies.findOne({
@@ -568,29 +569,48 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
         { user_id: existingUser.user_id },
         { phone_number: `+256${existingUser.phone_number}` },
       ],
-      premium: premium
-      //policy_status: 'paid',
+      premium: premium,
+      policy_status: 'paid',
     },
   });
   console.log("POLICY", policy, existingUser.phone_number, existingUser.name);
 
  
-  if(!policy) {
-    console.log("NO POLICY FOUND");
+  if(policy) {
+    console.log("POLICY FOUND", policy.policy_number, policy.policy_status);
   }else{
     //update policy status to paid
     await db.policies.update(
       { policy_status: "paid",
       policy_paid_amount: premium,
+      premium: premium,
      },
-      { where: { policy_id: policy.policy_id } }
+      { where: { policy_number: `BW${existingUser.phone_number}` } }
     );
-    await db.payments.update(
-      { payment_status: "paid" },
-      { where: { policy_id: policy.policy_id,
-        payment_amount: premium,
-       } }
-    );
+    let policy: any = await db.policies.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { user_id: existingUser.user_id },
+          { phone_number: `+256${existingUser.phone_number}` },
+        ],
+        premium: premium,
+        policy_status: 'paid',
+      },
+    });
+    console.log("POLICY", policy, existingUser.phone_number, existingUser.name);
+    const policyType = policy.policy_type.toUpperCase();
+    const period = policy.installment_type == 1 ? "yearly" : "monthly";
+    let updatePayment = await db.payments.update({
+      payment_status: "paid",
+      payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
+      message: `PAID UGX ${premium} to AAR Uganda for ${policyType} Cover, TID: ${policy.airtel_money_id}. Date: ${policy.policy_start_date}`
+    }, {
+      where: {
+        payment_status: "pending",
+        payment_amount:premium
+      }
+    });
+    console.log("PAYMENT UPDATED", updatePayment);
   //update number of policies for the user
   let user_policies = await db.policies.findAll({
     where: {
@@ -599,8 +619,9 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
         { bought_for: existingUser.user_id },
       ],
       policy_status: 'paid',
+      premium: premium,
     },
-    limit: 100, 
+    limit: 12, 
   });
 
   await db.users.update(
@@ -614,14 +635,54 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
   );
   }
 
+//   const members = policy.total_member_number?.match(/\d+(\.\d+)?/g) || 1
+//   console.log("MEMBERS", members);
+
+
+//   const sumInsured = formatAmount(policy.sum_insured);
+//   const lastExpenseInsured = formatAmount(policy.last_expense_insured);
+//   console.log("SUM INSURED", sumInsured);
+//   console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+
+//   const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+
+//   let congratText = "";
+
+//   if (policy.beneficiary == "FAMILY") {
+//     congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
+//   } else if (policy.beneficiary == "SELF")
+//     congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+//   else if (policy.beneficiary == "OTHER") {
+//     congratText = `${existingUser.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+//   }
+
+//  // await SMSMessenger.sendSMS(`+256${payment['Sender Mobile Number']}`, congratText);
+//  console.log("CONGRAT TEXT", congratText);
+
   let arr_member: any, dependant: any;
   if(!existingUser.arr_member_number) {
     // create arr member id
     arr_member = await registerPrincipal(existingUser, policy);
     console.log("ARR MEMBER", arr_member);
   }
+
+  if (existingUser.arr_member_number) {
+    // Fetch member status data or register principal based on the condition
+    arr_member = await fetchMemberStatusData({
+      member_no: existingUser.arr_member_number,
+      unique_profile_id: existingUser.membership_id + "",
+    });
+    console.log("AAR MEMBER FOUND", arr_member);
+
+    if (arr_member.code == 624) {
+      arr_member = await registerPrincipal(existingUser, policy);
+      console.log("ARR PRINCIPAL CREATED", arr_member);
+    }
+  }
+
+
   let updatedPremium : any;
-    if(policy?.total_member_number =='') {
+    if(policy?.total_member_number =='M') {
           updatedPremium =  await updatePremium(existingUser, policy);
     console.log("UPDATED PREMIUM", updatedPremium);
     }
@@ -697,6 +758,7 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
   }
 
   return updatedPremium
+}
  }
 
 export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation};
