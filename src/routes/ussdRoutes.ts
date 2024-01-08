@@ -150,7 +150,9 @@ router.all("/callback", async (req, res) => {
       let policy = await db.policies.findOne({ where:
          { 
           policy_id ,
-          premium : amount
+          user_id,
+
+         // premium : amount
       } });
 
       if (!policy ) {

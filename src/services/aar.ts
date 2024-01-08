@@ -289,8 +289,8 @@ async function updatePremium(user: any, policy: any) {
   try {
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if(user.user_id !== policy.user_id){
-      throw new Error(" POLICY NOT FOR USER");
-    }
+      console.log("POLICY NOT FOR USER");
+    }else{
 
   console.log('UPDATE PREMIUM',user.name, policy.policy_type, user.total_member_number)
     const main_benefit_limit =  policy.sum_insured 
@@ -336,6 +336,7 @@ async function updatePremium(user: any, policy: any) {
     const response = await axios.request(config);
     console.log(JSON.stringify(response.data));
       return response.data;
+  }
   } catch (error) {
     console.error(error);
 
@@ -573,7 +574,7 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
       policy_status: 'paid',
     },
   });
-  console.log("POLICY", policy, existingUser.phone_number, existingUser.name);
+  console.log("POLICY", policy, existingUser.phone_number, existingUser.name, premium);
 
  
   if(policy) {
@@ -585,7 +586,7 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
       policy_paid_amount: premium,
       premium: premium,
      },
-      { where: { policy_number: `BW${existingUser.phone_number}` } }
+      { where: { user_id: existingUser.user_id } }
     );
     let policy: any = await db.policies.findOne({
       where: {
@@ -597,7 +598,7 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
         policy_status: 'paid',
       },
     });
-    console.log("POLICY", policy, existingUser.phone_number, existingUser.name);
+    console.log("POLICY", policy, existingUser.phone_number, existingUser.name, policy.policy_number, premium);
     const policyType = policy.policy_type.toUpperCase();
     const period = policy.installment_type == 1 ? "yearly" : "monthly";
     let updatePayment = await db.payments.update({

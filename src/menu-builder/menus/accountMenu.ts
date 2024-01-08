@@ -168,7 +168,10 @@ const accountMenu = async (args: any, db: any) => {
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
 
                 await db.policies.update({
-                    renewal_status: "pending"
+                    renewal_status: "pending",
+                    renewal_date: new Date(),
+                
+
                 }, {
                     where: {
                         policy_id: choosenPolicy.policy_id

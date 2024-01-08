@@ -1620,12 +1620,19 @@ const paymentReconciliation = async (req, res) => {
     const workbook = XLSX.readFile(payment_file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[1]];
 
+    if (!worksheet) {
+      return res.status(400).json({ message: "Empty worksheet in the Excel file" });
+    }
+
     // Convert worksheet data to an array of objects
     const paymentDataArray = XLSX.utils.sheet_to_json(worksheet);
     console.log("paymentDataArray", paymentDataArray);
 
     let userPhoneNumbers = [];
+    let usersWithmultiplePaidpolicies = [];
     for (let payment of paymentDataArray) {
+
+
       let existingUser = await db.users.findOne({
         where: {
           phone_number: `${payment['Sender Mobile Number']}`,
@@ -1636,30 +1643,101 @@ const paymentReconciliation = async (req, res) => {
       console.log(`existingUser, ${payment['Sender Mobile Number']}`)
 
       if (!existingUser) {
-        throw new Error("User not found");  
+       console.log(`No user found ${payment['Sender Mobile Number']}`,)
+      }else{
+        const policies= await Policy.findAndCountAll({
+          where: {
+            user_id: existingUser.user_id,
+            policy_status: "paid",
+            premium: payment['Approved value'],
+          },
+          limit: 30,
+        });
+
+        if (policies.count === 0) {
+          console.log(`No paid policy found for ${existingUser.phone_number}`);
+          // save user in a file json
+          // userPhoneNumbers.push({
+          //   phone_number: payment['Sender Mobile Number'],
+          //   premium: payment['Approved value'],
+          //   airtel_money_id: payment['Transaction ID'],
+          //   payment_id: payment['External Reference'],
+          //   policy_paid_date: payment['Transaction Date'],
+          // });
+          
+        }else if(policies.count > 1){
+
+          usersWithmultiplePaidpolicies.push(
+            { 
+              existingUser: existingUser.name,
+              user_id: existingUser.user_id,
+              phone_number: payment['Sender Mobile Number'],
+              premium: payment['Approved value'],
+              airtel_money_id: payment['Transaction ID'],
+              payment_id: payment['External Reference'],
+              policy_paid_date: payment['Transaction Date'],
+              policies: policies.rows,
+              count: policies.count
+            }
+          );
+          console.log(usersWithmultiplePaidpolicies)
+          console.log(`====== Policies =====, ${existingUser.user_id} ${existingUser.name} ${payment['Sender Mobile Number']}`, policies.count )
+        }
+
+        console.log(usersWithmultiplePaidpolicies)
+        // if (!policy) {
+        //   console.log(`No paid policy found for ${existingUser.phone_number}`);
+        //  // save user in a file json
+        //   userPhoneNumbers.push({
+        //     phone_number: payment['Sender Mobile Number'],
+        //     premium: payment['Approved value'],
+        //     airtel_money_id: payment['Transaction ID'],
+        //     payment_id: payment['External Reference'],
+        //     policy_paid_date: payment['Transaction Date'],
+        //   });
+
+    
+          //await reconciliation(partner_id,  `${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
+         // throw new Error(`No paid policy found for ${existingUser.phone_number}`)
+        
+      
+        console.log(`Paid policy found for ${existingUser.phone_number}`)
+  
       }
+  /**
+       * 1. Check if user exists in our database using the phone number in the userPhoneNumbers array
+       * 2. If user exists, check if user has a paid policy
+       * 3. If user has a paid policy, continue
+       * 4. If user does not have a paid policy, save user in a file
+       */
+      // userPhoneNumbers.push({
+      //   phone_number: payment['Sender Mobile Number'],
+      //   premium: payment['Approved value'],
+      //   airtel_money_id: payment['Transaction ID'],
+      //   payment_id: payment['External Reference'],
+      //   policy_paid_date: payment['Transaction Date'],
+      // });
 
+      //save userPhoneNumbers in a file json
+   
+      
 
-      console.log("payment", payment)
-      userPhoneNumbers.push({
-        phone_number: payment['Sender Mobile Number'],
-        premium: payment['Approved value'],
-        airtel_money_id: payment['Transaction ID'],
-        payment_id: payment['External Reference'],
-        policy_paid_date: payment['Transaction Date'],
-      });
-      await reconciliation(partner_id,  `${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
+    //  await reconciliation(partner_id,  `${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
 
       // const memberStatus = await fetchMemberStatusData({ member_no: existingUser.arr_member_number, unique_profile_id: existingUser.membership_id + "" });
 
       // console.log("memberStatus", memberStatus)
+
+    
+
+
 
     }
 
     return res.status(200).json({ message: "Reconciliation done successfully" });
   } catch (error) {
     console.log(error)
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 }
 
