@@ -119,7 +119,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
         amount: amount,
         country: country,
         currency: currency,
-        id: policy_id
+        id: uuidv4()
       },
     };
 
@@ -146,6 +146,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
     }).then((paymentResponse: any) => {
       console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
       status.result = paymentResponse.data.status;
+      console.log(status.result)
       console.log("=========== RETURN RESPONSE AIRTEL MONEY ===========", phoneNumber, new Date())
       createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
       return status;
