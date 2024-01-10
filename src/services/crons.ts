@@ -41,19 +41,16 @@ export const sendPolicyRenewalReminder = async () => {
                 policy_status: 'paid',
                 installment_type: 2,
                 partner_id: 2,
-                policy_start_date: {
-                    [Op.gt]: moment().add(4, 'days').toDate()
-                }
+                // policy_start_date: {
+                //     [Op.gt]: moment().add(4, 'days').toDate()
+                // }
 
-            },
-            include: [
-                {
-                    model: db.users,
-                    as: 'user',
-                    attributes: ['phone_number']
-                }
-            ]
+            }
         });
+        console.log(policies.length);
+        console.log(threeDaysBefore);
+        console.log(today);
+        console.log(threeDaysAfter);
 
         if (policies.length > 0) {
            const threeDaysBeforePolicies = policies.filter((policy) => {
@@ -77,6 +74,7 @@ export const sendPolicyRenewalReminder = async () => {
             if (threeDaysBeforePolicies.length > 0) {
                 threeDaysBeforePolicies.forEach((policy) => {
                     const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE in 3-days`
+                    console.log(message);
                     SMSMessenger.sendSMS(policy.phone_number, message );
                 });
             }
@@ -84,6 +82,8 @@ export const sendPolicyRenewalReminder = async () => {
             if (todayPolicies.length > 0) {
                 todayPolicies.forEach((policy) => {
                     const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE today`
+                    console.log(message);
+
                     SMSMessenger.sendSMS(policy.phone_number, message );
                 });
             }
@@ -91,6 +91,8 @@ export const sendPolicyRenewalReminder = async () => {
             if (threeDaysAfterPolicies.length > 0) {
                 threeDaysAfterPolicies.forEach((policy) => {
                     const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days`
+                    console.log(message);
+
                     SMSMessenger.sendSMS(policy.phone_number, message );
                 });
             }
