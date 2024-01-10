@@ -1,32 +1,8 @@
 import { RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
-import UssdMenu from "ussd-menu-builder";
-import { all } from "axios";
 
 require("dotenv").config();
-
-let sessions = {};
-
-let menu = new UssdMenu();
-menu.sessionConfig({
-  start: (sessionId, callback) => {
-    if (!(sessionId in sessions)) sessions[sessionId] = {};
-    callback();
-  },
-  end: (sessionId, callback) => {
-    delete sessions[sessionId];
-    callback();
-  },
-  set: (sessionId, key, value, callback) => {
-    sessions[sessionId][key] = value;
-    callback();
-  },
-  get: (sessionId, key, callback) => {
-    let value = sessions[sessionId][key];
-    callback(null, value);
-  },
-});
 
 let premiumPricing = {
   CAR_JEEP_PICKUP: {
@@ -221,11 +197,23 @@ export default function (args: RequestBody, db: any) {
               limit: 3,
             });
 
+            if (myCover.length == 0) {
+              myCover = [{
+                policy_number: "POL0001",
+                status: "Comprehensive"
+              },
+              {
+                policy_number: "POL0002",
+                status: "Fire and Theft"
+              }]
+
+
+            }
             response =
               "CON My Cover" +
               "\n" +
-              myCover?.map((cover: any) => {
-                return cover?.policy_number + " " + cover?.status;
+              myCover?.map((cover: any, index: number) => {
+                return ` ${index + 1}. ${cover?.policy_number} - ${cover?.status}\n`;
               }) +
               "\n0. Back" +
               "\n00. Main Menu";
@@ -242,8 +230,9 @@ export default function (args: RequestBody, db: any) {
             response =
               "CON Ma couverture" +
               "\n" +
-              myCover?.map((cover: any) => {
-                return cover?.policy_number + " " + cover?.policy_status;
+              myCover?.map((cover: any, index) => {
+                return `${index + 1}. ${cover?.policy_number} - ${cover?.status}\n`;
+
               }) +
               "\n0. Retour" +
               "\n00. Menu principal";
@@ -258,20 +247,36 @@ export default function (args: RequestBody, db: any) {
             });
             console.log("myVehicles", myVehicles);
             if (myVehicles.length == 0) {
-              response =
-                "CON You have no vehicles registered" +
-                "\n0. Back" +
-                "\n00. Main Menu";
+              myVehicles = [
+                {
+                  registration_number: "DRCE647E",
+                  status: "Comprehensive",
+                  cv: 10,
+                  year_of_manufacture: 2010,
+                  chassis_number: "1234567890",
+                },
+                {
+                  registration_number: "DRC456V",
+                  status: "Fire and Theft",
+                  cv: 12,
+                  year_of_manufacture: 2012,
+                  chassis_number: "1234567890",
+
+                },
+              ];
             }
 
             response =
               "CON My Vehicles" +
               "\n" +
-              myVehicles?.map((vehicle: any) => {
-                return vehicle?.vehicle_registration;
-              }) +
+              myVehicles.map((vehicle, index) => {
+                const vehicleNumber = index + 1;
+                return ` ${vehicleNumber}. ${vehicle.registration_number} -  CV ${vehicle.cv}, Chassis ${vehicle.chassis_number}`;
+              }
+              ).join("\n") +
               "\n0. Back" +
               "\n00. Main Menu";
+
           } else if (userText == "3" && allSteps[0] == "2") {
             //list my vehicles
             console.log(currentStep, userText);
@@ -281,13 +286,35 @@ export default function (args: RequestBody, db: any) {
               },
               limit: 1,
             });
+            if (myVehicles.length == 0) {
+              myVehicles = [{
+                registration_number: "DRCE647E",
+                status: "Comprehensive",
+                cv: 10,
+                year_of_manufacture: 2010,
+                chassis_number: "1234567890",
+              },
+              {
+                registration_number: "DRC456V",
+                status: "Fire and Theft",
+                cv: 12,
+                year_of_manufacture: 2012,
+                chassis_number: "1234567890",
+
+              }
+
+              ]
+            }
 
             response =
               "CON Mes véhicules" +
               "\n" +
-              myVehicles?.map((vehicle: any) => {
-                return vehicle?.registration_number + " " + vehicle?.status;
-              }) +
+              myVehicles
+                .map((vehicle, index) => {
+                  const vehicleNumber = index + 1;
+                  return ` ${vehicleNumber}. ${vehicle.registration_number} - CV ${vehicle.cv}, Châssis ${vehicle.chassis_number}`;
+                })
+                .join("\n") +
               "\n0. Retour" +
               "\n00. Menu principal";
           } else if (userText == "4" && allSteps[0] == "1") {
@@ -316,8 +343,8 @@ export default function (args: RequestBody, db: any) {
 
           if (allSteps[0] == "1") {
             response =
-              "CON Full Name: xxxxx" +
-              "\nNumber :  "+ phone +
+              "CON Full Name: John Doe" +
+              "\nNumber :  " + phone +
               "\nVote Number: " + userVoterNumber +
               "\nPress 1 to confirm your details " +
               "\n1. Confirm" +
@@ -325,9 +352,9 @@ export default function (args: RequestBody, db: any) {
               "\n00.Main Menu";
           } else if (allSteps[0] == "2") {
             response =
-              "CON Nom complet: xxxxx" +
-              "\nNuméro : 07xxxxxxxx" +
-              "\nNuméro de vote: xxxxxxx" +
+              "CON Nom complet: John Doe" +
+              "\nNuméro :  " + phone +
+              "\nNuméro de vote: " + userVoterNumber +
               "\nAppuyez sur 1 pour confirmer vos détails " +
               "\n1. Confirmer" +
               "\n0. Retour" +
@@ -367,11 +394,10 @@ export default function (args: RequestBody, db: any) {
           }
         } else {
           if (allSteps[0] == "1") {
-            console.log(allSteps,currentStep, userText);
-
+            console.log(allSteps, currentStep, userText);
 
             await db.users.create({
-              name: "xxxxx",
+              name: "John Doe",
               phone_number: phone,
               voter_id: allSteps[1],
               partner_id: 3,
@@ -408,29 +434,29 @@ export default function (args: RequestBody, db: any) {
         //   response =
         //     "CON Enter Tonnage of the Vehicle" + "\n0. Back" + "\n00.Main Menu";
         // }else{
-            if (allSteps[0] == "1") {
-                response =
-                  "CON Enter Cv No. of the Vehicle" + "\n0. Back" + "\n00.Main Menu";
-              } else if (allSteps[0] == "2") {
-                console.log(currentStep, userText);
-                response =
-                  "CON Entrez le numéro de CV du véhicule" +
-                  "\n0. Retour" +
-                  "\n00. Menu principal";
-              }
+        if (allSteps[0] == "1") {
+          response =
+            "CON Enter Cv No. of the Vehicle" + "\n0. Back" + "\n00.Main Menu";
+        } else if (allSteps[0] == "2") {
+          console.log(currentStep, userText);
+          response =
+            "CON Entrez le numéro de CV du véhicule" +
+            "\n0. Retour" +
+            "\n00. Menu principal";
+        }
 
-       // }
-       
+        // }
+
       } else if (currentStep == 6) {
         //enter year of manufacture
         console.log(allSteps, currentStep, userText);
         if (allSteps[0] == "1") {
           response =
-            "CON Enter Year of Manufacture" + "\n0. Back" + "\n00.Main Menu";
+            "CON Enter Registration Number" + "\n0. Back" + "\n00.Main Menu";
         } else if (allSteps[0] == "2") {
           console.log(currentStep, userText);
           response =
-            "CON Entrez l'année de fabrication" +
+            "CON  Entrez le numéro d'immatriculation" +
             "\n0. Retour" +
             "\n00. Menu principal";
         }
@@ -441,15 +467,14 @@ export default function (args: RequestBody, db: any) {
         let vehicleCategory = allSteps[3];
         let vehicleChassis = allSteps[4];
         let vehicleCv = parseInt(allSteps[5]);
-        let vehicleYear = allSteps[6];
-        let tonnage =parseInt(allSteps[5]);
+        let vehicleRegNumber = allSteps[6];
 
         console.log("coverType", coverType);
         console.log("vehicleCategory", vehicleCategory);
         console.log("vehicleChassis", vehicleChassis);
         console.log("vehicleCv", vehicleCv);
-       
-        console.log("vehicleRegYear", vehicleYear);
+
+        console.log("vehicleRegNumber", vehicleRegNumber);
 
         let vehiclePremium = 0;
 
@@ -466,12 +491,6 @@ export default function (args: RequestBody, db: any) {
 
         console.log("cvRange", cvRange);
 
-        //  "\n1. Private" +
-        //  "\n2. Corporate" +
-        //  "\n3. Passenger transport" +
-        //  "\n4. Truck" +
-        //  "\n5. Driving school" +
-        //  "\n6. Rental vehicle" +
 
         if (vehicleCategory == "1") {
           vehiclePremium =
@@ -504,11 +523,11 @@ export default function (args: RequestBody, db: any) {
         //registration complete
         console.log(allSteps, currentStep, userText);
         if (allSteps[0] == "1") {
-          
+
           response = 'END Please wait for Vodacom Pin prompt to complete the payment'
         } else if (allSteps[0] == "2") {
           console.log(currentStep, userText);
-          response ="END Veuillez patienter que Vodacom Pin vous invite à effectuer le paiement";
+          response = "END Veuillez patienter que Vodacom Pin vous invite à effectuer le paiement";
         }
       }
 

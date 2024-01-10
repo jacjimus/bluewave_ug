@@ -36,7 +36,7 @@ export const sendPolicyRenewalReminder = async () => {
         const threeDaysAfter = moment().add(3, 'days').format('DD');
 
 
-        const policies = await db.policy.findAll({
+        const policies = await db.policies.findAll({
             where: {
                 policy_status: 'paid',
                 installment_type: 2,
