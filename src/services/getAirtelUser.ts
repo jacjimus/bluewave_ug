@@ -21,7 +21,6 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
     // if not found, create a new user
     if (!userData) {
-
       const user = await User.create({
         user_id: uuidv4(),
         membership_id: generateMembershipId(),
@@ -45,9 +44,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
       // WELCOME SMS
       const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
       await SMSMessenger.sendSMS(user.phone_number, message);
-
       console.log("USER FOR AIRTEL API", user);
-
     }
 
     return userData;
@@ -78,7 +75,6 @@ async function getAirtelUser(
     phoneNumber = phoneNumber.replace("+", "");
     // remove the first 3 characters
     phoneNumber = phoneNumber.substring(3);
-
 
     // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL:   process.env.AIRTEL_AUTH_TOKEN_URL;
     const GET_USER_URL = `${process.env.PROD_AIRTEL_KYC_API_URL}/${phoneNumber}`;
@@ -113,10 +109,6 @@ async function getAirtelKenyaUser(
     // remove the first 3 characters
     phoneNumber = phoneNumber.substring(3);
 
-
-
-
-
     const GET_USER_URL = `${process.env.AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
     console.log("GET_USER_URL", GET_USER_URL);
@@ -134,7 +126,6 @@ function generateMembershipId() {
 
   while (true) {
     const membershipId = Math.floor(100000 + Math.random() * 900000);
-
 
     const user = User.findOne({
       where: {

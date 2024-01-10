@@ -41,9 +41,6 @@ async function authToken(partner_id: number) {
             Accept: '*/*',
         };
 
-
-      
-
         console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL)
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
       

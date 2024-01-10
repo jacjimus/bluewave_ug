@@ -23,7 +23,6 @@ const router = express.Router();
 const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
-
 router.get('/policy/summary',isSuperAdmin, reportController.getPolicySummary)
 router.get('/claims/summary',isSuperAdmin, reportController.getClaimSummary)
 router.get('/summary/all', isSuperAdmin,reportController.getAllReportSummary)
@@ -37,6 +36,7 @@ router.get('/users/excel/download', reportController.handleUsersDownload)
 router.post('/users/excel',isSuperAdmin, reportController.getUserExcelReportDownload)
 router.post('/claim/excel',isSuperAdmin, reportController.getClaimExcelReportDownload)
 router.post('/reconciliation', upload.single('payment_file'), reportController.paymentReconciliation)
+router.post('/policy/reconciliation', reportController.policyReconciliation)
 router.get('/claim/excel/download', reportController.handleClaimDownload)
 
 export default router;

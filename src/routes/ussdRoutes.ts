@@ -72,6 +72,7 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
   policy.tax_rate_vat = 0;
   policy.excess_premium = 0;
   policy.discount_premium = 0;
+  policy.premium = parseInt(amount);
 
   let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1,  policy.policy_deduction_day - 3);
   if (policy.policy_deduction_day - 3 < 1) {
