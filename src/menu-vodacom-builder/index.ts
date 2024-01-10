@@ -106,15 +106,6 @@ export default function (args: RequestBody, db: any) {
 
       console.log("VOD allStepsAfter", allSteps);
 
-      const params = {
-        phoneNumber,
-        text,
-        response,
-        currentStep,
-        previousStep,
-        userText,
-        allSteps,
-      };
 
       if (text == "") {
         console.log();
@@ -188,54 +179,24 @@ export default function (args: RequestBody, db: any) {
               "\n0. Retour" +
               "\n00. Menu principal";
           } else if (userText == "2" && allSteps[0] == "1") {
-            //list my cover
-            console.log(currentStep, userText);
-            let myCover = await db.policies.findAll({
-              where: {
-                user_id: existingUser?.user_id,
-              },
-              limit: 3,
-            });
-
-            if (myCover.length == 0) {
-              myCover = [{
-                policy_number: "POL0001",
-                status: "Comprehensive"
-              },
-              {
-                policy_number: "POL0002",
-                status: "Fire and Theft"
-              }]
-
-
-            }
             response =
-              "CON My Cover" +
-              "\n" +
-              myCover?.map((cover: any, index: number) => {
-                return ` ${index + 1}. ${cover?.policy_number} - ${cover?.status}\n`;
-              }) +
+              "CON  " +
+              "\n1. Policy status" +
+              "\n2. Pay Now" +
+              "\n3. Cancel policy" +
+              "\n4. Add Emergency Contact" +
               "\n0. Back" +
-              "\n00. Main Menu";
+              "\n00.Main Menu";
           } else if (userText == "2" && allSteps[0] == "2") {
-            //list my cover
-            console.log(currentStep, userText);
-            let myCover = await db.policies.findAll({
-              where: {
-                user_id: existingUser?.user_id,
-              },
-              limit: 3,
-            });
 
-            response =
-              "CON Ma couverture" +
-              "\n" +
-              myCover?.map((cover: any, index) => {
-                return `${index + 1}. ${cover?.policy_number} - ${cover?.status}\n`;
-
-              }) +
+            response = "CON  " +
+              "\n1. Statut de la police" +
+              "\n2. Payer maintenant" +
+              "\n3. Annuler la police" +
+              "\n4. Ajouter un contact d'urgence" +
               "\n0. Retour" +
               "\n00. Menu principal";
+
           } else if (userText == "3" && allSteps[0] == "1") {
             //list my vehicles
             console.log(currentStep, userText);
@@ -267,7 +228,7 @@ export default function (args: RequestBody, db: any) {
             }
 
             response =
-              "CON My Vehicles" +
+              "END My Vehicles" +
               "\n" +
               myVehicles.map((vehicle, index) => {
                 const vehicleNumber = index + 1;
@@ -307,7 +268,7 @@ export default function (args: RequestBody, db: any) {
             }
 
             response =
-              "CON Mes véhicules" +
+              "END Mes véhicules" +
               "\n" +
               myVehicles
                 .map((vehicle, index) => {
@@ -323,10 +284,79 @@ export default function (args: RequestBody, db: any) {
 
             response =
               "CON Please confirm the vehicle involved below" +
-              "\n1. DRCE647E" +
-              "\n2. DRC456V" +
+              "\n1. DRCE647E - Comprehensive" +
+              "\n2. DRC456V - Fire and Theft" +
               "\n0. Back" +
               "\n00. Main Menu";
+          } else if (userText == "4" && allSteps[0] == "2") {
+            //make claim
+            console.log(currentStep, userText);
+
+            response =
+              "CON Veuillez confirmer le véhicule impliqué ci-dessous" +
+              "\n1. DRCE647E - Complet" +
+              "\n2. DRC456V - Incendie et vol" +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+          }else if (userText == "5" && allSteps[0] == "1") {
+            //faqs
+            console.log(currentStep, userText);
+
+            response =
+              "CON FAQs" +
+              "\n1. How do I buy cover?" +
+              "\n2. How do I pay for my cover?" +
+              "\n3. How do I cancel my cover?" +
+              "\n4. How do I add an emergency contact?" +
+              "\n5. How do I make a claim?" +
+              "\n0. Back" +
+              "\n00. Main Menu";
+          } else if (userText == "5" && allSteps[0] == "2") {
+            //faqs
+            console.log(currentStep, userText);
+
+            response =
+              "CON FAQs" +
+              "\n1. Comment acheter une couverture?" +
+              "\n2. Comment payer ma couverture?" +
+              "\n3. Comment annuler ma couverture?" +
+              "\n4. Comment ajouter un contact d'urgence?" +
+              "\n5. Comment faire une réclamation?" +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+          } else if (userText == "6" && allSteps[0] == "1") {
+            //list garages
+            console.log(currentStep, userText);
+
+            response =
+              "CON Garages" +
+              "\n1. Auto Garage" +
+              "\n2. ABC Garage " +
+              "\n3. Moto Garage " +
+              "\n0. Back" +
+              "\n00. Main Menu";
+          } else if (userText == "6" && allSteps[0] == "2") {
+            //list garages
+            console.log(currentStep, userText);
+
+            response =
+              "CON Garages" +
+              "\n1. Auto Garage" +
+              "\n2. ABC Garage " +
+              "\n3. Moto Garage " +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+          }else if (userText == "7" && allSteps[0] == "1") {
+            //terms and conditions
+            console.log(currentStep, userText);
+          
+            response = "END Terms and Conditions link has been sent via sms" + "\n0. Back" + "\n00.Main Menu";
+          } else if (userText == "7" && allSteps[0] == "2") {
+            //terms and conditions
+            console.log(currentStep, userText);
+
+            response = "END Le lien des conditions générales a été envoyé par SMS" + "\n0. Retour" + "\n00. Menu principal";
+
           }
         } else {
           console.log(currentStep, userText);
@@ -365,7 +395,7 @@ export default function (args: RequestBody, db: any) {
         //chhoose vehicle category
         console.log(allSteps, currentStep, userText);
         if (existingUser) {
-          if (userText == "1" && allSteps[0] == "1") {
+          if (userText == "1" && allSteps[0] == "1" && allSteps[1] == "1") {
             response =
               "CON select vehicle category" +
               "\n1. Private" +
@@ -375,23 +405,193 @@ export default function (args: RequestBody, db: any) {
               "\n5. Driving school" +
               "\n6. Rental vehicle" +
               "\n00.Main Menu";
-          } else if (userText == "1" && allSteps[0] == "2") {
+          } else if (userText == "1" && allSteps[0] == "2" && allSteps[1] == "1") {
             console.log(currentStep, userText);
             response =
               "CON sélectionnez la catégorie de véhicule" +
               "\n1. Privé" +
-              "\n2. Corporate" +
+              "\n2. Entreprise" +
               "\n3. Transport de passagers" +
               "\n4. Camion" +
-              "\n5. Moto" +
-              "\n6. Auto-école" +
-              "\n7. Véhicule de location" +
-              "\n8. Véhicule de construction" +
-              "\n9. Véhicule spécial" +
-              "\n10. Remorques" +
+              "\n5. École de conduite" +
+              "\n6. Véhicule de location" +
+              "\n00. Menu principal";
+          
+          } else if (userText == "1" && allSteps[0] == "1" && allSteps[1] == "2") {
+
+            console.log(currentStep, userText);
+
+            //list my cover
+            console.log(currentStep, userText);
+            let myCover = await db.policies.findAll({
+              where: {
+                user_id: existingUser?.user_id,
+              },
+              limit: 3,
+            });
+
+            if (myCover.length == 0) {
+              myCover = [{
+                policy_number: "POL0001",
+                status: "Comprehensive",
+                registration_number: "DRCE647E",
+              },
+              {
+                policy_number: "POL0002",
+                status: "Fire and Theft",
+                registration_number: "DRC456V",
+              }]
+            }
+            response =
+              "CON My Cover" +
+              "\n" +
+              myCover?.map((cover: any, index: number) => {
+                return ` ${index + 1}. ${cover?.policy_number} - ${cover?.status} - ${cover?.registration_number}`;
+              }).join("\n") +
+              "\n0. Back" +
+              "\n00. Main Menu";
+          } else if (userText == "1" && allSteps[0] == "2" && allSteps[1] == "2") {
+            //   //list my cover
+            console.log(currentStep, userText);
+            let myCover = await db.policies.findAll({
+              where: {
+                user_id: existingUser?.user_id,
+              },
+              limit: 3,
+            });
+
+            if (myCover.length == 0) {
+              myCover = [{
+                policy_number: "POL0001",
+                status: "Comprehensive",
+                registration_number: "DRCE647E",
+              },
+              {
+                policy_number: "POL0002",
+                status: "Fire and Theft",
+                registration_number: "DRC456V",
+              }]
+            }
+
+            response =
+              "CON Ma couverture" +
+              "\n" +
+              myCover?.map((cover: any, index) => {
+                return `${index + 1}. ${cover?.policy_number} - ${cover?.status}`;
+
+              }).join("\n") +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+          } else if (userText == "2" && allSteps[0] == "1" && allSteps[1] == "2") {
+            //pay now
+            console.log(currentStep, userText);
+            response =
+              "CON Please select the policy to pay" +
+              "\n1. POL0001" +
+              "\n2. POL0002" +
+              "\n0. Back" +
+              "\n00. Main Menu";
+          } else if (userText == "2" && allSteps[0] == "2" && allSteps[1] == "2") {
+            //pay now
+            console.log(currentStep, userText);
+            response =
+              "CON Veuillez sélectionner la police à payer" +
+              "\n1. POL0001" +
+              "\n2. POL0002" +
               "\n0. Retour" +
               "\n00. Menu principal";
           }
+          else if (userText == "3" && allSteps[0] == "1" && allSteps[1] == "2") {
+            //cancel policy
+            console.log(currentStep, userText);
+            response =
+              "CON Please select the policy to cancel" +
+              "\n1. POL0001" +
+              "\n2. POL0002" +
+              "\n0. Back" +
+              "\n00. Main Menu";
+          }
+          else if (userText == "3" && allSteps[0] == "2" && allSteps[1] == "2") {
+            //cancel policy
+            console.log(currentStep, userText);
+            response =
+              "CON Veuillez sélectionner la police à annuler" +
+              "\n1. POL0001" +
+              "\n2. POL0002" +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+          }
+          else if (userText == "4" && allSteps[0] == "1" && allSteps[1] == "2") {
+            //add emergency contact
+            console.log(currentStep, userText);
+            response =
+              "CON Please enter the name of the contact" +
+              "\n0. Back" +
+              "\n00. Main Menu";
+          }
+          else if (userText == "4" && allSteps[0] == "2" && allSteps[1] == "2") {
+            //add emergency contact
+            console.log(currentStep, userText);
+            response =
+              "CON Veuillez saisir le nom du contact" +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+          }else if (userText == "1" && allSteps[0] == "1" && allSteps[1] == "4") {
+           // file claim
+            console.log(currentStep, userText);
+            response =
+              "CON Claim filed successfully" +
+              "\n0. Back" +
+              "\n00. Main Menu";
+
+          } else if (userText == "1" && allSteps[0] == "2" && allSteps[1] == "4") {
+            // file claim
+             console.log(currentStep, userText);
+             response =
+               "CON Réclamation déposée avec succès" +
+               "\n0. Retour" +
+               "\n00. Menu principal";
+ 
+           } else if (userText == "1" && allSteps[0] == "1" && allSteps[1] == "5") {
+            //faqs
+            console.log(currentStep, userText);
+
+            response =
+              "CON  Dial * 384*89005# and got to the main menu and select 'Buy Cover'."  +
+              "\n0. Back" +
+              "\n00. Main Menu";
+           }else if (userText == "1" && allSteps[0] == "2" && allSteps[1] == "5") {
+            //faqs
+            console.log(currentStep, userText);
+
+            response =
+              "CON  Composez * 384 * 89005 # et accédez au menu principal et sélectionnez 'Acheter une couverture'."  +
+              "\n0. Retour" +
+              "\n00. Menu principal";
+
+            }else if (userText == "1" && allSteps[0] == "1" && allSteps[1] == "6") {
+              // successfull garage selection
+              console.log(currentStep, userText);
+              response =
+                "CON Garage selected successfully" +
+                "\n0. Back" +
+                "\n00. Main Menu";
+
+            }
+            else if (userText == "1" && allSteps[0] == "2" && allSteps[1] == "6") {
+              // successfull garage selection
+              console.log(currentStep, userText);
+              response =
+                "CON Garage sélectionné avec succès" +
+                "\n0. Retour" +
+                "\n00. Menu principal";
+
+            }
+            
+  
+             
+
+
         } else {
           if (allSteps[0] == "1") {
             console.log(allSteps, currentStep, userText);
@@ -415,37 +615,98 @@ export default function (args: RequestBody, db: any) {
       } else if (currentStep == 4) {
         //enter chassis number
         console.log(allSteps, currentStep, userText);
-        if (allSteps[0] == "1") {
+        if (allSteps[0] == "1" && allSteps[1] == "1" && allSteps[2] == "1") {
           response =
             "CON Enter Chassis No. of the Vehicle" +
             "\n0. Back" +
             "\n00.Main Menu";
-        } else if (allSteps[0] == "2") {
+        } else if (allSteps[0] == "2" && allSteps[1] == "1" && allSteps[2] == "1") {
           console.log(currentStep, userText);
           response =
             "CON Entrez le numéro de châssis du véhicule" +
             "\n0. Retour" +
             "\n00. Menu principal";
         }
+        else if (allSteps[0] == "1" && allSteps[1] == "2" && allSteps[2] == "1") {
+          //cover details
+          console.log(allSteps, currentStep, userText);
+          response = "CON Policy Number: POL0001" +
+            "\nStatus: PAID" +
+            "\nRegistration Number: DRCE647E" +
+            "\nCover Type: Comprehensive" +
+            "\nPremium: USD 153" +
+            "\n0. Back" +
+            "\n00.Main Menu";
+
+        } else if (allSteps[0] == "2" && allSteps[1] == "2" && allSteps[2] == "1") {
+          //cover details
+          console.log(allSteps, currentStep, userText);
+          response = "CON Numéro de police: POL0001" +
+            "\nStatut: PAYÉ" +
+            "\nNuméro d'immatriculation: DRCE647E" +
+            "\nType de couverture: Complet" +
+            "\nPrime: USD 153" +
+            "\n0. Retour" +
+            "\n00. Menu principal";
+        } else if (allSteps[0] == "1" && allSteps[1] == "2" && allSteps[2] == "2") {
+          //pay now
+          console.log(allSteps, currentStep, userText);
+          response = "END Please enter your Vodacom Pin to complete the payment" +
+            "\n0. Back" +
+            "\n00.Main Menu";
+
+        } else if (allSteps[0] == "2" && allSteps[1] == "2" && allSteps[2] == "2") {
+          //pay now
+          console.log(allSteps, currentStep, userText);
+          response = "END Veuillez saisir votre Vodacom Pin pour terminer le paiement" +
+            "\n0. Retour" +
+            "\n00. Menu principal";
+        } else if (allSteps[0] == "1" && allSteps[1] == "2" && allSteps[2] == "3") {
+          //cancel policy
+          console.log(allSteps, currentStep, userText);
+          response = "END Policy cancelled successfully" +
+            "\n0. Back" +
+            "\n00.Main Menu";
+        } else if (allSteps[0] == "2" && allSteps[1] == "2" && allSteps[2] == "3") {
+          //cancel policy
+          console.log(allSteps, currentStep, userText);
+          response = "END Police annulée avec succès" +
+            "\n0. Retour" +
+            "\n00. Menu principal";
+        }
+        else if (allSteps[0] == "1" && allSteps[1] == "2" && allSteps[2] == "4") {
+          //add emergency contact
+          console.log(allSteps, currentStep, userText);
+          response = "CON Please enter the phone number of the contact" +
+            "\n0. Back" +
+            "\n00.Main Menu";
+        }
+        else if (allSteps[0] == "2" && allSteps[1] == "2" && allSteps[2] == "4") {
+          //add emergency contact
+          console.log(allSteps, currentStep, userText);
+          response = "CON Veuillez saisir le numéro de téléphone du contact" +
+            "\n0. Retour" +
+            "\n00. Menu principal";
+        }
+
       } else if (currentStep == 5) {
-        //enter cv number
+
         console.log(allSteps, currentStep, userText);
-        // if (allSteps[3] == "1") {
-        //   response =
-        //     "CON Enter Tonnage of the Vehicle" + "\n0. Back" + "\n00.Main Menu";
-        // }else{
-        if (allSteps[0] == "1") {
+
+        if (allSteps[0] == "1" && allSteps[1] == "1" && allSteps[2] == "1" && allSteps[3] == "1") {
           response =
             "CON Enter Cv No. of the Vehicle" + "\n0. Back" + "\n00.Main Menu";
-        } else if (allSteps[0] == "2") {
+        } else if (allSteps[0] == "2" && allSteps[1] == "1" && allSteps[2] == "1" && allSteps[3] == "1") {
           console.log(currentStep, userText);
           response =
             "CON Entrez le numéro de CV du véhicule" +
             "\n0. Retour" +
             "\n00. Menu principal";
+        } else if (allSteps[0] == "1" && allSteps[1] == "2" && allSteps[2] == "4") {
+          //emergency contact added
+          console.log(allSteps, currentStep, userText);
+          response = "END Emergency contact added successfully"
         }
-
-        // }
 
       } else if (currentStep == 6) {
         //enter year of manufacture

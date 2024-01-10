@@ -103,12 +103,14 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
         policy.renewal_date =  installment_alert_date;
         policy.renewal_order = parseInt(paymentPaidCount) + 1;
       }
+      await policy.save();
   }else{
     policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
     if (policy.installment_order == 12 ) {
       policy.policy_status = "expired";
       policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
     }
+    await policy.save();
   }
  
 
