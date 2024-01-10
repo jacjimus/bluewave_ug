@@ -175,6 +175,7 @@ router.all("/callback", async (req, res) => {
           status: "paid",
         });
 
+
         const payment = await Payment.create({
           payment_amount: amount,
           payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
@@ -187,13 +188,13 @@ router.all("/callback", async (req, res) => {
           partner_id,
         });
 
+
+
         console.log("Payment record created successfully");
 
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
-        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-
-
         updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+
 
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
@@ -224,6 +225,8 @@ router.all("/callback", async (req, res) => {
         }
 
         await SMSMessenger.sendSMS(to, congratText);
+
+        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
         // Call the function with the relevant user, policy, and memberStatus
         await processPolicy(user, policy, memberStatus);
