@@ -40,6 +40,7 @@ export const sendPolicyRenewalReminder = async () => {
             where: {
                 policy_status: 'paid',
                 installment_type: 2,
+                partner_id: 2,
                 policy_start_date: {
                     [Op.gt]: moment().add(4, 'days').toDate()
                 }
