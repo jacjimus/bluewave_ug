@@ -13,7 +13,6 @@ const selfMenu = async (args, db) => {
         },
     });
 
-
     const coverTypes = [{
         name: "MINI",
         sum_insured: "1.5M",

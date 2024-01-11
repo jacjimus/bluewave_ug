@@ -31,9 +31,9 @@ Workflow 3:
 
 export const sendPolicyRenewalReminder = async () => {
     try {
-        const today = moment().format('DD');
-        const threeDaysBefore = moment().subtract(3, 'days').format('DD');
-        const threeDaysAfter = moment().add(3, 'days').format('DD');
+        const today = moment().format('DD'); //11
+        const threeDaysBefore = moment().subtract(3, 'days').format('DD'); //8
+        const threeDaysAfter = moment().add(3, 'days').format('DD');//14
 
 
         const policies = await db.policies.findAll({
@@ -73,7 +73,7 @@ export const sendPolicyRenewalReminder = async () => {
 
             if (threeDaysBeforePolicies.length > 0) {
                 threeDaysBeforePolicies.forEach((policy) => {
-                    const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE in 3-days`
+                    const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days`
                     console.log(message);
                     SMSMessenger.sendSMS(policy.phone_number, message );
                 });
@@ -90,7 +90,7 @@ export const sendPolicyRenewalReminder = async () => {
 
             if (threeDaysAfterPolicies.length > 0) {
                 threeDaysAfterPolicies.forEach((policy) => {
-                    const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days`
+                    const message = `Your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE in 3-days`
                     console.log(message);
 
                     SMSMessenger.sendSMS(policy.phone_number, message );

@@ -2658,6 +2658,43 @@ async function getAllUsers() {
     }
   }
 
+  /*
+  workflow 
+  1. get all the paid policies for the partner 
+  2. filter policies fro date range 13 - 30
+  3. send reminder  to the user to renew their policy
+  */
+
+  async function sendRenewalReminders() {
+    try {
+      // Find users with pending policies
+      console.log("newal was called")
+      const policies = await db.policies.findAll({
+        where: {
+          policy_status: 'paid', // Adjust based on your policy status field
+          partner_id: 2,
+          installment_type: 2,
+          policy_start_date: {
+            [Op.between]: [new Date('2023-09-01'), new Date('2024-01-11')],
+          },
+        }
+      });
+      console.log('policies', policies.length)
+  
+      // Send SMS to each user with pending policies
+      for (const policy of policies) {
+        let message =`Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE for renewal. Dial *185*7*6*3# to renew.`
+        console.log("MESSAGE", message)
+        await SMSMessenger.sendSMS(`${policy.phone_number}`, message);
+      }
+  
+      console.log('SMS sent to users with pending policies.');
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
   export const playground = async () => {
+   // sendRenewalReminders()
   console.log("i was called")
   }
