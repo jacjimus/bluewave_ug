@@ -866,7 +866,7 @@ const generatePolicyExcelReport = async (policies) => {
       updatedAt: moment(policy.updatedAt).format("YYYY-MM-DD"),
       full_name: `${policy.user?.dataValues?.first_name} ${policy.user?.dataValues?.last_name}`,
       phone_number: policy.user?.dataValues?.phone_number,
-  
+
     });
   });
 
@@ -883,10 +883,10 @@ const generateUserExcelReport = async (users) => {
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
     { header: "AAR Member Number", key: "arr_member_number", width: 20 },
-    { header: "Membership ID", key: "membership_id", width: 20},
-    { header: "Number of Policies", key: "number_of_policies", width: 20},
+    { header: "Membership ID", key: "membership_id", width: 20 },
+    { header: "Number of Policies", key: "number_of_policies", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
-  
+
   ];
 
   users.forEach(async (user) => {
@@ -1355,7 +1355,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
         partner_id: req.query.partner_id,
       },
     });
-console.log("RESULTS", results)
+    console.log("RESULTS", results)
     const data = {
       labels: labels,
       datasets: datasets,
@@ -1614,10 +1614,10 @@ const paymentReconciliation = async (req, res) => {
 
     const partner_id = req.query.partner_id;
     const payment_file = req.file;
-    
+
 
     // Read the uploaded Excel file
-    const workbook = XLSX.readFile(payment_file.path);
+    const workbook = XLSX.readFile(payment_file.path, { cellDates: true, dateNF: 'mm/dd/yyyy hh:mm:ss' });
     const worksheet = workbook.Sheets[workbook.SheetNames[1]];
 
     if (!worksheet) {
@@ -1625,14 +1625,10 @@ const paymentReconciliation = async (req, res) => {
     }
 
     // Convert worksheet data to an array of objects
-    const paymentDataArray = XLSX.utils.sheet_to_json(worksheet);
-    console.log("paymentDataArray", paymentDataArray);
+    const paymentDataArray = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    console.log("+++++paymentDataArray+++++", paymentDataArray.length)
 
-    let userPhoneNumbers = [];
-    let usersWithmultiplePaidpolicies = [];
     for (let payment of paymentDataArray) {
-
-
       let existingUser = await db.users.findOne({
         where: {
           phone_number: `${payment['Sender Mobile Number']}`,
@@ -1640,97 +1636,768 @@ const paymentReconciliation = async (req, res) => {
         },
         limit: 1,
       });
-      console.log(`existingUser, ${payment['Sender Mobile Number']}`)
 
-      if (!existingUser) {
-       console.log(`No user found ${payment['Sender Mobile Number']}`,)
-      }else{
-        const policies= await Policy.findAndCountAll({
+
+      console.log("PAYMENT", payment)
+
+
+      // Split the original date into components
+      let components = payment['Transaction Date'].split(/[/\s:]/);
+
+      // Rearrange the components to the desired format
+      let convertedDate = components[1] + '/' + components[0] + '/' + components[2] + ' ' + components[3] + ':' + components[4];
+
+      console.log(convertedDate);
+
+
+
+      let transaction_date = moment(convertedDate)
+
+      let premium = payment['Approved value'].replace(/,/g, '')
+      let payment_id = payment['External Reference']
+      let airtel_money_id = payment['Transaction ID']
+      let phone_number = payment['Sender Mobile Number']
+
+      console.log(`transaction_date, ${transaction_date}`)
+
+      console.log(`premium, ${premium}`)
+      console.log(`existingUser,${phone_number}`)
+
+      const paymentData = {
+        transaction_date: transaction_date,
+        premium: premium,
+        payment_id: payment_id,
+        airtel_money_id: airtel_money_id,
+        phone_number: phone_number,
+      }
+
+      // if user does not exist, update the policy policy_paid_date
+
+      if (existingUser) {
+        console.log(`existingUser, ${payment['Sender Mobile Number']}`)
+        let existingPolicy = await db.policies.findOne({
           where: {
             user_id: existingUser.user_id,
-            policy_status: "paid",
-            premium: payment['Approved value'],
+            partner_id: partner_id,
+            policy_status: 'pending',
+            premium: premium,
           },
-          limit: 30,
+          limit: 1,
         });
 
-        if (policies.count === 0) {
-          console.log(`No paid policy found for ${existingUser.phone_number}`);
-          // save user in a file json
-          // userPhoneNumbers.push({
-          //   phone_number: payment['Sender Mobile Number'],
-          //   premium: payment['Approved value'],
-          //   airtel_money_id: payment['Transaction ID'],
-          //   payment_id: payment['External Reference'],
-          //   policy_paid_date: payment['Transaction Date'],
-          // });
-          
-        }else if(policies.count > 1){
+        if (existingPolicy) {
+          console.log(`existingPolicy,  premium, ${premium}  `)
+          let policy = await db.policies.update({
+            policy_paid_date: transaction_date,
+            policy_paid_amount: premium,
+            airtel_money_id: airtel_money_id,
+            bluewave_transaction_id: payment_id,
+            policy_status: 'paid'
+          }, {
+            where: {
+              policy_id: existingPolicy.policy_id,
+              partner_id: partner_id,
+              premium: premium,
 
-          usersWithmultiplePaidpolicies.push(
-            { 
-              existingUser: existingUser.name,
-              user_id: existingUser.user_id,
-              phone_number: payment['Sender Mobile Number'],
-              premium: payment['Approved value'],
-              airtel_money_id: payment['Transaction ID'],
-              payment_id: payment['External Reference'],
-              policy_paid_date: payment['Transaction Date'],
-              policies: policies.rows,
-              count: policies.count
             }
-          );
-          console.log(usersWithmultiplePaidpolicies)
-          console.log(`====== Policies =====, ${existingUser.user_id} ${existingUser.name} ${payment['Sender Mobile Number']}`, policies.count )
+          })
+
+
+
+          console.log(`policy, ${payment['Sender Mobile Number']}`)
+        } else {
+
+
+          let Policypayment = await db.payments.findOne({
+            where: {
+              user_id: existingUser.user_id,
+              payment_amount: premium,
+              payment_status: 'paid',
+            },
+            limit: 1,
+          });
+
+          console.log("==== Policypayment ==", Policypayment)
+          if (Policypayment) {
+            console.log("==== Policypayment ==", Policypayment)
+            const coverTypes = [{
+              name: "MINI",
+              sum_insured: "1.5M",
+              sumInsured: 1500000,
+              premium: "10,000",
+              yearly_premium: "120,000",
+              yearPemium: 120000,
+              last_expense_insured: "1M",
+              lastExpenseInsured: 1000000
+            },
+            {
+              name: "MIDI",
+              sum_insured: "3M",
+              sumInsured: 3000000,
+              premium: "14,000",
+              yearly_premium: "167,000",
+              yearPemium: 167000,
+              last_expense_insured: "1.5M",
+              lastExpenseInsured: 1500000
+            },
+            {
+              name: "BIGGIE",
+              sum_insured: "5M",
+              sumInsured: 5000000,
+              premium: "18,000",
+              yearly_premium: "208,000",
+              yearPemium: 208000,
+              last_expense_insured: "2M",
+              lastExpenseInsured: 2000000
+            }];
+
+            const covers = [
+              {
+                name: "Self+Spouse or Child",
+                code_name: "M+1",
+                packages: [
+                  {
+                    name: "Mini",
+                    code_name: "MINI",
+                    premium: '20,000',
+                    sum_insured: '1.5M',
+                    sumInsured: 1500000,
+                    last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
+                    year_premium: '240,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '20,000',
+                        yearly_premium: '240,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '240,000',
+                        yearly_premium: '240,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Midi",
+                    code_name: "MIDI",
+                    premium: '28,000',
+                    sum_insured: '3M',
+                    sumInsured: 3000000,
+                    last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
+                    year_premium: '322,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '28,000',
+                        yearly_premium: '322,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '322,000',
+                        yearly_premium: '322,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Biggie",
+                    code_name: "BIGGIE",
+                    premium: '35,000',
+                    sum_insured: '5M',
+                    sumInsured: 5000000,
+                    last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
+                    year_premium: '400,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '35,000',
+                        yearly_premium: '400,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '400,000',
+                        yearly_premium: '400,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  }
+
+                ],
+              }, {
+                name: "Self+Spouse+1 Child",
+                code_name: "M+2",
+                packages: [
+                  {
+                    name: "Mini",
+                    code_name: "MINI",
+                    premium: '30,000',
+                    sum_insured: '1.5M',
+                    sumInsured: 1500000,
+                    last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
+                    year_premium: '360,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '30,000',
+                        yearly_premium: '360,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '360,000',
+                        yearly_premium: '360,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Midi",
+                    code_name: "MIDI",
+                    premium: '40,000',
+                    sum_insured: '3M',
+                    sumInsured: 3000000,
+                    last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
+                    year_premium: '467,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '40,000',
+                        yearly_premium: '400,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '467,000',
+                        yearly_premium: '467,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Biggie",
+                    code_name: "BIGGIE",
+                    premium: '50,000',
+                    sum_insured: '5M',
+                    sumInsured: 5000000,
+                    last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
+                    year_premium: '577,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '50,000',
+                        yearly_premium: '577,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '577,000',
+                        yearly_premium: '577,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  }
+
+                ],
+              },
+              {
+                name: "Self+Spouse+2 Children",
+                code_name: "M+3",
+                packages: [
+                  {
+                    name: "Mini",
+                    code_name: "MINI",
+                    premium: '40,000',
+                    sum_insured: '1.5M',
+                    sumInsured: 1500000,
+                    last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
+                    year_premium: '480,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '40,000',
+                        yearly_premium: '480,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '480,000',
+                        yearly_premium: '480,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Midi",
+                    code_name: "MIDI",
+                    premium: '50,000',
+                    sum_insured: '3M',
+                    sumInsured: 3000000,
+                    last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
+                    year_premium: '590,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '50,000',
+                        yearly_premium: '590,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '590,000',
+                        yearly_premium: '590,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Biggie",
+                    code_name: "BIGGIE",
+                    premium: '65,000',
+                    sum_insured: '5M',
+                    sumInsured: 5000000,
+                    last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
+                    year_premium: '740,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '65,000',
+                        yearly_premium: '740,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '740,000',
+                        yearly_premium: '740,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  }
+
+                ],
+              }, {
+                name: "Self+Spouse+3 Children",
+                code_name: "M+4",
+                packages: [
+                  {
+                    name: "Mini",
+                    code_name: "MINI",
+                    premium: '50,000',
+                    sum_insured: '1.5M',
+                    sumInsured: 1500000,
+                    last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
+                    year_premium: '600,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '50,000',
+                        yearly_premium: '600,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '600,000',
+                        yearly_premium: '600,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Midi",
+                    code_name: "MIDI",
+                    premium: '63,000',
+                    sum_insured: '3M',
+                    sumInsured: 3000000,
+                    last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
+                    year_premium: '720,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '63,000',
+                        yearly_premium: '720,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '720,000',
+                        yearly_premium: '720,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Biggie",
+                    code_name: "BIGGIE",
+                    premium: '77,000',
+                    sum_insured: '5M',
+                    sumInsured: 5000000,
+                    last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
+                    year_premium: '885,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '77,000',
+                        yearly_premium: '885,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '885,000',
+                        yearly_premium: '885,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  }
+
+                ],
+              }, {
+                name: "Self+Spouse+4 Children",
+                code_name: "M+5",
+                packages: [
+                  {
+                    name: "Mini",
+                    code_name: "MINI",
+                    premium: '60,000',
+                    sum_insured: '1.5M',
+                    sumInsured: 1500000,
+                    last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
+                    year_premium: '720,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '60,000',
+                        yearly_premium: '720,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '720,000',
+                        yearly_premium: '720,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Midi",
+                    code_name: "MIDI",
+                    premium: '75,000',
+                    sum_insured: '3M',
+                    sumInsured: 3000000,
+                    last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
+                    year_premium: '860,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '75,000',
+                        yearly_premium: '860,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '860,000',
+                        yearly_premium: '860,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Biggie",
+                    code_name: "BIGGIE",
+                    premium: '93,000',
+                    sum_insured: '5M',
+                    sumInsured: 5000000,
+                    last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
+                    year_premium: '1,060,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '93,000',
+                        yearly_premium: '1,060,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '1,060,000',
+                        yearly_premium: '1,060,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  }
+
+                ],
+              }, {
+                name: "Self+Spouse+5 Children",
+                code_name: "M+6",
+                packages: [
+                  {
+                    name: "Mini",
+                    code_name: "MINI",
+                    premium: '70,000',
+                    sum_insured: '1.5M',
+                    sumInsured: 1500000,
+                    last_expense_insured: '1M',
+                    lastExpenseInsured: 1000000,
+                    year_premium: '840,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '70,000',
+                        yearly_premium: '840,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '840,000',
+                        yearly_premium: '840,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Midi",
+                    code_name: "MIDI",
+                    premium: '88,000',
+                    sum_insured: '3M',
+                    sumInsured: 3000000,
+                    last_expense_insured: '1.5M',
+                    lastExpenseInsured: 1500000,
+                    year_premium: '1,010,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '88,000',
+                        yearly_premium: '1,010,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '1,010,000',
+                        yearly_premium: '1,010,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  },
+                  {
+                    name: "Biggie",
+                    code_name: "BIGGIE",
+                    premium: '108,000',
+                    sum_insured: '5M',
+                    sumInsured: 5000000,
+                    last_expense_insured: '2M',
+                    lastExpenseInsured: 2000000,
+                    year_premium: '1,238,000',
+                    payment_options: [
+                      {
+                        name: 'Monthly',
+                        code_name: 'monthly',
+                        premium: '108,000',
+                        yearly_premium: '1,238,000',
+                        installment_type: 1,
+                        period: 'monthly'
+                      },
+                      {
+                        name: 'Yearly',
+                        code_name: 'yearly',
+                        premium: '1,238,000',
+                        yearly_premium: '1,238,000',
+                        installment_type: 2,
+                        period: 'yearly'
+                      }
+                    ]
+                  }
+
+                ],
+              }
+            ];
+            let policy_end_date = moment(Policypayment.policy_end_date).add(1, 'years').format("YYYY-MM-DD")
+            let policy_type: any, beneficiary: any, total_member_number: any, sum_insured: any, last_expense_insured: any, installment_type: any, premium: any,yearly_premium: any, policy_pending_premium: any
+            console.log("Policypayment.payment_amount", Policypayment.payment_amount)
+
+            //if premium 10,000 , 14000, 18000 are included in the coverTypes array
+            if (Policypayment.payment_amount == 10000 || Policypayment.payment_amount == 14000 || Policypayment.payment_amount == 18000 || Policypayment.payment_amount == 208000 || Policypayment.payment_amount == 167000 || Policypayment.payment_amount == 120000 ){
+              coverTypes.forEach((cover) => {
+
+                policy_type = cover.name;
+                beneficiary = "SELF"
+                total_member_number = 'M'
+                sum_insured = cover.sumInsured;
+                last_expense_insured = cover.lastExpenseInsured;
+                premium = cover.premium.replace(/,/g, '');
+                installment_type = 2;
+                yearly_premium = cover.yearPemium;
+                policy_pending_premium=cover.yearPemium - parseInt(cover.premium.replace(/,/g, ''))
+                
+
+
+              });
+
+              if(Policypayment.payment_amount == 208000 || Policypayment.payment_amount == 167000 || Policypayment.payment_amount == 120000){
+                installment_type = 1;
+                policy_pending_premium=0
+              }
+            } else  {
+              covers.forEach((cover) => {
+
+                console.log("COVER", cover)
+                cover.packages.forEach((pack) => {
+                  console.log("PACK", pack)
+                  pack.payment_options.forEach((option) => {
+                    console.log("option", option)
+                    if (parseInt(option.premium.replace(/,/g, ''))== Policypayment.payment_amount) {
+                      policy_type = pack.code_name;
+                      beneficiary = "FAMILY"
+                      total_member_number = cover.code_name;
+                      sum_insured = pack.sumInsured;
+                      last_expense_insured = pack.lastExpenseInsured;
+                      premium = pack.premium.replace(/,/g, '');
+                      installment_type = option.installment_type;
+                      yearly_premium = pack.year_premium.replace(/,/g, '');
+                      policy_pending_premium=parseInt(pack.year_premium.replace(/,/g, '')) - parseInt(pack.premium.replace(/,/g, ''))
+                    }
+                  });
+                });
+              });
+
+            }
+            console.log("Policypayment.payment_amount", Policypayment.payment_amount)
+            console.log("policy_type", policy_type)
+            console.log("beneficiary", beneficiary)
+            console.log("total_member_number", total_member_number)
+            console.log("sum_insured", sum_insured)
+            console.log("last_expense_insured", last_expense_insured)
+            console.log("premium", premium)
+
+            let excistingPolicy = await db.policies.findAll({
+              where: {
+                policy_id: Policypayment.policy_id,
+
+              }
+            })
+            console.log("excistingPolicy", excistingPolicy)
+            if (excistingPolicy.length == 0) {
+              let policy = await db.policies.create({
+                policy_id: Policypayment.policy_id,
+                policy_number: `BW${phone_number}`,
+                premium: premium,
+                policy_paid_date: transaction_date,
+                policy_paid_amount: premium,
+                airtel_money_id: airtel_money_id,
+                bluewave_transaction_id: payment_id,
+                policy_status: 'paid',
+                user_id: existingUser.user_id,
+                phone_number: `+256${phone_number}`,
+                policy_start_date: transaction_date,
+                policy_end_date: policy_end_date,
+                policy_type: policy_type,
+                total_member_number: total_member_number,
+                beneficiary: beneficiary,
+                sum_insured: sum_insured,
+                last_expense_insured: last_expense_insured,
+                yearly_premium:yearly_premium,
+                policy_pending_premium: policy_pending_premium,
+                installment_type: installment_type,
+                installment_order: 1,
+                partner_id: 2,
+                country_code: "UGA",
+                currency_code: "UGX",
+                product_id: "d18424d6-5316-4e12-9826-302b866a380c",
+              }
+              )
+              console.log("POLICY CREATED", policy)
+            } else (
+              console.log("POLICY ALREADY EXIST")
+            )
+          }
         }
-
-        console.log(usersWithmultiplePaidpolicies)
-        // if (!policy) {
-        //   console.log(`No paid policy found for ${existingUser.phone_number}`);
-        //  // save user in a file json
-        //   userPhoneNumbers.push({
-        //     phone_number: payment['Sender Mobile Number'],
-        //     premium: payment['Approved value'],
-        //     airtel_money_id: payment['Transaction ID'],
-        //     payment_id: payment['External Reference'],
-        //     policy_paid_date: payment['Transaction Date'],
-        //   });
-
-    
-          //await reconciliation(partner_id,  `${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
-         // throw new Error(`No paid policy found for ${existingUser.phone_number}`)
-        
-      
-        console.log(`Paid policy found for ${existingUser.phone_number}`)
-  
+      } else {
+        console.log(`No user found for ${payment['Sender Mobile Number']}`)
       }
-  /**
-       * 1. Check if user exists in our database using the phone number in the userPhoneNumbers array
-       * 2. If user exists, check if user has a paid policy
-       * 3. If user has a paid policy, continue
-       * 4. If user does not have a paid policy, save user in a file
-       */
-      // userPhoneNumbers.push({
-      //   phone_number: payment['Sender Mobile Number'],
-      //   premium: payment['Approved value'],
-      //   airtel_money_id: payment['Transaction ID'],
-      //   payment_id: payment['External Reference'],
-      //   policy_paid_date: payment['Transaction Date'],
-      // });
-
-      //save userPhoneNumbers in a file json
-   
-      
-
-    //  await reconciliation(partner_id,  `${payment['Sender Mobile Number']}` ,"", payment['Approved value'])
-
-      // const memberStatus = await fetchMemberStatusData({ member_no: existingUser.arr_member_number, unique_profile_id: existingUser.membership_id + "" });
-
-      // console.log("memberStatus", memberStatus)
-
-    
-
-
 
     }
 
@@ -1741,72 +2408,6 @@ const paymentReconciliation = async (req, res) => {
   }
 }
 
-// 9/1/2024 12:29	759309187	100104721	18,000
-// 9/1/2024 12:23	702217517	100104721	10,000
-// 9/1/2024 12:21	704889876	100104721	14,000
-// 9/1/2024 11:47	707416043	100104721	10,000
-// 9/1/2024 11:11	743971977	100104721	10,000
-// 9/1/2024 10:47	700407284	100104721	10,000
-// 9/1/2024 10:19	706126421	100104721	10,000
-// 9/1/2024 10:11	759416097	100104721	10,000
-// 9/1/2024 8:46	706748155	100104721	10,000
-// 9/1/2024 8:08	752322768	100104721	10,000
-// 8/1/2024 20:48	740449123	100104721	10,000
-// 8/1/2024 19:54	740798818	100104721	10,000
-// 8/1/2024 19:30	704779392	100104721	10,000
-// 8/1/2024 17:43	704779392	100104721	10,000
-// 8/1/2024 16:36	755449591	100104721	18,000
-// 8/1/2024 14:44	755336287	100104721	18,000
-// 8/1/2024 14:27	703967752	100104721	10,000
-// 8/1/2024 12:55	759728558	100104721	14,000
-// 8/1/2024 12:45	754006235	100104721	18,000
-// 8/1/2024 12:42	750509487	100104721	10,000
-// 8/1/2024 12:10	701975701	100104721	10,000
-// 8/1/2024 12:09	707827318	100104721	10,000
-// 8/1/2024 11:27	751266663	100104721	20,000
-// 8/1/2024 10:28	758453207	100104721	10,000
-// 8/1/2024 10:07	740895575	100104721	18,000
-// 7/1/2024 23:59	704719818	100104721	40,000
-// 7/1/2024 22:29	752390570	100104721	10,000
-// 7/1/2024 21:46	707828510	100104721	18,000
-// 7/1/2024 19:45	706121708	100104721	10,000
-// 7/1/2024 18:56	708237463	100104721	10,000
-// 7/1/2024 17:14	703730118	100104721	18,000
-// 7/1/2024 9:47	743022957	100104721	14,000
-// 7/1/2024 8:40	704242116	100104721	10,000
-// 6/1/2024 22:13	709808807	100104721	18,000
-// 6/1/2024 22:09	709808807	100104721	10,000
-// 6/1/2024 22:03	755982534	100104721	18,000
-// 6/1/2024 20:56	700549962	100104721	14,000
-// 6/1/2024 20:36	707476953	100104721	10,000
-// 6/1/2024 15:16	703305660	100104721	18,000
-// 6/1/2024 12:26	756152136	100104721	10,000
-// 6/1/2024 8:08	757145444	100104721	14,000
-// 5/1/2024 22:00	753073677	100104721	10,000
-// 5/1/2024 21:08	707476953	100104721	10,000
-// 5/1/2024 21:05	707476953	100104721	20,000
-// 5/1/2024 14:24	752115073	100104721	10,000
-// 5/1/2024 14:11	708151578	100104721	10,000
-// 5/1/2024 13:57	753326649	100104721	10,000
-// 5/1/2024 13:49	702112832	100104721	10,000
-// 5/1/2024 13:20	700517059	100104721	20,000
-// 5/1/2024 13:10	709903721	100104721	18,000
-// 5/1/2024 11:07	741326514	100104721	10,000
-// 5/1/2024 9:22	752181100	100104721	18,000
-// 5/1/2024 1:27	706275750	100104721	20,000
-// 5/1/2024 1:04	706275750	100104721	20,000
-// 5/1/2024 0:12	708908015	100104721	10,000
-// 4/1/2024 22:43	702975594	100104721	77,000
-// 4/1/2024 22:28	700285448	100104721	10,000
-// 4/1/2024 20:08	752695242	100104721	10,000
-// 4/1/2024 13:26	753636480	100104721	18,000
-// 4/1/2024 12:23	756725291	100104721	10,000
-// 4/1/2024 12:08	700769051	100104721	18,000
-// 4/1/2024 11:54	759546609	100104721	18,000
-// 4/1/2024 11:53	754908514	100104721	20,000
-// 4/1/2024 11:44	740391554	100104721	14,000
-// 4/1/2024 11:35	742903099	100104721	18,000
-// 4/1/2024 10:56	700192357	100104721	10,000
 
 /**
  * @swagger
@@ -1825,7 +2426,7 @@ const paymentReconciliation = async (req, res) => {
  *         required: true
  *         schema:
  *           type: number
- *       - name: policy_id
+ *       - name: transaction_date
  *         in: query
  *         required: true
  *         schema:
@@ -1847,59 +2448,76 @@ const paymentReconciliation = async (req, res) => {
  *         description: Invalid request
  */
 async function policyReconciliation(req, res) {
- 
-    try {
-   const { partner_id, phone_number, policy_id, premium } = req.query;
-      const existingUser = await db.users.findOne({
+
+  try {
+    let { partner_id, phone_number, transaction_date, premium } = req.query;
+
+    // convert  10/1/2024 21:17:00 to 01/10/2024 21:17:00
+    transaction_date = moment(transaction_date, "DD/MM/YYYY HH:mm:ss").format("YYYY-MM-DD HH:mm:ss")
+
+    const policy = await db.policies.findOne({
+      where: {
+        phone_number: `+256${phone_number}`,
+        premium: premium,
+
+
+      },
+      limit: 1,
+    });
+    console.log("policy", policy)
+
+    if (policy) {
+
+      await db.policies.update(
+        {
+          policy_status: "paid",
+          policy_paid_date: new Date(transaction_date),
+          policy_paid_amount: premium,
+          policy_start_date: new Date(transaction_date),
+
+
+        },
+        { where: { policy_id: policy.policy_id } }
+      );
+
+      await db.payments.update(
+        { payment_status: "paid" },
+        { where: { policy_id: policy.policy_id } }
+      );
+
+      // update number of policies paid for user
+      const user = await db.users.findOne({
         where: {
-          phone_number: phone_number,
-          partner_id: partner_id,
+          user_id: policy.user_id,
         },
         limit: 1,
       });
 
-      if (!existingUser) {
-        return  res.status(404).json({ message: `No user found for ${phone_number}` });
-      }
+      // count number of policies paid for user
 
-      const policy = await db.policies.findOne({
+      let policies = await Policy.findAndCountAll({
         where: {
-          user_id: existingUser.user_id,
-          policy_status: "pending",
-          premium: premium,
-          
+          user_id: policy.user_id,
+          policy_status: "paid",
         },
-        limit: 1,
+        limit: 30,
       });
-      console.log("policy", policy)
 
-      if (policy) {
-       
-       
-
-        await db.policies.update(
-          { policy_status: "paid", policy_paid_date: new Date(),
-          policy_paid_amount: premium
-          
-         },
-          { where: { policy_id: policy.policy_id } }
-        );
-
-        await db.payments.update(
-          { payment_status: "paid" },
-          { where: { policy_id: policy.policy_id } }
-        );
-      }
-
-      if (!policy) {
-        return  res.status(404).json({ message: `No paid policy found for ${phone_number}` });
-      }
-
-      return res.status(200).json({ message: "Policy Reconciliation done successfully" });
-    } catch (error) {
-      console.log(error)
-      res.status(500).json({ message: "Internal server error", error: error.message });
+      await db.users.update(
+        { number_of_policies: policies.count },
+        { where: { user_id: user.user_id } }
+      );
     }
+
+    if (!policy) {
+      return res.status(404).json({ message: `No paid policy found for ${phone_number}` });
+    }
+
+    return res.status(200).json({ message: "Policy Reconciliation done successfully" });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
 }
 
 

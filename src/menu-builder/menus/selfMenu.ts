@@ -207,7 +207,7 @@ const selfMenu = async (args, db) => {
             const timeout = 1000;
 
             Promise.race([
-                airtelMoneyPromise,
+                //airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));

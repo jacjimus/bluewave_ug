@@ -473,7 +473,7 @@ const familyMenu = async (args, db) => {
       return response;
     }
     const packages = selectedCover.packages.map((coverType, index) => {
-      return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
+      return `\n${index + 1}. ${coverType.name} at KES ${coverType.premium}`
     }
     ).join("");
 

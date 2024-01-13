@@ -45,7 +45,7 @@ const accountMenu = async (args: any, db: any) => {
     if (currentStep == 1) {
         response = "CON My Account" +
             "\n1. Policy Status" +
-            "\n2. Pay Now" +
+            "\n2. Renew Cover" +
             "\n3. Cancel Policy" +
             "\n4. Add Next of Kin" +
             "\n5. Update Gender and Date of birth"+

@@ -4,6 +4,24 @@ import { db } from '../models/db';
 import dotenv from 'dotenv';
 dotenv.config()
 import { calculateProrationPercentage, formatAmount } from './utils';
+/* create arrService class to handle all aar related function
+  - create user
+  - create policy
+  - create dependant
+  - update policy
+  - update dependant
+  - renew policy
+  - fetch member status
+  - fetch policy status
+  - fetch dependant status
+  - fetch policy details
+
+  */
+
+
+
+
+
 
 async function arr_uganda_login() {
   try {
@@ -18,7 +36,7 @@ async function arr_uganda_login() {
       }
     };
 
-  
+
 
     const response = await axios.request(config);
     console.log(response)
@@ -83,61 +101,61 @@ interface PrincipalRegistration {
 
 async function registerPrincipal(user: any, policy: any) {
   if (user.user_id !== policy?.user_id) {
-   console.log("POLICY NOT FOR USER");
+    console.log("POLICY NOT FOR USER");
   }
- 
-  if(policy && user){
-  const userData: PrincipalRegistration = {
-    surname: user.last_name || `256${user.phone_number}`,
-    first_name: user.first_name || `256${user.phone_number}`,
-    other_names:  "",
-    gender: 1,
-    dob: "1900-01-01",
-    pri_dep: "24",
-    family_title: "3",
-    tel_no: `256${user.phone_number}`,
-    email: user.email || "admin@bluewave.insure",
-    next_of_kin: {
-      surname: user.last_name,
-      first_name: user.first_name,
-      other_names: user.middle_name || "",
-      tel_no: user.phone_number,
-    },
-    member_status: "1",
-    health_option: "64",
-    health_plan: "AIRTEL_" + policy.policy_type,
-    corp_id: "758",
-    policy_start_date: policy.policy_start_date,
-    policy_end_date: policy.policy_end_date,
-    unique_profile_id: user.membership_id + '',
-    money_transaction_id: policy.airtel_money_id,
-    
-  }
- 
-  
-  try {
-    const config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
-      headers: {
-        'Authorization': 'Bearer ' + await arr_uganda_login(),
-        'Content-Type': 'application/json',
-      },
-      data: userData,
-    };
-    console.log("CONFIG", config);
-    const response = await axios.request(config);
-    console.log(JSON.stringify(response.data));
 
-    if (response.data.code == 200) {
-      await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
-      return { ...response.data, ...userData }
+  if (policy && user) {
+    const userData: PrincipalRegistration = {
+      surname: user.last_name || `256${user.phone_number}`,
+      first_name: user.first_name || `256${user.phone_number}`,
+      other_names: "",
+      gender: 1,
+      dob: "1900-01-01",
+      pri_dep: "24",
+      family_title: "3",
+      tel_no: `256${user.phone_number}`,
+      email: user.email || "admin@bluewave.insure",
+      next_of_kin: {
+        surname: user.last_name,
+        first_name: user.first_name,
+        other_names: user.middle_name || "",
+        tel_no: user.phone_number,
+      },
+      member_status: "1",
+      health_option: "64",
+      health_plan: "AIRTEL_" + policy.policy_type,
+      corp_id: "758",
+      policy_start_date: policy.policy_start_date,
+      policy_end_date: policy.policy_end_date,
+      unique_profile_id: user.membership_id + '',
+      money_transaction_id: policy.airtel_money_id,
+
     }
-  } catch (error) {
-    console.error(error);
+
+
+    try {
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
+        headers: {
+          'Authorization': 'Bearer ' + await arr_uganda_login(),
+          'Content-Type': 'application/json',
+        },
+        data: userData,
+      };
+      console.log("CONFIG", config);
+      const response = await axios.request(config);
+      console.log(JSON.stringify(response.data));
+
+      if (response.data.code == 200) {
+        await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
+        return { ...response.data, ...userData }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
-}
 }
 
 
@@ -152,12 +170,13 @@ interface requestPremiumData {
   premium_installment: number;
   main_benefit_limit: number;
   last_expense_limit: number;
+  transaction_date: string;
   money_transaction_id: string;
 }
 
 
 // // Define a function to create the dependent
-async function createDependant( existingUser: any, myPolicy: any) {
+async function createDependant(existingUser: any, myPolicy: any) {
   try {
 
     // const existingUser = await db.users.findOne({
@@ -208,7 +227,7 @@ async function createDependant( existingUser: any, myPolicy: any) {
           });
           console.log("AAR MEMBER FOUND", arr_member);
 
-          if (arr_member.code == 624) {
+          if (arr_member?.code == 624) {
             arr_member = await registerPrincipal(existingUser, myPolicy);
             console.log("ARR PRINCIPAL CREATED", arr_member);
             resolve(true);
@@ -219,7 +238,7 @@ async function createDependant( existingUser: any, myPolicy: any) {
             let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
             let dependant_surname = `${i}surname${existingUser.membership_id}`;
 
-            if (arr_member.policy_no != null && arr_member.code == 200) {
+            if (arr_member?.policy_no != null && arr_member?.code == 200) {
               // Use a Promise with setTimeout to control the creation
               await new Promise(resolve => {
                 setTimeout(async () => {
@@ -248,7 +267,7 @@ async function createDependant( existingUser: any, myPolicy: any) {
                     unique_profile_id: existingUser.membership_id + "",
                   });
 
-                  if (dependant.code == 200) {
+                  if (dependant?.code == 200) {
 
                     console.log(`Dependant ${i} created:`, dependant);
 
@@ -288,55 +307,57 @@ async function updatePremium(user: any, policy: any) {
 
   try {
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
-    if(user.user_id !== policy.user_id){
+    if (user.user_id !== policy.user_id) {
       console.log("POLICY NOT FOR USER");
-    }else{
+    } else {
 
-  console.log('UPDATE PREMIUM',user.name, policy.policy_type, user.total_member_number)
-    const main_benefit_limit =  policy.sum_insured 
-    const last_expense_limit =  policy.last_expense_insured 
+      console.log('UPDATE PREMIUM', user.name, policy.policy_type, user.total_member_number)
+      const main_benefit_limit = policy.sum_insured
+      const last_expense_limit = policy.last_expense_insured
 
-    let ultimatePremium = policy.premium
+      let ultimatePremium = policy.premium
 
-    
-    if(policy.total_member_number !== "M"  && policy.total_member_number !== null){
-      const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-      console.log("Number of dependants:", number_of_dependants);
-    
-      const policyPremium = policy.premium
+
+      if (policy.total_member_number !== "M" && policy.total_member_number !== null) {
+        const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+        console.log("Number of dependants:", number_of_dependants);
+
+        const policyPremium = policy.premium
         const memberSize = (policy.total_member_number).split("")[2]
         console.log(policyPremium, memberSize)
         ultimatePremium = policyPremium / (parseInt(memberSize) + 1)
       }
-      
-    const requestData: requestPremiumData = {
-      member_no: user?.arr_member_number || user?.member_no,
-      unique_profile_id: user?.membership_id + "" ||user?.unique_profile_id + "",
-      health_plan: "AIRTEL_" + policy.policy_type,
-      health_option: "64",
-      premium: ultimatePremium,
-      premium_type: policy.installment_type,
-      premium_installment: policy.renewal_order || 1,
-      main_benefit_limit: main_benefit_limit,
-      last_expense_limit: last_expense_limit,
-      money_transaction_id: policy.airtel_money_id || "123456789",
-    };
-   
-    const config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
-      headers: {
-        'Authorization': 'Bearer ' +  await arr_uganda_login(),
-        'Content-Type': 'application/json'
-      },
-      data: JSON.stringify(requestData),
-    };
 
-    const response = await axios.request(config);
-    console.log(JSON.stringify(response.data));
+      const requestData: requestPremiumData = {
+        member_no: user?.arr_member_number || user?.member_no,
+        unique_profile_id: user?.membership_id + "" || user?.unique_profile_id + "",
+        health_plan: "AIRTEL_" + policy.policy_type,
+        health_option: "64",
+        premium: ultimatePremium,
+        premium_type: policy.installment_type,
+        premium_installment: policy.renewal_order || 1,
+        main_benefit_limit: main_benefit_limit,
+        last_expense_limit: last_expense_limit,
+        transaction_date: policy.policy_paid_date,
+        money_transaction_id: policy.airtel_money_id || "123456789",
+      };
+     
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
+        headers: {
+          'Authorization': 'Bearer ' + await arr_uganda_login(),
+          'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(requestData),
+      };
+
+      const response = await axios.request(config);
+      console.log(JSON.stringify(response.data));
       return response.data;
-  }
+    }
   } catch (error) {
     console.error(error);
 
@@ -545,25 +566,28 @@ async function processPolicy(user: any, policy: any, memberStatus: any) {
 }
 
 
-async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null, premium) {
-  const existingUser = await db.users.findOne({
-    where: {
-      [db.Sequelize.Op.or]: [
-        { phone_number: phoneNumber },
-    
-         //{ arr_member_number:  arr_member_number }
-      ],
-      partner_id: partner_id
-    },
-    order: [['createdAt', 'ASC']],
-  });
-  console.log(phoneNumber)
-  
-   if(!existingUser) {
-    console.log("USER NOT FOUND");
-  }else{
-  console.log("EXISTING USER", existingUser.phone_number, existingUser.name);
+async function reconciliation(existingUser, paymentData) {
+  let {
+    transaction_date,
+    premium,
+    payment_id,
+    airtel_money_id,
+    phone_number,
+  } = paymentData
 
+
+  //update policy status to paid
+  await db.policies.update(
+    {
+      policy_status: "paid",
+      policy_paid_amount: premium,
+      premium: premium,
+      airtel_money_id: airtel_money_id,
+      policy_start_date: transaction_date,
+      policy_paid_date: transaction_date,
+    },
+    { where: { user_id: existingUser.user_id } }
+  );
   let policy: any = await db.policies.findOne({
     where: {
       [db.Sequelize.Op.or]: [
@@ -575,43 +599,19 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
     },
   });
   console.log("POLICY", policy, existingUser.phone_number, existingUser.name, premium);
-
- 
-  if(policy) {
-    console.log("POLICY FOUND", policy.policy_number, policy.policy_status);
-  }else{
-    //update policy status to paid
-    await db.policies.update(
-      { policy_status: "paid",
-      policy_paid_amount: premium,
-      premium: premium,
-     },
-      { where: { user_id: existingUser.user_id } }
-    );
-    let policy: any = await db.policies.findOne({
-      where: {
-        [db.Sequelize.Op.or]: [
-          { user_id: existingUser.user_id },
-          { phone_number: `+256${existingUser.phone_number}` },
-        ],
-        premium: premium,
-        policy_status: 'paid',
-      },
-    });
-    console.log("POLICY", policy, existingUser.phone_number, existingUser.name, policy.policy_number, premium);
-    const policyType = policy.policy_type.toUpperCase();
-    const period = policy.installment_type == 1 ? "yearly" : "monthly";
-    let updatePayment = await db.payments.update({
-      payment_status: "paid",
-      payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
-      message: `PAID UGX ${premium} to AAR Uganda for ${policyType} Cover, TID: ${policy.airtel_money_id}. Date: ${policy.policy_start_date}`
-    }, {
-      where: {
-        payment_status: "pending",
-        payment_amount:premium
-      }
-    });
-    console.log("PAYMENT UPDATED", updatePayment);
+  const policyType = policy.policy_type.toUpperCase();
+  const period = policy.installment_type == 1 ? "yearly" : "monthly";
+  let updatePayment = await db.payments.update({
+    payment_status: "paid",
+    payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
+    message: `PAID UGX ${premium} to AAR Uganda for ${policyType} Cover, TID: ${airtel_money_id}. Date: ${transaction_date}`
+  }, {
+    where: {
+      payment_status: "pending",
+      payment_amount: premium
+    }
+  });
+  console.log("PAYMENT UPDATED", updatePayment);
   //update number of policies for the user
   let user_policies = await db.policies.findAll({
     where: {
@@ -622,19 +622,22 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
       policy_status: 'paid',
       premium: premium,
     },
-    limit: 12, 
+    limit: 12,
   });
 
   await db.users.update(
-    { number_of_policies: user_policies.length
-     },
-    { where: { 
-      [db.Sequelize.Op.or]: [
-        { user_id: existingUser.user_id },
-      ],
-      } }
+    {
+      number_of_policies: user_policies.length
+    },
+    {
+      where: {
+        [db.Sequelize.Op.or]: [
+          { user_id: existingUser.user_id },
+        ],
+      }
+    }
   );
-  }
+
 
 //   const members = policy.total_member_number?.match(/\d+(\.\d+)?/g) || 1
 //   console.log("MEMBERS", members);
@@ -660,106 +663,103 @@ async function reconciliation(partner_id=2, phoneNumber, arr_member_number=null,
 //  // await SMSMessenger.sendSMS(`+256${payment['Sender Mobile Number']}`, congratText);
 //  console.log("CONGRAT TEXT", congratText);
 
-  let arr_member: any, dependant: any;
-  if(!existingUser.arr_member_number) {
-    // create arr member id
+
+
+let arr_member: any; // AAR Member
+let dependant: any; // AAR Dependant
+if (existingUser.arr_member_number  ) {
+  // Fetch member status data or register principal based on the condition
+  arr_member = await fetchMemberStatusData({
+    member_no: existingUser.arr_member_number,
+    unique_profile_id: existingUser.membership_id + "",
+  });
+  console.log("AAR MEMBER FOUND", arr_member);
+
+  if (arr_member.code == 624) {
     arr_member = await registerPrincipal(existingUser, policy);
-    console.log("ARR MEMBER", arr_member);
+    console.log("ARR PRINCIPAL CREATED", arr_member);
   }
-
-  if (existingUser.arr_member_number) {
-    // Fetch member status data or register principal based on the condition
-    arr_member = await fetchMemberStatusData({
-      member_no: existingUser.arr_member_number,
-      unique_profile_id: existingUser.membership_id + "",
-    });
-    console.log("AAR MEMBER FOUND", arr_member);
-
-    if (arr_member.code == 624) {
-      arr_member = await registerPrincipal(existingUser, policy);
-      console.log("ARR PRINCIPAL CREATED", arr_member);
-    }
-  }
+}
 
 
-  let updatedPremium : any;
-    if(policy?.total_member_number =='M') {
-          updatedPremium =  await updatePremium(existingUser, policy);
-    console.log("UPDATED PREMIUM", updatedPremium);
-    }
-  let number_of_dependants = parseFloat(policy?.total_member_number?.split("")[2]) || 0;
-    if(number_of_dependants > 0) {
-        for (let i = 1; i <= number_of_dependants; i++) {
-          let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
-          let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
-          let dependant_surname = `${i}surname${existingUser.membership_id}`;
+let updatedPremium: any;
+if (policy?.total_member_number == 'M') {
+  updatedPremium = await updatePremium(existingUser, policy);
+  console.log("UPDATED PREMIUM", updatedPremium);
+}
+let number_of_dependants = parseFloat(policy?.total_member_number?.split("")[2]) || 0;
+if (number_of_dependants > 0) {
+  for (let i = 1; i <= number_of_dependants; i++) {
+    let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
+    let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
+    let dependant_surname = `${i}surname${existingUser.membership_id}`;
 
-       if ( arr_member?.code == 200) {
-            // Use a Promise with setTimeout to control the creation
-            await new Promise(resolve => {
-              setTimeout(async () => {
-                dependant = await registerDependant({
-                  member_no: existingUser.arr_member_number,
-                  surname: dependant_surname,
-                  first_name: dependant_first_name,
-                  other_names: dependant_other_names,
-                  gender: 1,
-                  dob: "1990-01-01",
-                  email: "dependant@bluewave.insure",
-                  pri_dep: "25",
-                  family_title: "25", // Assuming all dependants are children
-                  tel_no: policy.phone_number,
-                  next_of_kin: {
-                    surname: "",
-                    first_name: "",
-                    other_names: "",
-                    tel_no: "",
-                  },
-                  member_status: "1",
-                  health_option: "64",
-                  health_plan: "AIRTEL_" + policy?.policy_type,
-                  policy_start_date: policy.policy_start_date,
-                  policy_end_date: policy.policy_end_date,
-                  unique_profile_id: existingUser.membership_id + "",
-                });
+    if (arr_member?.code == 200) {
+      // Use a Promise with setTimeout to control the creation
+      await new Promise(resolve => {
+        setTimeout(async () => {
+          dependant = await registerDependant({
+            member_no: existingUser.arr_member_number,
+            surname: dependant_surname,
+            first_name: dependant_first_name,
+            other_names: dependant_other_names,
+            gender: 1,
+            dob: "1990-01-01",
+            email: "dependant@bluewave.insure",
+            pri_dep: "25",
+            family_title: "25", // Assuming all dependants are children
+            tel_no: policy.phone_number,
+            next_of_kin: {
+              surname: "",
+              first_name: "",
+              other_names: "",
+              tel_no: "",
+            },
+            member_status: "1",
+            health_option: "64",
+            health_plan: "AIRTEL_" + policy?.policy_type,
+            policy_start_date: policy.policy_start_date,
+            policy_end_date: policy.policy_end_date,
+            unique_profile_id: existingUser.membership_id + "",
+          });
 
-                if (dependant.code == 200) {
+          if (dependant.code == 200) {
 
-                  console.log(`Dependant ${i} created:`, dependant);
+            console.log(`Dependant ${i} created:`, dependant);
 
-                  policy.arr_policy_number = arr_member?.policy_no;
-                  dependant.unique_profile_id = existingUser.membership_id + "";
-                  let updateDependantMemberNo: string[] =[]
-                  updateDependantMemberNo.push(dependant.member_no)
-                  await db.policies.update(
-                    { dependant_member_numbers: updateDependantMemberNo },
-                    { where: { policy_id: policy.policy_id } }
-                  );
-                  let updatePremiumData = await updatePremium(dependant, policy);
-                  if (updatePremiumData.code == 200) {
-                    console.log("AAR UPDATE PREMIUM", updatePremiumData);
-                    resolve(true)
-                  } else{
-                    console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
-                    resolve(true)
+            policy.arr_policy_number = arr_member?.policy_no;
+            dependant.unique_profile_id = existingUser.membership_id + "";
+            let updateDependantMemberNo: string[] = []
+            updateDependantMemberNo.push(dependant.member_no)
+            await db.policies.update(
+              { dependant_member_numbers: updateDependantMemberNo },
+              { where: { policy_id: policy.policy_id } }
+            );
+            let updatePremiumData = await updatePremium(dependant, policy);
+            if (updatePremiumData.code == 200) {
+              console.log("AAR UPDATE PREMIUM", updatePremiumData);
+              resolve(true)
+            } else {
+              console.log("AAR NOT  UPDATE PREMIUM", updatePremiumData);
+              resolve(true)
 
-                  }
-                  resolve(true)
-                }else{
-                  console.log("DEPENDANT NOT CREATED", dependant);
-                  resolve(true)
-                }
-              }, 1000 * i); // Adjust the delay as needed
-            });
+            }
+            resolve(true)
+          } else {
+            console.log("DEPENDANT NOT CREATED", dependant);
+            resolve(true)
+          }
+        }, 1000 * i); // Adjust the delay as needed
+      });
 
-    }else{
+    } else {
       console.log("NO ARR MEMBER or Member with same name and dob already exists!")
     }
   }
-  }
-
-  return updatedPremium
 }
- }
 
-export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation};
+return updatedPremium
+}
+ 
+
+export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation };

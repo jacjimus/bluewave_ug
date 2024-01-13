@@ -2694,7 +2694,143 @@ async function getAllUsers() {
     }
   }
 
+  // 757374443	10,000
+  // 750382485	18,000
+  // 753721611	10,000
+  // 754052635	18,000
+  // 751787316	10,000
+  // 759798998	10,000
+  // 703546231	10,000
+  // 703546231	10,000
+  // 701938940	10,000
+  // 753134329	93,000
+  // 741355554	18,000
+  // 758107193	18,000
+  // 706452629	10,000
+  // 758629044	18,000
+  // 703186339	18,000
+
+  let transaction = [
+    // {
+    //   phone_number : 757374443,
+    //   amount: 10000
+    // },
+    // {
+    //   phone_number : 750382485,
+    //   amount: 18000
+    // },
+    // {
+    //   phone_number : 753721611,
+    //   amount: 10000
+    // },
+    {
+      phone_number : 754052635,
+      amount: 18000
+    },
+    {
+      phone_number : 751787316,
+      amount: 10000
+    },
+    {
+      phone_number : 759798998,
+      amount: 10000
+    },
+    {
+      phone_number : 703546231,
+      amount: 10000
+    },
+    // {
+    //   phone_number : 703546231,
+    //   amount: 10000
+    // },
+    // {
+    //   phone_number : 701938940,
+    //   amount: 10000
+    // },
+    // {
+    //   phone_number : 753134329,
+    //   amount: 93000
+    // },
+    // {
+    //   phone_number : 741355554,
+    //   amount: 18000
+    // },
+    // {
+    //   phone_number : 758107193,
+    //   amount: 18000
+    // },
+    // {
+    //   phone_number : 706452629,
+    //   amount: 10000
+    // },
+    // {
+    //   phone_number : 758629044,
+    //   amount: 18000
+    // },
+    // {
+    //   phone_number : 703186339,
+    //   amount: 18000
+    // },
+    
+  ]
+
+// check if this transaction is a have paid for a policy
+
+async function checkIfTransactionIsForPolicy() {
+let transactionArr = await db.users.findAll({
+  where: {
+    partner_id: 2,
+    arr_member_number: {
+      [Op.not]: null,
+    }
+  },
+});
+
+
+  transactionArr.forEach(async (existingUser) => {
+    try {
+      const policy = await db.policies.findOne({
+        where: {
+          phone_number: `+256${existingUser.phone_number}`,
+          //premium: transaction.amount,
+          policy_status: 'paid',
+        },
+      });
+     
+    
+      console.log("USER", existingUser.name)
+      
+      if (policy) {
+        console.log("POLICY", policy.policy_id)
+        const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+
+        // setimeout to allow for the policy to be created
+        if (number_of_dependants > 0) {
+          // If there are dependants, create them
+
+          let dep = await createDependant(existingUser, policy);
+          console.log("AAR DEPENDANT - member created", dep);
+        } else {
+          // If there are no dependants, update the premium
+          const updatePremiumData = await updatePremium(existingUser, policy);
+          console.log("AAR UPDATE PREMIUM - updated", updatePremiumData);
+        }
+      }else{
+
+        console.log("no policy found",  `+256${existingUser.phone_number}`, existingUser.name)
+      }
+        
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  });
+ 
+}
+
+
+
   export const playground = async () => {
+  // checkIfTransactionIsForPolicy()
    // sendRenewalReminders()
   console.log("i was called")
   }

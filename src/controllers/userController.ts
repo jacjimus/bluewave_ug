@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 import { db } from "../models/db";
 import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 import welcomeTemplate from "../services/emailTemplates/welcome";
-import {sendWelcomeEmail} from "../services/emailService";
+import { sendWelcomeEmail } from "../services/emailService";
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 import {
@@ -755,7 +755,7 @@ const getPartner = async (req: any, res: any) => {
  */
 const listPartners = async (req: any, res: any) => {
   try {
- 
+
 
     let partner: any = await Partner.findAll();
     if (parseInt(req.partner_id) == 4) {
@@ -819,7 +819,7 @@ const listPartners = async (req: any, res: any) => {
  */
 const partnerSwitch = async (req: any, res: any) => {
   try {
-  
+
     let partner = await Partner.findOne({
       where: {
         id: req.partner_id
@@ -832,10 +832,13 @@ const partnerSwitch = async (req: any, res: any) => {
 
     let updatedUser = await User.update(
       { partner_id: req.query.partner_id },
-      { where: { user_id: req.user_id
-      } }
+      {
+        where: {
+          user_id: req.user_id
+        }
+      }
     );
-    
+
     console.log("updated user", updatedUser);
     return res.status(201).json({ code: 201, message: "Partner updated successfully" });
   } catch (error) {
@@ -1082,10 +1085,21 @@ async function adminSignup(req: any, res: any) {
  */
 async function arrMemberRegistration(req: any, res: any) {
   try {
-   
-      const { phoneNumber, premium, arr_member_number} = req.body
 
-    let updatedPremium = reconciliation(2, phoneNumber, arr_member_number, premium)
+    const { phoneNumber, premium, arr_member_number, transaction_date } = req.body
+    let paymentData = {
+      premium: premium,
+      transaction_date: transaction_date,
+      phone_number: phoneNumber,
+
+    }
+
+   let excistingUser = await db.users.findOne({
+      where: {
+        phone_number: phoneNumber.toString()
+      }
+    })
+    let updatedPremium = reconciliation( excistingUser, paymentData)
 
     return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium });
   } catch (error) {
