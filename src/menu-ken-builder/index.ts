@@ -108,10 +108,10 @@ export default function (args: RequestBody, db: any) {
      
 
       if (text == "") {
-        response = "CON AfyaSure" +
-          "\n1. Buy (self)" +
-          "\n2. Buy (family)" +
-          "\n3. Buy (others)" +
+        response = "CON " +
+          "\n1. Buy for self" +
+          "\n2. Buy for family" +
+          "\n3. Buy for others" +
           "\n4. Make Claim" +
           "\n5. My Policy" +
           "\n6. View Hospital" +

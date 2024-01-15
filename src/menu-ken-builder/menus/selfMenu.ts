@@ -79,7 +79,7 @@ const selfMenu = async (args, db) => {
         }
         //let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
 
-        response = `CON You get KShs 4,500 / night of hospitalisation up to a Maximum of 30 days a year ` +
+        response = `CON You get KShs 4,500 per night of hospitalisation up to a Maximum of 30 days a year ` +
             "\nPAY " +
             `\n1. ${coverType.premium} monthly` +
             `\n2. ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -91,14 +91,14 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptionsKenya(policy_type, paymentOption);
 
-        response = `CON Pay Kshs ${options.premium} ${options.period}. Terms&Conditions - www.airtel.com to Agree and Pay` + "\n1. Confirm \n0. Back  \n00. Main Menu";
+        response = `CON Pay Kshs ${options.premium} ${options.period}. Terms Conditions - www.airtel.com to Agree and Pay` + "\n1. Confirm \n0. Back  \n00. Main Menu";
 
     }
     else if (currentStep === 4) {
 
         if (userText == "1") {
 
-            response = 'END Please wait for Airtel Money Pin prompt to complete the payment'
+            response = 'END Please wait for Airtel Money PIN prompt to complete the payment'
             console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", phoneNumber, new Date());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];

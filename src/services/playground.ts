@@ -1804,7 +1804,7 @@ async function getAllUsers() {
           health_option: "64",
           premium:ultimatePremium,
           premium_type: policy.installment_type,
-          premium_installment: policy.renewal_order || 1,
+          premium_installment: policy.installment_order || 1,
           main_benefit_limit: main_benefit_limit,
           last_expense_limit: last_expense_limit,
           money_transaction_id: policy.airtel_money_id || "123456789",
