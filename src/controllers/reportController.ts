@@ -716,7 +716,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
           attributes: ["product_name"],
         },
       ],
-      limit: 1000,
+      limit: 5000,
     };
 
     let policies = await Policy.findAll(options);
