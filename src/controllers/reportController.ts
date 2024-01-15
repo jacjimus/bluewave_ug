@@ -1641,6 +1641,10 @@ const paymentReconciliation = async (req, res) => {
       console.log("PAYMENT", payment)
 
 
+      // if - replace with / in the date
+
+      payment['Transaction Date'] = payment['Transaction Date'].replace(/-/g, '/');
+
       // Split the original date into components
       let components = payment['Transaction Date'].split(/[/\s:]/);
 

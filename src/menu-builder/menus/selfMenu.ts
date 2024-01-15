@@ -72,15 +72,22 @@ const selfMenu = async (args, db) => {
             return response;
         }
 
-        let existingPolicy = await db.policies.findOne({
+        let existingPolicy = await db.policies.findAndCountAll({
             where: {
                 phone_number: `+256${phone}`,
                 policy_status: "paid",
-                policy_type: coverType.name
-            },
-            
-            
-        });
+               [Op.or]: [
+                  { beneficiary: "FAMILY" },
+                  { beneficiary: "SELF" }
+                ]},
+            limit: 1,
+          });
+      
+      
+        if(existingPolicy && existingPolicy.count > 0) {
+            response = "END You already have an active policy"
+            return response;
+        }
         if(existingPolicy) {
             response = "END You already have an active policy"
             return response;
@@ -207,7 +214,7 @@ const selfMenu = async (args, db) => {
             const timeout = 1000;
 
             Promise.race([
-                //airtelMoneyPromise,
+                airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));

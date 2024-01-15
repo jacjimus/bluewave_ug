@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser"
+import { Op } from 'sequelize';
 
 
 const familyMenu = async (args, db) => {
@@ -590,16 +591,19 @@ const familyMenu = async (args, db) => {
       response = "END Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
     }
-    let existingPolicy = await db.policies.findOne({
+    let existingPolicy = await db.policies.findAndCountAll({
       where: {
           phone_number: `+256${phone}`,
           policy_status: "paid",
-          policy_type: selectedCover.code_name
-      },
-      
-      
-  });
-  if(existingPolicy) {
+         [Op.or]: [
+            { beneficiary: "FAMILY" },
+            { beneficiary: "SELF" }
+          ]},
+      limit: 1,
+    });
+
+
+  if(existingPolicy && existingPolicy.count > 0) {
       response = "END You already have an active policy"
       return response;
   }
@@ -614,15 +618,22 @@ const familyMenu = async (args, db) => {
   }
   else if (currentStep == 3) {
     
-    response = "CON Enter atleast Name of spouse or 1 child\n"
+    response = "CON Enter atleast Full Name of spouse or 1 child\n"
   }
   else if (currentStep == 4) {
-    response = "CON Enter Phone of spouse (or Main member, if dependent is child)\n"
+    response = "CON Enter Phone of spouse (or Main member, if dependent is child) eg. 0700000000 \n"
   }
   else if (currentStep == 5) {
+    console.log("allSteps", allSteps);
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
     //console.log("SELECTED COVER", selectedCover)
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
+
+    if (allSteps[4].length < 10) {
+      response = "END Sorry Phone number for Other not valid e.g 0700000000\n"
+      return response;
+    }
+     
     // console.log("SELECTED PACKAGE", selectedPackage)
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
@@ -650,6 +661,7 @@ const familyMenu = async (args, db) => {
       last_name: spouse?.split(" ")[2]?.toUpperCase() || spouse.split(" ")[1]?.toUpperCase(),
       relationship: "SPOUSE",
       member_number: selectedPolicyType.code_name,
+      phone_number : allSteps[4],
       principal_phone_number: phoneNumber,
       //user_id: existingUser.user_id,
     };

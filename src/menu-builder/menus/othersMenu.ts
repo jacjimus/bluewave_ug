@@ -8,6 +8,15 @@ import { all } from "axios";
 const othersMenu = async (args, db) => {
   let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
+  function replaceLeadingZero(phoneNumber) {
+    if (phoneNumber.startsWith('07')) {
+      return '"' + phoneNumber.substring(1);
+    } else {
+      return phoneNumber;
+    }
+  }
+
+
   let phone = phoneNumber?.replace('+', "")?.substring(3);
   // console.log("SELECTED POLICY TYPE", selectedPolicyType);
   let existingUser = await db.users.findOne({
@@ -16,7 +25,7 @@ const othersMenu = async (args, db) => {
     },
     limit: 1,
   });
-  let otherUser: any;
+  let otherUser: any, existingOther: any, otherUserPhone : any;
   const covers = [
     {
       name: 'Other',
@@ -280,9 +289,7 @@ const othersMenu = async (args, db) => {
 
     response = "CON " + coversList + "\n0. Back";
 
-
-  }
-  else if (currentStep == 2) {
+  } else if (currentStep == 2) {
     let selectedCover = covers[parseInt(userText) - 1];
     if (!selectedCover) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -295,31 +302,36 @@ const othersMenu = async (args, db) => {
 
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
-
-
-  }
-  else if (currentStep == 3) {
+  } else if (currentStep == 3) {
     response = "CON Enter atleast Name of Other or 1 child\n"
-  }
-  else if (currentStep == 4) {
-    response = "CON Enter Phone number for Other\n"
-  }
-  else if (currentStep == 5) {
+
+  }else if (currentStep == 4) {
+    response = "CON Enter Phone number for Other e.g 0700000000\n"
+
+  } else if (currentStep == 5) {
     let otherName = allSteps[3];
     let otherPhone = allSteps[4];
     let coverType = allSteps[2];
 
+    // IF NO NAME OR PHONE NUMBER
+    if (otherPhone.length < 10) {
+      response = "END Sorry Phone number for Other not valid e.g 0700000000\n"
+      return response;
+    }
+     
+
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
 
-    otherUser = await db.users.findOne({
+     otherUser = await db.users.findOne({
       where: {
-        phone_number: allSteps[4].replace('0', ""),
+        phone_number: replaceLeadingZero(allSteps[4]),
       },
       limit: 1,
     });
-
-    response = `CON Inpatient cover for ${otherPhone} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
+  
+ 
+    response = `CON Inpatient cover for ${allSteps[4]} ${otherName}, UGX ${selectedCoverPackage.sum_insured} a year` +
       "\nPAY " +
       `\n1 UGX ${selectedCoverPackage.premium} monthly` +
       `\n2 UGX ${selectedCoverPackage.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -338,29 +350,35 @@ const othersMenu = async (args, db) => {
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
     //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
+    otherUserPhone =replaceLeadingZero(allSteps[4])
 
-    let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+  existingOther = await db.users.findOne({
+      where: {
+        phone_number: otherUserPhone.toString(),
+      },
+      limit: 1,
+    });
 
-    if (!existingUser) {
+    if (!existingOther) {
 
-      let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+      let user = await getAirtelUser(otherUserPhone, "UG", "UGX", 2);
       let membershipId = Math.floor(100000 + Math.random() * 900000);
 
-      existingUser = await db.users.create({
+      existingOther = await db.users.create({
         user_id: uuidv4(),
-        phone_number: phone,
+        phone_number: otherUserPhone,
         membership_id: Math.floor(100000 + Math.random() * 900000),
         pin: Math.floor(1000 + Math.random() * 9000),
-        first_name: user.first_name,
-        last_name: user.last_name,
-        name: `${user.first_name} ${user.last_name}`,
+        first_name: user?.first_name ||  allSteps[3]?.split(" ")[0]?.toUpperCase(),
+        last_name: user?.last_name || allSteps[3]?.split(" ")[1]?.toUpperCase(),
+        name: `${user?.first_name} ${user?.last_name}`,
         total_member_number: selectedPolicyType.code_name,
         partner_id: 2,
         role: "user",
         nationality: "UGANDA"
       });
-      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(fullPhone, message);
+      const message = `Dear ${user?.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+      await SMSMessenger.sendSMS(`+256${otherUserPhone}`, message);
 
     }
 
@@ -376,62 +394,24 @@ const othersMenu = async (args, db) => {
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
-      //console.log("otherUser", otherUser);
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-      let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
 
       let paymentOption = parseInt(allSteps[5]);
-      let installment_type = paymentOption == 1 ? 2 : 1;
-      let installment_order = 1
-
+ 
       // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
       let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
-      //console.log("POLICY TYPE USERTEXT 1", policyType)
       let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
-      //console.log("ULTIMATE PREMIUM", ultimatePremium)
 
-
-
-      //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
-      if (!otherUser) {
-        let otherPhone = allSteps[4].replace('0', "");
-
-        let otherData = {
-          user_id: uuidv4(),
-          phone_number: otherPhone,
-          membership_id: Math.floor(100000 + Math.random() * 900000),
-          first_name: allSteps[3]?.split(" ")[0]?.toUpperCase(),
-          middle_name: allSteps[3]?.split(" ")[1]?.toUpperCase(),
-          last_name: allSteps[3]?.split(" ")[2]?.toUpperCase() ? allSteps[3]?.split(" ")[2]?.toUpperCase() : allSteps[3]?.split(" ")[1]?.toUpperCase(),
-          name: `${allSteps[3]}`,
-          total_member_number: selectedPolicyType.code_name,
-          partner_id: 2,
-          nationality: "UGANDA"
-        }
-
-        otherUser = await db.users.create(otherData);
-        // console.log("OTHER USER CREATED", otherUser)
-      }
-      let checkPaidPolicy = await db.policies.findAndCountAll({
-        where: {
-          user_id: existingUser.user_id,
-          policy_status: 'paid',
-        },
-      });
-      
-      let policyNumber =
-        checkPaidPolicy.count > 0
-          ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1} `
-          : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
+      let policyNumber = `BW${otherUserPhone}`
       
 
       let policyObject = {
         policy_id: uuidv4(),
-        installment_type,
-        installment_order,
+        installment_type: paymentOption == 1 ? 2 : 1,
+        installment_order: 1,
         policy_type: policyType.name.toUpperCase(),
         policy_deduction_amount: parseAmount(ultimatePremium),
         policy_pending_premium:  parseAmount(policyType.yearly_premium) - parseAmount(ultimatePremium),
@@ -439,18 +419,18 @@ const othersMenu = async (args, db) => {
         premium: parseAmount(ultimatePremium),
         yearly_premium: parseAmount(policyType.yearly_premium),
         last_expense_insured: policyType.lastExpenseInsured,
-        membership_id: existingUser.membership_id,
+        membership_id: existingOther.membership_id,
         beneficiary: "OTHER",
         partner_id: 2,
         country_code: "UGA",
         currency_code: "UGX",
         product_id: "d18424d6-5316-4e12-9826-302b866a380c",
-        user_id: existingUser.user_id,
+        user_id: existingOther.user_id,
         phone_number: phoneNumber,
         total_member_number: selectedPolicyType.code_name,
-        bought_for: otherUser.user_id,
-        first_name: existingUser?.first_name,
-        last_name: existingUser?.last_name,
+        bought_for: phoneNumber,
+        first_name: existingOther?.first_name,
+        last_name: existingOther?.last_name,
         policy_number: policyNumber
       }
 
@@ -459,12 +439,12 @@ const othersMenu = async (args, db) => {
         let policy = await db.policies.create(policyObject);
 
         const airtelMoneyPromise = await airtelMoney(
-          existingUser.user_id,
+          existingOther.user_id,
           2,
           policy.policy_id,
           phone,
           policy.policy_deduction_amount,
-          existingUser.membership_id,
+          existingOther.membership_id,
           "UG",
           "UGX"
         );
@@ -484,19 +464,18 @@ const othersMenu = async (args, db) => {
         ])
           .then((result) => {
             // Airtel Money operation completed successfully
-            response = 'END Payment successful'; // Set your desired response here
+            response = 'END Payment successful'; 
             console.log("RESPONSE WAS CALLED", result);
             return response;
           })
           .catch((error) => {
             console.log("An error occurred:", error);
-            response = 'END Payment failed'; // Set an error response
+            response = 'END Payment failed'; 
             console.log("RESPONSE WAS CALLED", response);
             return response;
           });
 
       } catch (error) {
-        //response = 'END Payment failed'; // Set an error response
         console.log("RESPONSE WAS CALLED EER", error);
       }
       console.log("============== AFTER CATCH  TIME ================ ", new Date());
