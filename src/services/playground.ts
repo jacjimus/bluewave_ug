@@ -2943,6 +2943,6 @@ async function userWithoutAARmemberNumber() {
    // sendRenewalReminders()
     //checkIfPolicyHasPaidPolicies()
     //userWithoutAARmemberNumber()
-    userWithoutAARmemberNumber()
+   // userWithoutAARmemberNumber()
   console.log("i was called")
   }

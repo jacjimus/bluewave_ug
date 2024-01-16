@@ -3,14 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUser";
 import { airtelMoney } from "../../services/payment";
-import { all } from "axios";
+
 
 const othersMenu = async (args, db) => {
   let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
   function replaceLeadingZero(phoneNumber) {
     if (phoneNumber.startsWith('07')) {
-      return '"' + phoneNumber.substring(1);
+      return '' + phoneNumber.substring(1);
     } else {
       return phoneNumber;
     }
@@ -352,6 +352,8 @@ const othersMenu = async (args, db) => {
 
     otherUserPhone =replaceLeadingZero(allSteps[4])
 
+    console.log("OTHER USER PHONE", otherUserPhone);
+
   existingOther = await db.users.findOne({
       where: {
         phone_number: otherUserPhone.toString(),
@@ -371,7 +373,7 @@ const othersMenu = async (args, db) => {
         pin: Math.floor(1000 + Math.random() * 9000),
         first_name: user?.first_name ||  allSteps[3]?.split(" ")[0]?.toUpperCase(),
         last_name: user?.last_name || allSteps[3]?.split(" ")[1]?.toUpperCase(),
-        name: `${user?.first_name} ${user?.last_name}`,
+        name: `${user?.first_name}` ||  allSteps[3]?.split(" ")[0]?.toUpperCase() + `${user?.last_name}` || allSteps[3]?.split(" ")[1]?.toUpperCase(),
         total_member_number: selectedPolicyType.code_name,
         partner_id: 2,
         role: "user",
@@ -382,6 +384,7 @@ const othersMenu = async (args, db) => {
 
     }
 
+    console.log("EXISTING OTHER", existingOther);
 
     response = `CON Pay UGX ${ultimatePremium} ${period}.` +
       `\nTerms&Conditions https://rb.gy/g4hyk` +
@@ -405,8 +408,19 @@ const othersMenu = async (args, db) => {
       let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
 
-      let policyNumber = `BW${otherUserPhone}`
+      otherUserPhone =replaceLeadingZero(allSteps[4])
+      console.log("OTHER USER PHONE", otherUserPhone);
+
+      let policyNumber = "BW" + otherUserPhone.toString()
       
+      existingOther = await db.users.findOne({
+        where: {
+          phone_number: otherUserPhone.toString(),
+        },
+        limit: 1,
+      });
+  
+      console.log("EXCISTING OTHER", existingOther)
 
       let policyObject = {
         policy_id: uuidv4(),
@@ -428,11 +442,13 @@ const othersMenu = async (args, db) => {
         user_id: existingOther.user_id,
         phone_number: phoneNumber,
         total_member_number: selectedPolicyType.code_name,
-        bought_for: phoneNumber,
+        bought_for: existingUser.user_id,
         first_name: existingOther?.first_name,
         last_name: existingOther?.last_name,
         policy_number: policyNumber
       }
+
+      console.log("POLICY OBJECT", policyObject);
 
       try {
 

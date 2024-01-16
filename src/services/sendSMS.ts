@@ -16,6 +16,7 @@ class SMSMessenger {
       message: message,
     };
 
+    console.log('AFRICASLKING OPTIONS ',options);
     try {
       const response = await sms.send(options);
       console.log('AFRICASLKING RESPONSE ',response);
