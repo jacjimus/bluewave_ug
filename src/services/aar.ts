@@ -93,8 +93,8 @@ interface PrincipalRegistration {
   health_option: string;
   health_plan: string;
   corp_id: string;
-  policy_start_date: string;
-  policy_end_date: string;
+  policy_start_date: Date;
+  policy_end_date: Date;
   unique_profile_id: string;
   money_transaction_id: string;
 }
@@ -131,8 +131,8 @@ async function registerPrincipal(user: any, policy: any) {
       health_option: "64",
       health_plan: "AIRTEL_" + policy.policy_type,
       corp_id: "758",
-      policy_start_date: start,
-      policy_end_date:  end,
+      policy_start_date:new Date( moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0]),
+      policy_end_date: new Date( moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0]),
       unique_profile_id: user.membership_id + '',
       money_transaction_id: policy.airtel_money_id,
 
@@ -146,7 +146,7 @@ async function registerPrincipal(user: any, policy: any) {
         maxBodyLength: Infinity,
         url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
         headers: {
-          'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwNTM0MTgyNSwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.qNIZUyCwzWmr-f2aMGAvdm4ht2v7AVf54g37C8T2m7QKDTaSw3gUKaWmIX83e9Ey0B-sRgJcexmIaNcI6FTMFU0wnStwmTudAeYqWBmzKEti9Th06NaFUiHoWCPG4r89f2VJbKoPCKA7b7XkwaxxIylrSpicFDrwAfB71oqG3HZWbPRo57D2vlP4k2Hb_oSEGJu0yG_WR0p20t9fWsR54XN61dx01_IYfhO6OzKzxFk_IUU_6Jd_aGm3JKCk7XVtrC6WUqrSri4tKFwBfFMIq4GJXTdDSa361FGtlu8mCMiO7YWqtkm2ccUqeRpa6MBjomuoDTf4aSr0JadmFsrv-w',
+          'Authorization': 'Bearer ' + await arr_uganda_login(),
           'Content-Type': 'application/json',
         },
         data: userData,
@@ -335,7 +335,7 @@ async function updatePremium(user: any, policy: any) {
         maxBodyLength: Infinity,
         url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
         headers: {
-          'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwNTM0MTgyNSwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.qNIZUyCwzWmr-f2aMGAvdm4ht2v7AVf54g37C8T2m7QKDTaSw3gUKaWmIX83e9Ey0B-sRgJcexmIaNcI6FTMFU0wnStwmTudAeYqWBmzKEti9Th06NaFUiHoWCPG4r89f2VJbKoPCKA7b7XkwaxxIylrSpicFDrwAfB71oqG3HZWbPRo57D2vlP4k2Hb_oSEGJu0yG_WR0p20t9fWsR54XN61dx01_IYfhO6OzKzxFk_IUU_6Jd_aGm3JKCk7XVtrC6WUqrSri4tKFwBfFMIq4GJXTdDSa361FGtlu8mCMiO7YWqtkm2ccUqeRpa6MBjomuoDTf4aSr0JadmFsrv-w',
+          'Authorization': 'Bearer ' + await arr_uganda_login(),
           'Content-Type': 'application/json'
         },
         data: JSON.stringify(requestData),
