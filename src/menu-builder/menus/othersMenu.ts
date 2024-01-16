@@ -367,7 +367,7 @@ const othersMenu = async (args, db) => {
       existingOther = await db.users.create({
         user_id: uuidv4(),
         phone_number: otherUserPhone,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
+        membership_id: membershipId,
         pin: Math.floor(1000 + Math.random() * 9000),
         first_name: user?.first_name ||  allSteps[3]?.split(" ")[0]?.toUpperCase(),
         last_name: user?.last_name || allSteps[3]?.split(" ")[1]?.toUpperCase(),
