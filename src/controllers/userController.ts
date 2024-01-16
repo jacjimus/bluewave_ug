@@ -96,10 +96,7 @@ const signup = async (req, res) => {
     if (!isValidEmail(email)) {
       return res.status(400).json({ code: 400, message: "Please enter a valid email" });
     }
-
-    // Validate national ID length
-    const nationalId = national_id.toString();
-
+    
     // Create user data object
     const userData = {
       membership_id: Math.floor(100000 + Math.random() * 900000),
