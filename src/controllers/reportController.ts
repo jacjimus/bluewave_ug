@@ -964,7 +964,7 @@ const getUserExcelReportDownload = async (req, res) => {
   let {
     partner_id,
     page = 1,
-    limit = 1000,
+    limit = 5000,
     filter,
     start_date,
     end_date,

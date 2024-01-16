@@ -2,7 +2,7 @@ const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 import cron from 'node-cron';
 import { createDependant, fetchMemberStatusData, reconciliation, registerDependant, registerPrincipal, updatePremium } from './aar';
 import SMSMessenger from './sendSMS';
-import axios from 'axios';
+import axios, { all } from 'axios';
 import fs from 'fs/promises';
 import { db } from '../models/db';
 
@@ -2827,10 +2827,122 @@ let transactionArr = await db.users.findAll({
  
 }
 
+// all user that do not have arr_member_number
+async function userWithoutAARmemberNumber() {
+  // let allPaidPolicies = await db.policies.findAll({
+  //   where: {
+  //     policy_status: 'paid',
+  //     partner_id: 2,
+  //   },
+  // });
+
+  let userPhone =[
+    '701903973',
+    '757355627',
+    '708402199',
+    '759137112',
+    '759681615',
+    '757351174',
+    '758889240',
+    '754241094',
+    '740017379',
+    '702481495',
+    '707928643',
+    '708654027',
+    '751556267',
+    '755873548',
+    '742422971',
+    '709987648',
+    '701431835',
+    '740467298',
+    '743086220',
+    '703807818',
+    '702217517',
+    '703730118',
+    '755982534',
+    '756725291',
+    '700769051',
+    '700192357',
+    '703382136',
+    '704037452',
+    '742618406',
+    '759823342',
+    '742483245',
+    '759823342',
+    '759823342',
+    '744611054',
+    '756832571',
+    '709791969',
+    '708402199',
+    '757009287',
+    '705499663',
+    '704901035',
+    '759021334',
+    '752609663',
+    '740667358',
+    ]
+
+    userPhone.forEach(async (policy) => {
+    try {
+      const user = await db.users.findOne({
+        where: {
+          phone_number: policy,
+          //premium: transaction.amount,
+          partner_id: 2,
+          arr_member_number: {
+            [Op.is]: null,
+          }
+        },
+      });
+
+      if(user){
+        let policy = await db.policies.findOne({
+          where: {
+            user_id: user.user_id,
+            policy_status: 'paid',
+          },
+        });
+       
+        console.log("USER", user.name)
+        const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+
+
+        // setimeout to allow for the policy to be created
+        if (number_of_dependants > 0) {
+          // If there are dependants, create them
+          console.log("POLICY", policy.first_name, policy.policy_number, number_of_dependants)
+         // let dep = await createDependant(user, policy);
+          console.log("AAR DEPENDANT - member created", );
+        } else {
+        /// register  principal member
+        let principalMember = await registerPrincipal(user, policy);
+
+        console.log("AAR PRINCIPAL MEMBER - member created", principalMember);
+        }
+      }
+     
+    
+        
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  
+
+}
+);
+
+}
+
+
+
+
 
 
   export const playground = async () => {
   // checkIfTransactionIsForPolicy()
    // sendRenewalReminders()
+    //checkIfPolicyHasPaidPolicies()
+    //userWithoutAARmemberNumber()
+    userWithoutAARmemberNumber()
   console.log("i was called")
   }

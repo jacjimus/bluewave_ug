@@ -4,6 +4,7 @@ import { db } from '../models/db';
 import dotenv from 'dotenv';
 dotenv.config()
 import { calculateProrationPercentage, formatAmount } from './utils';
+import moment from 'moment';
 /* create arrService class to handle all aar related function
   - create user
   - create policy
@@ -103,8 +104,13 @@ async function registerPrincipal(user: any, policy: any) {
   if (user.user_id !== policy?.user_id) {
     console.log("POLICY NOT FOR USER");
   }
+//024-12-11T00:00:00.000Z to 024-12-11
+  let start = moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0]
+  let end =  moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0]
+  console.log("START DATE", start, end)
 
   if (policy && user) {
+   
     const userData: PrincipalRegistration = {
       surname: user.last_name || `256${user.phone_number}`,
       first_name: user.first_name || `256${user.phone_number}`,
@@ -125,13 +131,14 @@ async function registerPrincipal(user: any, policy: any) {
       health_option: "64",
       health_plan: "AIRTEL_" + policy.policy_type,
       corp_id: "758",
-      policy_start_date: policy.policy_start_date,
-      policy_end_date: policy.policy_end_date,
+      policy_start_date: start,
+      policy_end_date:  end,
       unique_profile_id: user.membership_id + '',
       money_transaction_id: policy.airtel_money_id,
 
     }
 
+   // console.log("USER DATA", userData);
 
     try {
       const config = {
@@ -139,12 +146,12 @@ async function registerPrincipal(user: any, policy: any) {
         maxBodyLength: Infinity,
         url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
         headers: {
-          'Authorization': 'Bearer ' + await arr_uganda_login(),
+          'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwNTM0MTgyNSwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.qNIZUyCwzWmr-f2aMGAvdm4ht2v7AVf54g37C8T2m7QKDTaSw3gUKaWmIX83e9Ey0B-sRgJcexmIaNcI6FTMFU0wnStwmTudAeYqWBmzKEti9Th06NaFUiHoWCPG4r89f2VJbKoPCKA7b7XkwaxxIylrSpicFDrwAfB71oqG3HZWbPRo57D2vlP4k2Hb_oSEGJu0yG_WR0p20t9fWsR54XN61dx01_IYfhO6OzKzxFk_IUU_6Jd_aGm3JKCk7XVtrC6WUqrSri4tKFwBfFMIq4GJXTdDSa361FGtlu8mCMiO7YWqtkm2ccUqeRpa6MBjomuoDTf4aSr0JadmFsrv-w',
           'Content-Type': 'application/json',
         },
         data: userData,
       };
-      console.log("CONFIG", config);
+      //console.log("CONFIG", config);
       const response = await axios.request(config);
       console.log(JSON.stringify(response.data));
 
@@ -179,27 +186,7 @@ interface requestPremiumData {
 async function createDependant(existingUser: any, myPolicy: any) {
   try {
 
-    // const existingUser = await db.users.findOne({
-    //   where: {
-    //     phone_number:  phoneNumber
-    //   }
-    // });
-    // //  console.log('existingUser', existingUser);
-    // if (!existingUser) {
-    //   throw new Error("USER NOT FOUND");
-    // }
-
-    // let myPolicy = await db.policies.findOne({
-    //   where: {
-    //     user_id: existingUser.user_id,
-    //     policy_status: 'paid',
-    //     installment_type: 2
-    //   }
-    // });
-
-    // if (!myPolicy) {
-    //   throw new Error("NO FAMILY OR OTHER POLICY FOUND");
-    // }
+  
     let arr_member: any;
     let dependant: any;
     let number_of_dependants = parseFloat(myPolicy.total_member_number.split("")[2]);
@@ -348,7 +335,7 @@ async function updatePremium(user: any, policy: any) {
         maxBodyLength: Infinity,
         url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
         headers: {
-          'Authorization': 'Bearer ' + await arr_uganda_login(),
+          'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwNTM0MTgyNSwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.qNIZUyCwzWmr-f2aMGAvdm4ht2v7AVf54g37C8T2m7QKDTaSw3gUKaWmIX83e9Ey0B-sRgJcexmIaNcI6FTMFU0wnStwmTudAeYqWBmzKEti9Th06NaFUiHoWCPG4r89f2VJbKoPCKA7b7XkwaxxIylrSpicFDrwAfB71oqG3HZWbPRo57D2vlP4k2Hb_oSEGJu0yG_WR0p20t9fWsR54XN61dx01_IYfhO6OzKzxFk_IUU_6Jd_aGm3JKCk7XVtrC6WUqrSri4tKFwBfFMIq4GJXTdDSa361FGtlu8mCMiO7YWqtkm2ccUqeRpa6MBjomuoDTf4aSr0JadmFsrv-w',
           'Content-Type': 'application/json'
         },
         data: JSON.stringify(requestData),

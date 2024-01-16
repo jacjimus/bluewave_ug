@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptionsKenya, parseAmount } from "../../services/utils";
 import { getAirtelKenyaUser } from "../../services/getAirtelUser";
+import { Op } from "sequelize";
 
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
