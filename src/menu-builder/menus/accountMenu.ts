@@ -41,10 +41,27 @@ const accountMenu = async (args: any, db: any) => {
         return response
     }
 
+    
+
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
+        // check if the policy is due for monthly renewal and send a reminder
+        let monthly_renewal_date = new Date(policy.policy_paid_date);
+        if(policy.installment_type == 2){
+        monthly_renewal_date.setMonth(monthly_renewal_date.getMonth() + 1);
+        if (monthly_renewal_date < new Date()) {
+            // send a reminder
+            return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is due for renewal on ${monthly_renewal_date.toLocaleString()}`
+        }else{
+            return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is ACTIVE until ${monthly_renewal_date.toLocaleString()}`
 
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()} is ${policy.policy_status.toUpperCase()} to till ${new Date(policy.installment_date).toDateString()}`
+        }
+    }
+    else{
+        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is ACTIVE until ${new Date(policy.policy_end_date).toLocaleString()}`
+    }
+
+       
     });
 
     if (currentStep == 1) {
