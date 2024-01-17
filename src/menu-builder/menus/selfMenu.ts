@@ -84,15 +84,13 @@ const selfMenu = async (args, db) => {
             limit: 1,
           });
       
+
       
-        if(existingPolicy && existingPolicy.count > 0) {
+        if(existingPolicy.count > 0) {
             response = "END You already have an active policy"
             return response;
         }
-        if(existingPolicy) {
-            response = "END You already have an active policy"
-            return response;
-        }
+       
 
         let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
         response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
