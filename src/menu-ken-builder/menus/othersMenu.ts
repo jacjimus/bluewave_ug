@@ -385,7 +385,7 @@ const othersMenu = async (args, db) => {
 
     response = `CON Kshs ${ultimatePremium} ${period}.` +
       `\nTerms&Conditions - www.airtel.com` +
-      `\nConfirm to Agree and Pay \n Age 18 - 65 Years ` + "\n1. Confirm \n0. Back";
+      `\nConfirm to Agree and Pay \n Age 0 - 65 Years ` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
 

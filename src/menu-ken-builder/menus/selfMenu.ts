@@ -92,7 +92,7 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptionsKenya(policy_type, paymentOption);
 
-        response = `CON Pay Kshs ${options.premium} ${options.period}. Terms Conditions - www.airtel.com to Agree and Pay \nAge 18 - 65 Years` + "\n1. Confirm \n0. Back  \n00. Main Menu";
+        response = `CON Pay Kshs ${options.premium} ${options.period}. Terms Conditions - www.airtel.com to Agree and Pay \nAge 0 - 65 Years` + "\n1. Confirm \n0. Back  \n00. Main Menu";
 
     }
     else if (currentStep === 4) {

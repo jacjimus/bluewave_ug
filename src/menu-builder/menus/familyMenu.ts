@@ -693,7 +693,7 @@ const familyMenu = async (args, db) => {
 
     response = `CON Pay UGX ${premium} ${period}` +
       `\nTerms&Conditions - https://rb.gy/g4hyk` +
-      `\nConfirm to Agree and Pay \nAge 18 - 65 Years ` + "\n1. Confirm \n0. Back";
+      `\nConfirm to Agree and Pay \nAge 0 - 65 Years ` + "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 7) {
 

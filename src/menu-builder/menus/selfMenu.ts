@@ -105,7 +105,7 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions https://rb.gy/g4hyk\nConfirm to Agree and Pay \nAge 18 - 65 Years` + "\n1. Confirm \n0. Back";
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions https://rb.gy/g4hyk\nConfirm to Agree and Pay \nAge 0 - 65 Years` + "\n1. Confirm \n0. Back";
 
     }
     else if (currentStep === 4) {
