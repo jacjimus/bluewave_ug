@@ -9,7 +9,7 @@ import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
 import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aar"
-import { formatAmount } from "../services/utils";
+import { calculateProrationPercentage, formatAmount } from "../services/utils";
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -50,10 +50,14 @@ router.post("/uat/vodacom", async (req: any, res: any) => {
   await handleUSSDRequest(req, res, ussdVodacomMenuBuilder);
 });
 
-const findTransactionById = async (transactionId) => {
+export const findTransactionById = async (transactionId) => {
   return await Transaction.findOne({
     where: {
-      transaction_reference: transactionId,
+      [db.Sequelize.Op.or]: [
+        { transaction_id: transactionId },
+        { transaction_reference: transactionId },
+      ],
+    
     },
   });
 };
@@ -61,7 +65,7 @@ const findTransactionById = async (transactionId) => {
 export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
   console.log("UPDATE STATUS WAS CALLED", policy)
   let date = new Date();
-  const paymentPaidCount = await db.payment.count({ where: { user_id: policy.user_id, paymeent_status: "paid", payment_amount: amount } });
+  const paymentPaidCount = await db.payments.count({ where: { user_id: policy.user_id, payment_status: "paid", payment_amount: amount } });
   amount = parseInt(amount);
   policy.policy_status = "paid";
   policy.bluewave_transaction_id = payment.payment_id;
@@ -70,7 +74,7 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
   policy.policy_deduction_amount = parseInt(amount);
   policy.premium = parseInt(amount);
 
-  let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1,  policy.policy_deduction_day - 3);
+  let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day - 3);
   if (policy.policy_deduction_day - 3 < 1) {
     installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 28);
   }
@@ -85,33 +89,33 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
     policy.installment_alert_date = installment_alert_date;
 
     if (policy.policy_paid_amount !== policy.premium) {
-      let allPaidPolicies = await db.policies.findAll({ where: { user_id: policy.user_id, policy_status: "paid", premium : amount } });
+      let allPaidPolicies = await db.policies.findAll({ where: { user_id: policy.user_id, policy_status: "paid", premium: amount } });
       let totalPaidAmount = 0;
       allPaidPolicies.forEach((pol) => {
         totalPaidAmount += pol.premium;
       });
       policy.policy_paid_amount = totalPaidAmount;
       policy.policy_pending_premium = policy.yearly_premium - totalPaidAmount;
-    
-      }
 
-  
-      await policy.save();
-  }else{
+    }
+
+
+    await policy.save();
+  } else {
     policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
-    if (policy.installment_order == 12 ) {
+    if (policy.installment_order == 12) {
       policy.policy_status = "expired";
       policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
     }
     await policy.save();
   }
- 
 
-  const policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid"} });
-   await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
 
-   console.log("===========POLICY PAID =======", policy);
- 
+  const policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid" } });
+  await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
+
+  console.log("===========POLICY PAID =======", policy);
+
   await policy.save();
 
   return policy;
@@ -134,8 +138,8 @@ router.all("/callback", async (req, res) => {
         return res.status(404).json({ message: "Transaction not found" });
       }
 
-      
-     
+
+
       const { policy_id, user_id, amount, partner_id } = transactionData;
 
       if (status_code == "TS") {
@@ -145,26 +149,28 @@ router.all("/callback", async (req, res) => {
         });
 
         const user = await Users.findOne({ where: { user_id } });
-      
-        let policy = await db.policies.findOne({ where:
-           { 
-            policy_id ,
+
+        let policy = await db.policies.findOne({
+          where:
+          {
+            policy_id,
             user_id,
-        } });
-  
+          }
+        });
+
         if (!policy || !policy) {
-         
-          return res.status(404).json({ message:  "Policy not found" });
+
+          return res.status(404).json({ message: "Policy not found" });
 
         }
-  
+
         policy.airtel_money_id = airtel_money_id;
-  
+
         const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
         const policyType = policy.policy_type.toUpperCase();
         const period = policy.installment_type == 1 ? "yearly" : "monthly";
-  
-       
+
+
 
         const payment = await Payment.create({
           payment_amount: amount,
@@ -180,7 +186,7 @@ router.all("/callback", async (req, res) => {
 
         console.log("Payment record created successfully");
 
-       let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+        let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
 
         console.log("=== PAYMENT ===", payment)
@@ -190,11 +196,13 @@ router.all("/callback", async (req, res) => {
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
         console.log("MEMBERS", members, policy.total_member_number);
 
+        let proratedPercentage = calculateProrationPercentage(policy.installment_order);
 
-        const sumInsured = formatAmount(policy.sum_insured);
-        const lastExpenseInsured = formatAmount(policy.last_expense_insured);
+        const sumInsured = formatAmount(policy.sum_insured * (proratedPercentage / 100));
+        const lastExpenseInsured = formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
         console.log("SUM INSURED", sumInsured);
         console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+
 
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
@@ -208,6 +216,8 @@ router.all("/callback", async (req, res) => {
           congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
         }
 
+        policy.policy_status = "paid";
+        policy.save();
         await SMSMessenger.sendSMS(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
@@ -230,6 +240,10 @@ router.all("/callback", async (req, res) => {
           payment_metadata: req.body,
           partner_id: partner_id,
         });
+
+        // failed policy
+        await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
+
 
         console.log("Payment  for failed record created");
         return res.status(200).json({ code: 200, message: "POST/GET request handled successfully" });
@@ -257,13 +271,7 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
   } else {
     // If the member status is not 200, register the AAR user
     const registerAARUser = await registerPrincipal(user, policy);
-
-    if (registerAARUser.code === 200) {
-      // If the AAR user registration is successful
-      user.arr_member_number = registerAARUser.member_no;
-      await user.save();
-    }
-
+     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
       // If there are dependants, create them
       await createDependant(user, policy);
@@ -340,16 +348,16 @@ router.all("/callback/kenya", async (req, res) => {
 
 
         let registerAARUser: any, updatePremiumData: any, updatedPolicy: any, installment: any;
-     
+
 
         let policySchedule = await db.policy_schedules.findOne({ where: { policy_id } });
         console.log("POLICY SCHEDULE", policySchedule);
 
         function calculateOutstandingPremiumForMonth(premium, month) {
-        
+
           const outstandingPremium = premium * (12 - month);
 
-  
+
           return outstandingPremium;
 
         }

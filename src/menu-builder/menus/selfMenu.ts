@@ -105,7 +105,7 @@ const selfMenu = async (args, db) => {
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
-        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions https://rb.gy/g4hyk\nConfirm to Agree and Pay` + "\n1. Confirm \n0. Back";
+        response = `CON Pay UGX ${options.premium} ${options.period}. Terms&Conditions https://rb.gy/g4hyk\nConfirm to Agree and Pay \nAge 18 - 65 Years` + "\n1. Confirm \n0. Back";
 
     }
     else if (currentStep === 4) {
@@ -194,7 +194,7 @@ const selfMenu = async (args, db) => {
             }
 
 
-            let policy = await db.policies.create(policyObject);
+           let policy = await db.policies.create(policyObject);
 
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 
@@ -213,7 +213,7 @@ const selfMenu = async (args, db) => {
             const timeout = 1000;
 
             Promise.race([
-                airtelMoneyPromise,
+               airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));

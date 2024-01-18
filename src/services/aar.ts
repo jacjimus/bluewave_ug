@@ -241,8 +241,8 @@ async function createDependant(existingUser: any, myPolicy: any) {
                     member_status: "1",
                     health_option: "64",
                     health_plan: "AIRTEL_" + myPolicy?.policy_type,
-                    policy_start_date: myPolicy.policy_start_date,
-                    policy_end_date: myPolicy.policy_end_date,
+                    policy_start_date: moment(myPolicy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
+                    policy_end_date: moment(myPolicy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
                     unique_profile_id: existingUser.membership_id + "",
                   });
 
@@ -317,7 +317,7 @@ async function updatePremium(user: any, policy: any) {
         premium_installment: policy.installment_order || 1,
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
-        transaction_date: policy.policy_paid_date,
+        transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
         money_transaction_id: policy.airtel_money_id || "123456789",
       };
      
@@ -503,9 +503,8 @@ async function fetchMemberStatusData({ member_no, unique_profile_id }) {
         unique_profile_id
       }
     };
-    console.log("CONFIG", config)
     const response = await axios.request(config);
-    console.log(JSON.stringify(response.data));
+
     return response.data;
   } catch (error) {
     console.error(error);
@@ -523,6 +522,10 @@ async function processPolicy(user: any, policy: any, memberStatus: any) {
     // If the member status is 200, proceed with processing the policy
     console.log("MEMBER STATUS:", memberStatus);
     policy.arr_policy_number = memberStatus?.policy_no;
+    if(user.arr_member_number == null){
+      user.arr_member_number = memberStatus?.member_no;
+    }
+    await user.save();
   } else {
     // If the member status is not 200, register the AAR user
     const registerAARUser = await registerPrincipal(user, policy);
