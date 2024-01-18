@@ -67,11 +67,7 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
   policy.bluewave_transaction_id = payment.payment_id;
   policy.airtel_transaction_id = airtel_money_id
   policy.policy_paid_amount = parseInt(amount)
-  policy.policy_deduction_amount = parseInt(amount)
-  policy.tax_rate_ext = 0;
-  policy.tax_rate_vat = 0;
-  policy.excess_premium = 0;
-  policy.discount_premium = 0;
+  policy.policy_deduction_amount = parseInt(amount);
   policy.premium = parseInt(amount);
 
   let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1,  policy.policy_deduction_day - 3);
@@ -373,13 +369,9 @@ router.all("/callback/kenya", async (req, res) => {
             installment_order,
             installment_date: new Date(),
             installment_alert_date,
-            tax_rate_vat: policy.tax_rate_vat,
-            tax_rate_ext: policy.tax_rate_ext,
             installment_deduction_amount: policy.policy_deduction_amount,
             premium: policy.premium,
             sum_insured: policy.sum_insured,
-            excess_premium: policy.excess_premium,
-            discount_premium: policy.discount_premium,
             currency_code: policy.currency_code,
             country_code: policy.country_code,
           });

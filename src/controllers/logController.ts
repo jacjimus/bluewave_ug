@@ -188,7 +188,7 @@ const LogModel = db.logs;
     }
 
     if(phone_number && !user_id){
-      whereCondition.phone_number = phone_number;
+      whereCondition.phonenumber = phone_number;
     }
  
 
@@ -196,7 +196,7 @@ const LogModel = db.logs;
       whereCondition = {
         partner_id: partner_id,
         user_id: user_id,
-        phone_number: phone_number
+        phonenumber: phone_number
       };
     }
 console.log("WHERE ",whereCondition);

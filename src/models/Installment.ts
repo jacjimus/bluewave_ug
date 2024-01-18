@@ -30,14 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false,
     },
-    tax_rate_vat: {
-      type: DataTypes.FLOAT, // Use FLOAT for decimal numbers
-      allowNull: true,
-    },
-    tax_rate_ext: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
+  
     installment_deduction_amount: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -50,14 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    excess_premium: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    discount_premium: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
+  
     currency_code: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -21,9 +21,6 @@ import moment from 'moment';
 
 
 
-
-
-
 async function arr_uganda_login() {
   try {
 
@@ -36,11 +33,8 @@ async function arr_uganda_login() {
         "password": process.env.AAR_UGANDA_UAT_PASSWORD,
       }
     };
-
-
-
     const response = await axios.request(config);
-    console.log(response)
+   
 
     return response.data.token;
   } catch (error) {
@@ -93,8 +87,8 @@ interface PrincipalRegistration {
   health_option: string;
   health_plan: string;
   corp_id: string;
-  policy_start_date: Date;
-  policy_end_date: Date;
+  policy_start_date: string;
+  policy_end_date: string;
   unique_profile_id: string;
   money_transaction_id: string;
 }
@@ -104,10 +98,7 @@ async function registerPrincipal(user: any, policy: any) {
   if (user.user_id !== policy?.user_id) {
     console.log("POLICY NOT FOR USER");
   }
-//024-12-11T00:00:00.000Z to 024-12-11
-  let start = moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0]
-  let end =  moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0]
-  console.log("START DATE", start, end)
+
 
   if (policy && user) {
    
@@ -131,8 +122,8 @@ async function registerPrincipal(user: any, policy: any) {
       health_option: "64",
       health_plan: "AIRTEL_" + policy.policy_type,
       corp_id: "758",
-      policy_start_date:new Date( moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0]),
-      policy_end_date: new Date( moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0]),
+      policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
+      policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
       unique_profile_id: user.membership_id + '',
       money_transaction_id: policy.airtel_money_id,
 
@@ -153,9 +144,10 @@ async function registerPrincipal(user: any, policy: any) {
       };
       //console.log("CONFIG", config);
       const response = await axios.request(config);
-      console.log(JSON.stringify(response.data));
+      console.log("RESPONSE", response.data);
 
       if (response.data.code == 200) {
+        console.log("AAR PRINCIPAL CREATED", response.data);
         await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
         return { ...response.data, ...userData }
       }

@@ -846,13 +846,9 @@ const generatePolicyExcelReport = async (policies) => {
       installment_alert_date: moment(policy.installment_alert_date).format(
         "YYYY-MM-DD"
       ),
-      tax_rate_vat: policy.tax_rate_vat,
-      tax_rate_ext: policy.tax_rate_ext,
       premium: policy.premium,
       sum_insured: policy.sum_insured,
       last_expense_insured: policy.last_expense_insured,
-      excess_premium: policy.excess_premium,
-      discount_premium: policy.discount_premium,
       hospital_details: policy.hospital_details,
       policy_documents: policy.policy_documents,
       policy_paid_date: moment(policy.policy_paid_date).format("YYYY-MM-DD"),

@@ -90,16 +90,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
             defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
         },
-        tax_rate_vat: {
-            type: DataTypes.NUMBER,
-            allowNull: true,
-            defaultValue: 0
-        },
-        tax_rate_ext: {
-            type: DataTypes.NUMBER,
-            allowNull: true,
-            defaultValue: 0
-        },
+      
         premium: {
             type: DataTypes.NUMBER,
             allowNull: true
@@ -117,16 +108,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.NUMBER,
             allowNull: true
         },
-        excess_premium: {
-            type: DataTypes.NUMBER,
-            allowNull: true,
-            defaultValue: 0
-        },
-        discount_premium: {
-            type: DataTypes.NUMBER,
-            allowNull: true,
-            defaultValue: 0
-        },
+      
         currency_code: {
             type: DataTypes.STRING,
             allowNull: true

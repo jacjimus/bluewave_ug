@@ -2906,7 +2906,6 @@ async function userWithoutAARmemberNumber() {
         console.log("USER", user.name)
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
 
-
         // setimeout to allow for the policy to be created
         if (number_of_dependants > 0) {
           // If there are dependants, create them
@@ -2914,19 +2913,18 @@ async function userWithoutAARmemberNumber() {
          // let dep = await createDependant(user, policy);
           console.log("AAR DEPENDANT - member created", );
         } else {
+          if(policy){
         /// register  principal member
         let principalMember = await registerPrincipal(user, policy);
-
         console.log("AAR PRINCIPAL MEMBER - member created", principalMember);
+          }
+
         }
       }
-     
-    
         
     } catch (error) {
       console.error("Error:", error);
     }
-  
 
 }
 );
@@ -2942,7 +2940,7 @@ async function userWithoutAARmemberNumber() {
   // checkIfTransactionIsForPolicy()
    // sendRenewalReminders()
     //checkIfPolicyHasPaidPolicies()
-    //userWithoutAARmemberNumber()
-   // userWithoutAARmemberNumber()
-  console.log("i was called")
+
+ // userWithoutAARmemberNumber()
+//  console.log("TESTING GROUND")
   }
