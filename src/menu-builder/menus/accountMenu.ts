@@ -20,14 +20,14 @@ const accountMenu = async (args: any, db: any) => {
         },
         limit: 1,
     });
-    if(!currentUser){
+    if (!currentUser) {
         response = "END You are not registered on Dwaliro"
         return response
     }
 
     let paidPolicies = await db.policies.findAll({
         where: {
-            user_id: currentUser.user_id,
+            user_id: currentUser?.user_id,
             policy_status: "paid"
         },
         order: [
@@ -36,32 +36,44 @@ const accountMenu = async (args: any, db: any) => {
         limit: 6
     });
 
-    if(paidPolicies.length == 0){
+    let userPolicy = await db.policies.findOne({
+        where: {
+            user_id: currentUser?.user_id,
+            policy_status: "paid"
+        },
+        order: [
+            ['policy_id', 'DESC'],
+        ],
+        limit: 1
+    });
+
+    if (paidPolicies.length == 0) {
         response = "END You have no paid policies"
         return response
     }
 
-    
+
 
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
         // check if the policy is due for monthly renewal and send a reminder
         let monthly_renewal_date = new Date(policy.policy_paid_date);
-        if(policy.installment_type == 2){
-        monthly_renewal_date.setMonth(monthly_renewal_date.getMonth() + 1);
-        if (monthly_renewal_date < new Date()) {
-            // send a reminder
-            return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is due for renewal on ${monthly_renewal_date.toLocaleString()}`
-        }else{
-            return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is ACTIVE until ${monthly_renewal_date.toLocaleString()}`
+        if (policy.installment_type == 2) {
+            monthly_renewal_date.setMonth(monthly_renewal_date.getMonth() + 1);
+            
+            if (monthly_renewal_date < new Date()) {
+                // send a reminder
+                return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is due for renewal on ${monthly_renewal_date.toLocaleString()}`
+            } else {
+                return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is ACTIVE until ${monthly_renewal_date.toLocaleString()}`
 
+            }
         }
-    }
-    else{
-        return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is ACTIVE until ${new Date(policy.policy_end_date).toLocaleString()}`
-    }
+        else {
+            return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is ACTIVE until ${new Date(policy.policy_end_date).toLocaleString()}`
+        }
 
-       
+
     });
 
     if (currentStep == 1) {
@@ -74,6 +86,7 @@ const accountMenu = async (args: any, db: any) => {
             "\n6. Add Dependants";
     }
     else if (currentStep == 2) {
+        console.log("allSteps", allSteps)
         console.log('Current step', currentStep);
         console.log('User text', userText)
         switch (userText) {
@@ -104,7 +117,7 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 break;
             case "4":
-                response = "CON Enter Name of your Next of Kin (Above 18 years of age)"
+                response = "CON Enter Full Name of your Next of Kin (Above 0 - 65 years of age)"
                 break;
             case "5":
                 response = 'CON Choose your Gender ' +
@@ -112,7 +125,23 @@ const accountMenu = async (args: any, db: any) => {
                     "\n2. Female";
                 break;
             case "6":
-                response = 'CON whats the Dependant full name ';
+                if (userPolicy.total_member_number == 'M') {
+                    response = `END You have reached the maximum number of dependants for your policy type  ${userPolicy.beneficiary} ${userPolicy.policy_type}`
+                } else {
+                    let dependants = await db.beneficiaries.findAll({
+                        where: {
+                            principal_phone_number: trimmedPhoneNumber,
+                            beneficiary_type: "DEPENDANT"
+                        },
+                        limit: 6
+                    });
+                    // list all the dependants and option to add new
+                    response = "CON " + dependants.map((dependant: any, index: number) => {
+                        return `\n${index + 1}. ${dependant.full_name}`
+                    }
+                    ).join("") + `\n${99}. Add New Dependant`;
+                }
+
                 break;
             default:
                 response = "END Invalid option selected"
@@ -120,14 +149,15 @@ const accountMenu = async (args: any, db: any) => {
         }
 
     } else if (currentStep == 3) {
+        console.log("allSteps", allSteps, allSteps[1])
         console.log('Current step', currentStep);
         console.log('User text', userText)
-        switch (allSteps[1]) {
-            case "1":
+       if(userText == "1" ){
 
                 if (userText == "1" && paidPolicies.length > 1) {
                     response = `CON ${policyMessages[1]}\n1. Next`
-                } else if (userText == "1" && paidPolicies.length == 1) {
+
+                } else if (userText == "1" && paidPolicies.length == 1 && allSteps[1] == '1') {
                     if (paidPolicies[0].installment_type == 1) {
                         response = `END Your available inpatient limit is UGX ${formatAmount(paidPolicies[0].sum_insured)
                             } and Funeral expense of UGX ${formatAmount(paidPolicies[0].last_expense_insured)
@@ -164,14 +194,20 @@ const accountMenu = async (args: any, db: any) => {
                                 }`
                         }
                     }
+                }else if(allSteps[1] == '6' && userText =="1" ){
+                    response = `END Total dependant number is ${userPolicy.total_member_number}`
+                }else if(allSteps[1] == '5' && userText =="1" ){
+                    response = 'CON Enter your date of birth (dd/mm/yyyy)';
                 }
-                break;
-            case "2":
+                
+            } else if(userText =="2"){
                 console.log("allSteps", allSteps, allSteps[2]);
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
-
-                // last 6 unpaid policies
+                    if(allSteps[1] == "5"){
+                        response = 'CON Enter your date of birth (dd/mm/yyyy)';
+                    }else{
+                                    // last 6 unpaid policies
                 const existingUser = await db.users.findOne({
                     where: {
                         phone_number: phoneNumber.replace("+", "").substring(3),
@@ -218,9 +254,9 @@ const accountMenu = async (args: any, db: any) => {
                 });
 
                 console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+            }
 
-                break;
-            case "3":
+            }else if(userText =="3"){
                 console.log("allSteps", allSteps, allSteps[2]);
                 console.log("User text cancel", userText)
                 if (userText == "1") {
@@ -240,91 +276,122 @@ const accountMenu = async (args: any, db: any) => {
                     });
                     response = `END Cancelling, you will no longer be covered as from ${new Date(paidPolicies[0].policy_end_date).toDateString()}`
                 }
-                break;
-            case "4":
+            }else if(userText =="4"){
                 response = "CON Enter Next of Kin Phone number"
-                break;
-            case "5":
+            }else if(userText =="5"){
+
                 response = 'CON Enter your date of birth (dd/mm/yyyy)';
-                break;
-            default:
-                await db.beneficiaries.create({
-                    beneficiary_id: uuidv4(),
-                    full_name: allSteps[2],
-                    beneficiary_type: "DEPENDANT",
-                    user_id: currentUser.user_id,
-                    principal_phone_number: trimmedPhoneNumber
-                })
-                response = "CON Your dependant name saved successfully"
-                break;
+            }else if(userText =="99"){
+                response = 'CON whats the Dependant full name ';
+            
+            }else {
+
+                response = 'END Invalid option selected ';
+
+
         }
+       
     } else if (currentStep == 4) {
+        console.log("allSteps", allSteps)
         console.log('Current step', currentStep);
         console.log('User text', userText)
-        switch (userText) {
+        if (userText == "1") {
 
-            case "1":
-                response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
-                break;
-            case "4":
-                const existingUser = await db.users.findOne({
+            response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
+            
+        } else if (userText == "4") {
+            const existingUser = await db.users.findOne({
+                where: {
+                    [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+                },
+                limit: 1,
+            });
+
+            let policies = await db.policies.findAll({
+                where: {
+                    phone_number: smsPhone.replace("+", ""),
+                    policy_status: "paid"
+                },
+                order: [
+                    ['policy_id', 'DESC'],
+                ],
+                limit: 6
+            });
+            if (policies.length == 0) {
+                response = "END You have no paid policies"
+            }
+            let myPolicy = policies[policies.length - 1]
+            const nextOfKinDetails = {
+                beneficiary_id: uuidv4(),
+                name: allSteps[2],
+                phone_number: userText,
+                user_id: existingUser.user_id,
+                bonus: allSteps[2],
+                beneficiary_type: "KIN",
+                principal_phone_number: trimmedPhoneNumber
+
+            }
+
+            await db.beneficiaries.create(nextOfKinDetails);
+            const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`
+            await SMSMessenger.sendSMS(smsPhone, sms);
+            response = `END ${sms}`
+        } else if (allSteps[2]  == "2" || allSteps[2]  == "1") {
+            let gender = allSteps[2] == "1" ? 'MALE' : 'FEMALE';
+            let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
+            console.log(gender, dob);
+
+            await db.users.update(
+                {
+                    dob: dob,
+                    gender: gender,
+                },
+                {
                     where: {
-                        [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+                        phone_number: trimmedPhoneNumber,
                     },
-                    limit: 1,
-                });
-
-                let policies = await db.policies.findAll({
-                    where: {
-                        phone_number: smsPhone.replace("+", ""),
-                        policy_status: "paid"
-                    },
-                    order: [
-                        ['policy_id', 'DESC'],
-                    ],
-                    limit: 6
-                });
-                if (policies.length == 0) {
-                    response = "END You have no paid policies"
                 }
-                let myPolicy = policies[policies.length - 1]
-                const nextOfKinDetails = {
-                    beneficiary_id: uuidv4(),
-                    name: allSteps[2],
-                    phone_number: userText,
-                    user_id: existingUser.user_id,
-                    bonus: allSteps[2],
-                    beneficiary_type: "KIN",
-                    principal_phone_number: trimmedPhoneNumber
+            );
 
-                }
+            response = "END Your gender and date of birth updated successfully"
 
 
-                await db.beneficiaries.create(nextOfKinDetails);
-                const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`
-                await SMSMessenger.sendSMS(smsPhone, sms);
-                response = `END ${sms}`
-            default:
-                let gender = allSteps[2] == "1" ? 'MALE' : 'FEMALE';
-                let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
-                console.log(gender, dob);
+        } else if (allSteps[2] == "99") {
+            response = 'CON whats the Dependant date of birth (dd/mm/yyyy) ';
+        }else if( allSteps[1] == '5'){
+            console.log("allSteps", allSteps)
+            console.log('Current step', currentStep);
+            console.log('User text', userText)
+            await db.beneficiaries.create({
+                beneficiary_id: uuidv4(),
+                full_name: allSteps[3],
+                beneficiary_type: "DEPENDANT",
+                user_id: currentUser.user_id,
+                dob: moment(userText, "DD/MM/YYYY").format("YYYY-MM-DD"),
+                principal_phone_number: trimmedPhoneNumber
+            })
 
-                await db.users.update(
-                    {
-                        dob: dob,
-                        gender: gender,
-                    },
-                    {
-                        where: {
-                            phone_number: trimmedPhoneNumber,
-                        },
-                    }
-                );
-
-                response = "END Your gender and date of birth updated successfully"
-                break;
-
+            SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`)
+            response = "CON Your dependant name saved successfully"
         }
+    } else if (currentStep == 5) {
+        if (allSteps[2] == "99") {
+            console.log("allSteps", allSteps)
+            console.log('Current step', currentStep);
+            console.log('DOB User text', userText)
+            await db.beneficiaries.create({
+                beneficiary_id: uuidv4(),
+                full_name: allSteps[3],
+                beneficiary_type: "DEPENDANT",
+                user_id: currentUser.user_id,
+                dob: moment(userText, "DD/MM/YYYY").format("YYYY-MM-DD"),
+                principal_phone_number: trimmedPhoneNumber
+            })
+
+            SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`)
+            response = "CON Your dependant name saved successfully"
+        }
+
     }
     return response
 }

@@ -102,118 +102,8 @@ const selfMenu = async (args, db) => {
             response = 'END Please wait for Airtel Money PIN prompt to complete the payment'
             console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", phoneNumber, new Date());
 
-            let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-            let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
-            let existingUser = await db.users.findOne({
-                where: {
-                    phone_number: phone,
-                    partner_id: 1,
-                },
-            });
-
-            if (!existingUser) {
-                console.log("USER DOES NOT EXIST SELF KENYA ");
-                let user = await getAirtelKenyaUser(phoneNumber);
-
-                let membershipId = Math.floor(100000 + Math.random() * 900000);
-
-                existingUser = await db.users.create({
-                    user_id: uuidv4(),
-                    phone_number: phone,
-                    membership_id: membershipId,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    name: `${user.first_name} ${user.last_name}`,
-                    total_member_number: "M",
-                    partner_id: 1,
-                    role: "user",
-                    nationality: "KENYA",
-                });
-
-                const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-                await SMSMessenger.sendSMS(fullPhone, message);
-
-            }
-
-
-            // create policy
-            let policy_type = selectedPolicyType.name;
-            let installment_type = parseInt(allSteps[2]);
-            let ultimatePremium = calculatePaymentOptionsKenya(policy_type, installment_type);
-            let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
-
-            let policyObject = {
-                policy_id: uuidv4(),
-                installment_type: installment_type == 1 ? 2 : 1,
-                installment_order: 1,
-                policy_type: policy_type,
-                policy_deduction_amount: ultimatePremium.premium,
-                policy_pending_premium:  selectedPolicyType.yearPemium -ultimatePremium.premium,
-                sum_insured: selectedPolicyType.sumInsured,
-                premium: ultimatePremium.premium,
-                yearly_premium: selectedPolicyType.yearPemium,
-                last_expense_insured: selectedPolicyType.lastExpenseInsured,
-                policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
-                policy_start_date: new Date(),
-                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
-                membership_id: Math.floor(100000 + Math.random() * 900000),
-                beneficiary: "SELF",
-                policy_status: "pending",
-                policy_deduction_day: new Date().getDate() - 1,
-                partner_id: 1,
-                country_code: "KE",
-                currency_code: "KES",
-                product_id: "e18424e6-5316-4f12-9826-302c866b380d",
-                user_id: existingUser.user_id,
-                phone_number: phoneNumber,
-                first_name: existingUser?.first_name,
-                last_name: existingUser?.last_name,
-                inpatient_cover: selectedPolicyType.inPatient,
-                outpatient_cover: selectedPolicyType.outPatient,
-                maternity_cover: selectedPolicyType.maternity,
-                hospital_cash: selectedPolicyType.hospitalCash,
-                policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
-
-
-            }
-
-
-            let policy = await db.policies.create(policyObject);
-
-            console.log("============== START TIME - SELFKENYA   ================ ", phoneNumber, new Date());
-
-            const airtelMoneyPromise = airtelMoneyKenya(
-                existingUser.user_id,
-                policy.policy_id,
-                phone,
-                ultimatePremium.premium,
-                existingUser.membership_id,
-            );
-            //user_id, policy_id, phoneNumber, amount, reference,
-
-
-            const timeout = 3000;
-
-            Promise.race([
-                airtelMoneyPromise,
-                new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        reject(new Error('Airtel Money kenya operation timed out'));
-                    }, timeout);
-                })
-            ]).then((result) => {
-                // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF KENYA  ================ ", phoneNumber, new Date());
-                response = 'END Payment successful';
-                console.log("RESPONSE WAS CALLED KENYA ", result);
-                return response;
-            }).catch((error) => {
-                response = 'END Payment failed';
-                console.log("RESPONSE WAS CALLED KENYA ", error);
-                return response;
-            });
-
-            console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", phoneNumber, new Date());
+            await handleAirtelMoneyPayment(allSteps, phoneNumber, coverTypes, db)
+           
 
         } else {
             response = "END Thank you for using AfyaSure"
@@ -223,8 +113,138 @@ const selfMenu = async (args, db) => {
     return response;
 }
 
-export default selfMenu;
 
+  
+  async function handleAirtelMoneyPayment(allSteps, phoneNumber, coverTypes, db) {
+    let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
+    let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+    let existingUser = await findExistingUser(phoneNumber,2, db);
+  
+    if (!existingUser) {
+      console.log("USER DOES NOT EXIST SELF KENYA ");
+      let user = await getAirtelKenyaUser(phoneNumber);
+  
+      let membershipId = Math.floor(100000 + Math.random() * 900000);
+      if (user?.first_name && user?.last_name) {
+        existingUser = await createNewUser(phoneNumber, user, membershipId, db);
+        const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
+        await SMSMessenger.sendSMS(fullPhone, message);
+      }
+    }
+  
+    let policyObject = createPolicyObject(selectedPolicyType, allSteps, existingUser, phoneNumber);
+    let policy = await createPolicy(policyObject);
+  
+    console.log("============== START TIME - SELFKENYA   ================ ", phoneNumber, new Date());
+  
+    const airtelMoneyPromise = airtelMoneyKenya(
+      existingUser.user_id,
+      policy.policy_id,
+      phoneNumber,
+      policy.policy_deduction_amount,
+      existingUser.membership_id,
+    );
+  
+    await handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber);
+  }
+  
+  async function findExistingUser(phoneNumber, partner_id, db) {
+    return await db.users.findOne({
+      where: {
+        phone_number: phoneNumber,
+        partner_id,
+      },
+    });
+  }
+  
+  async function createNewUser(phoneNumber, user, membershipId, db) {
+    return await db.users.create({
+      user_id: uuidv4(),
+      phone_number: phoneNumber,
+      membership_id: membershipId,
+      first_name: user?.first_name,
+      last_name: user?.last_name,
+      name: `${user?.first_name} ${user?.last_name}`,
+      total_member_number: "M",
+      partner_id: 1,
+      role: "user",
+      nationality: "KENYA",
+    });
+  }
+  
+  function createPolicyObject(selectedPolicyType, allSteps, existingUser, phoneNumber) {
+    let policy_type = selectedPolicyType.name;
+    let installment_type = parseInt(allSteps[2]);
+    let ultimatePremium = calculatePaymentOptionsKenya(policy_type, installment_type);
+
+    let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+
+    let policyObject = {
+      policy_id: uuidv4(),
+      installment_type: installment_type == 1 ? 2 : 1,
+      installment_order: 1,
+      policy_type: policy_type,
+      policy_deduction_amount: ultimatePremium.premium,
+      policy_pending_premium: selectedPolicyType.yearPemium - ultimatePremium.premium,
+      sum_insured: selectedPolicyType.sumInsured,
+      premium: ultimatePremium.premium,
+      yearly_premium: selectedPolicyType.yearPemium,
+      last_expense_insured: selectedPolicyType.lastExpenseInsured,
+      policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
+      policy_start_date: new Date(),
+      installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
+      membership_id: Math.floor(100000 + Math.random() * 900000),
+      beneficiary: "SELF",
+      policy_status: "pending",
+      policy_deduction_day: new Date().getDate() - 1,
+      partner_id: 1,
+      country_code: "KE",
+      currency_code: "KES",
+      product_id: "e18424e6-5316-4f12-9826-302c866b380d",
+      user_id: existingUser.user_id,
+      phone_number: phoneNumber,
+      first_name: existingUser?.first_name,
+      last_name: existingUser?.last_name,
+      inpatient_cover: selectedPolicyType.inPatient,
+      outpatient_cover: selectedPolicyType.outPatient,
+      maternity_cover: selectedPolicyType.maternity,
+      hospital_cash: selectedPolicyType.hospitalCash,
+      policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+    }
+  
+    return policyObject;
+  }
+  
+  async function createPolicy(policyObject) {
+    return await db.policies.create(policyObject);
+  }
+  
+  async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
+    const timeout = 3000;
+  
+    try {
+      await Promise.race([
+        airtelMoneyPromise,
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error('Airtel Money Kenya operation timed out'));
+          }, timeout);
+        })
+      ]);
+      console.log("============== END TIME - SELF KENYA  ================ ", phoneNumber, new Date());
+      console.log("RESPONSE WAS CALLED KENYA ",);
+      return 'END Payment successful';
+    } catch (error) {
+      console.log("RESPONSE WAS CALLED KENYA ", error);
+      return 'END Payment failed';
+    } finally {
+      console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", phoneNumber, new Date());
+    }
+  }
+
+
+  export default selfMenu;
+  
 
 /*
 

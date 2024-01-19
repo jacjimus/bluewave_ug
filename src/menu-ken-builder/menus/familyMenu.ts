@@ -15,16 +15,10 @@ const familyMenu = async (args, db) => {
   const User = db.users;
   console.log("CURRENT STEP", currentStep)
   let phone = phoneNumber?.replace('+', "")?.substring(3);
-  let existingUser = await db.users.findOne({
-    where: {
-      phone_number: phone,
-      partner_id: 1,
-    },
-    limit: 1,
-  });
+  let existingUser
 
-  // covers for family
-  const covers = [
+  // family_cover_data for family
+  const family_cover_data = [
     {
       name: "Self+Spouse or Child",
       code_name: "M+1",
@@ -451,12 +445,8 @@ const familyMenu = async (args, db) => {
   ];
 
   if (currentStep == 1) {
-    // const coversList = covers.map((cover, index) => {
-    //   return `\n${index + 1}. ${cover.name}`
-    // }).join("");
-    // response = "CON Buy for family " + coversList + "\n0. Back \n00. Main Menu";
+    console.log("CURRENT STEP", currentStep)
 
-    // create a raw menu with the cover types without looping
     response = "CON " +
       "\n1. Self+Spouse or Child" +
       "\n2. Self+Spouse+1 Child" +
@@ -465,9 +455,13 @@ const familyMenu = async (args, db) => {
       "\n5. Self+Spouse+4 Children" +
       "\n6. Self+Spouse+5 Children" +
       "\n0. Back \n00. Main Menu";
-  }
-  else if (currentStep == 2) {
-    const selectedCover = covers[parseInt(userText) - 1];
+
+
+  } else if (currentStep == 2) {
+    const selectedCover = family_cover_data[parseInt(userText) - 1];
+
+    console.log("SELECTED COVER", selectedCover)
+
     if (!selectedCover) {
       response = "END Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
@@ -477,39 +471,39 @@ const familyMenu = async (args, db) => {
     }
     ).join("");
 
+
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
 
-  }
-  else if (currentStep == 3) {
+  } else if (currentStep == 3) {
 
-    response = "CON Enter atleast Name of spouse or 1 child\n"
-  }
-  else if (currentStep == 4) {
+    response = "CON Enter atleast Full Name of spouse or 1 child \nAge 0 - 65 Years\n"
 
-    response = "CON Enter Phone of spouse (or Main member, if dependent is child)\n"
-  }
-  else if (currentStep == 5) {
-    const selectedCover = covers[parseInt(allSteps[1]) - 1];
-    //console.log("SELECTED COVER", selectedCover)
+  } else if (currentStep == 4) {
+
+    response = "CON Enter Phone of spouse (or Main member, if dependent is child) \n"
+  } else if (currentStep == 5) {
+
+    const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    // console.log("SELECTED PACKAGE", selectedPackage)
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
 
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, ${selectedPackage.inpatient_cover} a year` +
       "\nPAY " +
       `\n1. Kshs ${selectedPackage?.payment_options[0].premium} monthly` +
       `\n2. Kshs ${selectedPackage?.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+
     response = coverText;
-  }
-  else if (currentStep == 6) {
-    const selectedCover = covers[parseInt(allSteps[1]) - 1];
+
+  } else if (currentStep == 6) {
+
+    const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
     let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
 
-    let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+    let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
 
     const spouse = allSteps[3];
 
@@ -527,6 +521,14 @@ const familyMenu = async (args, db) => {
     // console.log("BENEFICIARY", beneficiary);
 
     await Beneficiary.create(beneficiary);
+    existingUser = await db.users.findOne({
+      where: {
+        phone_number: phone,
+        partner_id: 1,
+      },
+      limit: 1,
+    });
+    console.log("EXISTING USER", existingUser?.name)
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
@@ -550,95 +552,117 @@ const familyMenu = async (args, db) => {
     }
 
 
-
     response = `CON Kshs ${premium} payable ${period}` +
       `\nTerms&Conditions - Terms&Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay \n Age 0 - 65 Years` + "\n1. Confirm \n0. Back" + "\n00. Main Menu";
-  }
-  else if (currentStep == 7) {
-
-    if (userText == "1") {
-      // NOT WORK
-
-      response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE - FAMILY KENYA  =======", new Date());
-
-      let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-      let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
-      let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
-
-      let policyObject = {
-        policy_id: uuidv4(),
-        installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
-        installment_order:1,
-        policy_type: selectedPackage.code_name,
-        policy_deduction_amount: ultimatePremium,
-        policy_pending_premium:parseAmount(selectedPackage.year_premium) - ultimatePremium,
-        sum_insured: selectedPackage.sumInsured,
-        premium: ultimatePremium,
-        yearly_premium: parseAmount(selectedPackage.year_premium),
-        last_expense_insured: selectedPackage.lastExpenseInsured,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
-        beneficiary: "FAMILY",
-        partner_id: 1,
-        country_code: "KEN",
-        currency_code: "KES",
-        product_id: "e18424e6-5316-4f12-9826-302c866b380d",
-        user_id: existingUser.user_id,
-        phone_number: phoneNumber,
-        total_member_number: selectedPolicyType.code_name,
-        first_name: existingUser?.first_name,
-        last_name: existingUser?.last_name,
-        inpatient_cover: selectedPackage.inpatient_cover,
-        outpatient_cover: selectedPackage.outpatient_cover,
-        maternity_cover: selectedPackage.maternity,
-        hospital_cash: selectedPackage.hospital_cash,
-        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
-      }
-
-      let policy = await db.policies.create(policyObject);
-
-      console.log("============== START TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
-
-
-      const airtelMoneyPromise = airtelMoneyKenya(
-        existingUser.user_id,
-        policy.policy_id,
-        phone,
-        ultimatePremium,
-        existingUser.membership_id,
-      );
-
-      const timeout = 3000;
-
-      Promise.race([
-        airtelMoneyPromise,
-        new Promise((resolve, reject) => {
-          setTimeout(() => {
-            reject(new Error('Airtel Money kenya operation timed out'));
-          }, timeout);
-        }),
-      ]).then((result) => {
-        console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
-        response = 'END Payment successful';
-        console.log("RESPONSE WAS CALLED", result);
-        return response;
-      })
-        .catch((error) => {
-          response = 'END Payment failed';
-          console.log("RESPONSE WAS CALLED EER", error);
-          return response;
-        })
-
-      console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", phoneNumber, new Date());
-
-    } else {
-      response = "END Thank you for using AfyaShua Care"
-    }
+  } else if (currentStep == 7) {
+console.log("existingUser", existingUser)
+    await processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser)
   }
 
   return response;
 }
+
+
+
+async function processUserText1(allSteps, phoneNumber, family_cover_data, existingUser) {
+  let response = '';
+  response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
+  console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", new Date());
+
+  let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
+  let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+  let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
+
+  let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, phoneNumber, ultimatePremium);
+  let policy = await createAndSavePolicy(policyObject);
+
+  console.log("============== START TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
+
+  const airtelMoneyPromise = airtelMoneyKenya(
+    existingUser.user_id,
+    policy.policy_id,
+    phoneNumber,
+    ultimatePremium,
+    existingUser.membership_id,
+  );
+
+  response = await handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber);
+  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", phoneNumber, new Date());
+
+  return response;
+}
+
+function createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, phoneNumber, ultimatePremium) {
+  let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
+  return {
+    policy_id: uuidv4(),
+    installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
+    installment_order: 1,
+    policy_type: selectedPackage.code_name,
+    policy_deduction_amount: ultimatePremium,
+    policy_pending_premium: parseAmount(selectedPackage.year_premium) - ultimatePremium,
+    sum_insured: selectedPackage.sumInsured,
+    premium: ultimatePremium,
+    yearly_premium: parseAmount(selectedPackage.year_premium),
+    last_expense_insured: selectedPackage.lastExpenseInsured,
+    membership_id: Math.floor(100000 + Math.random() * 900000),
+    beneficiary: "FAMILY",
+    partner_id: 1,
+    country_code: "KEN",
+    currency_code: "KES",
+    product_id: "e18424e6-5316-4f12-9826-302c866b380d",
+    user_id: existingUser.user_id,
+    phone_number: phoneNumber,
+    total_member_number: selectedPolicyType.code_name,
+    first_name: existingUser?.first_name,
+    last_name: existingUser?.last_name,
+    inpatient_cover: selectedPackage.inpatient_cover,
+    outpatient_cover: selectedPackage.outpatient_cover,
+    maternity_cover: selectedPackage.maternity,
+    hospital_cash: selectedPackage.hospital_cash,
+    policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+  };
+}
+
+async function createAndSavePolicy(policyObject) {
+  let policy = await db.policies.create(policyObject);
+  return policy;
+}
+
+async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
+  const timeout = 3000;
+
+  try {
+    await Promise.race([
+      airtelMoneyPromise,
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error('Airtel Money Kenya operation timed out'));
+        }, timeout);
+      }),
+    ]);
+
+    console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+    return 'END Payment successful';
+  } catch (error) {
+    console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+    return 'END Payment failed';
+  }
+}
+
+async function processUserText2() {
+  return 'END Thank you for using AfyaShua Care';
+}
+
+async function processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser) {
+  if (userText == "1") {
+    return processUserText1(allSteps, phoneNumber, family_cover_data, existingUser);
+  } else {
+    return processUserText2();
+  }
+}
+
 
 export default familyMenu;
 
