@@ -67,7 +67,7 @@ const renewMenu = async (args: any, db: any) => {
                 else {
                     // list all the pending policies
                     response = "CON " + paidPolicies.map((policy: any, index: number) => {
-                        return `\n${index + 1}. ${policy.beneficiary} ${policy.policy_type} at UGX ${policy.premium.toLocaleString()}  ${policy.policy_paid_date.toLocaleDateString()}`
+                        return `\n${index + 1}. ${policy.beneficiary} ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
                     }
                     ).join("");
                 }

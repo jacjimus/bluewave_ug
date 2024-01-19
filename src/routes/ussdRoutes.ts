@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
 import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aar"
 import { calculateProrationPercentage, formatAmount } from "../services/utils";
+import { Op } from 'sequelize';
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -62,65 +63,71 @@ export const findTransactionById = async (transactionId) => {
   });
 };
 
+
+
 export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
-  console.log("UPDATE STATUS WAS CALLED", policy)
-  let date = new Date();
-  const paymentPaidCount = await db.payments.count({ where: { user_id: policy.user_id, payment_status: "paid", payment_amount: amount } });
-  amount = parseInt(amount);
-  policy.policy_status = "paid";
-  policy.bluewave_transaction_id = payment.payment_id;
-  policy.airtel_transaction_id = airtel_money_id
-  policy.policy_paid_amount = parseInt(amount)
-  policy.policy_deduction_amount = parseInt(amount);
-  policy.premium = parseInt(amount);
+  console.log("UPDATE STATUS WAS CALLED", policy);
+  
+  try {
+    amount = parseInt(amount);
 
-  let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day - 3);
-  if (policy.policy_deduction_day - 3 < 1) {
-    installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 28);
-  }
-  policy.policy_paid_date = new Date();
+    policy.policy_status = "paid";
+    policy.bluewave_transaction_id = payment.payment_id;
+    policy.airtel_transaction_id = airtel_money_id;
+    policy.policy_paid_amount = amount;
+    policy.policy_deduction_amount = amount;
+    policy.premium = amount;
 
+    let date = new Date();
+    let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day - 3);
 
-  // 1 = annual, 2 = monthly
-
-  if (policy.installment_type == 2) {
-    policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-    policy.installment_order = parseInt(paymentPaidCount) + 1;
-    policy.installment_alert_date = installment_alert_date;
-
-    if (policy.policy_paid_amount !== policy.premium) {
-      let allPaidPolicies = await db.policies.findAll({ where: { user_id: policy.user_id, policy_status: "paid", premium: amount } });
-      let totalPaidAmount = 0;
-      allPaidPolicies.forEach((pol) => {
-        totalPaidAmount += pol.premium;
-      });
-      policy.policy_paid_amount = totalPaidAmount;
-      policy.policy_pending_premium = policy.yearly_premium - totalPaidAmount;
-
+    if (policy.policy_deduction_day - 3 < 1) {
+      installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 28);
     }
 
+    policy.policy_paid_date = new Date();
 
-    await policy.save();
-  } else {
-    policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
-    if (policy.installment_order == 12) {
-      policy.policy_status = "expired";
-      policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+    if (policy.installment_type === 2) {
+      policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
+      policy.installment_order = parseInt(policy.installment_order) + 1;
+      policy.installment_alert_date = installment_alert_date;
+
+      if (policy.policy_paid_amount !== policy.premium) {
+      
+
+        policy.policy_paid_amount = policy.policy_paid_amount + amount;
+        policy.policy_pending_premium = policy.yearly_premium - policy.policy_paid_amount;
+      }
+
+      await policy.save();
+    } else {
+      policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+
+      if (policy.installment_order == 12) {
+        policy.policy_status = "expired";
+        policy.policy_end_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+      }
+
+      await policy.save();
     }
-    await policy.save();
+
+    const policyPaidCountOfUser = await db.policies.count({ 
+      where: { user_id: policy.user_id, policy_status: "paid" } 
+    });
+
+    await db.users.update({ number_of_policies: policyPaidCountOfUser }, { 
+      where: { user_id: policy.user_id } 
+    });
+
+    console.log("===========POLICY PAID =======", policy);
+
+    return policy;
+  } catch (error) {
+    console.error("Error updating policy status:", error);
+    throw error;
   }
-
-
-  const policyPaidCountOfUser = await db.policies.count({ where: { user_id: policy.user_id, policy_status: "paid" } });
-  await db.users.update({ number_of_policies: policyPaidCountOfUser }, { where: { user_id: policy.user_id } });
-
-  console.log("===========POLICY PAID =======", policy);
-
-  await policy.save();
-
-  return policy;
-
 };
+
 
 
 // POST and GET request handler
@@ -137,8 +144,6 @@ router.all("/callback", async (req, res) => {
         console.log("Transaction not found");
         return res.status(404).json({ message: "Transaction not found" });
       }
-
-
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
 
@@ -169,7 +174,6 @@ router.all("/callback", async (req, res) => {
         const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
         const policyType = policy.policy_type.toUpperCase();
         const period = policy.installment_type == 1 ? "yearly" : "monthly";
-
 
 
         const payment = await Payment.create({
@@ -259,24 +263,19 @@ router.all("/callback", async (req, res) => {
 
 
 export async function processPolicy(user: any, policy: any, memberStatus: any) {
-  // Determine the number of dependants
   console.log(policy?.total_member_number)
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
   console.log("Number of dependants:", number_of_dependants);
 
   if (memberStatus.code === 200) {
-    // If the member status is 200, proceed with processing the policy
     console.log("MEMBER STATUS:", memberStatus);
     policy.arr_policy_number = memberStatus?.policy_no;
   } else {
-    // If the member status is not 200, register the AAR user
     const registerAARUser = await registerPrincipal(user, policy);
      user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
-      // If there are dependants, create them
       await createDependant(user, policy);
     } else {
-      // If there are no dependants, update the premium
       const updatePremiumData = await updatePremium(user, policy);
       console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
     }
@@ -300,11 +299,9 @@ router.all("/callback/kenya", async (req, res) => {
       }
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
-      //console.log("TRANSACTION DATA", transactionData);
 
       const user = await Users.findOne({ where: { user_id } });
       let policy = await db.policies.findOne({ where: { policy_id } });
-      // policy.sort((a, b) => a.policy_start_date - b.policy_start_date);
       policy.airtel_money_id = airtel_money_id;
 
       if (!user) {
@@ -312,10 +309,6 @@ router.all("/callback/kenya", async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // latest policy
-      // policy = policy[policy.length - 1];
-
-      //console.log("======= POLICY =========", policy);
 
       if (!policy || !policy.airtel_money_id) {
         console.log("Policy not found");
@@ -432,9 +425,6 @@ router.all("/callback/kenya", async (req, res) => {
         }
 
         await SMSMessenger.sendSMS(to, congratText);
-
-        // Call the function with the relevant user, policy, and memberStatus
-        // await processPolicy(user, policy, memberStatus);
 
         return res.status(200).json({
           code: 200,

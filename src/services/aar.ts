@@ -754,9 +754,9 @@ async function getMemberNumberData(mobileNumber) {
   };
 
   const data = {
-    mobile_no: mobileNumber,
+    mobile_no: `0${mobileNumber}`,
   };
-
+  console.log("DATA", data);
   try {
     const response = await axios.post(url, data, { headers });
 

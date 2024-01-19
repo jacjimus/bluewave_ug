@@ -146,88 +146,88 @@ import { db } from '../models/db';
 
 
 async function getAllUsers() {
-    try {
-      const usersWithMultiplePolicies = await db.users.findAll({
-        attributes: ['user_id'],
-        include: [
-          {
-            model: db.policies,
-            as: 'policies',
-            where: {
-              policy_status: 'paid',
-              partner_id: 2
-              // other conditions if needed
-            },
+  try {
+    const usersWithMultiplePolicies = await db.users.findAll({
+      attributes: ['user_id'],
+      include: [
+        {
+          model: db.policies,
+          as: 'policies',
+          where: {
+            policy_status: 'paid',
+            partner_id: 2
+            // other conditions if needed
           },
-        ],
-        group: ['user.user_id'],
-        having: Sequelize.literal('COUNT(DISTINCT policies.policy_id) > 1'),
-      });
-  
-      // usersWithMultiplePolicies will contain users who have more than one policy
-      console.log(usersWithMultiplePolicies);
-      //write this  to a file
-      fs.writeFile('usersWithMultiplePolicies.json', JSON.stringify(usersWithMultiplePolicies))
-        .then(() => {
-          console.log('File written successfully');
-        })
-        .catch((err: any) => {
-          console.error('Error writing file:', err);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  
-  //getAllUsers();
-  
-  
-  
-  // create a function to register a principal using user and policy data
-  async function registerPrincipalArr(phone_numbers) {
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  
-    for (const phone_number of phone_numbers) {
-      const existingUser = await db.users.findOne({
-        where: {
-          phone_number: phone_number.toString(),
-          partner_id: 2,
         },
+      ],
+      group: ['user.user_id'],
+      having: Sequelize.literal('COUNT(DISTINCT policies.policy_id) > 1'),
+    });
+
+    // usersWithMultiplePolicies will contain users who have more than one policy
+    console.log(usersWithMultiplePolicies);
+    //write this  to a file
+    fs.writeFile('usersWithMultiplePolicies.json', JSON.stringify(usersWithMultiplePolicies))
+      .then(() => {
+        console.log('File written successfully');
+      })
+      .catch((err: any) => {
+        console.error('Error writing file:', err);
       });
-  
-  
-      console.log("existingUser", existingUser ? `${existingUser.name} ${existingUser.phone_number} ${existingUser.user_id}` : "NO USER FOUND");
-  
-      if (!existingUser) {
-        return; // Skip to the next iteration
-      }
-  
-      const myPolicy = await db.policies.findOne({
-        where: {
-          user_id: existingUser.user_id,
-          policy_status: 'paid',
-          partner_id: 2,
-        }
-      });
-  
-      console.log("myPolicy", myPolicy ? myPolicy.phone_number : "NO POLICY FOUND");
-  
-      if (!myPolicy) {
-        return; // Skip to the next iteration
-      }
-  
-      // Remove the setTimeout from registerPrincipal and add a delay here
-      await registerPrincipal(existingUser, myPolicy);
-  
-      // Add a delay between iterations (adjust the delay time as needed)
-      await delay(2000);
-    }
+  } catch (error) {
+    console.error(error);
   }
-  
-  
-  // Call the function with all_phone_numbers
-  let phones = [
-    751440048,
+}
+
+//getAllUsers();
+
+
+
+// create a function to register a principal using user and policy data
+async function registerPrincipalArr(phone_numbers) {
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  for (const phone_number of phone_numbers) {
+    const existingUser = await db.users.findOne({
+      where: {
+        phone_number: phone_number.toString(),
+        partner_id: 2,
+      },
+    });
+
+
+    console.log("existingUser", existingUser ? `${existingUser.name} ${existingUser.phone_number} ${existingUser.user_id}` : "NO USER FOUND");
+
+    if (!existingUser) {
+      return; // Skip to the next iteration
+    }
+
+    const myPolicy = await db.policies.findOne({
+      where: {
+        user_id: existingUser.user_id,
+        policy_status: 'paid',
+        partner_id: 2,
+      }
+    });
+
+    console.log("myPolicy", myPolicy ? myPolicy.phone_number : "NO POLICY FOUND");
+
+    if (!myPolicy) {
+      return; // Skip to the next iteration
+    }
+
+    // Remove the setTimeout from registerPrincipal and add a delay here
+    await registerPrincipal(existingUser, myPolicy);
+
+    // Add a delay between iterations (adjust the delay time as needed)
+    await delay(2000);
+  }
+}
+
+
+// Call the function with all_phone_numbers
+let phones = [
+  751440048,
   703870739,
   740475276,
   755692926,
@@ -276,2515 +276,2515 @@ async function getAllUsers() {
   744033279,
   743392699,
   700784998,
-  ]
-  //registerPrincipalArr(phones);
-  
-  
-  
-  // // // Define a function to create the dependent
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  
-  async function updatingAARPremium() {
-    try {
-      let policies = await db.policies.findAll({
-        where: {
-          policy_status: 'paid',
-          partner_id: 2,
-        },
-        include: [
-          {
-            model: db.users,
-            as: 'user',
-          },
-        ],
-      });
-  
-      for (let myPolicy of policies) {
-        let retries = 3; // Set the maximum number of retries
-  
-        while (retries > 0) {
-          try {
-            const result = await updatePremium(myPolicy.user, myPolicy);
-  
-            if (result.code === 200) {
-              console.log("AAR UPDATE PREMIUM", result);
-              break; // Exit the loop if successful
-            } else {
-              console.log("AAR NOT UPDATE PREMIUM", result);
-              throw new Error("Failed to update premium");
-            }
-          } catch (error) {
-            console.error("Error updating AAR premium:", error.message);
-            retries--;
-  
-            if (retries > 0) {
-              const backoffTime = Math.pow(2, 3 - retries) * 1000; // Exponential backoff
-              console.log(`Retrying in ${backoffTime / 1000} seconds...`);
-              await sleep(backoffTime);
-            } else {
-              console.error("Max retries reached. Unable to update AAR premium.");
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("AAR UPDATE PREMIUM timed out or encountered an error:", error.message);
-    }
-  }
-  
-  //updatingAARPremium();
-  
-  
-  async function updatePendingPremium() {
-    try {
-  
-      let allPaidPolicies = await db.policies.findAll({
-        where: {
-          policy_status: 'paid',
-          partner_id: 2,
-        },
-        include: [
-          {
-            model: db.users,
-            as: 'user',
-          },
-        ],
-      });
-  
-      for (const policy of allPaidPolicies) {
-        let pending_premium = policy.yearly_premium - policy.premium
-        let updatedPolicy = await db.policies.update(
-          { policy_pending_premium: pending_premium },
-          { where: { policy_id: policy.policy_id } }
-        );
-        console.log("updatedPolicy", updatedPolicy)
-        await db.users.update(
-          { number_of_policies: 1 },
-          {
-            where: {
-              user_id: policy.user_id,
-              partner_id: 2,
-              number_of_policies: 0
-            }
-          }
-        );
-      }
-  
-    } catch (error) {
-  
-    }
-  }
-  
-  
-  async function processUsersPolicyAAR() {
-    // settimeout
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    let count =0
+]
+//registerPrincipalArr(phones);
+
+
+
+// // // Define a function to create the dependent
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function updatingAARPremium() {
+  try {
     let policies = await db.policies.findAll({
       where: {
         policy_status: 'paid',
-      }
+        partner_id: 2,
+      },
+      include: [
+        {
+          model: db.users,
+          as: 'user',
+        },
+      ],
     });
-    for (const policy of policies) {
-      try {
-        const user = await db.users.findOne({
-          where: {
-            arr_member_number: {
-              [db.Sequelize.Op.not]: null,
-            },
-            partner_id: 2,
-            user_id: policy.user_id,
-          },
-        });
-        if (!user) {
-          console.log("NO USER FOUND");
-          continue
+
+    for (let myPolicy of policies) {
+      let retries = 3; // Set the maximum number of retries
+
+      while (retries > 0) {
+        try {
+          const result = await updatePremium(myPolicy.user, myPolicy);
+
+          if (result.code === 200) {
+            console.log("AAR UPDATE PREMIUM", result);
+            break; // Exit the loop if successful
+          } else {
+            console.log("AAR NOT UPDATE PREMIUM", result);
+            throw new Error("Failed to update premium");
+          }
+        } catch (error) {
+          console.error("Error updating AAR premium:", error.message);
+          retries--;
+
+          if (retries > 0) {
+            const backoffTime = Math.pow(2, 3 - retries) * 1000; // Exponential backoff
+            console.log(`Retrying in ${backoffTime / 1000} seconds...`);
+            await sleep(backoffTime);
+          } else {
+            console.error("Max retries reached. Unable to update AAR premium.");
+          }
         }
-  
-  
-        console.log("user", user.phone_number);
-  
-        await updatePremium(user, policy);
-        count++
-        // Add a delay between iterations (adjust the delay time as needed)
-       // await delay(1000);
-        console.log(`Dependant created for user with phone number: ${user.phone_number}`);
-        console.log(count)
-      } catch (error) {
-        console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
       }
     }
+  } catch (error) {
+    console.error("AAR UPDATE PREMIUM timed out or encountered an error:", error.message);
   }
-  
-  //processUsersPolicyAAR()
+}
 
-  let arrMembersWithnoPolicy = [
-    
-    "UG155285-00",
-    "UG155285-01",
-    "UG155285-02",
-    "UG156206-02",
-    "UG155848-05",
-    "UG155848-06",
-    "UG155848-07",
-    "UG155848-08",
-    "UG155903-03",
-    "UG155903-04",
-    "UG155943-07",
-    "UG155943-08",
-    "UG155943-09",
-    "UG155943-10",
-    "UG155943-11",
-    "UG155943-12",
-    "UG155945-02",
-    "UG155950-02",
-    "UG155953-02",
-    "UG155962-03",
-    "UG155962-04",
-    "UG156212-04",
-    "UG156212-05",
-    "UG156212-06",
-    "UG156207-04",
-    "UG156207-05",
-    "UG156207-06",
-    "UG156252-00",
-    "UG156253-00",
-    "UG156254-00",
-    "UG156255-00",
-    "UG156256-00",
-    "UG156257-00",
-    "UG156258-00",
-    "UG156259-00",
-    "UG156260-00",
-    "UG156261-00",
-    "UG156262-00",
-    "UG156263-00",
-    "UG156264-00",
-    "UG156265-00",
-    "UG156266-00",
-    "UG156267-00",
-    "UG156268-00",
-    "UG156269-00",
-    "UG156270-00",
-    "UG156271-00",
-    "UG156272-00",
-    "UG156273-00",
-    "UG156274-00",
-    "UG156275-00",
-    "UG156276-00",
-    "UG156277-00",
-    "UG156278-00",
-    "UG156279-00",
-    "UG156280-00",
-    "UG156281-00",
-    "UG156282-00",
-    "UG156283-00",
-    "UG156284-00",
-    "UG156285-00",
-    "UG156285-01",
-    "UG156286-00",
-    "UG156286-01",
-    "UG156287-00",
-    "UG156288-00",
-    "UG156288-01",
-    "UG156288-02",
-    "UG156293-00",
-    "UG156293-01",
-    "UG156293-02",
-    "UG156294-00",
-    "UG155818-00",
-    "UG155819-00",
-    "UG155820-00",
-    "UG155821-00",
-    "UG155822-00",
-    "UG155823-00",
-    "UG155824-00",
-    "UG155825-00",
-    "UG155826-00",
-    "UG155827-00",
-    "UG155828-00",
-    "UG155829-00",
-    "UG155830-00",
-    "UG155831-00",
-    "UG155832-00",
-    "UG155833-00",
-    "UG155834-00",
-    "UG155835-00",
-    "UG155836-00",
-    "UG155837-00",
-    "UG155838-00",
-    "UG155839-00",
-    "UG155840-00",
-    "UG155841-00",
-    "UG155842-00",
-    "UG155843-00",
-    "UG155844-00",
-    "UG155845-00",
-    "UG155846-00",
-    "UG155847-00",
-    "UG155848-00",
-    "UG155849-00",
-    "UG155850-00",
-    "UG155851-00",
-    "UG155852-00",
-    "UG155853-00",
-    "UG155854-00",
-    "UG155855-00",
-    "UG155856-00",
-    "UG155857-00",
-    "UG155858-00",
-    "UG155859-00",
-    "UG155860-00",
-    "UG155861-00",
-    "UG155862-00",
-    "UG155863-00",
-    "UG155864-00",
-    "UG155865-00",
-    "UG155866-00",
-    "UG155867-00",
-    "UG155868-00",
-    "UG155869-00",
-    "UG155870-00",
-    "UG155871-00",
-    "UG155872-00",
-    "UG155873-00",
-    "UG155874-00",
-    "UG155875-00",
-    "UG155876-00",
-    "UG155877-00",
-    "UG155878-00",
-    "UG155879-00",
-    "UG155880-00",
-    "UG155881-00",
-    "UG155882-00",
-    "UG155883-00",
-    "UG155884-00",
-    "UG155885-00",
-    "UG155886-00",
-    "UG155887-00",
-    "UG155888-00",
-    "UG155889-00",
-    "UG155890-00",
-    "UG155891-00",
-    "UG155892-00",
-    "UG155893-00",
-    "UG155894-00",
-    "UG155895-00",
-    "UG155896-00",
-    "UG155897-00",
-    "UG155898-00",
-    "UG155899-00",
-    "UG155900-00",
-    "UG155901-00",
-    "UG155902-00",
-    "UG155903-00",
-    "UG155904-00",
-    "UG155905-00",
-    "UG155906-00",
-    "UG155907-00",
-    "UG155908-00",
-    "UG155909-00",
-    "UG155910-00",
-    "UG155911-00",
-    "UG155912-00",
-    "UG155913-00",
-    "UG155914-00",
-    "UG155915-00",
-    "UG155916-00",
-    "UG155917-00",
-    "UG155918-00",
-    "UG155919-00",
-    "UG155920-00",
-    "UG155921-00",
-    "UG155922-00",
-    "UG155923-00",
-    "UG155924-00",
-    "UG155925-00",
-    "UG155926-00",
-    "UG155927-00",
-    "UG155928-00",
-    "UG155929-00",
-    "UG155930-00",
-    "UG155931-00",
-    "UG155932-00",
-    "UG155933-00",
-    "UG155934-00",
-    "UG155935-00",
-    "UG155936-00",
-    "UG155937-00",
-    "UG155938-00",
-    "UG155939-00",
-    "UG155940-00",
-    "UG155941-00",
-    "UG155942-00",
-    "UG155943-00",
-    "UG155944-00",
-    "UG155945-00",
-    "UG155946-00",
-    "UG155947-00",
-    "UG155948-00",
-    "UG155949-00",
-    "UG155950-00",
-    "UG155951-00",
-    "UG155952-00",
-    "UG155953-00",
-    "UG155954-00",
-    "UG155955-00",
-    "UG155956-00",
-    "UG155957-00",
-    "UG155958-00",
-    "UG155959-00",
-    "UG155960-00",
-    "UG155961-00",
-    "UG155962-00",
-    "UG155963-00",
-    "UG155964-00",
-    "UG155965-00",
-    "UG155966-00",
-    "UG155967-00",
-    "UG155968-00",
-    "UG155969-00",
-    "UG155970-00",
-    "UG155971-00",
-    "UG155972-00",
-    "UG155973-00",
-    "UG155974-00",
-    "UG155975-00",
-    "UG155976-00",
-    "UG155977-00",
-    "UG155978-00",
-    "UG155979-00",
-    "UG155980-00",
-    "UG155981-00",
-    "UG155982-00",
-    "UG155983-00",
-    "UG155984-00",
-    "UG155985-00",
-    "UG155986-00",
-    "UG155987-00",
-    "UG155988-00",
-    "UG155989-00",
-    "UG155990-00",
-    "UG155991-00",
-    "UG155992-00",
-    "UG155993-00",
-    "UG155994-00",
-    "UG155995-00",
-    "UG155996-00",
-    "UG155997-00",
-    "UG155998-00",
-    "UG155999-00",
-    "UG156000-00",
-    "UG156001-00",
-    "UG156002-00",
-    "UG156003-00",
-    "UG156004-00",
-    "UG156005-00",
-    "UG156006-00",
-    "UG156007-00",
-    "UG156008-00",
-    "UG156009-00",
-    "UG156010-00",
-    "UG156011-00",
-    "UG156012-00",
-    "UG156013-00",
-    "UG156014-00",
-    "UG156015-00",
-    "UG156016-00",
-    "UG156017-00",
-    "UG156018-00",
-    "UG156019-00",
-    "UG156020-00",
-    "UG156021-00",
-    "UG156022-00",
-    "UG156023-00",
-    "UG156024-00",
-    "UG156025-00",
-    "UG156026-00",
-    "UG156027-00",
-    "UG156028-00",
-    "UG156029-00",
-    "UG156030-00",
-    "UG156031-00",
-    "UG156032-00",
-    "UG156033-00",
-    "UG156034-00",
-    "UG156035-00",
-    "UG156036-00",
-    "UG156037-00",
-    "UG156038-00",
-    "UG156039-00",
-    "UG156040-00",
-    "UG156041-00",
-    "UG156042-00",
-    "UG156043-00",
-    "UG156044-00",
-    "UG156045-00",
-    "UG156046-00",
-    "UG156047-00",
-    "UG156048-00",
-    "UG156049-00",
-    "UG156050-00",
-    "UG156051-00",
-    "UG156052-00",
-    "UG156053-00",
-    "UG156054-00",
-    "UG156055-00",
-    "UG156056-00",
-    "UG156057-00",
-    "UG156058-00",
-    "UG156059-00",
-    "UG156060-00",
-    "UG156061-00",
-    "UG156062-00",
-    "UG156063-00",
-    "UG156064-00",
-    "UG156065-00",
-    "UG156066-00",
-    "UG156067-00",
-    "UG156068-00",
-    "UG156069-00",
-    "UG156070-00",
-    "UG156071-00",
-    "UG156072-00",
-    "UG156073-00",
-    "UG156074-00",
-    "UG156075-00",
-    "UG156076-00",
-    "UG156077-00",
-    "UG156078-00",
-    "UG156079-00",
-    "UG156080-00",
-    "UG156081-00",
-    "UG156082-00",
-    "UG156083-00",
-    "UG156084-00",
-    "UG156085-00",
-    "UG156086-00",
-    "UG156087-00",
-    "UG156088-00",
-    "UG156089-00",
-    "UG156090-00",
-    "UG156091-00",
-    "UG156092-00",
-    "UG156093-00",
-    "UG156094-00",
-    "UG156095-00",
-    "UG156096-00",
-    "UG156097-00",
-    "UG156098-00",
-    "UG156099-00",
-    "UG156100-00",
-    "UG156101-00",
-    "UG156102-00",
-    "UG156103-00",
-    "UG156104-00",
-    "UG156105-00",
-    "UG156106-00",
-    "UG156107-00",
-    "UG156108-00",
-    "UG156109-00",
-    "UG156110-00",
-    "UG156111-00",
-    "UG156112-00",
-    "UG156113-00",
-    "UG156114-00",
-    "UG156115-00",
-    "UG156116-00",
-    "UG156117-00",
-    "UG156118-00",
-    "UG156119-00",
-    "UG156120-00",
-    "UG156121-00",
-    "UG155848-01",
-    "UG155848-02",
-    "UG155848-03",
-    "UG155848-04",
-    "UG155857-01",
-    "UG155863-01",
-    "UG155863-02",
-    "UG155872-01",
-    "UG155903-01",
-    "UG155903-02",
-    "UG155916-01",
-    "UG155916-02",
-    "UG155916-03",
-    "UG155919-01",
-    "UG155919-02",
-    "UG155919-03",
-    "UG155919-04",
-    "UG155919-05",
-    "UG155919-06",
-    "UG155935-01",
-    "UG155935-02",
-    "UG155943-01",
-    "UG155943-02",
-    "UG155943-03",
-    "UG155943-04",
-    "UG155943-05",
-    "UG155943-06",
-    "UG155944-01",
-    "UG155944-02",
-    "UG155945-01",
-    "UG155946-01",
-    "UG155946-02",
-    "UG155818-01",
-    "UG155818-02",
-    "UG155818-03",
-    "UG155818-04",
-    "UG155818-05",
-    "UG155818-06",
-    "UG155947-01",
-    "UG155948-01",
-    "UG155948-02",
-    "UG155948-03",
-    "UG155948-04",
-    "UG155948-05",
-    "UG155948-06",
-    "UG155820-01",
-    "UG155949-01",
-    "UG155949-02",
-    "UG155950-01",
-    "UG155953-01",
-    "UG155954-01",
-    "UG155955-01",
-    "UG155956-01",
-    "UG155957-01",
-    "UG155957-02",
-    "UG155957-03",
-    "UG155959-01",
-    "UG155959-02",
-    "UG155960-01",
-    "UG155960-02",
-    "UG155960-03",
-    "UG155960-04",
-    "UG155960-05",
-    "UG155960-06",
-    "UG155961-01",
-    "UG155962-01",
-    "UG155962-02",
-    "UG155963-01",
-    "UG155963-02",
-    "UG155963-03",
-    "UG155964-01",
-    "UG155965-01",
-    "UG155965-02",
-    "UG155968-01",
-    "UG155967-01",
-    "UG155967-02",
-    "UG155969-01",
-    "UG155969-02",
-    "UG155969-03",
-    "UG155969-04",
-    "UG155970-01",
-    "UG155970-02",
-    "UG155819-01",
-    "UG155819-02",
-    "UG155819-03",
-    "UG155819-04",
-    "UG155819-05",
-    "UG156122-00",
-    "UG156129-00",
-    "UG156129-01",
-    "UG156129-02",
-    "UG156132-00",
-    "UG156134-00",
-    "UG156134-01",
-    "UG156148-00",
-    "UG156149-00",
-    "UG156149-01",
-    "UG156149-02",
-    "UG156150-00",
-    "UG156150-01",
-    "UG156150-02",
-    "UG156151-00",
-    "UG156151-01",
-    "UG156151-02",
-    "UG156152-00",
-    "UG156152-01",
-    "UG156152-02",
-    "UG156152-03",
-    "UG156159-00",
-    "UG156174-00",
-    "UG156176-00",
-    "UG156177-00",
-    "UG156178-00",
-    "UG156178-01",
-    "UG156179-00",
-    "UG156179-01",
-    "UG156180-00",
-    "UG156180-01",
-    "UG156180-02",
-    "UG156180-03",
-    "UG156180-04",
-    "UG156180-05",
-    "UG156187-00",
-    "UG156188-00",
-    "UG156188-01",
-    "UG156188-02",
-    "UG156189-00",
-    "UG156190-00",
-    "UG156190-01",
-    "UG156206-00",
-    "UG156206-01",
-    "UG156207-00",
-    "UG156207-01",
-    "UG156207-02",
-    "UG156207-03",
-    "UG156212-00",
-    "UG156212-01",
-    "UG156212-02",
-    "UG156212-03",
-    "UG156224-00",
-    "UG156224-01",
-    "UG156225-00",
-    "UG156225-01",
-    "UG156225-02",
-    "UG156225-03",
-    "UG156225-04",
-    "UG156225-05",
-    "UG156225-06",
-    "UG156226-00",
-    "UG156227-00",
-    "UG156232-00",
-    "UG156232-01",
-    "UG156233-00",
-    "UG156234-00",
-    "UG156645-00",
-    "UG156645-01",
-    "UG156645-02",
-    "UG156669-00",
-    "UG156670-00",
-    "UG156671-00",
-    "UG156672-00",
-    "UG156673-00",
-    "UG156674-00",
-    "UG156675-00",
-    "UG156676-00",
-    "UG156677-00",
-    "UG156678-00",
-    "UG156679-00",
-    "UG156680-00",
-    "UG156681-00",
-    "UG156682-00",
-    "UG156683-00",
-    "UG156684-00",
-    "UG156685-00",
-    "UG156686-00",
-    "UG156687-00",
-    "UG156688-00",
-    "UG156689-00",
-    "UG156690-00",
-    "UG156691-00",
-    "UG156692-00",
-    "UG156693-00",
-    "UG156694-00",
-    "UG156695-00",
-    "UG156696-00",
-    "UG156697-00",
-    "UG156698-00",
-    "UG156699-00",
-    "UG156700-00",
-    "UG156701-00",
-    "UG156702-00",
-    "UG156703-00",
-    "UG156704-00",
-    "UG156705-00",
-    "UG156706-00",
-    "UG156707-00",
-    "UG156708-00",
-    "UG156709-00",
-    "UG156710-00",
-    "UG156711-00",
-    "UG156712-00",
-    "UG156713-00",
-    "UG156714-00",
-    "UG156715-00",
-    "UG156716-00",
-    "UG156717-00",
-    "UG156718-00",
-    "UG156719-00",
-    "UG156720-00",
-    "UG156721-00",
-    "UG156722-00",
-    "UG156723-00",
-    "UG156724-00",
-    "UG156725-00",
-    "UG156726-00",
-    "UG156727-00",
-    "UG156728-00",
-    "UG156729-00",
-    "UG156730-00",
-    "UG156731-00",
-    "UG156732-00",
-    "UG156733-00",
-    "UG156734-00",
-    "UG156735-00",
-    "UG156736-00",
-    "UG156737-00",
-    "UG156738-00",
-    "UG156739-00",
-    "UG156740-00",
-    "UG156741-00",
-    "UG156742-00",
-    "UG156743-00",
-    "UG156744-00",
-    "UG156745-00",
-    "UG156746-00",
-    "UG156747-00",
-    "UG156748-00",
-    "UG156749-00",
-    "UG156750-00",
-    "UG156751-00",
-    "UG156752-00",
-    "UG156753-00",
-    "UG156754-00",
-    "UG156755-00",
-    "UG156756-00",
-    "UG156757-00",
-    "UG156758-00",
-    "UG156759-00",
-    "UG156760-00",
-    "UG156761-00",
-    "UG156762-00",
-    "UG156763-00",
-    "UG156764-00",
-    "UG156765-00",
-    "UG156766-00",
-    "UG156767-00",
-    "UG156768-00",
-    "UG156769-00",
-    "UG156770-00",
-    "UG156771-00",
-    "UG156772-00",
-    "UG156773-00",
-    "UG156774-00",
-    "UG156775-00",
-    "UG156776-00",
-    "UG156777-00",
-    "UG156778-00",
-    "UG156779-00",
-    "UG156780-00",
-    "UG156781-00",
-    "UG156782-00",
-    "UG156783-00",
-    "UG156784-00",
-    "UG156785-00",
-    "UG156786-00",
-    "UG156787-00",
-    "UG156788-00",
-    "UG156789-00",
-    "UG156790-00",
-    "UG156791-00",
-    "UG156792-00",
-    "UG156793-00",
-    "UG156794-00",
-    "UG156795-00",
-    "UG156796-00",
-    "UG156797-00",
-    "UG156798-00",
-    "UG156799-00",
-    "UG156800-00",
-    "UG156801-00",
-    "UG156802-00",
-    "UG156803-00",
-    "UG156804-00",
-    "UG156805-00",
-    "UG156806-00",
-    "UG156807-00",
-    "UG156808-00",
-    "UG156809-00",
-    "UG156810-00",
-    "UG156811-00",
-    "UG156812-00",
-    "UG156813-00",
-    "UG156814-00",
-    "UG156815-00",
-    "UG156816-00",
-    "UG156817-00",
-    "UG156818-00",
-    "UG156819-00",
-    "UG156820-00",
-    "UG156821-00",
-    "UG156822-00",
-    "UG156823-00",
-    "UG156824-00",
-    "UG156825-00",
-    "UG156826-00",
-    "UG156827-00",
-    "UG156828-00",
-    "UG156829-00",
-    "UG156830-00",
-    "UG156831-00",
-    "UG156832-00",
-    "UG156833-00",
-    "UG156834-00",
-    "UG156835-00",
-    "UG156836-00",
-    "UG156837-00",
-    "UG156838-00",
-    "UG156839-00",
-    "UG156840-00",
-    "UG156841-00",
-    "UG156842-00",
-    "UG156843-00",
-    "UG156844-00",
-    "UG156845-00",
-    "UG156846-00",
-    "UG156847-00",
-    "UG156848-00",
-    "UG156849-00",
-    "UG156850-00",
-    "UG156851-00",
-    "UG156852-00",
-    "UG156853-00",
-    "UG156854-00",
-    "UG156855-00",
-    "UG156856-00",
-    "UG156857-00",
-    "UG156858-00",
-    "UG156859-00",
-    "UG156860-00",
-    "UG156861-00",
-    "UG156862-00",
-    "UG156863-00",
-    "UG156864-00",
-    "UG156865-00",
-    "UG156866-00",
-    "UG156867-00",
-    "UG156868-00",
-    "UG156869-00",
-    "UG156870-00",
-    "UG156871-00",
-    "UG156872-00",
-    "UG156873-00",
-    "UG156874-00",
-    "UG156875-00",
-    "UG156876-00",
-    "UG156877-00",
-    "UG156878-00",
-    "UG156879-00",
-    "UG156880-00",
-    "UG156881-00",
-    "UG156882-00",
-    "UG156883-00",
-    "UG156884-00",
-    "UG156885-00",
-    "UG156886-00",
-    "UG156887-00",
-    "UG156888-00",
-    "UG156889-00",
-    "UG156890-00",
-    "UG156891-00",
-    "UG156892-00",
-    "UG156893-00",
-    "UG156894-00",
-    "UG156895-00",
-    "UG156896-00",
-    "UG156897-00",
-    "UG156898-00",
-    "UG156899-00",
-    "UG156900-00",
-    "UG156901-00",
-    "UG156902-00",
-    "UG156903-00",
-    "UG156904-00",
-    "UG156905-00",
-    "UG156906-00",
-    "UG156907-00",
-    "UG156908-00",
-    "UG156909-00",
-    "UG156910-00",
-    "UG156911-00",
-    "UG156912-00",
-    "UG156913-00",
-    "UG156914-00",
-    "UG156915-00",
-    "UG156916-00",
-    "UG156917-00",
-    "UG156918-00",
-    "UG156919-00",
-    "UG156920-00",
-    "UG156921-00",
-    "UG156922-00",
-    "UG156923-00",
-    "UG156924-00",
-    "UG156925-00",
-    "UG156926-00",
-    "UG156927-00",
-    "UG156928-00",
-    "UG156929-00",
-    "UG156930-00",
-    "UG156931-00",
-    "UG156932-00",
-    "UG156933-00",
-    "UG156934-00",
-    "UG156935-00",
-    "UG156936-00",
-    "UG156937-00",
-    "UG156938-00",
-    "UG156939-00",
-    "UG156940-00",
-    "UG156941-00",
-    "UG156942-00",
-    "UG156943-00",
-    "UG156944-00",
-    "UG156945-00",
-    "UG156946-00",
-    "UG156947-00",
-    "UG156948-00",
-    "UG156949-00",
-    "UG156950-00",
-    "UG156951-00",
-    "UG156952-00",
-    "UG156953-00",
-    "UG156954-00",
-    "UG156955-00",
-    "UG156956-00",
-    "UG156957-00",
-    "UG156958-00",
-    "UG156959-00",
-    "UG156960-00",
-    "UG156961-00",
-    "UG156962-00",
-    "UG156963-00",
-    "UG156964-00",
-    "UG156965-00",
-    "UG156966-00",
-    "UG156967-00",
-    "UG156968-00",
-    "UG156969-00",
-    "UG156970-00",
-    "UG156971-00",
-    "UG156972-00",
-    "UG156973-00",
-    "UG156974-00",
-    "UG156975-00",
-    "UG156976-00",
-    "UG156977-00",
-    "UG156978-00",
-    "UG156979-00",
-    "UG156980-00",
-    "UG156981-00",
-    "UG156982-00",
-    "UG156983-00",
-    "UG156984-00",
-    "UG156985-00",
-    "UG156986-00",
-    "UG156987-00",
-    "UG156988-00",
-    "UG156989-00",
-    "UG156990-00",
-    "UG156991-00",
-    "UG156992-00",
-    "UG156993-00",
-    "UG156994-00",
-    "UG156995-00",
-    "UG156996-00",
-    "UG156997-00",
-    "UG156998-00",
-    "UG156999-00",
-    "UG157000-00",
-    "UG157001-00",
-    "UG157002-00",
-    "UG157003-00",
-    "UG157004-00",
-    "UG157005-00",
-    "UG157006-00",
-    "UG157007-00",
-    "UG157008-00",
-    "UG157009-00",
-    "UG157010-00",
-    "UG157011-00",
-    "UG157012-00",
-    "UG157013-00",
-    "UG157014-00",
-    "UG157015-00",
-    "UG157016-00",
-    "UG157017-00",
-    "UG157018-00",
-    "UG157019-00",
-    "UG157020-00",
-    "UG157021-00",
-    "UG157022-00",
-    "UG157023-00",
-    "UG157024-00",
-    "UG157025-00",
-    "UG157026-00",
-    "UG157027-00",
-    "UG157028-00",
-    "UG157029-00",
-    "UG157030-00",
-    "UG157031-00",
-    "UG157032-00",
-    "UG157033-00",
-    "UG157034-00",
-    "UG157035-00",
-    "UG157036-00",
-    "UG157037-00",
-    "UG157038-00",
-    "UG157039-00",
-    "UG157040-00",
-    "UG157041-00",
-    "UG157042-00",
-    "UG157043-00",
-    "UG157044-00",
-    "UG157045-00",
-    "UG157046-00",
-    "UG157047-00",
-    "UG157048-00",
-    "UG157049-00",
-    "UG157050-00",
-    "UG157051-00",
-    "UG157052-00",
-    "UG157053-00",
-    "UG157054-00",
-    "UG157055-00",
-    "UG157056-00",
-    "UG157057-00",
-    "UG157058-00",
-    "UG157059-00",
-    "UG157060-00",
-    "UG157061-00",
-    "UG157062-00",
-    "UG157063-00",
-    "UG157064-00",
-    "UG157065-00",
-    "UG157066-00",
-    "UG157067-00",
-    "UG157068-00",
-    "UG157069-00",
-    "UG157070-00",
-    "UG157071-00",
-    "UG157072-00",
-    "UG157073-00",
-    "UG157074-00",
-    "UG157075-00",
-    "UG157076-00",
-    "UG157077-00",
-    "UG157078-00",
-    "UG157079-00",
-    "UG157080-00",
-    "UG157081-00",
-    "UG157082-00",
-    "UG157083-00",
-    "UG157084-00",
-    "UG157085-00",
-    "UG157086-00",
-    "UG157087-00",
-    "UG157088-00",
-    "UG157089-00",
-    "UG157090-00",
-    "UG157091-00",
-    "UG157092-00",
-    "UG157093-00",
-    "UG157094-00",
-    "UG157095-00",
-    "UG157096-00",
-    "UG157097-00",
-    "UG157098-00",
-    "UG157099-00",
-    "UG157100-00",
-    "UG157101-00",
-    "UG157102-00",
-    "UG157103-00",
-    "UG157104-00",
-    "UG157105-00",
-    "UG157106-00",
-    "UG157107-00",
-    "UG157108-00",
-    "UG157109-00",
-    "UG157110-00",
-    "UG157111-00",
-    "UG157112-00",
-    "UG157113-00",
-    "UG157114-00",
-    "UG157115-00",
-    "UG157116-00",
-    "UG157117-00",
-    "UG157118-00",
-    "UG157119-00",
-    "UG157120-00",
-    "UG157121-00",
-    "UG157122-00",
-    "UG157123-00",
-    "UG157124-00",
-    "UG157125-00",
-    "UG157126-00",
-    "UG157127-00",
-    "UG157128-00",
-    "UG157129-00",
-    "UG157130-00",
-    "UG157131-00",
-    "UG157132-00",
-    "UG157133-00",
-    "UG157134-00",
-    "UG157135-00",
-    "UG157136-00",
-    "UG157137-00",
-    "UG157138-00",
-    "UG157139-00",
-    "UG157140-00",
-    "UG157141-00",
-    "UG157142-00",
-    "UG157143-00",
-    "UG157144-00",
-    "UG157147-00",
-    "UG157148-00",
-    "UG157149-00",
-    "UG157150-00",
-    "UG157151-00",
-    "UG157152-00",
-    "UG157153-00",
-    "UG157154-00",
-    "UG157155-00",
-    "UG157156-00",
-    "UG157157-00",
-    "UG157158-00",
-    "UG157159-00",
-    "UG157160-00",
-    "UG157161-00",
-    "UG157164-00",
-    "UG157164-01",
-    "UG157165-00",
-    "UG157169-00",
-    "UG157170-00",
-    "UG157171-00",
-    "UG157172-00",
-    "UG157173-00",
-    "UG157174-00",
-    "UG157175-00",
-    "UG157176-00",
-    "UG157177-00",
-    "UG157178-00",
-    "UG157179-00",
-    "UG157180-00",
-    "UG157181-00",
-    "UG157182-00",
-    "UG157183-00",
-    "UG157184-00",
-    "UG157199-00",
-    "UG157200-00",
-    "UG157201-00",
-    "UG157215-00",
-    "UG157216-00",
-    "UG157217-00",
-    "UG157218-00",
-    "UG157237-00",
-    "UG157245-00",
-    "UG157245-01",
-    "UG157245-02",
-    "UG157245-03",
-    "UG157245-04",
-    "UG157245-05",
-    "UG157245-06",
-    "UG157246-00",
-    "UG157247-00",
-    "UG157248-00",
-    "UG157249-00",
-    "UG157250-00",
-    "UG157263-00",
-    "UG157265-00",
-    "UG157266-00",
-    "UG157267-00",
-    "UG157268-00",
-    "UG157269-00",
-    "UG157270-00",
-    "UG157271-00",
-    "UG157272-00",
-    "UG157284-00",
-    "UG157285-00",
-    "UG157285-01",
-    "UG157286-00",
-    "UG157287-00",
-    "UG157288-00",
-    "UG157289-00",
-    "UG157290-00",
-    "UG157290-01",
-    "UG157290-02",
-    "UG157290-03",
-    "UG157290-04",
-    "UG157290-05",
-    "UG157290-06",
-    "UG157291-00",
-    "UG157292-00",
-    "UG157293-00",
-    "UG157294-00",
-    "UG157297-00",
-    "UG157301-00",
-    "UG157302-00",
-    "UG157303-00",
-    "UG157304-00",
-    "UG157308-00",
-    "UG157309-00",
-    "UG157310-00",
-    "UG157311-00",
-    "UG157312-00",
-    "UG157313-00",
-    "UG157315-00",
-    "UG157316-00",
-    "UG157317-00",
-    "UG157318-00",
-    "UG157319-00",
-    "UG157320-00",
-    "UG157321-00",
-    "UG157322-00",
-    "UG157323-00",
-    "UG157324-00",
-    "UG157325-00",
-    "UG157326-00",
-    "UG157327-00",
-    "UG157328-00",
-    "UG157329-00",
-    "UG157330-00",
-    "UG157331-00",
-    "UG157332-00",
-    "UG157333-00",
-    "UG157335-00",
-    "UG157337-00",
-    "UG157338-00",
-    "UG157339-00",
-    "UG157340-00",
-    "UG157341-00",
-    "UG157341-01",
-    "UG157342-00",
-    "UG157343-00",
-    "UG157344-00",
-    "UG157344-01",
-    "UG157345-00",
-    "UG157346-00",
-    "UG157347-00",
-    "UG157348-00",
-    "UG157349-00",
-    "UG157350-00",
-    "UG157351-00",
-    "UG157352-00",
-    "UG157353-00",
-    "UG157354-00",
-    "UG157355-00",
-    "UG157356-00",
-    "UG157357-00",
-    "UG157358-00",
-    "UG157359-00",
-    "UG157360-00",
-    "UG157361-00",
-    "UG157362-00",
-    "UG157363-00",
-    "UG157364-00",
-    "UG157365-00",
-    "UG157366-00",
-    "UG157367-00",
-    "UG157368-00",
-    "UG157369-00",
-    "UG157370-00",
-    "UG157371-00",
-    "UG157372-00",
-    "UG157373-00",
-    "UG157374-00",
-    "UG157375-00",
-    "UG157375-01",
-    "UG157375-02",
-    "UG157376-00",
-    "UG157382-00",
-    "UG157384-00",
-    "UG157385-00",
-    "UG157386-00",
-    "UG157390-00",
-    "UG157391-00",
-    "UG157392-00",
-    "UG157393-00",
-    "UG157394-00",
-    "UG157395-00",
-    "UG157396-00",
-    "UG157397-00",
-    "UG157401-00",
-    "UG157402-00",
-    "UG157403-00",
-    "UG157404-00",
-    "UG157406-00",
-    "UG157407-00",
-    "UG157408-00",
-    "UG157409-00",
-    "UG157410-00",
-    "UG157411-00",
-    "UG157412-00",
-    "UG157413-00",
-    "UG157417-00",
-    "UG157418-00",
-    "UG157419-00",
-    "UG157420-00",
-    "UG157421-00",
-    "UG157422-00",
-    "UG157423-00",
-    "UG157424-00",
-    "UG157426-00",
-    "UG157427-00",
-    "UG157428-00",
-    "UG157429-00",
-    "UG157430-00",
-    "UG157458-00",
-    "UG157460-00",
-    "UG157461-00",
-    "UG157462-00",
-    "UG157471-00",
-    "UG157472-00",
-    "UG157473-00",
-    "UG157474-00",
-    "UG157475-00",
-    "UG157476-00",
-    "UG157477-00",
-    "UG157478-00",
-    "UG157479-00",
-    "UG157480-00",
-    "UG157483-00",
-    "UG157483-01",
-    "UG157487-00",
-    "UG157488-00",
-    "UG157489-00",
-    "UG157490-00",
-    "UG157491-00",
-    "UG157492-00",
-    "UG157493-00",
-    "UG157494-00",
-    "UG157495-00",
-    "UG157496-00",
-    "UG157497-00",
-    "UG157498-00",
-    "UG157499-00",
-    "UG157500-00",
-    "UG157500-01",
-    "UG157501-00",
-    "UG157502-00",
-    "UG157503-00",
-    "UG157504-00",
-    "UG157505-00",
-    "UG157506-00",
-    "UG157507-00",
-    "UG157508-00",
-    "UG157509-00",
-    "UG157510-00",
-    "UG157511-00",
-    "UG157512-00",
-    "UG157513-00",
-    "UG157514-00",
-    "UG157515-00",
-    "UG157516-00",
-    "UG157517-00",
-    "UG157518-00",
-    "UG157519-00",
-    "UG157519-01",
-    "UG157520-00",
-    "UG157521-00",
-    "UG157522-00",
-    "UG157523-00",
-    "UG157524-00",
-    "UG157525-00",
-    "UG157526-00",
-    "UG157527-00",
-    "UG157528-00",
-    "UG157529-00",
-    "UG157530-00",
-    "UG157531-00",
-    "UG157531-01",
-    "UG157532-00",
-    "UG157533-00",
-    "UG157533-01",
-    "UG157533-02",
-    "UG157533-03",
-    "UG157534-00",
-    "UG157535-00",
-    "UG157537-00",
-    "UG157539-00",
-    "UG157542-00",
-    "UG157543-00",
-    "UG157544-00",
-    "UG157545-00",
-    "UG157546-00",
-    "UG157547-00",
-    "UG157221-00",
-    "UG157222-00",
-    "UG157223-00",
-    "UG157224-00",
-    "UG157225-00",
-    "UG157226-00",
-    "UG157227-00",
-    "UG157228-00",
-    "UG157230-00",
-    "UG157231-00",
-    "UG157232-00",
-    "UG157233-00",
-    "UG157234-00",
-    "UG157235-00",
-    "UG157236-00",
-    "UG157573-00",
-    "UG157548-00",
-    "UG157549-00",
-    "UG157550-00",
-    "UG157551-00",
-    "UG157552-00",
-    "UG157553-00",
-    "UG157554-00",
-    "UG157555-00",
-    "UG157556-00",
-    "UG157557-00",
-    "UG157558-00",
-    "UG157559-00",
-    "UG157560-00",
-    "UG157561-00",
-    "UG157562-00",
-    "UG157563-00",
-    "UG157564-00",
-    "UG157565-00",
-    "UG157566-00",
-    "UG157567-00",
-    "UG157568-00",
-    "UG157569-00",
-    "UG157570-00",
-    "UG157571-00",
-    "UG157572-00",
-    "UG157574-00",
-    "UG157575-00",
-    "UG157576-00",
-    "UG157577-00",
-    "UG157578-00",
-    "UG157579-00",
-    "UG157580-00",
-    "UG157581-00",
-    "UG157583-00",
-    "UG157584-00",
-    "UG157586-00",
-    "UG157587-00",
-    "UG157588-00",
-    "UG157589-00",
-    "UG157591-00",
-    "UG157592-00",
-    "UG157593-00",
-    "UG157594-00",
-    "UG157598-00"
-  ]
- 
-  
-  async function processUsersPolicyAARWithAANumber() {
-    // settimeout
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    let count =0
-   
-    for (const member of  arrMembersWithnoPolicy) {
-  
-      let principal = member.replace(/-(\d+)$/, '-00');
-      try {
-        const user = await db.users.findOne({
-          where: {
-            arr_member_number: principal,
-            partner_id: 2,
-          },
-        });
-  
-         let policy = await db.policies.findOne({
-         where: {
+//updatingAARPremium();
+
+
+async function updatePendingPremium() {
+  try {
+
+    let allPaidPolicies = await db.policies.findAll({
+      where: {
         policy_status: 'paid',
         partner_id: 2,
-        user_id: user.user_id
-      }
-    });
-  
-  
-        console.log("user", user.phone_number, policy.policy_number );
-        const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-       let ultimatePremium = policy.total_member_number=="M" ?policy.premium : policy.premium/ (parseInt((policy.total_member_number).split("")[2]) + 1) 
-       const main_benefit_limit =  policy.sum_insured 
-       const last_expense_limit =  policy.last_expense_insured 
-  
-        const requestData = {
-          member_no: member,
-          unique_profile_id: user?.membership_id + "" ||user?.unique_profile_id + "",
-          health_plan: "AIRTEL_" + policy.policy_type,
-          health_option: "64",
-          premium:ultimatePremium,
-          premium_type: policy.installment_type,
-          premium_installment: policy.installment_order || 1,
-          main_benefit_limit: main_benefit_limit,
-          last_expense_limit: last_expense_limit,
-          money_transaction_id: policy.airtel_money_id || "123456789",
-        };
-       console.log("requestData", requestData)
-        const config = {
-          method: 'post',
-          maxBodyLength: Infinity,
-          url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
-          headers: {
-            'Authorization': 'Bearer ' +  'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwNDM1NDEyNiwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.DeS5vyu3w-Wzxe2Zu4JxjAqPHRvinZjgZa4zZh10ytcK2u62lTqpVnVwz1cg7s496UrgM1_D-3_PRXTpn-6DXai3le2BFk0QdZflI4n2vPxOAgODRFDTCELdu7j3rtcVybP5mPbkwumEydc50I72tU0x-3J55zDLyv82BnRsxqH_ZO51Tp9SYhLWIa8NoWca42NyzBGk9UCtlkVNa2bi0b6BeRcnXZgpvDhsZ4de4EOkePQiFoEkbJHoaXLwvLanco5muXCzte9gkR0GA_RceyIhVnsJLTagoGHLQNsnL9UC53yq_7pzOgpbt1GhyhE0pCXqz0BdVYFmoRC4__lYBA',
-            'Content-Type': 'application/json'
-          },
-          data: JSON.stringify(requestData),
-        };
-        const response = await axios.request(config);
-        count++
-        // Add a delay between iterations (adjust the delay time as needed)
-       // await delay(1000);
-        console.log(`Dependant created for user with phone number: ${user.phone_number}, response: ${JSON.stringify(response.data)}`);
-        console.log(count)
-      } catch (error) {
-        console.error(`Error creating dependant for user with :`, error);
-      }
-    }
-  }
-  //processUsersPolicyAARWithAANumber()
-  
-  
-  
-  // Call the function to start the process
-  //getAllUsers();
-  
-  
-  // let payment_amount = [
-  // 10000,
-  // 208000,
-  // 14000,
-  // 10000,
-  // 18000,
-  // 10000,
-  // 10000,
-  // 18000,
-  // 14000,
-  // 14000,
-  // 10000,
-  // 14000,
-  // 40000,
-  // 14000,
-  // 10000,
-  // 10000,
-  // 18000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 14000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 14000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // 10000,
-  // ]
-  
-  // let payment_numbers = [
-  //   701565319,
-  // 707886771,
-  // 700993744,
-  // 703695296,
-  // 757728878,
-  // 701106857,
-  // 754177440,
-  // 700787003,
-  // 702559647,
-  // 759750610,
-  // 709011694,
-  // 707420393,
-  // 751754051,
-  // 742877919,
-  // 755941923,
-  // 700456469,
-  // 707609316,
-  // 759916803,
-  // 702906710,
-  // 754008281,
-  // 707320708,
-  // 754416580,
-  // 759015513,
-  // 702790183,
-  // 707121789,
-  // 701072656,
-  // 702029927,
-  // 700787848,
-  // 759203499,
-  // 742316854,
-  // 742316854,
-  // 759074907,
-  // 709247131,
-  // 700659605,
-  // ]
-  // let combinedPayments = payment_numbers.map((phoneNumber, index) => {
-  //   return {
-  //     phone_number: phoneNumber,
-  //     amount: payment_amount[index],
-  //   };
-  // });
-  
-  // console.log("Combined Payments:", combinedPayments);
-  // //write this  to a file
-  // fs.writeFile('payments.json', JSON.stringify(combinedPayments))
-  //   .then(() => {
-  //     console.log('File written successfully');
-  //   })
-  //   .catch((err: any) => {
-  //     console.error('Error writing file:', err);
-  //   });
-  
-  
-  
-  
-  
-  
-  // async function allPaidPolicies() {
-  //   try {
-  //     let allPaidPolicies = await db.policies.findAll({
-  //       where: {
-  //         policy_status: 'paid',
-  //         partner_id: 2,
-  //         arr_policy_number: null,
-  //       },
-  //       include: [
-  //         {
-  //           model: db.users,
-  //           as: 'user',
-  //         },
-  //       ],
-  //     });
-  
-  //     async function processPolicy(policy) {
-  //       const policy_start_date = policy.policy_start_date;
-  //       const policy_end_date = policy.policy_end_date;
-  //       policy.policy_start_date = policy_start_date;
-  //       policy.policy_end_date = policy_end_date;
-  
-  //       const arr_member = await registerPrincipal(policy.user, policy);
-  //       console.log('arr_member', arr_member);
-  //     }
-  
-  //     async function processPoliciesSequentially() {
-  //       for (const policy of allPaidPolicies) {
-  //         await processPolicy(policy);
-  //         // Wait for 2 seconds before processing the next policy
-  //         await new Promise((resolve) => setTimeout(resolve, 2000));
-  //       }
-  //     }
-  
-  //     // Start processing policies
-  //     await processPoliciesSequentially();
-  
-  //     return 'done';
-  //   } catch (err) {
-  //     console.error('Error:', err);
-  //     return 'error';
-  //   }
-  // }
-  
-  //allPaidPolicies()
-  
-  // async function updatePremiumArr() {
-  //   try {
-  //     let allPaidPolicies = await db.policies.findAll({
-  //       where: {
-  //         policy_status: 'paid',
-  //         partner_id: 2,
-  
-  //       },
-  //       include: [
-  //         {
-  //           model: db.users,
-  //           as: 'user',
-  //         },
-  //       ],
-  //     });
-  
-  //     async function processPolicy(policy) {
-  //       const policy_start_date = policy.policy_start_date;
-  //       const policy_end_date = policy.policy_end_date;
-  //       policy.policy_start_date = policy_start_date;
-  //       policy.policy_end_date = policy_end_date;
-  
-  //       const arr_member = await updatePremium(policy.user, policy);
-  //       console.log('arr_member', arr_member);
-  //     }
-  
-  //     async function processPoliciesSequentially() {
-  //       for (const policy of allPaidPolicies) {
-  //         await processPolicy(policy);
-  //         // Wait for 2 seconds before processing the next policy
-  //         await new Promise((resolve) => setTimeout(resolve, 2000));
-  //       }
-  //     }
-  
-  //     // Start processing policies
-  //     await processPoliciesSequentially();
-  
-  //     return 'done';
-  //   } catch (err) {
-  //     console.error('Error:', err);
-  //     return 'error';
-  //   }
-  // }
-  
-  // let combinedPayments = [
-  //   { "phone_number": 701565319, "amount": 10000 },
-  //   { "phone_number": 707886771, "amount": 208000 },
-  //   { "phone_number": 700993744, "amount": 14000 },
-  //   { "phone_number": 703695296, "amount": 10000 },
-  //   { "phone_number": 757728878, "amount": 18000 },
-  //   { "phone_number": 701106857, "amount": 10000 },
-  //   { "phone_number": 754177440, "amount": 10000 },
-  //   { "phone_number": 700787003, "amount": 18000 },
-  //   { "phone_number": 702559647, "amount": 14000 },
-  //   { "phone_number": 759750610, "amount": 14000 },
-  //   { "phone_number": 709011694, "amount": 10000 },
-  //   { "phone_number": 707420393, "amount": 14000 },
-  //   { "phone_number": 751754051, "amount": 40000 },
-  //   { "phone_number": 742877919, "amount": 14000 },
-  //   { "phone_number": 755941923, "amount": 10000 },
-  //   { "phone_number": 700456469, "amount": 10000 },
-  //   { "phone_number": 707609316, "amount": 18000 },
-  //   { "phone_number": 759916803, "amount": 10000 },
-  //   { "phone_number": 702906710, "amount": 10000 },
-  //   { "phone_number": 754008281, "amount": 10000 },
-  //   { "phone_number": 707320708, "amount": 10000 },
-  //   { "phone_number": 754416580, "amount": 10000 },
-  //   { "phone_number": 759015513, "amount": 10000 },
-  //   { "phone_number": 702790183, "amount": 10000 },
-  //   { "phone_number": 707121789, "amount": 10000 },
-  //   { "phone_number": 701072656, "amount": 14000 },
-  //   { "phone_number": 702029927, "amount": 10000 },
-  //   { "phone_number": 700787848, "amount": 10000 },
-  //   { "phone_number": 759203499, "amount": 10000 },
-  //   { "phone_number": 742316854, "amount": 14000 },
-  //   { "phone_number": 742316854, "amount": 10000 },
-  //   { "phone_number": 759074907, "amount": 10000 },
-  //   { "phone_number": 709247131, "amount": 10000 },
-  //   { "phone_number": 700659605, "amount": 10000 }
-  // ]
-  
-  
-  // let policies = [];
-  // // Function to handle errors during database operations
-  // const handleDbError = (error, phoneNumber, amount) => {
-  //   console.error(`Error processing payment (${phoneNumber}, ${amount}):`, error);
-  
-  //   // Save the phone_number and amount to a file
-  //   const errorLog = {
-  //     phone_number: phoneNumber,
-  //     amount: amount,
-  //     error: error.message,
-  //   };
-  
-  //   fs.writeFile('error_log.json', JSON.stringify(errorLog), { flag: 'a' })
-  //     .then(() => console.log('Error logged to file'))
-  //     .catch((writeError) => console.error('Error writing error log to file:', writeError));
-  // };
-  
-  // Process combinedPayments array with delays
-  // const processPayments = async () => {
-  //   for (const payment of combinedPayments) {
-  //     try {
-  //       let user = await db.users.findOne({
-  //         where: {
-  //           phone_number: payment.phone_number.toString(),
-  //         },
-  //       });
-  
-  //       let userPolicies = await db.policies.findAll({
-  //         where: {
-  //           user_id: user.user_id,// Handle the case where user is not found
-  //           premium: payment.amount,
-  //         },
-  //       });
-  
-  //       // Add the policies for the current user to the overall policies array
-  //       policies.push(...userPolicies);
-  //     } catch (error) {
-  //       // Handle errors during database operations
-  //       handleDbError(error, payment.phone_number, payment.amount);
-  //     }
-  //   }
-  // };
-  
-  // // Process payments with delays
-  // processPayments()
-  //   .then(async () => {
-  //     // Update policy_status to paid for policies with delays
-  //     for (const policy of policies) {
-  //       try {
-  //         // Update policy_status to 'paid' for policies
-  //         console.log("POLICY", policy.phone_number);
-  //         await db.policies.update(
-  //           { policy_status: 'paid' },
-  //           { where: { policy_id: policy.policy_id } }
-  //         );
-  
-  //         // Update payment_status to 'paid' for corresponding payments
-  //         await db.payments.update(
-  //           { payment_status: 'paid' },
-  //           { where: { policy_id: policy.policy_id } }
-  //         );
-  
-  //         // Add a delay between updates
-  //         await new Promise(resolve => setTimeout(resolve, 1000)); // 1000ms delay (adjust as needed)
-  //       } catch (error) {
-  //         // Handle errors during database updates
-  //         handleDbError(error, policy.phone_number, policy.amount);
-  //       }
-  //     }
-  //   })
-  //   .then(async () => {
-  //     // Write the policies to a file with a delay
-  //     await new Promise(resolve => setTimeout(resolve, 1000)); // 1000ms delay (adjust as needed)
-  //     await fs.writeFile('all_paid_policies.json', JSON.stringify(policies));
-  //     console.log('File written successfully');
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error processing payments:", error);
-  //   });
-  
-  
-  // let policies_not_counted_for = [];
-  
-  // db.policies.findAll({
-  //   where: {
-  //     policy_status: 'paid',
-  //   },
-  // }).then((policies: any) => {
-  //   // Function to update a policy with a delay
-  //   const updatePolicyWithDelay = async (policy: any) => {
-  //     let policyObj = {
-  //       phone_number: policy.phone_number,
-  //       amount: policy.premium,
-  //     };
-  
-  //     if (!combinedPayments.includes(policyObj)) {
-  //       await db.policies.update(
-  //         { policy_status: 'pending' },
-  //         { where: { policy_id: policy.policy_id } }
-  //       );
-  //       policies_not_counted_for.push(policyObj);
-  //     }
-  //   };
-  
-  //   // Set a delay of 1000 milliseconds (1 second) between updates
-  //   const delay = 1000;
-  
-  //   // Iterate through policies with a delay
-  //   policies.forEach((policy: any, index: number) => {
-  //     setTimeout(() => {
-  //       updatePolicyWithDelay(policy);
-  //     }, index * delay);
-  //   });
-  // });
-  
-  
-  // updatePremiumArr()
-  
-  // update number_of_policies in users table with the number of paid policies a user has
-  // async function updateNumberOfPolicies() {
-  //   try {
-  //     // Fetch all users with partner_id = 2
-  //     const users = await db.users.findAll({
-  //       where: {
-  //         partner_id: 2,
-  //       },
-  //     });
-  
-  //     // Iterate over each user
-  //     for (const user of users) {
-  //       try {
-  //         // Fetch all paid policies for the current user
-  //         const policies = await db.policies.findAndCountAll({
-  //           where: {
-  //             user_id: user.user_id,
-  //             policy_status: 'paid',
-  //           },
-  //         });
-  
-  //         // Update the user with the number of policies
-  //         await db.users.update(
-  //           { number_of_policies: policies.count },
-  //           { where: { user_id: user.user_id } }
-  //         );
-  //       } catch (policyError) {
-  //         console.error(policyError);
-  //       }
-  //     }
-  //   } catch (userError) {
-  //     console.error(userError);
-  //   }
-  // }
-  
-  // Call the function
-  //updateNumberOfPolicies();
-  
-  
-  // RENEWAL
-  // async function sendPolicyAnniversaryReminders() {
-  //   const query = `
-  //     SELECT *
-  //     FROM policies
-  //     WHERE 
-  //       DATE_PART('year', policy_start_date) = DATE_PART('year', CURRENT_DATE)
-  //       AND DATE_PART('month', policy_start_date) = DATE_PART('month', CURRENT_DATE)
-  //       AND EXTRACT(DAY FROM policy_start_date) = EXTRACT(DAY FROM CURRENT_DATE) - 3
-  //       AND policy_status = 'paid'
-  //       AND partner_id = 2`;
-  
-  //   const policies = await db.sequelize.query(query, { type: QueryTypes.SELECT });
-  
-  //   console.log("POLICIES", policies.length);
-  
-  //   policies.forEach(async (policy) => {
-  //     const { policy_start_date, premium, policy_type, phone_number, beneficiary } = policy;
-  
-  //     const message = `Your monthly premium payment for ${beneficiary} ${policy_type} Medical cover of UGX ${premium} is DUE in 3-days on ${policy_start_date.toDateString()}.`;
-  
-  //     console.log("MESSAGE", message);
-  
-  //     // Call the function to send an SMS
-  //     await SMSMessenger.sendSMS(phone_number, message);
-  //   });
-  
-  //   return policies;
-  // }
-  
-  
-  //Call the function to send policy anniversary reminders
-  //sendPolicyAnniversaryReminders();
-  
-  // let all_phone_numbers= [
-  
-  // 700860551
-  // 703571290
-  // 704201991
-  // 701237357
-  
-  // ]
-  
-  
-  // Count occurrences of each phone number
-  //const length = all_phone_numbers.length;
-  // console.log("LENGTH",length)
-  // const phoneNumbersCount = all_phone_numbers.reduce((countMap, phoneNumber) => {
-  //   countMap[phoneNumber] = (countMap[phoneNumber] || 0) + 1;
-  //   return countMap;
-  // }, {});
-  
-  // // Filter out phone numbers with count less than 2 (not repeated)
-  // const repeatedPhoneNumbers = Object.keys(phoneNumbersCount).filter(
-  //   (phoneNumber) => phoneNumbersCount[phoneNumber] > 1
-  // );
-  
-  // // Display repeated phone numbers and their counts
-  // repeatedPhoneNumbers.forEach((phoneNumber) => {
-  //   const count = phoneNumbersCount[phoneNumber];
-  //   console.log(`Phone Number: ${phoneNumber}, Repeated ${count} times`);
-  // });
-  
-  // Phone Number: 700787003, Repeated 2 times
-  // Phone Number: 701785673, Repeated 2 times
-  // Phone Number: 702422135, Repeated 2 times
-  // Phone Number: 704046796, Repeated 2 times
-  // Phone Number: 704703905, Repeated 2 times
-  // Phone Number: 707546356, Repeated 2 times
-  // Phone Number: 707594526, Repeated 3 times
-  // Phone Number: 740305224, Repeated 2 times
-  // Phone Number: 740581613, Repeated 2 times
-  // Phone Number: 740719927, Repeated 2 times
-  // Phone Number: 740868993, Repeated 2 times
-  // Phone Number: 741206226, Repeated 2 times
-  // Phone Number: 742316854, Repeated 2 times
-  // Phone Number: 743105154, Repeated 2 times
-  // Phone Number: 743797986, Repeated 3 times
-  // Phone Number: 751511450, Repeated 2 times
-  // Phone Number: 752322768, Repeated 2 times
-  // Phone Number: 754177440, Repeated 2 times
-  // Phone Number: 755326045, Repeated 2 times
-  // Phone Number: 758653832, Repeated 2 times
-  // Phone Number: 759349269, Repeated 2 times
-  
-  
-  //policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
-  // async function generatePolicyNumber() {
-  
-  //   let allPolicies = await db.policies.findAll({
-  //     where: {
-  //       policy_status: 'paid',
-  
-  //     },
-  
-  
-  //   });
-  //   console.log("ALL POLICIES", allPolicies.length)
-  //   for (let policy of allPolicies) {
-  //     console.log("POLICY", policy.phone_number)
-  //     let policy_number = "BW" + policy.phone_number?.replace('+', "")?.substring(3)
-  //     await db.policies.update(
-  //       { policy_number: policy_number },
-  //       { where: { policy_id: policy.policy_id } }
-  //     );
-  //   }
-  // }
-  
-  
-  
-  
-  // async function sendWelcomeSMS() {
-  //   try {
-  //     let delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-  //     console.log("i was called")
-    
-  //     let count = 0
-  //     let allUsers = await db.users.findAll(
-  //       {
-  //         where: {
-  //           partner_id: 2,
-  //         }
-  //       }
-  //     )
-      
-  // console.log("ALL USERS", allUsers.length)
-  
-  //     for (let user of allUsers) {
-  //       console.log(user.name, user.user_id)
-  
-  //         let lowFundsMessage = 'Low on cash? You can now purchase Ddwaliro Care using Airtel Quickloan. Dial *185*6*7# to learn more and get covered.'
-  
-  //         //let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
-  //         await SMSMessenger.sendSMS(`+256${user.phone_number}`, lowFundsMessage);
-  //         console.log("SENT TO", user.phone_number, count)
-  //         delay(1000)
-        
-  //     }
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
-  // }
-  
-  //sendWelcomeSMS()
-  
-  
-  async function getUsersWithoutPolicyAndSendSMS() {
-    try {
-      // Find users without policies
-      const usersWithoutPolicy = await db.users.findAll({
-        where: {
-          // Assuming there's a foreign key relationship between users and policies
-          // Adjust the condition based on your database schema
-          '$policies.policy_id$': null,
+      },
+      include: [
+        {
+          model: db.users,
+          as: 'user',
         },
-        include: [
-          {
-            model: db.policies,
-            as: 'policies',
-            required: false,
+      ],
+    });
+
+    for (const policy of allPaidPolicies) {
+      let pending_premium = policy.yearly_premium - policy.premium
+      let updatedPolicy = await db.policies.update(
+        { policy_pending_premium: pending_premium },
+        { where: { policy_id: policy.policy_id } }
+      );
+      console.log("updatedPolicy", updatedPolicy)
+      await db.users.update(
+        { number_of_policies: 1 },
+        {
+          where: {
+            user_id: policy.user_id,
+            partner_id: 2,
+            number_of_policies: 0
+          }
+        }
+      );
+    }
+
+  } catch (error) {
+
+  }
+}
+
+
+async function processUsersPolicyAAR() {
+  // settimeout
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let count = 0
+  let policies = await db.policies.findAll({
+    where: {
+      policy_status: 'paid',
+    }
+  });
+  for (const policy of policies) {
+    try {
+      const user = await db.users.findOne({
+        where: {
+          arr_member_number: {
+            [db.Sequelize.Op.not]: null,
           },
-        ],
+          partner_id: 2,
+          user_id: policy.user_id,
+        },
       });
-  
-      // Send SMS to each user without a policy
-      for (const user of usersWithoutPolicy) {
-        let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
-        await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
-       
+      if (!user) {
+        console.log("NO USER FOUND");
+        continue
       }
-  
-      console.log('SMS sent to users without policies.');
+
+
+      console.log("user", user.phone_number);
+
+      await updatePremium(user, policy);
+      count++
+      // Add a delay between iterations (adjust the delay time as needed)
+      // await delay(1000);
+      console.log(`Dependant created for user with phone number: ${user.phone_number}`);
+      console.log(count)
     } catch (error) {
-      console.error('Error:', error);
+      console.error(`Error creating dependant for user with phone number ${policy.phone_number}:`, error);
     }
   }
-  
-  // Call the function to get users without policies and send SMS
-  //getUsersWithoutPolicyAndSendSMS();
-  
-  
-  
-  async function getUsersWithPendingPoliciesAndSendSMS() {
+}
+
+//processUsersPolicyAAR()
+
+let arrMembersWithnoPolicy = [
+
+  "UG155285-00",
+  "UG155285-01",
+  "UG155285-02",
+  "UG156206-02",
+  "UG155848-05",
+  "UG155848-06",
+  "UG155848-07",
+  "UG155848-08",
+  "UG155903-03",
+  "UG155903-04",
+  "UG155943-07",
+  "UG155943-08",
+  "UG155943-09",
+  "UG155943-10",
+  "UG155943-11",
+  "UG155943-12",
+  "UG155945-02",
+  "UG155950-02",
+  "UG155953-02",
+  "UG155962-03",
+  "UG155962-04",
+  "UG156212-04",
+  "UG156212-05",
+  "UG156212-06",
+  "UG156207-04",
+  "UG156207-05",
+  "UG156207-06",
+  "UG156252-00",
+  "UG156253-00",
+  "UG156254-00",
+  "UG156255-00",
+  "UG156256-00",
+  "UG156257-00",
+  "UG156258-00",
+  "UG156259-00",
+  "UG156260-00",
+  "UG156261-00",
+  "UG156262-00",
+  "UG156263-00",
+  "UG156264-00",
+  "UG156265-00",
+  "UG156266-00",
+  "UG156267-00",
+  "UG156268-00",
+  "UG156269-00",
+  "UG156270-00",
+  "UG156271-00",
+  "UG156272-00",
+  "UG156273-00",
+  "UG156274-00",
+  "UG156275-00",
+  "UG156276-00",
+  "UG156277-00",
+  "UG156278-00",
+  "UG156279-00",
+  "UG156280-00",
+  "UG156281-00",
+  "UG156282-00",
+  "UG156283-00",
+  "UG156284-00",
+  "UG156285-00",
+  "UG156285-01",
+  "UG156286-00",
+  "UG156286-01",
+  "UG156287-00",
+  "UG156288-00",
+  "UG156288-01",
+  "UG156288-02",
+  "UG156293-00",
+  "UG156293-01",
+  "UG156293-02",
+  "UG156294-00",
+  "UG155818-00",
+  "UG155819-00",
+  "UG155820-00",
+  "UG155821-00",
+  "UG155822-00",
+  "UG155823-00",
+  "UG155824-00",
+  "UG155825-00",
+  "UG155826-00",
+  "UG155827-00",
+  "UG155828-00",
+  "UG155829-00",
+  "UG155830-00",
+  "UG155831-00",
+  "UG155832-00",
+  "UG155833-00",
+  "UG155834-00",
+  "UG155835-00",
+  "UG155836-00",
+  "UG155837-00",
+  "UG155838-00",
+  "UG155839-00",
+  "UG155840-00",
+  "UG155841-00",
+  "UG155842-00",
+  "UG155843-00",
+  "UG155844-00",
+  "UG155845-00",
+  "UG155846-00",
+  "UG155847-00",
+  "UG155848-00",
+  "UG155849-00",
+  "UG155850-00",
+  "UG155851-00",
+  "UG155852-00",
+  "UG155853-00",
+  "UG155854-00",
+  "UG155855-00",
+  "UG155856-00",
+  "UG155857-00",
+  "UG155858-00",
+  "UG155859-00",
+  "UG155860-00",
+  "UG155861-00",
+  "UG155862-00",
+  "UG155863-00",
+  "UG155864-00",
+  "UG155865-00",
+  "UG155866-00",
+  "UG155867-00",
+  "UG155868-00",
+  "UG155869-00",
+  "UG155870-00",
+  "UG155871-00",
+  "UG155872-00",
+  "UG155873-00",
+  "UG155874-00",
+  "UG155875-00",
+  "UG155876-00",
+  "UG155877-00",
+  "UG155878-00",
+  "UG155879-00",
+  "UG155880-00",
+  "UG155881-00",
+  "UG155882-00",
+  "UG155883-00",
+  "UG155884-00",
+  "UG155885-00",
+  "UG155886-00",
+  "UG155887-00",
+  "UG155888-00",
+  "UG155889-00",
+  "UG155890-00",
+  "UG155891-00",
+  "UG155892-00",
+  "UG155893-00",
+  "UG155894-00",
+  "UG155895-00",
+  "UG155896-00",
+  "UG155897-00",
+  "UG155898-00",
+  "UG155899-00",
+  "UG155900-00",
+  "UG155901-00",
+  "UG155902-00",
+  "UG155903-00",
+  "UG155904-00",
+  "UG155905-00",
+  "UG155906-00",
+  "UG155907-00",
+  "UG155908-00",
+  "UG155909-00",
+  "UG155910-00",
+  "UG155911-00",
+  "UG155912-00",
+  "UG155913-00",
+  "UG155914-00",
+  "UG155915-00",
+  "UG155916-00",
+  "UG155917-00",
+  "UG155918-00",
+  "UG155919-00",
+  "UG155920-00",
+  "UG155921-00",
+  "UG155922-00",
+  "UG155923-00",
+  "UG155924-00",
+  "UG155925-00",
+  "UG155926-00",
+  "UG155927-00",
+  "UG155928-00",
+  "UG155929-00",
+  "UG155930-00",
+  "UG155931-00",
+  "UG155932-00",
+  "UG155933-00",
+  "UG155934-00",
+  "UG155935-00",
+  "UG155936-00",
+  "UG155937-00",
+  "UG155938-00",
+  "UG155939-00",
+  "UG155940-00",
+  "UG155941-00",
+  "UG155942-00",
+  "UG155943-00",
+  "UG155944-00",
+  "UG155945-00",
+  "UG155946-00",
+  "UG155947-00",
+  "UG155948-00",
+  "UG155949-00",
+  "UG155950-00",
+  "UG155951-00",
+  "UG155952-00",
+  "UG155953-00",
+  "UG155954-00",
+  "UG155955-00",
+  "UG155956-00",
+  "UG155957-00",
+  "UG155958-00",
+  "UG155959-00",
+  "UG155960-00",
+  "UG155961-00",
+  "UG155962-00",
+  "UG155963-00",
+  "UG155964-00",
+  "UG155965-00",
+  "UG155966-00",
+  "UG155967-00",
+  "UG155968-00",
+  "UG155969-00",
+  "UG155970-00",
+  "UG155971-00",
+  "UG155972-00",
+  "UG155973-00",
+  "UG155974-00",
+  "UG155975-00",
+  "UG155976-00",
+  "UG155977-00",
+  "UG155978-00",
+  "UG155979-00",
+  "UG155980-00",
+  "UG155981-00",
+  "UG155982-00",
+  "UG155983-00",
+  "UG155984-00",
+  "UG155985-00",
+  "UG155986-00",
+  "UG155987-00",
+  "UG155988-00",
+  "UG155989-00",
+  "UG155990-00",
+  "UG155991-00",
+  "UG155992-00",
+  "UG155993-00",
+  "UG155994-00",
+  "UG155995-00",
+  "UG155996-00",
+  "UG155997-00",
+  "UG155998-00",
+  "UG155999-00",
+  "UG156000-00",
+  "UG156001-00",
+  "UG156002-00",
+  "UG156003-00",
+  "UG156004-00",
+  "UG156005-00",
+  "UG156006-00",
+  "UG156007-00",
+  "UG156008-00",
+  "UG156009-00",
+  "UG156010-00",
+  "UG156011-00",
+  "UG156012-00",
+  "UG156013-00",
+  "UG156014-00",
+  "UG156015-00",
+  "UG156016-00",
+  "UG156017-00",
+  "UG156018-00",
+  "UG156019-00",
+  "UG156020-00",
+  "UG156021-00",
+  "UG156022-00",
+  "UG156023-00",
+  "UG156024-00",
+  "UG156025-00",
+  "UG156026-00",
+  "UG156027-00",
+  "UG156028-00",
+  "UG156029-00",
+  "UG156030-00",
+  "UG156031-00",
+  "UG156032-00",
+  "UG156033-00",
+  "UG156034-00",
+  "UG156035-00",
+  "UG156036-00",
+  "UG156037-00",
+  "UG156038-00",
+  "UG156039-00",
+  "UG156040-00",
+  "UG156041-00",
+  "UG156042-00",
+  "UG156043-00",
+  "UG156044-00",
+  "UG156045-00",
+  "UG156046-00",
+  "UG156047-00",
+  "UG156048-00",
+  "UG156049-00",
+  "UG156050-00",
+  "UG156051-00",
+  "UG156052-00",
+  "UG156053-00",
+  "UG156054-00",
+  "UG156055-00",
+  "UG156056-00",
+  "UG156057-00",
+  "UG156058-00",
+  "UG156059-00",
+  "UG156060-00",
+  "UG156061-00",
+  "UG156062-00",
+  "UG156063-00",
+  "UG156064-00",
+  "UG156065-00",
+  "UG156066-00",
+  "UG156067-00",
+  "UG156068-00",
+  "UG156069-00",
+  "UG156070-00",
+  "UG156071-00",
+  "UG156072-00",
+  "UG156073-00",
+  "UG156074-00",
+  "UG156075-00",
+  "UG156076-00",
+  "UG156077-00",
+  "UG156078-00",
+  "UG156079-00",
+  "UG156080-00",
+  "UG156081-00",
+  "UG156082-00",
+  "UG156083-00",
+  "UG156084-00",
+  "UG156085-00",
+  "UG156086-00",
+  "UG156087-00",
+  "UG156088-00",
+  "UG156089-00",
+  "UG156090-00",
+  "UG156091-00",
+  "UG156092-00",
+  "UG156093-00",
+  "UG156094-00",
+  "UG156095-00",
+  "UG156096-00",
+  "UG156097-00",
+  "UG156098-00",
+  "UG156099-00",
+  "UG156100-00",
+  "UG156101-00",
+  "UG156102-00",
+  "UG156103-00",
+  "UG156104-00",
+  "UG156105-00",
+  "UG156106-00",
+  "UG156107-00",
+  "UG156108-00",
+  "UG156109-00",
+  "UG156110-00",
+  "UG156111-00",
+  "UG156112-00",
+  "UG156113-00",
+  "UG156114-00",
+  "UG156115-00",
+  "UG156116-00",
+  "UG156117-00",
+  "UG156118-00",
+  "UG156119-00",
+  "UG156120-00",
+  "UG156121-00",
+  "UG155848-01",
+  "UG155848-02",
+  "UG155848-03",
+  "UG155848-04",
+  "UG155857-01",
+  "UG155863-01",
+  "UG155863-02",
+  "UG155872-01",
+  "UG155903-01",
+  "UG155903-02",
+  "UG155916-01",
+  "UG155916-02",
+  "UG155916-03",
+  "UG155919-01",
+  "UG155919-02",
+  "UG155919-03",
+  "UG155919-04",
+  "UG155919-05",
+  "UG155919-06",
+  "UG155935-01",
+  "UG155935-02",
+  "UG155943-01",
+  "UG155943-02",
+  "UG155943-03",
+  "UG155943-04",
+  "UG155943-05",
+  "UG155943-06",
+  "UG155944-01",
+  "UG155944-02",
+  "UG155945-01",
+  "UG155946-01",
+  "UG155946-02",
+  "UG155818-01",
+  "UG155818-02",
+  "UG155818-03",
+  "UG155818-04",
+  "UG155818-05",
+  "UG155818-06",
+  "UG155947-01",
+  "UG155948-01",
+  "UG155948-02",
+  "UG155948-03",
+  "UG155948-04",
+  "UG155948-05",
+  "UG155948-06",
+  "UG155820-01",
+  "UG155949-01",
+  "UG155949-02",
+  "UG155950-01",
+  "UG155953-01",
+  "UG155954-01",
+  "UG155955-01",
+  "UG155956-01",
+  "UG155957-01",
+  "UG155957-02",
+  "UG155957-03",
+  "UG155959-01",
+  "UG155959-02",
+  "UG155960-01",
+  "UG155960-02",
+  "UG155960-03",
+  "UG155960-04",
+  "UG155960-05",
+  "UG155960-06",
+  "UG155961-01",
+  "UG155962-01",
+  "UG155962-02",
+  "UG155963-01",
+  "UG155963-02",
+  "UG155963-03",
+  "UG155964-01",
+  "UG155965-01",
+  "UG155965-02",
+  "UG155968-01",
+  "UG155967-01",
+  "UG155967-02",
+  "UG155969-01",
+  "UG155969-02",
+  "UG155969-03",
+  "UG155969-04",
+  "UG155970-01",
+  "UG155970-02",
+  "UG155819-01",
+  "UG155819-02",
+  "UG155819-03",
+  "UG155819-04",
+  "UG155819-05",
+  "UG156122-00",
+  "UG156129-00",
+  "UG156129-01",
+  "UG156129-02",
+  "UG156132-00",
+  "UG156134-00",
+  "UG156134-01",
+  "UG156148-00",
+  "UG156149-00",
+  "UG156149-01",
+  "UG156149-02",
+  "UG156150-00",
+  "UG156150-01",
+  "UG156150-02",
+  "UG156151-00",
+  "UG156151-01",
+  "UG156151-02",
+  "UG156152-00",
+  "UG156152-01",
+  "UG156152-02",
+  "UG156152-03",
+  "UG156159-00",
+  "UG156174-00",
+  "UG156176-00",
+  "UG156177-00",
+  "UG156178-00",
+  "UG156178-01",
+  "UG156179-00",
+  "UG156179-01",
+  "UG156180-00",
+  "UG156180-01",
+  "UG156180-02",
+  "UG156180-03",
+  "UG156180-04",
+  "UG156180-05",
+  "UG156187-00",
+  "UG156188-00",
+  "UG156188-01",
+  "UG156188-02",
+  "UG156189-00",
+  "UG156190-00",
+  "UG156190-01",
+  "UG156206-00",
+  "UG156206-01",
+  "UG156207-00",
+  "UG156207-01",
+  "UG156207-02",
+  "UG156207-03",
+  "UG156212-00",
+  "UG156212-01",
+  "UG156212-02",
+  "UG156212-03",
+  "UG156224-00",
+  "UG156224-01",
+  "UG156225-00",
+  "UG156225-01",
+  "UG156225-02",
+  "UG156225-03",
+  "UG156225-04",
+  "UG156225-05",
+  "UG156225-06",
+  "UG156226-00",
+  "UG156227-00",
+  "UG156232-00",
+  "UG156232-01",
+  "UG156233-00",
+  "UG156234-00",
+  "UG156645-00",
+  "UG156645-01",
+  "UG156645-02",
+  "UG156669-00",
+  "UG156670-00",
+  "UG156671-00",
+  "UG156672-00",
+  "UG156673-00",
+  "UG156674-00",
+  "UG156675-00",
+  "UG156676-00",
+  "UG156677-00",
+  "UG156678-00",
+  "UG156679-00",
+  "UG156680-00",
+  "UG156681-00",
+  "UG156682-00",
+  "UG156683-00",
+  "UG156684-00",
+  "UG156685-00",
+  "UG156686-00",
+  "UG156687-00",
+  "UG156688-00",
+  "UG156689-00",
+  "UG156690-00",
+  "UG156691-00",
+  "UG156692-00",
+  "UG156693-00",
+  "UG156694-00",
+  "UG156695-00",
+  "UG156696-00",
+  "UG156697-00",
+  "UG156698-00",
+  "UG156699-00",
+  "UG156700-00",
+  "UG156701-00",
+  "UG156702-00",
+  "UG156703-00",
+  "UG156704-00",
+  "UG156705-00",
+  "UG156706-00",
+  "UG156707-00",
+  "UG156708-00",
+  "UG156709-00",
+  "UG156710-00",
+  "UG156711-00",
+  "UG156712-00",
+  "UG156713-00",
+  "UG156714-00",
+  "UG156715-00",
+  "UG156716-00",
+  "UG156717-00",
+  "UG156718-00",
+  "UG156719-00",
+  "UG156720-00",
+  "UG156721-00",
+  "UG156722-00",
+  "UG156723-00",
+  "UG156724-00",
+  "UG156725-00",
+  "UG156726-00",
+  "UG156727-00",
+  "UG156728-00",
+  "UG156729-00",
+  "UG156730-00",
+  "UG156731-00",
+  "UG156732-00",
+  "UG156733-00",
+  "UG156734-00",
+  "UG156735-00",
+  "UG156736-00",
+  "UG156737-00",
+  "UG156738-00",
+  "UG156739-00",
+  "UG156740-00",
+  "UG156741-00",
+  "UG156742-00",
+  "UG156743-00",
+  "UG156744-00",
+  "UG156745-00",
+  "UG156746-00",
+  "UG156747-00",
+  "UG156748-00",
+  "UG156749-00",
+  "UG156750-00",
+  "UG156751-00",
+  "UG156752-00",
+  "UG156753-00",
+  "UG156754-00",
+  "UG156755-00",
+  "UG156756-00",
+  "UG156757-00",
+  "UG156758-00",
+  "UG156759-00",
+  "UG156760-00",
+  "UG156761-00",
+  "UG156762-00",
+  "UG156763-00",
+  "UG156764-00",
+  "UG156765-00",
+  "UG156766-00",
+  "UG156767-00",
+  "UG156768-00",
+  "UG156769-00",
+  "UG156770-00",
+  "UG156771-00",
+  "UG156772-00",
+  "UG156773-00",
+  "UG156774-00",
+  "UG156775-00",
+  "UG156776-00",
+  "UG156777-00",
+  "UG156778-00",
+  "UG156779-00",
+  "UG156780-00",
+  "UG156781-00",
+  "UG156782-00",
+  "UG156783-00",
+  "UG156784-00",
+  "UG156785-00",
+  "UG156786-00",
+  "UG156787-00",
+  "UG156788-00",
+  "UG156789-00",
+  "UG156790-00",
+  "UG156791-00",
+  "UG156792-00",
+  "UG156793-00",
+  "UG156794-00",
+  "UG156795-00",
+  "UG156796-00",
+  "UG156797-00",
+  "UG156798-00",
+  "UG156799-00",
+  "UG156800-00",
+  "UG156801-00",
+  "UG156802-00",
+  "UG156803-00",
+  "UG156804-00",
+  "UG156805-00",
+  "UG156806-00",
+  "UG156807-00",
+  "UG156808-00",
+  "UG156809-00",
+  "UG156810-00",
+  "UG156811-00",
+  "UG156812-00",
+  "UG156813-00",
+  "UG156814-00",
+  "UG156815-00",
+  "UG156816-00",
+  "UG156817-00",
+  "UG156818-00",
+  "UG156819-00",
+  "UG156820-00",
+  "UG156821-00",
+  "UG156822-00",
+  "UG156823-00",
+  "UG156824-00",
+  "UG156825-00",
+  "UG156826-00",
+  "UG156827-00",
+  "UG156828-00",
+  "UG156829-00",
+  "UG156830-00",
+  "UG156831-00",
+  "UG156832-00",
+  "UG156833-00",
+  "UG156834-00",
+  "UG156835-00",
+  "UG156836-00",
+  "UG156837-00",
+  "UG156838-00",
+  "UG156839-00",
+  "UG156840-00",
+  "UG156841-00",
+  "UG156842-00",
+  "UG156843-00",
+  "UG156844-00",
+  "UG156845-00",
+  "UG156846-00",
+  "UG156847-00",
+  "UG156848-00",
+  "UG156849-00",
+  "UG156850-00",
+  "UG156851-00",
+  "UG156852-00",
+  "UG156853-00",
+  "UG156854-00",
+  "UG156855-00",
+  "UG156856-00",
+  "UG156857-00",
+  "UG156858-00",
+  "UG156859-00",
+  "UG156860-00",
+  "UG156861-00",
+  "UG156862-00",
+  "UG156863-00",
+  "UG156864-00",
+  "UG156865-00",
+  "UG156866-00",
+  "UG156867-00",
+  "UG156868-00",
+  "UG156869-00",
+  "UG156870-00",
+  "UG156871-00",
+  "UG156872-00",
+  "UG156873-00",
+  "UG156874-00",
+  "UG156875-00",
+  "UG156876-00",
+  "UG156877-00",
+  "UG156878-00",
+  "UG156879-00",
+  "UG156880-00",
+  "UG156881-00",
+  "UG156882-00",
+  "UG156883-00",
+  "UG156884-00",
+  "UG156885-00",
+  "UG156886-00",
+  "UG156887-00",
+  "UG156888-00",
+  "UG156889-00",
+  "UG156890-00",
+  "UG156891-00",
+  "UG156892-00",
+  "UG156893-00",
+  "UG156894-00",
+  "UG156895-00",
+  "UG156896-00",
+  "UG156897-00",
+  "UG156898-00",
+  "UG156899-00",
+  "UG156900-00",
+  "UG156901-00",
+  "UG156902-00",
+  "UG156903-00",
+  "UG156904-00",
+  "UG156905-00",
+  "UG156906-00",
+  "UG156907-00",
+  "UG156908-00",
+  "UG156909-00",
+  "UG156910-00",
+  "UG156911-00",
+  "UG156912-00",
+  "UG156913-00",
+  "UG156914-00",
+  "UG156915-00",
+  "UG156916-00",
+  "UG156917-00",
+  "UG156918-00",
+  "UG156919-00",
+  "UG156920-00",
+  "UG156921-00",
+  "UG156922-00",
+  "UG156923-00",
+  "UG156924-00",
+  "UG156925-00",
+  "UG156926-00",
+  "UG156927-00",
+  "UG156928-00",
+  "UG156929-00",
+  "UG156930-00",
+  "UG156931-00",
+  "UG156932-00",
+  "UG156933-00",
+  "UG156934-00",
+  "UG156935-00",
+  "UG156936-00",
+  "UG156937-00",
+  "UG156938-00",
+  "UG156939-00",
+  "UG156940-00",
+  "UG156941-00",
+  "UG156942-00",
+  "UG156943-00",
+  "UG156944-00",
+  "UG156945-00",
+  "UG156946-00",
+  "UG156947-00",
+  "UG156948-00",
+  "UG156949-00",
+  "UG156950-00",
+  "UG156951-00",
+  "UG156952-00",
+  "UG156953-00",
+  "UG156954-00",
+  "UG156955-00",
+  "UG156956-00",
+  "UG156957-00",
+  "UG156958-00",
+  "UG156959-00",
+  "UG156960-00",
+  "UG156961-00",
+  "UG156962-00",
+  "UG156963-00",
+  "UG156964-00",
+  "UG156965-00",
+  "UG156966-00",
+  "UG156967-00",
+  "UG156968-00",
+  "UG156969-00",
+  "UG156970-00",
+  "UG156971-00",
+  "UG156972-00",
+  "UG156973-00",
+  "UG156974-00",
+  "UG156975-00",
+  "UG156976-00",
+  "UG156977-00",
+  "UG156978-00",
+  "UG156979-00",
+  "UG156980-00",
+  "UG156981-00",
+  "UG156982-00",
+  "UG156983-00",
+  "UG156984-00",
+  "UG156985-00",
+  "UG156986-00",
+  "UG156987-00",
+  "UG156988-00",
+  "UG156989-00",
+  "UG156990-00",
+  "UG156991-00",
+  "UG156992-00",
+  "UG156993-00",
+  "UG156994-00",
+  "UG156995-00",
+  "UG156996-00",
+  "UG156997-00",
+  "UG156998-00",
+  "UG156999-00",
+  "UG157000-00",
+  "UG157001-00",
+  "UG157002-00",
+  "UG157003-00",
+  "UG157004-00",
+  "UG157005-00",
+  "UG157006-00",
+  "UG157007-00",
+  "UG157008-00",
+  "UG157009-00",
+  "UG157010-00",
+  "UG157011-00",
+  "UG157012-00",
+  "UG157013-00",
+  "UG157014-00",
+  "UG157015-00",
+  "UG157016-00",
+  "UG157017-00",
+  "UG157018-00",
+  "UG157019-00",
+  "UG157020-00",
+  "UG157021-00",
+  "UG157022-00",
+  "UG157023-00",
+  "UG157024-00",
+  "UG157025-00",
+  "UG157026-00",
+  "UG157027-00",
+  "UG157028-00",
+  "UG157029-00",
+  "UG157030-00",
+  "UG157031-00",
+  "UG157032-00",
+  "UG157033-00",
+  "UG157034-00",
+  "UG157035-00",
+  "UG157036-00",
+  "UG157037-00",
+  "UG157038-00",
+  "UG157039-00",
+  "UG157040-00",
+  "UG157041-00",
+  "UG157042-00",
+  "UG157043-00",
+  "UG157044-00",
+  "UG157045-00",
+  "UG157046-00",
+  "UG157047-00",
+  "UG157048-00",
+  "UG157049-00",
+  "UG157050-00",
+  "UG157051-00",
+  "UG157052-00",
+  "UG157053-00",
+  "UG157054-00",
+  "UG157055-00",
+  "UG157056-00",
+  "UG157057-00",
+  "UG157058-00",
+  "UG157059-00",
+  "UG157060-00",
+  "UG157061-00",
+  "UG157062-00",
+  "UG157063-00",
+  "UG157064-00",
+  "UG157065-00",
+  "UG157066-00",
+  "UG157067-00",
+  "UG157068-00",
+  "UG157069-00",
+  "UG157070-00",
+  "UG157071-00",
+  "UG157072-00",
+  "UG157073-00",
+  "UG157074-00",
+  "UG157075-00",
+  "UG157076-00",
+  "UG157077-00",
+  "UG157078-00",
+  "UG157079-00",
+  "UG157080-00",
+  "UG157081-00",
+  "UG157082-00",
+  "UG157083-00",
+  "UG157084-00",
+  "UG157085-00",
+  "UG157086-00",
+  "UG157087-00",
+  "UG157088-00",
+  "UG157089-00",
+  "UG157090-00",
+  "UG157091-00",
+  "UG157092-00",
+  "UG157093-00",
+  "UG157094-00",
+  "UG157095-00",
+  "UG157096-00",
+  "UG157097-00",
+  "UG157098-00",
+  "UG157099-00",
+  "UG157100-00",
+  "UG157101-00",
+  "UG157102-00",
+  "UG157103-00",
+  "UG157104-00",
+  "UG157105-00",
+  "UG157106-00",
+  "UG157107-00",
+  "UG157108-00",
+  "UG157109-00",
+  "UG157110-00",
+  "UG157111-00",
+  "UG157112-00",
+  "UG157113-00",
+  "UG157114-00",
+  "UG157115-00",
+  "UG157116-00",
+  "UG157117-00",
+  "UG157118-00",
+  "UG157119-00",
+  "UG157120-00",
+  "UG157121-00",
+  "UG157122-00",
+  "UG157123-00",
+  "UG157124-00",
+  "UG157125-00",
+  "UG157126-00",
+  "UG157127-00",
+  "UG157128-00",
+  "UG157129-00",
+  "UG157130-00",
+  "UG157131-00",
+  "UG157132-00",
+  "UG157133-00",
+  "UG157134-00",
+  "UG157135-00",
+  "UG157136-00",
+  "UG157137-00",
+  "UG157138-00",
+  "UG157139-00",
+  "UG157140-00",
+  "UG157141-00",
+  "UG157142-00",
+  "UG157143-00",
+  "UG157144-00",
+  "UG157147-00",
+  "UG157148-00",
+  "UG157149-00",
+  "UG157150-00",
+  "UG157151-00",
+  "UG157152-00",
+  "UG157153-00",
+  "UG157154-00",
+  "UG157155-00",
+  "UG157156-00",
+  "UG157157-00",
+  "UG157158-00",
+  "UG157159-00",
+  "UG157160-00",
+  "UG157161-00",
+  "UG157164-00",
+  "UG157164-01",
+  "UG157165-00",
+  "UG157169-00",
+  "UG157170-00",
+  "UG157171-00",
+  "UG157172-00",
+  "UG157173-00",
+  "UG157174-00",
+  "UG157175-00",
+  "UG157176-00",
+  "UG157177-00",
+  "UG157178-00",
+  "UG157179-00",
+  "UG157180-00",
+  "UG157181-00",
+  "UG157182-00",
+  "UG157183-00",
+  "UG157184-00",
+  "UG157199-00",
+  "UG157200-00",
+  "UG157201-00",
+  "UG157215-00",
+  "UG157216-00",
+  "UG157217-00",
+  "UG157218-00",
+  "UG157237-00",
+  "UG157245-00",
+  "UG157245-01",
+  "UG157245-02",
+  "UG157245-03",
+  "UG157245-04",
+  "UG157245-05",
+  "UG157245-06",
+  "UG157246-00",
+  "UG157247-00",
+  "UG157248-00",
+  "UG157249-00",
+  "UG157250-00",
+  "UG157263-00",
+  "UG157265-00",
+  "UG157266-00",
+  "UG157267-00",
+  "UG157268-00",
+  "UG157269-00",
+  "UG157270-00",
+  "UG157271-00",
+  "UG157272-00",
+  "UG157284-00",
+  "UG157285-00",
+  "UG157285-01",
+  "UG157286-00",
+  "UG157287-00",
+  "UG157288-00",
+  "UG157289-00",
+  "UG157290-00",
+  "UG157290-01",
+  "UG157290-02",
+  "UG157290-03",
+  "UG157290-04",
+  "UG157290-05",
+  "UG157290-06",
+  "UG157291-00",
+  "UG157292-00",
+  "UG157293-00",
+  "UG157294-00",
+  "UG157297-00",
+  "UG157301-00",
+  "UG157302-00",
+  "UG157303-00",
+  "UG157304-00",
+  "UG157308-00",
+  "UG157309-00",
+  "UG157310-00",
+  "UG157311-00",
+  "UG157312-00",
+  "UG157313-00",
+  "UG157315-00",
+  "UG157316-00",
+  "UG157317-00",
+  "UG157318-00",
+  "UG157319-00",
+  "UG157320-00",
+  "UG157321-00",
+  "UG157322-00",
+  "UG157323-00",
+  "UG157324-00",
+  "UG157325-00",
+  "UG157326-00",
+  "UG157327-00",
+  "UG157328-00",
+  "UG157329-00",
+  "UG157330-00",
+  "UG157331-00",
+  "UG157332-00",
+  "UG157333-00",
+  "UG157335-00",
+  "UG157337-00",
+  "UG157338-00",
+  "UG157339-00",
+  "UG157340-00",
+  "UG157341-00",
+  "UG157341-01",
+  "UG157342-00",
+  "UG157343-00",
+  "UG157344-00",
+  "UG157344-01",
+  "UG157345-00",
+  "UG157346-00",
+  "UG157347-00",
+  "UG157348-00",
+  "UG157349-00",
+  "UG157350-00",
+  "UG157351-00",
+  "UG157352-00",
+  "UG157353-00",
+  "UG157354-00",
+  "UG157355-00",
+  "UG157356-00",
+  "UG157357-00",
+  "UG157358-00",
+  "UG157359-00",
+  "UG157360-00",
+  "UG157361-00",
+  "UG157362-00",
+  "UG157363-00",
+  "UG157364-00",
+  "UG157365-00",
+  "UG157366-00",
+  "UG157367-00",
+  "UG157368-00",
+  "UG157369-00",
+  "UG157370-00",
+  "UG157371-00",
+  "UG157372-00",
+  "UG157373-00",
+  "UG157374-00",
+  "UG157375-00",
+  "UG157375-01",
+  "UG157375-02",
+  "UG157376-00",
+  "UG157382-00",
+  "UG157384-00",
+  "UG157385-00",
+  "UG157386-00",
+  "UG157390-00",
+  "UG157391-00",
+  "UG157392-00",
+  "UG157393-00",
+  "UG157394-00",
+  "UG157395-00",
+  "UG157396-00",
+  "UG157397-00",
+  "UG157401-00",
+  "UG157402-00",
+  "UG157403-00",
+  "UG157404-00",
+  "UG157406-00",
+  "UG157407-00",
+  "UG157408-00",
+  "UG157409-00",
+  "UG157410-00",
+  "UG157411-00",
+  "UG157412-00",
+  "UG157413-00",
+  "UG157417-00",
+  "UG157418-00",
+  "UG157419-00",
+  "UG157420-00",
+  "UG157421-00",
+  "UG157422-00",
+  "UG157423-00",
+  "UG157424-00",
+  "UG157426-00",
+  "UG157427-00",
+  "UG157428-00",
+  "UG157429-00",
+  "UG157430-00",
+  "UG157458-00",
+  "UG157460-00",
+  "UG157461-00",
+  "UG157462-00",
+  "UG157471-00",
+  "UG157472-00",
+  "UG157473-00",
+  "UG157474-00",
+  "UG157475-00",
+  "UG157476-00",
+  "UG157477-00",
+  "UG157478-00",
+  "UG157479-00",
+  "UG157480-00",
+  "UG157483-00",
+  "UG157483-01",
+  "UG157487-00",
+  "UG157488-00",
+  "UG157489-00",
+  "UG157490-00",
+  "UG157491-00",
+  "UG157492-00",
+  "UG157493-00",
+  "UG157494-00",
+  "UG157495-00",
+  "UG157496-00",
+  "UG157497-00",
+  "UG157498-00",
+  "UG157499-00",
+  "UG157500-00",
+  "UG157500-01",
+  "UG157501-00",
+  "UG157502-00",
+  "UG157503-00",
+  "UG157504-00",
+  "UG157505-00",
+  "UG157506-00",
+  "UG157507-00",
+  "UG157508-00",
+  "UG157509-00",
+  "UG157510-00",
+  "UG157511-00",
+  "UG157512-00",
+  "UG157513-00",
+  "UG157514-00",
+  "UG157515-00",
+  "UG157516-00",
+  "UG157517-00",
+  "UG157518-00",
+  "UG157519-00",
+  "UG157519-01",
+  "UG157520-00",
+  "UG157521-00",
+  "UG157522-00",
+  "UG157523-00",
+  "UG157524-00",
+  "UG157525-00",
+  "UG157526-00",
+  "UG157527-00",
+  "UG157528-00",
+  "UG157529-00",
+  "UG157530-00",
+  "UG157531-00",
+  "UG157531-01",
+  "UG157532-00",
+  "UG157533-00",
+  "UG157533-01",
+  "UG157533-02",
+  "UG157533-03",
+  "UG157534-00",
+  "UG157535-00",
+  "UG157537-00",
+  "UG157539-00",
+  "UG157542-00",
+  "UG157543-00",
+  "UG157544-00",
+  "UG157545-00",
+  "UG157546-00",
+  "UG157547-00",
+  "UG157221-00",
+  "UG157222-00",
+  "UG157223-00",
+  "UG157224-00",
+  "UG157225-00",
+  "UG157226-00",
+  "UG157227-00",
+  "UG157228-00",
+  "UG157230-00",
+  "UG157231-00",
+  "UG157232-00",
+  "UG157233-00",
+  "UG157234-00",
+  "UG157235-00",
+  "UG157236-00",
+  "UG157573-00",
+  "UG157548-00",
+  "UG157549-00",
+  "UG157550-00",
+  "UG157551-00",
+  "UG157552-00",
+  "UG157553-00",
+  "UG157554-00",
+  "UG157555-00",
+  "UG157556-00",
+  "UG157557-00",
+  "UG157558-00",
+  "UG157559-00",
+  "UG157560-00",
+  "UG157561-00",
+  "UG157562-00",
+  "UG157563-00",
+  "UG157564-00",
+  "UG157565-00",
+  "UG157566-00",
+  "UG157567-00",
+  "UG157568-00",
+  "UG157569-00",
+  "UG157570-00",
+  "UG157571-00",
+  "UG157572-00",
+  "UG157574-00",
+  "UG157575-00",
+  "UG157576-00",
+  "UG157577-00",
+  "UG157578-00",
+  "UG157579-00",
+  "UG157580-00",
+  "UG157581-00",
+  "UG157583-00",
+  "UG157584-00",
+  "UG157586-00",
+  "UG157587-00",
+  "UG157588-00",
+  "UG157589-00",
+  "UG157591-00",
+  "UG157592-00",
+  "UG157593-00",
+  "UG157594-00",
+  "UG157598-00"
+]
+
+
+async function processUsersPolicyAARWithAANumber() {
+  // settimeout
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  let count = 0
+
+  for (const member of arrMembersWithnoPolicy) {
+
+    let principal = member.replace(/-(\d+)$/, '-00');
     try {
-      // Find users with pending policies
-      console.log("i was called")
-      const usersWithPendingPolicies = await db.policies.findAll({
+      const user = await db.users.findOne({
         where: {
-          '$policies.policy_status$': 'pending', // Adjust based on your policy status field
+          arr_member_number: principal,
+          partner_id: 2,
+        },
+      });
+
+      let policy = await db.policies.findOne({
+        where: {
+          policy_status: 'paid',
+          partner_id: 2,
+          user_id: user.user_id
         }
       });
-      console.log('usersWithPendingPolicies', usersWithPendingPolicies)
-  
-      // Send SMS to each user with pending policies
-      // for (const user of usersWithPendingPolicies) {
-      //   let message = 'Low on cash? You can now purchase Ddwaliro Care using Airtel Quickloan. Dial *185*6*7# to learn more and get covered.'
-      //   await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
-      // }
-  
-      console.log('SMS sent to users with pending policies.');
+
+
+      console.log("user", user.phone_number, policy.policy_number);
+      const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+      let ultimatePremium = policy.total_member_number == "M" ? policy.premium : policy.premium / (parseInt((policy.total_member_number).split("")[2]) + 1)
+      const main_benefit_limit = policy.sum_insured
+      const last_expense_limit = policy.last_expense_insured
+
+      const requestData = {
+        member_no: member,
+        unique_profile_id: user?.membership_id + "" || user?.unique_profile_id + "",
+        health_plan: "AIRTEL_" + policy.policy_type,
+        health_option: "64",
+        premium: ultimatePremium,
+        premium_type: policy.installment_type,
+        premium_installment: policy.installment_order || 1,
+        main_benefit_limit: main_benefit_limit,
+        last_expense_limit: last_expense_limit,
+        money_transaction_id: policy.airtel_money_id || "123456789",
+      };
+      console.log("requestData", requestData)
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_premium',
+        headers: {
+          'Authorization': 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwNDM1NDEyNiwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.DeS5vyu3w-Wzxe2Zu4JxjAqPHRvinZjgZa4zZh10ytcK2u62lTqpVnVwz1cg7s496UrgM1_D-3_PRXTpn-6DXai3le2BFk0QdZflI4n2vPxOAgODRFDTCELdu7j3rtcVybP5mPbkwumEydc50I72tU0x-3J55zDLyv82BnRsxqH_ZO51Tp9SYhLWIa8NoWca42NyzBGk9UCtlkVNa2bi0b6BeRcnXZgpvDhsZ4de4EOkePQiFoEkbJHoaXLwvLanco5muXCzte9gkR0GA_RceyIhVnsJLTagoGHLQNsnL9UC53yq_7pzOgpbt1GhyhE0pCXqz0BdVYFmoRC4__lYBA',
+          'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(requestData),
+      };
+      const response = await axios.request(config);
+      count++
+      // Add a delay between iterations (adjust the delay time as needed)
+      // await delay(1000);
+      console.log(`Dependant created for user with phone number: ${user.phone_number}, response: ${JSON.stringify(response.data)}`);
+      console.log(count)
     } catch (error) {
-      console.error('Error:', error);
+      console.error(`Error creating dependant for user with :`, error);
     }
   }
-  
-  //getUsersWithPendingPoliciesAndSendSMS()
-  
-  
-  
-  
-  async function updatePolicyNumber() {
-    try {
-      // Find duplicate policies based on policy_number
-      const duplicatePolicies = await db.policies.findAll({
-        attributes: ['policy_number', [db.sequelize.fn('COUNT', 'policy_number'), 'policy_count']],
-        group: ['policy_number'],
-        having: db.sequelize.literal('COUNT(policy_number) > 1'),
+}
+//processUsersPolicyAARWithAANumber()
+
+
+
+// Call the function to start the process
+//getAllUsers();
+
+
+// let payment_amount = [
+// 10000,
+// 208000,
+// 14000,
+// 10000,
+// 18000,
+// 10000,
+// 10000,
+// 18000,
+// 14000,
+// 14000,
+// 10000,
+// 14000,
+// 40000,
+// 14000,
+// 10000,
+// 10000,
+// 18000,
+// 10000,
+// 10000,
+// 10000,
+// 10000,
+// 10000,
+// 10000,
+// 10000,
+// 10000,
+// 14000,
+// 10000,
+// 10000,
+// 10000,
+// 14000,
+// 10000,
+// 10000,
+// 10000,
+// 10000,
+// ]
+
+// let payment_numbers = [
+//   701565319,
+// 707886771,
+// 700993744,
+// 703695296,
+// 757728878,
+// 701106857,
+// 754177440,
+// 700787003,
+// 702559647,
+// 759750610,
+// 709011694,
+// 707420393,
+// 751754051,
+// 742877919,
+// 755941923,
+// 700456469,
+// 707609316,
+// 759916803,
+// 702906710,
+// 754008281,
+// 707320708,
+// 754416580,
+// 759015513,
+// 702790183,
+// 707121789,
+// 701072656,
+// 702029927,
+// 700787848,
+// 759203499,
+// 742316854,
+// 742316854,
+// 759074907,
+// 709247131,
+// 700659605,
+// ]
+// let combinedPayments = payment_numbers.map((phoneNumber, index) => {
+//   return {
+//     phone_number: phoneNumber,
+//     amount: payment_amount[index],
+//   };
+// });
+
+// console.log("Combined Payments:", combinedPayments);
+// //write this  to a file
+// fs.writeFile('payments.json', JSON.stringify(combinedPayments))
+//   .then(() => {
+//     console.log('File written successfully');
+//   })
+//   .catch((err: any) => {
+//     console.error('Error writing file:', err);
+//   });
+
+
+
+
+
+
+// async function allPaidPolicies() {
+//   try {
+//     let allPaidPolicies = await db.policies.findAll({
+//       where: {
+//         policy_status: 'paid',
+//         partner_id: 2,
+//         arr_policy_number: null,
+//       },
+//       include: [
+//         {
+//           model: db.users,
+//           as: 'user',
+//         },
+//       ],
+//     });
+
+//     async function processPolicy(policy) {
+//       const policy_start_date = policy.policy_start_date;
+//       const policy_end_date = policy.policy_end_date;
+//       policy.policy_start_date = policy_start_date;
+//       policy.policy_end_date = policy_end_date;
+
+//       const arr_member = await registerPrincipal(policy.user, policy);
+//       console.log('arr_member', arr_member);
+//     }
+
+//     async function processPoliciesSequentially() {
+//       for (const policy of allPaidPolicies) {
+//         await processPolicy(policy);
+//         // Wait for 2 seconds before processing the next policy
+//         await new Promise((resolve) => setTimeout(resolve, 2000));
+//       }
+//     }
+
+//     // Start processing policies
+//     await processPoliciesSequentially();
+
+//     return 'done';
+//   } catch (err) {
+//     console.error('Error:', err);
+//     return 'error';
+//   }
+// }
+
+//allPaidPolicies()
+
+// async function updatePremiumArr() {
+//   try {
+//     let allPaidPolicies = await db.policies.findAll({
+//       where: {
+//         policy_status: 'paid',
+//         partner_id: 2,
+
+//       },
+//       include: [
+//         {
+//           model: db.users,
+//           as: 'user',
+//         },
+//       ],
+//     });
+
+//     async function processPolicy(policy) {
+//       const policy_start_date = policy.policy_start_date;
+//       const policy_end_date = policy.policy_end_date;
+//       policy.policy_start_date = policy_start_date;
+//       policy.policy_end_date = policy_end_date;
+
+//       const arr_member = await updatePremium(policy.user, policy);
+//       console.log('arr_member', arr_member);
+//     }
+
+//     async function processPoliciesSequentially() {
+//       for (const policy of allPaidPolicies) {
+//         await processPolicy(policy);
+//         // Wait for 2 seconds before processing the next policy
+//         await new Promise((resolve) => setTimeout(resolve, 2000));
+//       }
+//     }
+
+//     // Start processing policies
+//     await processPoliciesSequentially();
+
+//     return 'done';
+//   } catch (err) {
+//     console.error('Error:', err);
+//     return 'error';
+//   }
+// }
+
+// let combinedPayments = [
+//   { "phone_number": 701565319, "amount": 10000 },
+//   { "phone_number": 707886771, "amount": 208000 },
+//   { "phone_number": 700993744, "amount": 14000 },
+//   { "phone_number": 703695296, "amount": 10000 },
+//   { "phone_number": 757728878, "amount": 18000 },
+//   { "phone_number": 701106857, "amount": 10000 },
+//   { "phone_number": 754177440, "amount": 10000 },
+//   { "phone_number": 700787003, "amount": 18000 },
+//   { "phone_number": 702559647, "amount": 14000 },
+//   { "phone_number": 759750610, "amount": 14000 },
+//   { "phone_number": 709011694, "amount": 10000 },
+//   { "phone_number": 707420393, "amount": 14000 },
+//   { "phone_number": 751754051, "amount": 40000 },
+//   { "phone_number": 742877919, "amount": 14000 },
+//   { "phone_number": 755941923, "amount": 10000 },
+//   { "phone_number": 700456469, "amount": 10000 },
+//   { "phone_number": 707609316, "amount": 18000 },
+//   { "phone_number": 759916803, "amount": 10000 },
+//   { "phone_number": 702906710, "amount": 10000 },
+//   { "phone_number": 754008281, "amount": 10000 },
+//   { "phone_number": 707320708, "amount": 10000 },
+//   { "phone_number": 754416580, "amount": 10000 },
+//   { "phone_number": 759015513, "amount": 10000 },
+//   { "phone_number": 702790183, "amount": 10000 },
+//   { "phone_number": 707121789, "amount": 10000 },
+//   { "phone_number": 701072656, "amount": 14000 },
+//   { "phone_number": 702029927, "amount": 10000 },
+//   { "phone_number": 700787848, "amount": 10000 },
+//   { "phone_number": 759203499, "amount": 10000 },
+//   { "phone_number": 742316854, "amount": 14000 },
+//   { "phone_number": 742316854, "amount": 10000 },
+//   { "phone_number": 759074907, "amount": 10000 },
+//   { "phone_number": 709247131, "amount": 10000 },
+//   { "phone_number": 700659605, "amount": 10000 }
+// ]
+
+
+// let policies = [];
+// // Function to handle errors during database operations
+// const handleDbError = (error, phoneNumber, amount) => {
+//   console.error(`Error processing payment (${phoneNumber}, ${amount}):`, error);
+
+//   // Save the phone_number and amount to a file
+//   const errorLog = {
+//     phone_number: phoneNumber,
+//     amount: amount,
+//     error: error.message,
+//   };
+
+//   fs.writeFile('error_log.json', JSON.stringify(errorLog), { flag: 'a' })
+//     .then(() => console.log('Error logged to file'))
+//     .catch((writeError) => console.error('Error writing error log to file:', writeError));
+// };
+
+// Process combinedPayments array with delays
+// const processPayments = async () => {
+//   for (const payment of combinedPayments) {
+//     try {
+//       let user = await db.users.findOne({
+//         where: {
+//           phone_number: payment.phone_number.toString(),
+//         },
+//       });
+
+//       let userPolicies = await db.policies.findAll({
+//         where: {
+//           user_id: user.user_id,// Handle the case where user is not found
+//           premium: payment.amount,
+//         },
+//       });
+
+//       // Add the policies for the current user to the overall policies array
+//       policies.push(...userPolicies);
+//     } catch (error) {
+//       // Handle errors during database operations
+//       handleDbError(error, payment.phone_number, payment.amount);
+//     }
+//   }
+// };
+
+// // Process payments with delays
+// processPayments()
+//   .then(async () => {
+//     // Update policy_status to paid for policies with delays
+//     for (const policy of policies) {
+//       try {
+//         // Update policy_status to 'paid' for policies
+//         console.log("POLICY", policy.phone_number);
+//         await db.policies.update(
+//           { policy_status: 'paid' },
+//           { where: { policy_id: policy.policy_id } }
+//         );
+
+//         // Update payment_status to 'paid' for corresponding payments
+//         await db.payments.update(
+//           { payment_status: 'paid' },
+//           { where: { policy_id: policy.policy_id } }
+//         );
+
+//         // Add a delay between updates
+//         await new Promise(resolve => setTimeout(resolve, 1000)); // 1000ms delay (adjust as needed)
+//       } catch (error) {
+//         // Handle errors during database updates
+//         handleDbError(error, policy.phone_number, policy.amount);
+//       }
+//     }
+//   })
+//   .then(async () => {
+//     // Write the policies to a file with a delay
+//     await new Promise(resolve => setTimeout(resolve, 1000)); // 1000ms delay (adjust as needed)
+//     await fs.writeFile('all_paid_policies.json', JSON.stringify(policies));
+//     console.log('File written successfully');
+//   })
+//   .catch((error) => {
+//     console.error("Error processing payments:", error);
+//   });
+
+
+// let policies_not_counted_for = [];
+
+// db.policies.findAll({
+//   where: {
+//     policy_status: 'paid',
+//   },
+// }).then((policies: any) => {
+//   // Function to update a policy with a delay
+//   const updatePolicyWithDelay = async (policy: any) => {
+//     let policyObj = {
+//       phone_number: policy.phone_number,
+//       amount: policy.premium,
+//     };
+
+//     if (!combinedPayments.includes(policyObj)) {
+//       await db.policies.update(
+//         { policy_status: 'pending' },
+//         { where: { policy_id: policy.policy_id } }
+//       );
+//       policies_not_counted_for.push(policyObj);
+//     }
+//   };
+
+//   // Set a delay of 1000 milliseconds (1 second) between updates
+//   const delay = 1000;
+
+//   // Iterate through policies with a delay
+//   policies.forEach((policy: any, index: number) => {
+//     setTimeout(() => {
+//       updatePolicyWithDelay(policy);
+//     }, index * delay);
+//   });
+// });
+
+
+// updatePremiumArr()
+
+// update number_of_policies in users table with the number of paid policies a user has
+// async function updateNumberOfPolicies() {
+//   try {
+//     // Fetch all users with partner_id = 2
+//     const users = await db.users.findAll({
+//       where: {
+//         partner_id: 2,
+//       },
+//     });
+
+//     // Iterate over each user
+//     for (const user of users) {
+//       try {
+//         // Fetch all paid policies for the current user
+//         const policies = await db.policies.findAndCountAll({
+//           where: {
+//             user_id: user.user_id,
+//             policy_status: 'paid',
+//           },
+//         });
+
+//         // Update the user with the number of policies
+//         await db.users.update(
+//           { number_of_policies: policies.count },
+//           { where: { user_id: user.user_id } }
+//         );
+//       } catch (policyError) {
+//         console.error(policyError);
+//       }
+//     }
+//   } catch (userError) {
+//     console.error(userError);
+//   }
+// }
+
+// Call the function
+//updateNumberOfPolicies();
+
+
+// RENEWAL
+// async function sendPolicyAnniversaryReminders() {
+//   const query = `
+//     SELECT *
+//     FROM policies
+//     WHERE 
+//       DATE_PART('year', policy_start_date) = DATE_PART('year', CURRENT_DATE)
+//       AND DATE_PART('month', policy_start_date) = DATE_PART('month', CURRENT_DATE)
+//       AND EXTRACT(DAY FROM policy_start_date) = EXTRACT(DAY FROM CURRENT_DATE) - 3
+//       AND policy_status = 'paid'
+//       AND partner_id = 2`;
+
+//   const policies = await db.sequelize.query(query, { type: QueryTypes.SELECT });
+
+//   console.log("POLICIES", policies.length);
+
+//   policies.forEach(async (policy) => {
+//     const { policy_start_date, premium, policy_type, phone_number, beneficiary } = policy;
+
+//     const message = `Your monthly premium payment for ${beneficiary} ${policy_type} Medical cover of UGX ${premium} is DUE in 3-days on ${policy_start_date.toDateString()}.`;
+
+//     console.log("MESSAGE", message);
+
+//     // Call the function to send an SMS
+//     await SMSMessenger.sendSMS(phone_number, message);
+//   });
+
+//   return policies;
+// }
+
+
+//Call the function to send policy anniversary reminders
+//sendPolicyAnniversaryReminders();
+
+// let all_phone_numbers= [
+
+// 700860551
+// 703571290
+// 704201991
+// 701237357
+
+// ]
+
+
+// Count occurrences of each phone number
+//const length = all_phone_numbers.length;
+// console.log("LENGTH",length)
+// const phoneNumbersCount = all_phone_numbers.reduce((countMap, phoneNumber) => {
+//   countMap[phoneNumber] = (countMap[phoneNumber] || 0) + 1;
+//   return countMap;
+// }, {});
+
+// // Filter out phone numbers with count less than 2 (not repeated)
+// const repeatedPhoneNumbers = Object.keys(phoneNumbersCount).filter(
+//   (phoneNumber) => phoneNumbersCount[phoneNumber] > 1
+// );
+
+// // Display repeated phone numbers and their counts
+// repeatedPhoneNumbers.forEach((phoneNumber) => {
+//   const count = phoneNumbersCount[phoneNumber];
+//   console.log(`Phone Number: ${phoneNumber}, Repeated ${count} times`);
+// });
+
+// Phone Number: 700787003, Repeated 2 times
+// Phone Number: 701785673, Repeated 2 times
+// Phone Number: 702422135, Repeated 2 times
+// Phone Number: 704046796, Repeated 2 times
+// Phone Number: 704703905, Repeated 2 times
+// Phone Number: 707546356, Repeated 2 times
+// Phone Number: 707594526, Repeated 3 times
+// Phone Number: 740305224, Repeated 2 times
+// Phone Number: 740581613, Repeated 2 times
+// Phone Number: 740719927, Repeated 2 times
+// Phone Number: 740868993, Repeated 2 times
+// Phone Number: 741206226, Repeated 2 times
+// Phone Number: 742316854, Repeated 2 times
+// Phone Number: 743105154, Repeated 2 times
+// Phone Number: 743797986, Repeated 3 times
+// Phone Number: 751511450, Repeated 2 times
+// Phone Number: 752322768, Repeated 2 times
+// Phone Number: 754177440, Repeated 2 times
+// Phone Number: 755326045, Repeated 2 times
+// Phone Number: 758653832, Repeated 2 times
+// Phone Number: 759349269, Repeated 2 times
+
+
+//policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+// async function generatePolicyNumber() {
+
+//   let allPolicies = await db.policies.findAll({
+//     where: {
+//       policy_status: 'paid',
+
+//     },
+
+
+//   });
+//   console.log("ALL POLICIES", allPolicies.length)
+//   for (let policy of allPolicies) {
+//     console.log("POLICY", policy.phone_number)
+//     let policy_number = "BW" + policy.phone_number?.replace('+', "")?.substring(3)
+//     await db.policies.update(
+//       { policy_number: policy_number },
+//       { where: { policy_id: policy.policy_id } }
+//     );
+//   }
+// }
+
+
+
+
+// async function sendWelcomeSMS() {
+//   try {
+//     let delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+//     console.log("i was called")
+
+//     let count = 0
+//     let allUsers = await db.users.findAll(
+//       {
+//         where: {
+//           partner_id: 2,
+//         }
+//       }
+//     )
+
+// console.log("ALL USERS", allUsers.length)
+
+//     for (let user of allUsers) {
+//       console.log(user.name, user.user_id)
+
+//         let lowFundsMessage = 'Low on cash? You can now purchase Ddwaliro Care using Airtel Quickloan. Dial *185*6*7# to learn more and get covered.'
+
+//         //let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
+//         await SMSMessenger.sendSMS(`+256${user.phone_number}`, lowFundsMessage);
+//         console.log("SENT TO", user.phone_number, count)
+//         delay(1000)
+
+//     }
+//   } catch (error) {
+//     console.log(error)
+//   }
+// }
+
+//sendWelcomeSMS()
+
+
+async function getUsersWithoutPolicyAndSendSMS() {
+  try {
+    // Find users without policies
+    const usersWithoutPolicy = await db.users.findAll({
+      where: {
+        // Assuming there's a foreign key relationship between users and policies
+        // Adjust the condition based on your database schema
+        '$policies.policy_id$': null,
+      },
+      include: [
+        {
+          model: db.policies,
+          as: 'policies',
+          required: false,
+        },
+      ],
+    });
+
+    // Send SMS to each user without a policy
+    for (const user of usersWithoutPolicy) {
+      let message = 'Thank you for showing interest in Ddwaliro Care. To learn more, dial *185*6*7# and get your medical insurance cover.'
+      await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
+
+    }
+
+    console.log('SMS sent to users without policies.');
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Call the function to get users without policies and send SMS
+//getUsersWithoutPolicyAndSendSMS();
+
+
+
+async function getUsersWithPendingPoliciesAndSendSMS() {
+  try {
+    // Find users with pending policies
+    console.log("i was called")
+    const usersWithPendingPolicies = await db.policies.findAll({
+      where: {
+        '$policies.policy_status$': 'pending', // Adjust based on your policy status field
+      }
+    });
+    console.log('usersWithPendingPolicies', usersWithPendingPolicies)
+
+    // Send SMS to each user with pending policies
+    // for (const user of usersWithPendingPolicies) {
+    //   let message = 'Low on cash? You can now purchase Ddwaliro Care using Airtel Quickloan. Dial *185*6*7# to learn more and get covered.'
+    //   await SMSMessenger.sendSMS(`+256${user.phone_number}`, message);
+    // }
+
+    console.log('SMS sent to users with pending policies.');
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+//getUsersWithPendingPoliciesAndSendSMS()
+
+
+
+
+async function updatePolicyNumber() {
+  try {
+    // Find duplicate policies based on policy_number
+    const duplicatePolicies = await db.policies.findAll({
+      attributes: ['policy_number', [db.sequelize.fn('COUNT', 'policy_number'), 'policy_count']],
+      group: ['policy_number'],
+      having: db.sequelize.literal('COUNT(policy_number) > 1'),
+      where: {
+        policy_status: 'paid'
+      },
+    });
+
+    // Update policy numbers for duplicate policies
+    for (const duplicatePolicy of duplicatePolicies) {
+      const policiesToUpdate = await db.policies.findAll({
         where: {
+          policy_number: duplicatePolicy.policy_number,
           policy_status: 'paid'
         },
       });
-  
-      // Update policy numbers for duplicate policies
-      for (const duplicatePolicy of duplicatePolicies) {
-        const policiesToUpdate = await db.policies.findAll({
-          where: {
-            policy_number: duplicatePolicy.policy_number,
-            policy_status: 'paid'
-          },
-        });
-  
-        // Update policy numbers with a unique identifier (e.g., append a suffix)
-        for (let i = 0; i < policiesToUpdate.length; i++) {
-          console.log(policiesToUpdate[i].first_name,policiesToUpdate[i].policy_number)
-          policiesToUpdate[i].policy_number = `${policiesToUpdate[i].policy_number}_${i + 1}`;
-          await policiesToUpdate[i].save();
-        }
+
+      // Update policy numbers with a unique identifier (e.g., append a suffix)
+      for (let i = 0; i < policiesToUpdate.length; i++) {
+        console.log(policiesToUpdate[i].first_name, policiesToUpdate[i].policy_number)
+        policiesToUpdate[i].policy_number = `${policiesToUpdate[i].policy_number}_${i + 1}`;
+        await policiesToUpdate[i].save();
       }
-  
-      console.log('Policy numbers updated for duplicates.');
-    } catch (error) {
-      console.error('Error:', error);
     }
+
+    console.log('Policy numbers updated for duplicates.');
+  } catch (error) {
+    console.error('Error:', error);
   }
-  
-  // Call the function to update policy numbers for duplicates
-  //updatePolicyNumber();
-  
-  
-  //702862060
-  const transactions = [
-    { senderMobileNumber: '740667358', transactionAmount: 10000 },
-    { senderMobileNumber: '754598184', transactionAmount: 20000 },
-    { senderMobileNumber: '709147127', transactionAmount: 14000 },
-    { senderMobileNumber: '751979437', transactionAmount: 10000 },
-    { senderMobileNumber: '759010551', transactionAmount: 10000 },
-    { senderMobileNumber: '704117165', transactionAmount: 10000 },
-    // { senderMobileNumber: '759655028', transactionAmount: 10000 },
-    { senderMobileNumber: '701970711', transactionAmount: 18000 },
-    // { senderMobileNumber: '752083825', transactionAmount: 10000 },
-    // { senderMobileNumber: '707421476', transactionAmount: 18000 },
-    { senderMobileNumber: '753271430', transactionAmount: 10000 },
-    { senderMobileNumber: '744157491', transactionAmount: 10000 },
-    { senderMobileNumber: '759907336', transactionAmount: 10000 },
-    { senderMobileNumber: '707224451', transactionAmount: 10000 },
-    { senderMobileNumber: '708949729', transactionAmount: 18000 },
-    { senderMobileNumber: '750031808', transactionAmount: 10000 },
-    // { senderMobileNumber: '704180537', transactionAmount: 18000 },
-    { senderMobileNumber: '750838720', transactionAmount: 18000 },
-    { senderMobileNumber: '754347550', transactionAmount: 10000 },
-    // { senderMobileNumber: '700323189', transactionAmount: 20000 },
-    { senderMobileNumber: '757435409', transactionAmount: 10000 },
-    { senderMobileNumber: '708182433', transactionAmount: 10000 },
-    { senderMobileNumber: '757417825', transactionAmount: 10000 },
-    { senderMobileNumber: '705881859', transactionAmount: 14000 },
-    { senderMobileNumber: '702387730', transactionAmount: 10000 },
-    { senderMobileNumber: '709163346', transactionAmount: 10000 },
-    // { senderMobileNumber: '757816490', transactionAmount: 108000 },
-    { senderMobileNumber: '759907303', transactionAmount: 14000 },
-    { senderMobileNumber: '706359487', transactionAmount: 10000 },
-    { senderMobileNumber: '703080163', transactionAmount: 10000 },
-    // { senderMobileNumber: '758017592', transactionAmount: 18000 },
-    // { senderMobileNumber: '703240873', transactionAmount: 18000 },
-    { senderMobileNumber: '751854428', transactionAmount: 10000 },
-    { senderMobileNumber: '754979833', transactionAmount: 14000 },
-    // { senderMobileNumber: '742870415', transactionAmount: 35000 },
-    { senderMobileNumber: '708748714', transactionAmount: 10000 },
-    { senderMobileNumber: '702047633', transactionAmount: 10000 },
-    { senderMobileNumber: '755890764', transactionAmount: 18000 },
-    { senderMobileNumber: '759850091', transactionAmount: 18000 },
-    // { senderMobileNumber: '742460308', transactionAmount: 10000 },
-    //{ senderMobileNumber: '701211724', transactionAmount: 208000 },
-    { senderMobileNumber: '759850091', transactionAmount: 18000 },
-    { senderMobileNumber: '743532794', transactionAmount: 10000 },
-    { senderMobileNumber: '758754962', transactionAmount: 10000 },
-    { senderMobileNumber: '751440048', transactionAmount: 10000 },
-    { senderMobileNumber: '703870739', transactionAmount: 10000 },
-    //{ senderMobileNumber: '740475276', transactionAmount: 18000 },
-    { senderMobileNumber: '755692926', transactionAmount: 10000 },
-    { senderMobileNumber: '757204220', transactionAmount: 10000 },
-    { senderMobileNumber: '754376270', transactionAmount: 10000 },
-    { senderMobileNumber: '744078120', transactionAmount: 18000 },
-    { senderMobileNumber: '750521580', transactionAmount: 14000 },
-    { senderMobileNumber: '703007102', transactionAmount: 10000 },
-    { senderMobileNumber: '703482376', transactionAmount: 10000 },
-   // { senderMobileNumber: '704279081', transactionAmount: 88000 },
-    //{ senderMobileNumber: '744567065', transactionAmount: 10000 },
-    { senderMobileNumber: '754581873', transactionAmount: 18000 },
-    { senderMobileNumber: '754997400', transactionAmount: 10000 },
-    { senderMobileNumber: '702325987', transactionAmount: 10000 },
-   // { senderMobileNumber: '704043517', transactionAmount: 10000 },
-    { senderMobileNumber: '741076901', transactionAmount: 10000 },
-    //{ senderMobileNumber: '707664531', transactionAmount: 14000 },
-    //{ senderMobileNumber: '709426127', transactionAmount: 18000 },
-    { senderMobileNumber: '743791211', transactionAmount: 18000 },
-    { senderMobileNumber: '744394578', transactionAmount: 10000 },
-    { senderMobileNumber: '703086589', transactionAmount: 14000 },
-    { senderMobileNumber: '758960852', transactionAmount: 10000 },
-    //{ senderMobileNumber: '705645089', transactionAmount: 10000 },
-    //{ senderMobileNumber: '744168788', transactionAmount: 10000 },
-    { senderMobileNumber: '742694054', transactionAmount: 10000 },
-    //{ senderMobileNumber: '743774267', transactionAmount: 10000 },
-    { senderMobileNumber: '750793863', transactionAmount: 18000 },
-    { senderMobileNumber: '708695835', transactionAmount: 10000 },
-    //{ senderMobileNumber: '707375172', transactionAmount: 10000 },
-   // { senderMobileNumber: '709228486', transactionAmount: 18000 },
-    //{ senderMobileNumber: '742935120', transactionAmount: 10000 },
-    { senderMobileNumber: '759263889', transactionAmount: 10000 },
-    //{ senderMobileNumber: '702206893', transactionAmount: 10000 },
-    { senderMobileNumber: '742172942', transactionAmount: 10000 },
-    { senderMobileNumber: '709879368', transactionAmount: 10000 },
-    { senderMobileNumber: '706593175', transactionAmount: 18000 },
-   // { senderMobileNumber: '702385188', transactionAmount: 10000 },
-   // { senderMobileNumber: '753859177', transactionAmount: 10000 },
-    //{ senderMobileNumber: '706394188', transactionAmount: 18000 },
-    //{ senderMobileNumber: '704859348', transactionAmount: 18000 },
-    //{ senderMobileNumber: '704411387', transactionAmount: 18000 },
-    { senderMobileNumber: '740946342', transactionAmount: 10000 },
-   // { senderMobileNumber: '703229918', transactionAmount: 10000 },
-    { senderMobileNumber: '742904759', transactionAmount: 10000 },
-    { senderMobileNumber: '743711216', transactionAmount: 10000 },
-    { senderMobileNumber: '744033279', transactionAmount: 10000 },
-    { senderMobileNumber: '743392699', transactionAmount: 14000 },
-    { senderMobileNumber: '700784998', transactionAmount: 18000 },
-    { senderMobileNumber: '704128556', transactionAmount: 10000 },
-    { senderMobileNumber: '703881867', transactionAmount: 18000 }
-  ];
-  
-  // transactions.forEach(async (transaction) => {
-    
-  //   await reconciliation(2,transaction.senderMobileNumber, null, transaction.transactionAmount);
-  // });
-  
-  
-  
-  // let pendingPolicyNumbers =[
-  //   "+256743632443",
-  // "+256742690584",
-  // "+256753213526",
-  // "+256706300429",
-  // "+256742782855",
-  // "+256756525069",
-  // "+256754760880",
-  // "+256706627331",
-  // "+256742646689",
-  // "+256759946179",
-  // "+256709845531",
-  // "+256740705947",
-  // "+256704697456",
-  // "+256702559843",
-  // "+256750930470",
-  // "+256742202784",
-  // "+256757371899",
-  // "+256751570135",
-  // "+256700835797",
-  // "+256759822816",
-  // "+256705756087",
-  // "+256750952079",
-  // "+256708897242",
-  // "+256742202784",
-  // "+256740381864",
-  // "+256758093871",
-  // "+256741683172",
-  // "+256742641213",
-  // "+256703483751",
-  // ]
-  // check if the policy number has paid policies and if not delete the pending policies
-  async function checkIfPolicyHasPaidPolicies() {
-    const batchSize = 50; // Adjust the batch size as needed
-  
-    try {
-      const usersCount = await db.users.count({
+}
+
+// Call the function to update policy numbers for duplicates
+//updatePolicyNumber();
+
+
+//702862060
+const transactions = [
+  { senderMobileNumber: '740667358', transactionAmount: 10000 },
+  { senderMobileNumber: '754598184', transactionAmount: 20000 },
+  { senderMobileNumber: '709147127', transactionAmount: 14000 },
+  { senderMobileNumber: '751979437', transactionAmount: 10000 },
+  { senderMobileNumber: '759010551', transactionAmount: 10000 },
+  { senderMobileNumber: '704117165', transactionAmount: 10000 },
+  // { senderMobileNumber: '759655028', transactionAmount: 10000 },
+  { senderMobileNumber: '701970711', transactionAmount: 18000 },
+  // { senderMobileNumber: '752083825', transactionAmount: 10000 },
+  // { senderMobileNumber: '707421476', transactionAmount: 18000 },
+  { senderMobileNumber: '753271430', transactionAmount: 10000 },
+  { senderMobileNumber: '744157491', transactionAmount: 10000 },
+  { senderMobileNumber: '759907336', transactionAmount: 10000 },
+  { senderMobileNumber: '707224451', transactionAmount: 10000 },
+  { senderMobileNumber: '708949729', transactionAmount: 18000 },
+  { senderMobileNumber: '750031808', transactionAmount: 10000 },
+  // { senderMobileNumber: '704180537', transactionAmount: 18000 },
+  { senderMobileNumber: '750838720', transactionAmount: 18000 },
+  { senderMobileNumber: '754347550', transactionAmount: 10000 },
+  // { senderMobileNumber: '700323189', transactionAmount: 20000 },
+  { senderMobileNumber: '757435409', transactionAmount: 10000 },
+  { senderMobileNumber: '708182433', transactionAmount: 10000 },
+  { senderMobileNumber: '757417825', transactionAmount: 10000 },
+  { senderMobileNumber: '705881859', transactionAmount: 14000 },
+  { senderMobileNumber: '702387730', transactionAmount: 10000 },
+  { senderMobileNumber: '709163346', transactionAmount: 10000 },
+  // { senderMobileNumber: '757816490', transactionAmount: 108000 },
+  { senderMobileNumber: '759907303', transactionAmount: 14000 },
+  { senderMobileNumber: '706359487', transactionAmount: 10000 },
+  { senderMobileNumber: '703080163', transactionAmount: 10000 },
+  // { senderMobileNumber: '758017592', transactionAmount: 18000 },
+  // { senderMobileNumber: '703240873', transactionAmount: 18000 },
+  { senderMobileNumber: '751854428', transactionAmount: 10000 },
+  { senderMobileNumber: '754979833', transactionAmount: 14000 },
+  // { senderMobileNumber: '742870415', transactionAmount: 35000 },
+  { senderMobileNumber: '708748714', transactionAmount: 10000 },
+  { senderMobileNumber: '702047633', transactionAmount: 10000 },
+  { senderMobileNumber: '755890764', transactionAmount: 18000 },
+  { senderMobileNumber: '759850091', transactionAmount: 18000 },
+  // { senderMobileNumber: '742460308', transactionAmount: 10000 },
+  //{ senderMobileNumber: '701211724', transactionAmount: 208000 },
+  { senderMobileNumber: '759850091', transactionAmount: 18000 },
+  { senderMobileNumber: '743532794', transactionAmount: 10000 },
+  { senderMobileNumber: '758754962', transactionAmount: 10000 },
+  { senderMobileNumber: '751440048', transactionAmount: 10000 },
+  { senderMobileNumber: '703870739', transactionAmount: 10000 },
+  //{ senderMobileNumber: '740475276', transactionAmount: 18000 },
+  { senderMobileNumber: '755692926', transactionAmount: 10000 },
+  { senderMobileNumber: '757204220', transactionAmount: 10000 },
+  { senderMobileNumber: '754376270', transactionAmount: 10000 },
+  { senderMobileNumber: '744078120', transactionAmount: 18000 },
+  { senderMobileNumber: '750521580', transactionAmount: 14000 },
+  { senderMobileNumber: '703007102', transactionAmount: 10000 },
+  { senderMobileNumber: '703482376', transactionAmount: 10000 },
+  // { senderMobileNumber: '704279081', transactionAmount: 88000 },
+  //{ senderMobileNumber: '744567065', transactionAmount: 10000 },
+  { senderMobileNumber: '754581873', transactionAmount: 18000 },
+  { senderMobileNumber: '754997400', transactionAmount: 10000 },
+  { senderMobileNumber: '702325987', transactionAmount: 10000 },
+  // { senderMobileNumber: '704043517', transactionAmount: 10000 },
+  { senderMobileNumber: '741076901', transactionAmount: 10000 },
+  //{ senderMobileNumber: '707664531', transactionAmount: 14000 },
+  //{ senderMobileNumber: '709426127', transactionAmount: 18000 },
+  { senderMobileNumber: '743791211', transactionAmount: 18000 },
+  { senderMobileNumber: '744394578', transactionAmount: 10000 },
+  { senderMobileNumber: '703086589', transactionAmount: 14000 },
+  { senderMobileNumber: '758960852', transactionAmount: 10000 },
+  //{ senderMobileNumber: '705645089', transactionAmount: 10000 },
+  //{ senderMobileNumber: '744168788', transactionAmount: 10000 },
+  { senderMobileNumber: '742694054', transactionAmount: 10000 },
+  //{ senderMobileNumber: '743774267', transactionAmount: 10000 },
+  { senderMobileNumber: '750793863', transactionAmount: 18000 },
+  { senderMobileNumber: '708695835', transactionAmount: 10000 },
+  //{ senderMobileNumber: '707375172', transactionAmount: 10000 },
+  // { senderMobileNumber: '709228486', transactionAmount: 18000 },
+  //{ senderMobileNumber: '742935120', transactionAmount: 10000 },
+  { senderMobileNumber: '759263889', transactionAmount: 10000 },
+  //{ senderMobileNumber: '702206893', transactionAmount: 10000 },
+  { senderMobileNumber: '742172942', transactionAmount: 10000 },
+  { senderMobileNumber: '709879368', transactionAmount: 10000 },
+  { senderMobileNumber: '706593175', transactionAmount: 18000 },
+  // { senderMobileNumber: '702385188', transactionAmount: 10000 },
+  // { senderMobileNumber: '753859177', transactionAmount: 10000 },
+  //{ senderMobileNumber: '706394188', transactionAmount: 18000 },
+  //{ senderMobileNumber: '704859348', transactionAmount: 18000 },
+  //{ senderMobileNumber: '704411387', transactionAmount: 18000 },
+  { senderMobileNumber: '740946342', transactionAmount: 10000 },
+  // { senderMobileNumber: '703229918', transactionAmount: 10000 },
+  { senderMobileNumber: '742904759', transactionAmount: 10000 },
+  { senderMobileNumber: '743711216', transactionAmount: 10000 },
+  { senderMobileNumber: '744033279', transactionAmount: 10000 },
+  { senderMobileNumber: '743392699', transactionAmount: 14000 },
+  { senderMobileNumber: '700784998', transactionAmount: 18000 },
+  { senderMobileNumber: '704128556', transactionAmount: 10000 },
+  { senderMobileNumber: '703881867', transactionAmount: 18000 }
+];
+
+// transactions.forEach(async (transaction) => {
+
+//   await reconciliation(2,transaction.senderMobileNumber, null, transaction.transactionAmount);
+// });
+
+
+
+// let pendingPolicyNumbers =[
+//   "+256743632443",
+// "+256742690584",
+// "+256753213526",
+// "+256706300429",
+// "+256742782855",
+// "+256756525069",
+// "+256754760880",
+// "+256706627331",
+// "+256742646689",
+// "+256759946179",
+// "+256709845531",
+// "+256740705947",
+// "+256704697456",
+// "+256702559843",
+// "+256750930470",
+// "+256742202784",
+// "+256757371899",
+// "+256751570135",
+// "+256700835797",
+// "+256759822816",
+// "+256705756087",
+// "+256750952079",
+// "+256708897242",
+// "+256742202784",
+// "+256740381864",
+// "+256758093871",
+// "+256741683172",
+// "+256742641213",
+// "+256703483751",
+// ]
+// check if the policy number has paid policies and if not delete the pending policies
+async function checkIfPolicyHasPaidPolicies() {
+  const batchSize = 50; // Adjust the batch size as needed
+
+  try {
+    const usersCount = await db.users.count({
+      where: {
+        partner_id: 2,
+      },
+    });
+
+    for (let offset = 0; offset < usersCount; offset += batchSize) {
+      const users = await db.users.findAll({
         where: {
           partner_id: 2,
         },
+        limit: batchSize,
+        offset: offset,
       });
-  
-      for (let offset = 0; offset < usersCount; offset += batchSize) {
-        const users = await db.users.findAll({
-          where: {
-            partner_id: 2,
-          },
-          limit: batchSize,
-          offset: offset,
-        });
-  
-        const userIDs = users.map((user) => user.user_id);
-  
-        const userPolicies = await db.policies.findAll({
-          where: {
-            user_id: userIDs,
-            policy_status: 'paid',
-          },
-          attributes: ['user_id'],
-          group: ['user_id'],
-        });
-  
-        const usersWithoutPaidPolicies = users.filter((user) => {
-          return !userPolicies.find((policy) => policy.user_id === user.user_id);
-        });
-  
-        for (const user of usersWithoutPaidPolicies) {
-          console.log("NO PAID POLICIES", user.name, user.phoneNumber);
-  
-          await db.policies.destroy({
-            where: {
-              user_id: user.user_id,
-              policy_status: 'pending',
-            },
-          });
-        }
-      }
-  
-      console.log("Process completed successfully.");
-    } catch (error) {
-      console.error("Error during processing:", error);
-    }
-  }
 
-  /*
-  workflow 
-  1. get all the paid policies for the partner 
-  2. filter policies fro date range 13 - 30
-  3. send reminder  to the user to renew their policy
-  */
+      const userIDs = users.map((user) => user.user_id);
 
-  async function sendRenewalReminders() {
-    try {
-      // Find users with pending policies
-      console.log("newal was called")
-      const policies = await db.policies.findAll({
+      const userPolicies = await db.policies.findAll({
         where: {
-          policy_status: 'paid', // Adjust based on your policy status field
-          partner_id: 2,
-          installment_type: 2,
-          policy_start_date: {
-            [Op.between]: [new Date('2023-09-01'), new Date('2024-01-11')],
-          },
-        }
+          user_id: userIDs,
+          policy_status: 'paid',
+        },
+        attributes: ['user_id'],
+        group: ['user_id'],
       });
-      console.log('policies', policies.length)
-  
-      // Send SMS to each user with pending policies
-      for (const policy of policies) {
-        let message =`Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE for renewal. Dial *185*7*6*3# to renew.`
-        console.log("MESSAGE", message)
-        await SMSMessenger.sendSMS(`${policy.phone_number}`, message);
+
+      const usersWithoutPaidPolicies = users.filter((user) => {
+        return !userPolicies.find((policy) => policy.user_id === user.user_id);
+      });
+
+      for (const user of usersWithoutPaidPolicies) {
+        console.log("NO PAID POLICIES", user.name, user.phoneNumber);
+
+        await db.policies.destroy({
+          where: {
+            user_id: user.user_id,
+            policy_status: 'pending',
+          },
+        });
       }
-  
-      console.log('SMS sent to users with pending policies.');
-    } catch (error) {
-      console.error('Error:', error);
     }
+
+    console.log("Process completed successfully.");
+  } catch (error) {
+    console.error("Error during processing:", error);
   }
+}
 
-  // 757374443	10,000
-  // 750382485	18,000
-  // 753721611	10,000
-  // 754052635	18,000
-  // 751787316	10,000
-  // 759798998	10,000
-  // 703546231	10,000
-  // 703546231	10,000
-  // 701938940	10,000
-  // 753134329	93,000
-  // 741355554	18,000
-  // 758107193	18,000
-  // 706452629	10,000
-  // 758629044	18,000
-  // 703186339	18,000
+/*
+workflow 
+1. get all the paid policies for the partner 
+2. filter policies fro date range 13 - 30
+3. send reminder  to the user to renew their policy
+*/
 
-  let transaction = [
-    // {
-    //   phone_number : 757374443,
-    //   amount: 10000
-    // },
-    // {
-    //   phone_number : 750382485,
-    //   amount: 18000
-    // },
-    // {
-    //   phone_number : 753721611,
-    //   amount: 10000
-    // },
-    {
-      phone_number : 754052635,
-      amount: 18000
-    },
-    {
-      phone_number : 751787316,
-      amount: 10000
-    },
-    {
-      phone_number : 759798998,
-      amount: 10000
-    },
-    {
-      phone_number : 703546231,
-      amount: 10000
-    },
-    // {
-    //   phone_number : 703546231,
-    //   amount: 10000
-    // },
-    // {
-    //   phone_number : 701938940,
-    //   amount: 10000
-    // },
-    // {
-    //   phone_number : 753134329,
-    //   amount: 93000
-    // },
-    // {
-    //   phone_number : 741355554,
-    //   amount: 18000
-    // },
-    // {
-    //   phone_number : 758107193,
-    //   amount: 18000
-    // },
-    // {
-    //   phone_number : 706452629,
-    //   amount: 10000
-    // },
-    // {
-    //   phone_number : 758629044,
-    //   amount: 18000
-    // },
-    // {
-    //   phone_number : 703186339,
-    //   amount: 18000
-    // },
-    
-  ]
+async function sendRenewalReminders() {
+  try {
+    // Find users with pending policies
+    console.log("newal was called")
+    const policies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid', // Adjust based on your policy status field
+        partner_id: 2,
+        installment_type: 2,
+        policy_start_date: {
+          [Op.between]: [new Date('2023-09-01'), new Date('2024-01-11')],
+        },
+      }
+    });
+    console.log('policies', policies.length)
+
+    // Send SMS to each user with pending policies
+    for (const policy of policies) {
+      let message = `Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE for renewal. Dial *185*7*6*3# to renew.`
+      console.log("MESSAGE", message)
+      await SMSMessenger.sendSMS(`${policy.phone_number}`, message);
+    }
+
+    console.log('SMS sent to users with pending policies.');
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// 757374443	10,000
+// 750382485	18,000
+// 753721611	10,000
+// 754052635	18,000
+// 751787316	10,000
+// 759798998	10,000
+// 703546231	10,000
+// 703546231	10,000
+// 701938940	10,000
+// 753134329	93,000
+// 741355554	18,000
+// 758107193	18,000
+// 706452629	10,000
+// 758629044	18,000
+// 703186339	18,000
+
+let transaction = [
+  // {
+  //   phone_number : 757374443,
+  //   amount: 10000
+  // },
+  // {
+  //   phone_number : 750382485,
+  //   amount: 18000
+  // },
+  // {
+  //   phone_number : 753721611,
+  //   amount: 10000
+  // },
+  {
+    phone_number: 754052635,
+    amount: 18000
+  },
+  {
+    phone_number: 751787316,
+    amount: 10000
+  },
+  {
+    phone_number: 759798998,
+    amount: 10000
+  },
+  {
+    phone_number: 703546231,
+    amount: 10000
+  },
+  // {
+  //   phone_number : 703546231,
+  //   amount: 10000
+  // },
+  // {
+  //   phone_number : 701938940,
+  //   amount: 10000
+  // },
+  // {
+  //   phone_number : 753134329,
+  //   amount: 93000
+  // },
+  // {
+  //   phone_number : 741355554,
+  //   amount: 18000
+  // },
+  // {
+  //   phone_number : 758107193,
+  //   amount: 18000
+  // },
+  // {
+  //   phone_number : 706452629,
+  //   amount: 10000
+  // },
+  // {
+  //   phone_number : 758629044,
+  //   amount: 18000
+  // },
+  // {
+  //   phone_number : 703186339,
+  //   amount: 18000
+  // },
+
+]
 
 // check if this transaction is a have paid for a policy
 
 async function checkIfTransactionIsForPolicy() {
-let transactionArr = await db.users.findAll({
-  where: {
-    partner_id: 2,
-    arr_member_number: {
-      [Op.not]: null,
-    }
-  },
-});
+  let transactionArr = await db.users.findAll({
+    where: {
+      partner_id: 2,
+      arr_member_number: {
+        [Op.not]: null,
+      }
+    },
+  });
 
 
   transactionArr.forEach(async (existingUser) => {
@@ -2796,10 +2796,10 @@ let transactionArr = await db.users.findAll({
           policy_status: 'paid',
         },
       });
-     
-    
+
+
       console.log("USER", existingUser.name)
-      
+
       if (policy) {
         console.log("POLICY", policy.policy_id)
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
@@ -2815,16 +2815,16 @@ let transactionArr = await db.users.findAll({
           const updatePremiumData = await updatePremium(existingUser, policy);
           console.log("AAR UPDATE PREMIUM - updated", updatePremiumData);
         }
-      }else{
+      } else {
 
-        console.log("no policy found",  `+256${existingUser.phone_number}`, existingUser.name)
+        console.log("no policy found", `+256${existingUser.phone_number}`, existingUser.name)
       }
-        
+
     } catch (error) {
       console.error("Error:", error);
     }
   });
- 
+
 }
 
 // all user that do not have arr_member_number
@@ -2836,15 +2836,14 @@ async function userWithoutAARmemberNumber() {
   //   },
   // });
 
-  let userPhone =[
-'752609663',
-'740667358',
-'751854428',
-'750784996',
-"754347550"
-    ]
+  let userPhone = [
+    '752609663',
+    '740667358',
+    '751854428',
+    "754347550"
+  ]
 
-    userPhone.forEach(async (policy) => {
+  userPhone.forEach(async (policy) => {
     try {
       const user = await db.users.findOne({
         where: {
@@ -2857,52 +2856,53 @@ async function userWithoutAARmemberNumber() {
         },
       });
 
-      if(user){
+      if (user) {
         let policy = await db.policies.findOne({
           where: {
             user_id: user.user_id,
             policy_status: 'paid',
           },
         });
-       
+
         console.log("USER", user.name, user.arr_member_number)
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
 
-        if(user.arr_member_number == null){
-          await getMemberNumberData(user.phone_number)
+        if (user.arr_member_number == null) {
+          let arrMember = await getMemberNumberData(user.phone_number)
+          console.log("ARR MEMBER", arrMember)
         }
 
         // setimeout to allow for the policy to be created
         if (number_of_dependants > 0) {
           // If there are dependants, create them
           console.log("POLICY", policy.first_name, policy.policy_number, number_of_dependants)
-         // let dep = await createDependant(user, policy);
-          console.log("AAR DEPENDANT - member created", );
+          // let dep = await createDependant(user, policy);
+          console.log("AAR DEPENDANT - member created",);
         } else {
-          if(policy){
-        /// register  principal member
-        let principalMember = await registerPrincipal(user, policy);
-        console.log("AAR PRINCIPAL MEMBER - member created", principalMember);
+          if (policy) {
+            /// register  principal member
+            let principalMember = await registerPrincipal(user, policy);
+            console.log("AAR PRINCIPAL MEMBER - member created", principalMember);
           }
 
         }
       }
-        
+
     } catch (error) {
       console.error("Error:", error);
     }
 
-}
-);
-
-}
-
-
-
-
-
-
-  export const playground = async () => {
-   // userWithoutAARmemberNumber()
- console.log("TESTING GROUND")
   }
+  );
+
+}
+
+
+
+
+
+
+export const playground = async () => {
+  //userWithoutAARmemberNumber()
+  console.log("TESTING GROUND")
+}
