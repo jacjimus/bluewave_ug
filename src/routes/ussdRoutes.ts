@@ -233,6 +233,8 @@ router.all("/callback", async (req, res) => {
           message: "Payment record created successfully"
         });
       } else {
+        let policyPayment = await Payment.findOne({ where: { policy_id,user_id ,  payment_amount: amount, payment_status: "failed", } });
+        if(!policyPayment){
         await Payment.create({
           payment_amount: amount,
           payment_type: "airtel money payment",
@@ -244,10 +246,7 @@ router.all("/callback", async (req, res) => {
           payment_metadata: req.body,
           partner_id: partner_id,
         });
-
-        // failed policy
-        await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
-
+      }
 
         console.log("Payment  for failed record created");
         return res.status(200).json({ code: 200, message: "POST/GET request handled successfully" });

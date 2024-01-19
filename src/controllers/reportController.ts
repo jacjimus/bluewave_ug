@@ -1689,7 +1689,11 @@ const paymentReconciliation = async (req, res) => {
       }
   
       console.log("paymentCallback", paymentCallback)
-      result = await reconcilationCallback(paymentCallback.transaction)
+     // result = await reconcilationCallback(paymentCallback.transaction)
+
+     // get all policies that are not paid but phone number and premium match
+
+     
 
     }
 
