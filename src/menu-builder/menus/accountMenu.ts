@@ -125,9 +125,17 @@ const accountMenu = async (args: any, db: any) => {
                     "\n2. Female";
                 break;
             case "6":
-                if (userPolicy.total_member_number == 'M') {
+                let dependants = await db.beneficiaries.findAll({
+                    where: {
+                        principal_phone_number: trimmedPhoneNumber,
+                        beneficiary_type: "DEPENDANT"
+                    },
+                    limit: 6
+                });
+                if (userPolicy.total_member_number == 'M' || dependants.length > 5) {
                     response = `END You have reached the maximum number of dependants for your policy type  ${userPolicy.beneficiary} ${userPolicy.policy_type}`
-                } else {
+                } 
+                else {
                     let dependants = await db.beneficiaries.findAll({
                         where: {
                             principal_phone_number: trimmedPhoneNumber,
