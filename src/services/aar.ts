@@ -742,6 +742,34 @@ if (number_of_dependants > 0) {
 
 return updatedPremium
 }
- 
 
-export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation };
+
+
+async function getMemberNumberData(mobileNumber) {
+  const url = 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/member_number_data';
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${await arr_uganda_login()}`,
+  };
+
+  const data = {
+    mobile_no: mobileNumber,
+  };
+
+  try {
+    const response = await axios.post(url, data, { headers });
+
+    // You can access the response data using response.data
+    console.log(response.data);
+
+    return response.data;
+  } catch (error) {
+    // Handle errors
+    console.error(error.message);
+    throw error;
+  }
+}
+
+
+export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation, getMemberNumberData };

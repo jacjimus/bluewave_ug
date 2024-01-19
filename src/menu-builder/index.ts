@@ -10,6 +10,8 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
+import renewMenu from "./menus/renewMenu";
+import { Op } from "sequelize";
 
 
 require("dotenv").config();
@@ -106,8 +108,27 @@ export default function (args: RequestBody, db: any) {
         allSteps,
       };
 
+      let existingPolicy = await db.policies.findAndCountAll({
+        where: {
+            phone_number: phoneNumber,
+            policy_status: "paid",
+           [Op.or]: [
+              { beneficiary: "FAMILY" },
+              { beneficiary: "SELF" }
+            ]},
+        limit: 1,
+      });
 
-      if (text == "") {
+      if (existingPolicy.count > 0) {
+        response = "CON Ddwaliro Care" +
+          "\n1. Renew Policy" +
+          "\n2. Buy for others" +
+          "\n3. Make Claim" +
+          "\n4. My Policy" +
+          "\n5. View Hospital" +
+          "\n6. Terms Conditions" +
+          "\n7. FAQs"
+      }else {
         response = "CON Ddwaliro Care" +
           "\n1. Buy for self" +
           "\n2. Buy for family" +
@@ -117,30 +138,54 @@ export default function (args: RequestBody, db: any) {
           "\n6. View Hospital" +
           "\n7. Terms Conditions" +
           "\n8. FAQs"
-
       }
-      else if (firstStep == "1") {
+
+  
+
+      if (text == "") {
+        response 
+      }
+      else if (firstStep == "1" && existingPolicy.count == 0) {
         response = await selfMenu(params, db);
       }
-      else if (firstStep == "2") {
-        response = await familyMenu(params, db);
+      else if (firstStep == "1" && existingPolicy.count > 0) {
+        response = await renewMenu(params, db);
       }
-      else if (firstStep == "3") {
+      else if (firstStep == "2" && existingPolicy.count == 0) {
+        response = await familyMenu(params, db);
+      }else if (firstStep == "2" && existingPolicy.count > 0) {
         response = await othersMenu(params, db);
       }
-      else if (firstStep == "4") {
+      else if (firstStep == "3" && existingPolicy.count == 0) {
+        response = await othersMenu(params, db);
+      }else if (firstStep == "3" && existingPolicy.count > 0) {
         response = await claimMenu(params, db);
       }
-      else if (firstStep == "5") {
+      else if (firstStep == "4" && existingPolicy.count == 0) {
+        response = await claimMenu(params, db);
+      }else if (firstStep == "4" && existingPolicy.count > 0) {
         response = await accountMenu(params, db);
       }
-      else if (firstStep == "6") {
+      else if (firstStep == "5" && existingPolicy.count == 0) {
+        response = await accountMenu(params, db);
+      }
+      else if (firstStep == "5" && existingPolicy.count > 0) {
         response = await hospitalMenu(params, db);
       }
-      else if (firstStep == "7") {
+      else if (firstStep == "6" && existingPolicy.count == 0) {
+        response = await hospitalMenu(params, db);
+      }
+      else if (firstStep == "6" && existingPolicy.count > 0) {
+        response = await termsAndConditions(params);
+      }
+      else if (firstStep == "7" && existingPolicy.count == 0) {
         response = await termsAndConditions(params);
 
-      } else if (firstStep == "8") {
+      }  else if (firstStep == "7" && existingPolicy.count > 0) {
+        response = await faqsMenu(params);
+
+      }
+      else if (firstStep == "8") {
         response = await faqsMenu(params);
 
       }

@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 import cron from 'node-cron';
-import { createDependant, fetchMemberStatusData, reconciliation, registerDependant, registerPrincipal, updatePremium } from './aar';
+import { createDependant, fetchMemberStatusData, getMemberNumberData, reconciliation, registerDependant, registerPrincipal, updatePremium } from './aar';
 import SMSMessenger from './sendSMS';
 import axios, { all } from 'axios';
 import fs from 'fs/promises';
@@ -2837,49 +2837,11 @@ async function userWithoutAARmemberNumber() {
   // });
 
   let userPhone =[
-    '701903973',
-    '757355627',
-    '708402199',
-    '759137112',
-    '759681615',
-    '757351174',
-    '758889240',
-    '754241094',
-    '740017379',
-    '702481495',
-    '707928643',
-    '708654027',
-    '751556267',
-    '755873548',
-    '742422971',
-    '709987648',
-    '701431835',
-    '740467298',
-    '743086220',
-    '703807818',
-    '702217517',
-    '703730118',
-    '755982534',
-    '756725291',
-    '700769051',
-    '700192357',
-    '703382136',
-    '704037452',
-    '742618406',
-    '759823342',
-    '742483245',
-    '759823342',
-    '759823342',
-    '744611054',
-    '756832571',
-    '709791969',
-    '708402199',
-    '757009287',
-    '705499663',
-    '704901035',
-    '759021334',
-    '752609663',
-    '740667358',
+'752609663',
+'740667358',
+'751854428',
+'750784996',
+"754347550"
     ]
 
     userPhone.forEach(async (policy) => {
@@ -2889,9 +2851,9 @@ async function userWithoutAARmemberNumber() {
           phone_number: policy,
           //premium: transaction.amount,
           partner_id: 2,
-          arr_member_number: {
-            [Op.is]: null,
-          }
+          // arr_member_number: {
+          //   [Op.is]: null,
+          // }
         },
       });
 
@@ -2903,8 +2865,12 @@ async function userWithoutAARmemberNumber() {
           },
         });
        
-        console.log("USER", user.name)
+        console.log("USER", user.name, user.arr_member_number)
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+
+        if(user.arr_member_number == null){
+          await getMemberNumberData(user.phone_number)
+        }
 
         // setimeout to allow for the policy to be created
         if (number_of_dependants > 0) {
@@ -2937,10 +2903,6 @@ async function userWithoutAARmemberNumber() {
 
 
   export const playground = async () => {
-  // checkIfTransactionIsForPolicy()
-   // sendRenewalReminders()
-    //checkIfPolicyHasPaidPolicies()
-
- // userWithoutAARmemberNumber()
-//  console.log("TESTING GROUND")
+   // userWithoutAARmemberNumber()
+ console.log("TESTING GROUND")
   }

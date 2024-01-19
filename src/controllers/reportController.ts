@@ -1640,7 +1640,7 @@ const paymentReconciliation = async (req, res) => {
 
       let transaction_date = moment(convertedDate)
 
-      let premium = payment['Approved value'].replace(/,/g, '')
+      let premium =payment['Transaction Amount'].replace(/,/g, '') 
       let ext_ref = payment['External Reference']
       let airtel_money_id = payment['Transaction ID']
       let phone_number = payment['Sender Mobile Number']

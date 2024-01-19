@@ -160,7 +160,7 @@ const accountMenu = async (args: any, db: any) => {
         console.log("allSteps", allSteps, allSteps[1])
         console.log('Current step', currentStep);
         console.log('User text', userText)
-       if(userText == "1" ){
+       if(userText == "1" && allSteps[1] == '1'){
 
                 if (userText == "1" && paidPolicies.length > 1) {
                     response = `CON ${policyMessages[1]}\n1. Next`
@@ -208,11 +208,11 @@ const accountMenu = async (args: any, db: any) => {
                     response = 'CON Enter your date of birth (dd/mm/yyyy)';
                 }
                 
-            } else if(userText =="2"){
+        } else if(userText =="2" && allSteps[1] == '2'){
                 console.log("allSteps", allSteps, allSteps[2]);
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
-                    if(allSteps[1] == "5"){
+                    if(allSteps[1] == "5" ){
                         response = 'CON Enter your date of birth (dd/mm/yyyy)';
                     }else{
                                     // last 6 unpaid policies
@@ -264,7 +264,7 @@ const accountMenu = async (args: any, db: any) => {
                 console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
             }
 
-            }else if(userText =="3"){
+        }else if(userText =="3"){
                 console.log("allSteps", allSteps, allSteps[2]);
                 console.log("User text cancel", userText)
                 if (userText == "1") {
