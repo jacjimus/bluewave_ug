@@ -3242,6 +3242,6 @@ export const playground = async () => {
  //userWithoutAARmemberNumber()
  //processUsersPolicyAARWithAANumber()
  //updateAARpremium()
- processUsersPolicyAARWithAANumber()
+ //processUsersPolicyAARWithAANumber()
   console.log("TESTING GROUND")
 }  
