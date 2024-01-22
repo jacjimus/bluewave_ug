@@ -73,12 +73,14 @@ app.use(loggingMiddleware);
 
 app.use(errorHandler);
 
-cron.schedule("0 0 * * *", () => {
-  console.log("running a task every day");
+
+cron.schedule("0 8 * * *", () => {
+  console.log("Running a task every day at 8 AM");
   sendPolicyRenewalReminder();
 });
 
-playground();
+
+//playground();
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

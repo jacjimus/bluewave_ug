@@ -170,7 +170,7 @@ const selfMenu = async (args, db) => {
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium:selectedPolicyType.yearPemium - ultimatePremium.premium,
                 sum_insured: selectedPolicyType.sumInsured,
-                premium: ultimatePremium.premium,
+                premium: installment_type == 1 ? ultimatePremium.premium : selectedPolicyType.yearPemium,
                 yearly_premium: selectedPolicyType.yearPemium,
                 last_expense_insured: selectedPolicyType.lastExpenseInsured,
                 policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
@@ -198,22 +198,22 @@ const selfMenu = async (args, db) => {
 
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 
-            const airtelMoneyPromise = airtelMoney(
-                existingUser.user_id,
-                2,
-                policy.policy_id,
-                phone,
-                ultimatePremium.premium,
-                existingUser.membership_id,
-                "UG",
-                "UGX"
-            );
+            // const airtelMoneyPromise = airtelMoney(
+            //     existingUser.user_id,
+            //     2,
+            //     policy.policy_id,
+            //     phone,
+            //     ultimatePremium.premium,
+            //     existingUser.membership_id,
+            //     "UG",
+            //     "UGX"
+            // );
 
 
             const timeout = 1000;
 
             Promise.race([
-               airtelMoneyPromise,
+              // airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));

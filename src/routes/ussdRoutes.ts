@@ -202,8 +202,8 @@ router.all("/callback", async (req, res) => {
 
         let proratedPercentage = calculateProrationPercentage(policy.installment_order);
 
-        const sumInsured = formatAmount(policy.sum_insured * (proratedPercentage / 100));
-        const lastExpenseInsured = formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
+        const sumInsured = policy.sum_insured * (proratedPercentage / 100);
+        const lastExpenseInsured = policy.last_expense_insured * (proratedPercentage / 100);
         console.log("SUM INSURED", sumInsured);
         console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
@@ -275,6 +275,7 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
     if (number_of_dependants > 0) {
       await createDependant(user, policy);
     } else {
+      console.log("AAR NUMBER- member found", user.phone_number, user.name, user.arr_member_number);
       const updatePremiumData = await updatePremium(user, policy);
       console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
     }

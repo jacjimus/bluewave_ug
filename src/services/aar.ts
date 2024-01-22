@@ -144,7 +144,7 @@ async function registerPrincipal(user: any, policy: any) {
       };
       //console.log("CONFIG", config);
       const response = await axios.request(config);
-      console.log("RESPONSE", response.data);
+      console.log("ARR REG MEMBER RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number, policy.phone_number);
 
       if (response.data.code == 200) {
         console.log("AAR PRINCIPAL CREATED", response.data);
@@ -179,39 +179,12 @@ async function createDependant(existingUser: any, myPolicy: any) {
   try {
 
   
-    let arr_member: any;
-    let dependant: any;
-    let number_of_dependants = parseFloat(myPolicy.total_member_number.split("")[2]);
+    let arr_member: any, dependant: any;
+    console.log('myPolicy', myPolicy)
+    let number_of_dependants = parseFloat(myPolicy.total_member_number.split("")[2])
     console.log("number_of_dependants ", number_of_dependants)
 
-
-    if (existingUser.arr_member_number == null) {
-      console.log("REGISTER PRINCIPAL");
-      // Introduce a delay before calling registerPrincipal
-      await new Promise(resolve => {
-        setTimeout(async () => {
-          const arr_member = await registerPrincipal(existingUser, myPolicy);
-          console.log("ARR PRINCIPAL CREATED", arr_member);
-          resolve(true);
-        }, 1000); // Adjust the delay as needed (1 second in this example)
-      });
-    } else {
-      // Fetch member status data or register principal based on the condition
-
-      await new Promise(resolve => {
-        setTimeout(async () => {
-          arr_member = await fetchMemberStatusData({
-            member_no: existingUser.arr_member_number,
-            unique_profile_id: existingUser.membership_id + "",
-          });
-          console.log("AAR MEMBER FOUND", arr_member);
-
-          if (arr_member?.code == 624) {
-            arr_member = await registerPrincipal(existingUser, myPolicy);
-            console.log("ARR PRINCIPAL CREATED", arr_member);
-            resolve(true);
-          }
-
+         
           for (let i = 1; i <= number_of_dependants; i++) {
             let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
             let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
@@ -272,10 +245,6 @@ async function createDependant(existingUser: any, myPolicy: any) {
             }
           }
 
-        }, 1000); // Adjust the delay as needed (1 second in this example)
-      });
-    }
-
   } catch (error) {
     console.error('Error:', error.message);
   }
@@ -308,8 +277,8 @@ async function updatePremium(user: any, policy: any) {
       }
 
       const requestData: requestPremiumData = {
-        member_no: user?.arr_member_number || user?.member_no,
-        unique_profile_id: user?.membership_id + "" || user?.unique_profile_id + "",
+        member_no: user?.arr_member_number,
+        unique_profile_id: user?.membership_id + "" ,
         health_plan: "AIRTEL_" + policy.policy_type,
         health_option: "64",
         premium: ultimatePremium,
@@ -332,6 +301,7 @@ async function updatePremium(user: any, policy: any) {
         },
         data: JSON.stringify(requestData),
       };
+      console.log("CONFIG", config);
 
       const response = await axios.request(config);
       console.log(JSON.stringify(response.data));
@@ -747,6 +717,11 @@ return updatedPremium
 
 async function getMemberNumberData(mobileNumber) {
   const url = 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/member_number_data';
+  console.log("mobileNumber", mobileNumber)
+  let result = {
+    code: 400,
+    message: "Member not found"
+  } 
 
   const headers = {
     'Content-Type': 'application/json',
@@ -754,16 +729,23 @@ async function getMemberNumberData(mobileNumber) {
   };
 
   const data = {
-    mobile_no: `0${mobileNumber}`,
+    mobile_no: `${mobileNumber}`,
   };
-  console.log("DATA", data);
   try {
     const response = await axios.post(url, data, { headers });
-
+    
+    console.log(" GET MEMBER RESPONSE DATA", response.data);
     // You can access the response data using response.data
-    console.log(response.data);
+   
+    if(response.data.code == 200){
+      // remove 256 from the phone number
+      await db.users.update({ arr_member_number: response.data.member_no }, { where: { phone_number: mobileNumber.substring(3) } });
+      return response.data;
+    }else{
+      return result
+    }
 
-    return response.data;
+
   } catch (error) {
     // Handle errors
     console.error(error.message);

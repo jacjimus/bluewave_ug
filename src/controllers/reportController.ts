@@ -1691,9 +1691,12 @@ const paymentReconciliation = async (req, res) => {
       console.log("paymentCallback", paymentCallback)
      // result = await reconcilationCallback(paymentCallback.transaction)
 
-     // get all policies that are not paid but phone number and premium match
+     // get all policies that are policy_status is pending but payment record is payment_status paid and premium match
+     //throw error if you a such a policy
 
-     
+    
+
+
 
     }
 
