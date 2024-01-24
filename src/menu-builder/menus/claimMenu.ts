@@ -98,7 +98,7 @@ const claimMenu = async (args, db) => {
         console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
 
         if (!user) {
-            response = "CON No user found with that phone number" + "\n0. Back \n00. Main Menu";
+            response = "CON Sorry no customer found with that phone number" + "\n0. Back \n00. Main Menu";
             return response;
         }
 
