@@ -79,8 +79,6 @@ async function getAirtelUser(
     // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL:   process.env.AIRTEL_AUTH_TOKEN_URL;
     const GET_USER_URL = `${process.env.PROD_AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
-    console.log("GET_USER_URL", GET_USER_URL);
-
     const { data } = await axios.get(GET_USER_URL, { headers });
     console.log("RESPONSE KYC", data.data);
     return data?.data;

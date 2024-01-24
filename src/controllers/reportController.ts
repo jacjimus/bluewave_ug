@@ -1614,6 +1614,10 @@ const paymentReconciliation = async (req, res) => {
     const workbook = XLSX.readFile(payment_file.path, { cellDates: true, dateNF: 'mm/dd/yyyy hh:mm:ss' });
     const worksheet = workbook.Sheets[workbook.SheetNames[1]];
 
+    //console.log sheetNames
+    console.log("============ WORKSHEET ========",workbook.Sheets)
+
+
     if (!worksheet) {
       return res.status(400).json({ message: "Empty worksheet in the Excel file" });
     }
@@ -1667,7 +1671,7 @@ const paymentReconciliation = async (req, res) => {
         limit: 1,
       });
 
-      console.log("policy", policy)
+      console.log("policy", policy.premium, policy.policy_number)
 
       let transactionId = await db.transactions.findOne({
         where: {
@@ -1677,7 +1681,7 @@ const paymentReconciliation = async (req, res) => {
       });
 
 
-    console.log("transactionId", transactionId)
+   // console.log("transactionId", transactionId)
 
       let paymentCallback = {
         transaction: {
@@ -1693,10 +1697,6 @@ const paymentReconciliation = async (req, res) => {
 
      // get all policies that are policy_status is pending but payment record is payment_status paid and premium match
      //throw error if you a such a policy
-
-    
-
-
 
     }
 

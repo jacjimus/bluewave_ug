@@ -184,14 +184,12 @@ async function createDependant(existingUser: any, myPolicy: any) {
     let number_of_dependants = parseFloat(myPolicy.total_member_number.split("")[2])
     console.log("number_of_dependants ", number_of_dependants)
 
-         
+         if( myPolicy.dependant_member_numbers.length == 0){
           for (let i = 1; i <= number_of_dependants; i++) {
             let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
             let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
             let dependant_surname = `${i}surname${existingUser.membership_id}`;
 
-            if (arr_member?.policy_no != null && arr_member?.code == 200) {
-              // Use a Promise with setTimeout to control the creation
               await new Promise(resolve => {
                 setTimeout(async () => {
                   dependant = await registerDependant({
@@ -240,11 +238,12 @@ async function createDependant(existingUser: any, myPolicy: any) {
                   }
                 }, 1000 * i); // Adjust the delay as needed
               });
-            } else {
-              console.log("NO ARR MEMBER")
-            }
+            
           }
-
+        }else{
+         
+          console.log("DEPENDANT ALREADY CREATED")
+        }
   } catch (error) {
     console.error('Error:', error.message);
   }
@@ -640,7 +639,7 @@ if (policy?.total_member_number == 'M') {
   console.log("UPDATED PREMIUM", updatedPremium);
 }
 let number_of_dependants = parseFloat(policy?.total_member_number?.split("")[2]) || 0;
-if (number_of_dependants > 0) {
+if (number_of_dependants > 0 && policy.dependant_member_numbers.length == 0) {
   for (let i = 1; i <= number_of_dependants; i++) {
     let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
     let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
