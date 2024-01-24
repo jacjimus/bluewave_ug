@@ -452,7 +452,7 @@ const accountMenu = async (args: any, db: any) => {
                 surname: currentUser.last_name,
                 first_name: currentUser.first_name,
                 other_names: currentUser.middle_names || "",
-                gender: currentUser.gender || '1',
+                gender: gender || '1',
                 dob: currentUser.dob || '1990-01-01',
                 tel_no: `256${currentUser.phone_number}`,
                 email: currentUser.email || "admin@bluewave.insure",
