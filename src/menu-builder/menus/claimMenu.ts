@@ -121,6 +121,8 @@ const claimMenu = async (args, db) => {
         response = `END Your claim documents have been received. Your claim is being processed.`;
         const claimId = generateClaimId();
 
+        console.log("CLAIM POLICY", policy[policy.length - 1].policy_id);
+
          await db.claims.create({
             claim_number: claimId,
             policy_id: policy[policy.length - 1].policy_id,
@@ -129,9 +131,9 @@ const claimMenu = async (args, db) => {
             claim_status: "pending",
             partner_id: user.partner_id,
             claim_description: `Death Claim ID: ${claimId} for AAR Memberr Numbe: ${user.arr_membership_number
-                }  ${policy.policy_type.toUpperCase()} ${policy.beneficiary.toUpperCase()} policy`,
+                }  ${policy[policy.length - 1].policy_type.toUpperCase()} ${policy[policy.length - 1].beneficiary.toUpperCase()} policy`,
             claim_type: "Death Claim",
-            claim_amount: policy.sum_insured,
+            claim_amount: policy[policy.length - 1].sum_insured,
             claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
 
