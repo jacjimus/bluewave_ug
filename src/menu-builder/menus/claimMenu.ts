@@ -108,6 +108,21 @@ const claimMenu = async (args, db) => {
                 policy_status: "paid",
             },
         });
+
+        // check if claim already exists
+        const existingClaim = await db.claims.findAll({
+            where: {
+                user_id: user.user_id,
+                claim_status: "pending",
+                claim_type: "Death Claim",
+
+            },
+        });
+
+        if (existingClaim.length > 2) {
+            response = "CON You already have a claim" + "\n0. Back \n00. Main Menu";
+            return response;
+        }
     
         
         if (policy.length == 0) {
