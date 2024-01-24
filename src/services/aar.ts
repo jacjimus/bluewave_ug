@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config()
 import { calculateProrationPercentage, formatAmount } from './utils';
 import moment from 'moment';
+import SMSMessenger from './sendSMS';
 /* create arrService class to handle all aar related function
   - create user
   - create policy
@@ -149,6 +150,12 @@ async function registerPrincipal(user: any, policy: any) {
       if (response.data.code == 200) {
         console.log("AAR PRINCIPAL CREATED", response.data);
         await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
+        let principal_member = await db.users.findOne({ where: { user_id: user.user_id } });
+        principal_member.arr_member_number = response.data.member_no
+        principal_member.is_active= true
+        principal_member.save();
+        const message =`Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *185*7*6*3# and check on My Policy.`
+        await SMSMessenger.sendSMS(`+256${principal_member.phone_number}`, message);
         return { ...response.data, ...userData }
       }
     } catch (error) {

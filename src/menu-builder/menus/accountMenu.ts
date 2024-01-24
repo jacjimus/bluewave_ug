@@ -117,10 +117,10 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 break;
             case "4":
-             
+
                 // list beneficiaries where beneficiary_type = KIN
                 console.log('trimmedPhoneNumber', trimmedPhoneNumber)
-               let beneficiaries = await db.beneficiaries.findAll({
+                let beneficiaries = await db.beneficiaries.findAll({
                     where: {
                         principal_phone_number: trimmedPhoneNumber,
                         beneficiary_type: "KIN"
@@ -226,70 +226,72 @@ const accountMenu = async (args: any, db: any) => {
                     }
                 }
 
-           
+
             } else if (allSteps[1] == '6' && userText == "1") {
                 response = `END Total dependant number is ${userPolicy.total_member_number}`
             } else if (allSteps[1] == '5' && userText == "1") {
                 response = 'CON Enter your date of birth (dd/mm/yyyy)';
             }
 
-        } else if (userText == "2" && allSteps[1] == '2') {
+        } else if (allSteps[1] == '2' && allSteps[0] == '4') {
             console.log("allSteps", allSteps, allSteps[2]);
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
-            if (allSteps[1] == "5") {
-                response = 'CON Enter your date of birth (dd/mm/yyyy)';
-            } else {
-                // last 6 unpaid policies
-                const existingUser = await db.users.findOne({
-                    where: {
-                        phone_number: phoneNumber.replace("+", "").substring(3),
-                    },
-                    limit: 1,
-                });
 
-                paidPolicies = paidPolicies.slice(-6);
-                console.log("paidPolicies", paidPolicies)
+            // last 6 unpaid policies
+            const existingUser = await db.users.findOne({
+                where: {
+                    phone_number: phoneNumber.replace("+", "").substring(3),
+                },
+                limit: 1,
+            });
 
-                let choosenPolicy = paidPolicies[allSteps[2] - 1];
+            paidPolicies = paidPolicies.slice(-6);
+            console.log("paidPolicies", paidPolicies)
 
-                console.log("CHOOSEN POLICY", choosenPolicy)
-                const airtelMoneyPromise = await airtelMoney(
-                    existingUser.user_id,
-                    2,
-                    choosenPolicy.policy_id,
-                    phoneNumber.replace("+", "").substring(3),
-                    choosenPolicy.premium,
-                    existingUser.membership_id,
-                    "UG",
-                    "UGX"
-                );
+            let choosenPolicy = paidPolicies[allSteps[2] - 1];
 
-                const timeout = 1000;
+            console.log("CHOOSEN POLICY", choosenPolicy)
+            const airtelMoneyPromise = await airtelMoney(
+                existingUser.user_id,
+                2,
+                choosenPolicy.policy_id,
+                phoneNumber.replace("+", "").substring(3),
+                choosenPolicy.premium,
+                existingUser.membership_id,
+                "UG",
+                "UGX"
+            );
 
-                Promise.race([
-                    airtelMoneyPromise,
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            reject(new Error('Airtel Money operation timed out'));
-                        }, timeout);
-                    })
-                ]).then((result) => {
-                    // Airtel Money operation completed successfully
-                    console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
-                    response = 'END Payment successful';
-                    console.log("RESPONSE WAS CALLED", result);
-                    return response;
-                }).catch((error) => {
-                    response = 'END Payment failed';
-                    console.log("RESPONSE WAS CALLED", error);
-                    return response;
-                });
+            const timeout = 1000;
 
-                console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
-            }
+            Promise.race([
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
+                })
+            ]).then((result) => {
+                // Airtel Money operation completed successfully
+                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                response = 'END Payment successful';
+                console.log("RESPONSE WAS CALLED", result);
+                return response;
+            }).catch((error) => {
+                response = 'END Payment failed';
+                console.log("RESPONSE WAS CALLED", error);
+                return response;
+            });
 
-        } else if (userText == "3") {
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+
+
+        } else if (allSteps[1] == "5" && allSteps[0] == "4") {
+
+            response = 'CON Enter your date of birth (dd/mm/yyyy)';
+        }
+        else if (userText == "3") {
             console.log("allSteps", allSteps, allSteps[2]);
             console.log("User text cancel", userText)
             if (userText == "1") {
@@ -319,18 +321,18 @@ const accountMenu = async (args: any, db: any) => {
                 },
                 limit: 6
             });
-          console.log("BENEFICIARIES", beneficiaries)
-          if (beneficiaries.length  == 0) {
-            response = `END You have no next of kin for your policy type  ${userPolicy.beneficiary} ${userPolicy.policy_type}`
-            }else{
-            response = "CON " +  
-            'Kin Name: ' + beneficiaries[allSteps[2] - 1].full_name + '\n' +
-            'Kin Phone Number: ' + beneficiaries[allSteps[2] - 1].phone_number + '\n' +
-            '0. Back \n00. Main Menu';
+            console.log("BENEFICIARIES", beneficiaries)
+            if (beneficiaries.length == 0) {
+                response = `END You have no next of kin for your policy type  ${userPolicy.beneficiary} ${userPolicy.policy_type}`
+            } else {
+                response = "CON " +
+                    'Kin Name: ' + beneficiaries[allSteps[2] - 1].full_name + '\n' +
+                    'Kin Phone Number: ' + beneficiaries[allSteps[2] - 1].phone_number + '\n' +
+                    '0. Back \n00. Main Menu';
             }
         } else if (allSteps[1] == '4' && userText == "98") {
-      
-               response = "CON Enter Full Name of your Next of Kin (Above 0 - 65 years of age)"
+
+            response = "CON Enter Full Name of your Next of Kin (Above 0 - 65 years of age)"
         } else if (userText == "5") {
 
             response = 'CON Enter your date of birth (dd/mm/yyyy)';
@@ -352,9 +354,9 @@ const accountMenu = async (args: any, db: any) => {
 
             response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
 
-        } else if (allSteps[0] == '4' && allSteps[1] == '4')  {
-                  response = "CON Enter Next of Kin Phone number (07XXXXXXXX)"
-           
+        } else if (allSteps[0] == '4' && allSteps[1] == '4') {
+            response = "CON Enter Next of Kin Phone number (07XXXXXXXX)"
+
         } else if (allSteps[2] == "2" || allSteps[2] == "1") {
             let gender = allSteps[2] == "1" ? "MALE" : "FEMALE";
             let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
@@ -376,7 +378,7 @@ const accountMenu = async (args: any, db: any) => {
                 surname: user.last_name,
                 first_name: user.first_name,
                 other_names: user.middle_names || "",
-                gender: allSteps[2]  || '1',
+                gender: allSteps[2] || '1',
                 dob: dob || '1990-01-01',
                 tel_no: `256${user.phone_number}`,
                 email: user.email || "admin@bluewave.insure",
@@ -431,11 +433,11 @@ const accountMenu = async (args: any, db: any) => {
 
             SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`)
             response = "CON Your dependant name saved successfully"
-        }else if (allSteps[1] == '4') {
+        } else if (allSteps[1] == '4') {
             console.log("allSteps", allSteps)
             console.log('Current step', currentStep);
             console.log('User text', userText)
-            
+
             await db.beneficiaries.create({
                 beneficiary_id: uuidv4(),
                 full_name: allSteps[3],
@@ -446,7 +448,7 @@ const accountMenu = async (args: any, db: any) => {
                 user_id: currentUser.user_id,
                 principal_phone_number: trimmedPhoneNumber
             })
-      let gender = currentUser.gender == "MALE" ? "1" : "2";
+            let gender = currentUser.gender == "MALE" ? "1" : "2";
             const data = {
                 member_no: currentUser.arr_member_number,
                 surname: currentUser.last_name,
@@ -469,8 +471,8 @@ const accountMenu = async (args: any, db: any) => {
             await updateMember(data)
 
 
-           SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`)
-            response = "CON Your next of kin details saved successfully"
+            SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`)
+            response = "END Your next of kin details saved successfully"
         }
 
     }
