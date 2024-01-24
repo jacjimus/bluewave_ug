@@ -37,7 +37,7 @@ const claimMenu = async (args, db) => {
                 console.log("POLICY", policy);
 
                 if (!policy || !user) {
-                    response = "CON No policy found" + "\n0. Back \n00. Main Menu";
+                    response = "CON You have no paid policy found" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
 
@@ -58,7 +58,10 @@ const claimMenu = async (args, db) => {
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
                 break;
             case "2":
-                response = "CON Enter phone of next of Kin e.g 0759608107"
+                response = "CON Enter phone of next of Kin e.g 07XXXXXXXX"
+                break;
+            default:
+                response = "END Invalid option"
                 break;
         }
     }
@@ -66,10 +69,10 @@ const claimMenu = async (args, db) => {
         response = "CON Enter your Relationship to the deceased"
     }
     else if (currentStep === 4) {
-        response = "CON Enter Name of deceased"
+        response = "CON Enter Full Name of deceased"
     }
     else if (currentStep === 5) {
-        response = "CON Enter Date of death in the format DDMMYYYY e.g 01/01/1990"
+        response = "CON Enter Date of Death in the format DDMMYYYY e.g 01/01/1990"
     }
     else if (currentStep === 6) {
         const deathData = {
@@ -79,11 +82,16 @@ const claimMenu = async (args, db) => {
             dateOfDeath: allSteps[5],
         }
 
+        console.log("deathData", deathData);
+
         // CREATE CLAIM
         let claim_type = "Death Claim";
         let user = await db.users.findOne({
             where: {
-                phone_number: deathData.nextOfKinPhoneNumber,
+                [db.Sequelize.Op.or]: [
+                    { phone_number: deathData.nextOfKinPhoneNumber },
+                    { phone_number: args.phoneNumber.replace('+', "")?.substring(3) },
+                ]
             },
             limit: 1,
         });
@@ -104,7 +112,7 @@ const claimMenu = async (args, db) => {
         policy = policy[policy.length - 1];
 
         if (!policy) {
-            response = "CON No policy found" + "\n0. Back \n00. Main Menu";
+            response = "CON Sorry you cant make a claim" + "\n0. Back \n00. Main Menu";
             return response;
         }
 
@@ -124,13 +132,12 @@ const claimMenu = async (args, db) => {
             claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
 
-     
-        const userPhone = user.phone_number?.startsWith('+') ? user.phone_number : `+${user.phone_number}`;
+    
 
-        const sms = 'Your claim documents have been received. Your claim is being processed.';
-        await SMSMessenger.sendSMS(userPhone, sms);
+        const sms = `Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`
+        await SMSMessenger.sendSMS(`+256${user.phone_number}`, sms);
 
-        response = `END Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`;
+        response = `END Your claim documents have been received. Your claim is being processed.`;
     }
 
 

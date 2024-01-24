@@ -79,6 +79,10 @@ const renewMenu = async (args: any, db: any) => {
         console.log("allSteps", allSteps)
         console.log('Current step', currentStep);
         console.log('User text', userText)
+        if(userText *1 > 3){
+            response = "END Invalid option"
+            return response
+        }
 
                 console.log("allSteps", allSteps, allSteps[1]);
                 response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
@@ -130,6 +134,8 @@ const renewMenu = async (args: any, db: any) => {
                 });
 
                 console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+     }else{
+        response = "END Invalid option"
      }
 
         
