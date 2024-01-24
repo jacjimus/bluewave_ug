@@ -85,7 +85,7 @@ const claimMenu = async (args, db) => {
         console.log("deathData", deathData);
 
         // CREATE CLAIM
-        let claim_type = "Death Claim";
+        
         let user = await db.users.findOne({
             where: {
                 [db.Sequelize.Op.or]: [
@@ -124,9 +124,9 @@ const claimMenu = async (args, db) => {
             claim_date: new Date(),
             claim_status: "pending",
             partner_id: user.partner_id,
-            claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id
+            claim_description: `Death Claim ID: ${claimId} for AAR Memberr Numbe: ${user.arr_membership_number
                 }  ${policy.policy_type.toUpperCase()} ${policy.beneficiary.toUpperCase()} policy`,
-            claim_type: claim_type,
+            claim_type: "Death Claim",
             claim_amount: policy.sum_insured,
             claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
