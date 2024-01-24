@@ -18,7 +18,7 @@ const othersMenu = async (args, db) => {
 
 
   let phone = phoneNumber?.replace('+', "")?.substring(3);
-  // console.log("SELECTED POLICY TYPE", selectedPolicyType);
+ console.log("PHONE NUMBER", phone);
   let existingUser = await db.users.findOne({
     where: {
       phone_number: phone,
@@ -314,8 +314,12 @@ const othersMenu = async (args, db) => {
     let coverType = allSteps[2];
 
     // IF NO NAME OR PHONE NUMBER
-    if (otherPhone.length < 10) {
+    if (otherPhone.length != 10) {
       response = "END Sorry Phone number for Other not valid e.g 0700000000\n"
+      return response;
+    }
+    if (otherPhone.substring(1) == phone) {
+      response = "END Sorry you cannot buy for yourself\n"
       return response;
     }
      
@@ -350,13 +354,11 @@ const othersMenu = async (args, db) => {
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
     //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
-    otherUserPhone =replaceLeadingZero(allSteps[4])
-
-    console.log("OTHER USER PHONE", otherUserPhone);
+    otherUserPhone = allSteps[4].substring(1)
 
   existingOther = await db.users.findOne({
       where: {
-        phone_number: otherUserPhone.toString(),
+        phone_number: otherUserPhone,
       },
       limit: 1,
     });
