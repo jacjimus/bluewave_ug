@@ -95,7 +95,7 @@ const claimMenu = async (args, db) => {
             },
             limit: 1,
         });
-        console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
+        //console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
 
         if (!user) {
             response = "CON Sorry no customer found with that phone number" + "\n0. Back \n00. Main Menu";
@@ -115,6 +115,10 @@ const claimMenu = async (args, db) => {
             return response;
         }
         
+        const sms = `Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`
+        await SMSMessenger.sendSMS(`+256${user.phone_number}`, sms);
+
+        response = `END Your claim documents have been received. Your claim is being processed.`;
         const claimId = generateClaimId();
 
          await db.claims.create({
@@ -131,12 +135,6 @@ const claimMenu = async (args, db) => {
             claim_death_date: new Date(deathData.dateOfDeath) ? new Date(deathData.dateOfDeath) : "2021-01-01",
         });
 
-    
-
-        const sms = `Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`
-        await SMSMessenger.sendSMS(`+256${user.phone_number}`, sms);
-
-        response = `END Your claim documents have been received. Your claim is being processed.`;
     }
 
 
