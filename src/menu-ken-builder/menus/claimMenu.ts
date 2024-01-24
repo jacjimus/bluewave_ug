@@ -30,7 +30,7 @@ const claimMenu = async (args, db) => {
                 console.log("USER ID", user.user_id);
                 
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
-                const policy = await db.policies.findOne({
+                const policy = await db.policies.findAll({
                     where: {
                         user_id: user.user_id,
                         policy_status: "paid",

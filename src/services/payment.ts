@@ -49,14 +49,14 @@ async function getAuthKenyaToken() {
 
 
     let KENYA_AIRTEL_AUTH_TOKEN_URL = 'https://openapiuat.airtel.africa/auth/oauth2/token'
-    let KENYA_AIRTEL_UGX_CLIENT_ID ='1d625007-fb96-4b08-bd07-d7316629922e'
-    let KENYA_AIRTEL_UGX_CLIENT_SECRET ='76b8a757-583e-4436-a767-b3b370c775ee'
+    let KENYA_AIRTEL_UGX_CLIENT_ID = '1d625007-fb96-4b08-bd07-d7316629922e'
+    let KENYA_AIRTEL_UGX_CLIENT_SECRET = '76b8a757-583e-4436-a767-b3b370c775ee'
 
     response = await axios.post(KENYA_AIRTEL_AUTH_TOKEN_URL,
       {
 
         client_id: KENYA_AIRTEL_UGX_CLIENT_ID,
-        client_secret:  KENYA_AIRTEL_UGX_CLIENT_SECRET,
+        client_secret: KENYA_AIRTEL_UGX_CLIENT_SECRET,
         grant_type: 'client_credentials',
       },
       {
@@ -100,18 +100,6 @@ async function createTransaction(user_id: any, partner_id: any, policy_id: any, 
 }
 
 
-// =========== AIRTEL MONEY ===========
-
-// const airtelMoneyPromise = await airtelMoney(
-//   existingUser.user_id,
-//   2,
-//   choosenPolicy.policy_id,
-//   phoneNumber.replace("+", "").substring(3),
-//   choosenPolicy.premium,
-//   existingUser.membership_id,
-//   "UG",
-//   "UGX"
-// );
 
 async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, reference, country, currency) {
   const status = {
@@ -152,10 +140,10 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
 
     //let paymentResponse;
     new Promise((resolve, reject) => {
-      setTimeout(async() => {
+      setTimeout(async () => {
         console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
-        resolve( await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers }))
-  
+        resolve(await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers }))
+
       }, 3000)
 
     }).then((paymentResponse: any) => {
@@ -173,8 +161,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
       return status;
     }
     );
-  
-   
+
   } catch (error) {
     console.error('ERROR:', error);
     status.code = 500;
@@ -224,10 +211,10 @@ async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, referen
 
     //let paymentResponse;
     new Promise((resolve, reject) => {
-      setTimeout(async() => {
+      setTimeout(async () => {
         console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
-        resolve( await axios.post(KENYA_AIRTEL_PAYMENT_URL, paymentData, { headers }))
-  
+        resolve(await axios.post(KENYA_AIRTEL_PAYMENT_URL, paymentData, { headers }))
+
       }, 3000)
 
     }).then((paymentResponse: any) => {
@@ -244,8 +231,8 @@ async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, referen
       return status;
     }
     );
-  
-   
+
+
   } catch (error) {
     console.error('ERROR:', error);
     status.code = 500;
@@ -575,126 +562,126 @@ async function refundRecoveryTransaction(transactionId: any, country: any, curre
 // Call the function to refund the recovery transaction
 //refundRecoveryTransaction();
 
-async function reconcilationCallback(transaction){
+async function reconcilationCallback(transaction) {
 
-    const { id, status_code, message, airtel_money_id } = transaction;
+  const { id, status_code, message, airtel_money_id } = transaction;
 
-    const transactionData = await findTransactionById(id);
+  const transactionData = await findTransactionById(id);
 
-    if (!transactionData) {
-      throw new Error("Transaction not found");
+  if (!transactionData) {
+    throw new Error("Transaction not found");
+  }
+
+
+
+  const { policy_id, user_id, amount, partner_id } = transactionData;
+
+  if (status_code == "TS") {
+
+    await transactionData.update({
+      status: "paid",
+    });
+
+    const user = await db.users.findOne({ where: { user_id } });
+
+    let policy = await db.policies.findOne({
+      where:
+      {
+        policy_id,
+        user_id,
+      }
+    });
+
+    if (!policy || !policy) {
+
+      throw new Error("Policy not found");
+
     }
 
+    policy.airtel_money_id = airtel_money_id;
+
+    const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
+    const policyType = policy.policy_type.toUpperCase();
+    const period = policy.installment_type == 1 ? "yearly" : "monthly";
 
 
-    const { policy_id, user_id, amount, partner_id } = transactionData;
+    const payment = await db.payments.create({
+      payment_amount: amount,
+      payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
+      user_id,
+      policy_id,
+      payment_status: "paid",
+      payment_description: message,
+      payment_date: new Date(),
+      payment_metadata: transaction,
+      partner_id,
+    });
 
-    if (status_code == "TS") {
+    console.log("Payment record created successfully");
 
-      await transactionData.update({
-        status: "paid",
-      });
-
-      const user = await db.users.findOne({ where: { user_id } });
-
-      let policy = await db.policies.findOne({
-        where:
-        {
-          policy_id,
-          user_id,
-        }
-      });
-
-      if (!policy || !policy) {
-
-       throw new Error("Policy not found");
-
-      }
-
-      policy.airtel_money_id = airtel_money_id;
-
-      const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
-      const policyType = policy.policy_type.toUpperCase();
-      const period = policy.installment_type == 1 ? "yearly" : "monthly";
+    let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
 
-      const payment = await db.payments.create({
-        payment_amount: amount,
-        payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
-        user_id,
-        policy_id,
-        payment_status: "paid",
-        payment_description: message,
-        payment_date: new Date(),
-        payment_metadata: transaction,
-        partner_id,
-      });
-
-      console.log("Payment record created successfully");
-
-      let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+    console.log("=== PAYMENT ===", payment)
+    console.log("=== UPDATED POLICY ===", updatedPolicy)
 
 
-      console.log("=== PAYMENT ===", payment)
-      console.log("=== UPDATED POLICY ===", updatedPolicy)
+    const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
+    console.log("MEMBERS", members, policy.total_member_number);
+
+    let proratedPercentage = calculateProrationPercentage(policy.installment_order);
+
+    const sumInsured = formatAmount(policy.sum_insured * (proratedPercentage / 100));
+    const lastExpenseInsured = formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
+    console.log("SUM INSURED", sumInsured);
+    console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
 
-      const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
-      console.log("MEMBERS", members, policy.total_member_number);
+    const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
-      let proratedPercentage = calculateProrationPercentage(policy.installment_order);
+    let congratText = "";
 
-      const sumInsured = formatAmount(policy.sum_insured * (proratedPercentage / 100));
-      const lastExpenseInsured = formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
-      console.log("SUM INSURED", sumInsured);
-      console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+    if (policy.beneficiary == "FAMILY") {
+      congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
+    } else if (policy.beneficiary == "SELF")
+      congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+    else if (policy.beneficiary == "OTHER") {
+      congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+    }
+    console.log("CONGRATULATORY TEXT", congratText);
 
+    //await SMSMessenger.sendSMS(to, congratText);
 
-      const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+    const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
-      let congratText = "";
-
-      if (policy.beneficiary == "FAMILY") {
-        congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
-      } else if (policy.beneficiary == "SELF")
-        congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
-      else if (policy.beneficiary == "OTHER") {
-        congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
-      }
-      console.log("CONGRATULATORY TEXT", congratText);
-
-      //await SMSMessenger.sendSMS(to, congratText);
-
-      const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-
-      await processPolicy(user, policy, memberStatus);
+    await processPolicy(user, policy, memberStatus);
 
     return {
       code: 200,
       message: "Payment record created successfully"
     }
-    } else {
-      await db.payments.create({
-        payment_amount: amount,
-        payment_type: "airtel money payment",
-        user_id,
-        policy_id,
-        payment_status: "failed",
-        payment_description: message,
-        payment_date: new Date(),
-        payment_metadata: transaction,
-        partner_id: partner_id,
-      });
+  } else {
+    await db.payments.create({
+      payment_amount: amount,
+      payment_type: "airtel money payment",
+      user_id,
+      policy_id,
+      payment_status: "failed",
+      payment_description: message,
+      payment_date: new Date(),
+      payment_metadata: transaction,
+      partner_id: partner_id,
+    });
 
-      // failed policy
-      await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
+    // failed policy
+    await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
 
 
-     return {
+    return {
       code: 500,
       message: "Payment record created successfully"
-     }
     }
+  }
 }
 
 export {

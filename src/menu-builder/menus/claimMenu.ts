@@ -109,18 +109,17 @@ const claimMenu = async (args, db) => {
             },
         });
     
-        policy = policy[policy.length - 1];
-
-        if (!policy) {
+        
+        if (policy.length == 0) {
             response = "CON Sorry you cant make a claim" + "\n0. Back \n00. Main Menu";
             return response;
         }
-
+        
         const claimId = generateClaimId();
 
          await db.claims.create({
             claim_number: claimId,
-            policy_id: policy.policy_id,
+            policy_id: policy[policy.length - 1].policy_id,
             user_id: user.user_id,
             claim_date: new Date(),
             claim_status: "pending",
