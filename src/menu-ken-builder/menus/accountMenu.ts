@@ -68,7 +68,7 @@ const accountMenu = async (args: any, db: any) => {
                 // last 6 unpaid policies
                 paidPolicies = paidPolicies.slice(-6);
                 if (paidPolicies?.length === 0) {
-                    response = "END You have no paid policies"
+                    response = "END Sorry you have no active policy"
                 }
                 else {
                     // response = "CON PAY " +
@@ -255,7 +255,7 @@ const accountMenu = async (args: any, db: any) => {
     } else if (currentStep == 4) {
         switch (userText) {
             case "1":
-                response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}\n1. Next` : "END You have no more paid policy"
+                response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}\n1. Next` : "END Sorry you have no active policy"
                 break;
             case "4":
                 const existingUser = await db.users.findOne({
@@ -276,7 +276,7 @@ const accountMenu = async (args: any, db: any) => {
                     limit: 6
                 });
                 if (policies.length == 0) {
-                    response = "END You have no paid policies"
+                    response = "END Sorry you have no active policy"
                 }
                 let myPolicy = policies[policies.length - 1]
                 const nextOfKinDetails = {

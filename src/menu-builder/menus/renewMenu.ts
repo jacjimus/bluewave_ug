@@ -48,10 +48,9 @@ const renewMenu = async (args: any, db: any) => {
     // });
 
     if (paidPolicies.length == 0) {
-        response = "END You have no paid policies"
+        response = "END Sorry you have no active policy"
         return response
     }
-
 
 
    if (currentStep == 1) {
@@ -62,12 +61,12 @@ const renewMenu = async (args: any, db: any) => {
     
                 paidPolicies = paidPolicies.slice(-6);
                 if (paidPolicies?.length === 0) {
-                    response = "END You have no paid policies"
+                    response = "END Sorry you have no active policy"
                 }
                 else {
-                    // list all the pending policies
+                    // list all the paid policies
                     response = "CON " + paidPolicies.map((policy: any, index: number) => {
-                        return `\n${index + 1}. ${policy.beneficiary} ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
+                        return `\n${index + 1}. ${policy.beneficiary} ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} , pending premium of UGX ${policy.policy_pending_premium.toLocaleString()}`
                     }
                     ).join("");
                 }

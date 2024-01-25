@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
         policy_type: {
             type: DataTypes.STRING,
             allowNull: false,
-            enum: ["MINI", "MIDI", "BIGGIE","BAMBA","ZIDI","SMARTA", "COMPREHENSIVE", "FT", "TPO"]
+            enum: ["S MINI", "MINI", "MIDI", "BIGGIE","BAMBA","ZIDI","SMARTA", "COMPREHENSIVE", "FT", "TPO"]
         },
         policy_start_date: {
             type: DataTypes.DATE,

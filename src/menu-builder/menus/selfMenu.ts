@@ -14,36 +14,46 @@ const selfMenu = async (args, db) => {
         },
     });
 
-    const coverTypes = [{
-        name: "MINI",
-        sum_insured: "1.5M",
-        sumInsured: 1500000,
-        premium: "10,000",
-        yearly_premium: "120,000",
-        yearPemium: 120000,
-        last_expense_insured: "1M",
-        lastExpenseInsured: 1000000
-    },
-    {
-        name: "MIDI",
-        sum_insured: "3M",
-        sumInsured: 3000000,
-        premium: "14,000",
-        yearly_premium: "167,000",
-        yearPemium: 167000,
-        last_expense_insured: "1.5M",
-        lastExpenseInsured: 1500000
-    },
-    {
-        name: "BIGGIE",
-        sum_insured: "5M",
-        sumInsured: 5000000,
-        premium: "18,000",
-        yearly_premium: "208,000",
-        yearPemium: 208000,
-        last_expense_insured: "2M",
-        lastExpenseInsured: 2000000
-    }];
+    const coverTypes = [
+        {
+            name: "S MINI",
+            sum_insured: "750,000",
+            sumInsured: 1500000,
+            premium: "5,000",
+            yearly_premium: "60,000",
+            yearPemium: 60000,
+            last_expense_insured: "500,000",
+            lastExpenseInsured: 500000
+        }, {
+            name: "MINI",
+            sum_insured: "1.5M",
+            sumInsured: 1500000,
+            premium: "10,000",
+            yearly_premium: "120,000",
+            yearPemium: 120000,
+            last_expense_insured: "1M",
+            lastExpenseInsured: 1000000
+        },
+        {
+            name: "MIDI",
+            sum_insured: "3M",
+            sumInsured: 3000000,
+            premium: "14,000",
+            yearly_premium: "167,000",
+            yearPemium: 167000,
+            last_expense_insured: "1.5M",
+            lastExpenseInsured: 1500000
+        },
+        {
+            name: "BIGGIE",
+            sum_insured: "5M",
+            sumInsured: 5000000,
+            premium: "18,000",
+            yearly_premium: "208,000",
+            yearPemium: 208000,
+            last_expense_insured: "2M",
+            lastExpenseInsured: 2000000
+        }];
 
     if (currentStep === 1) {
         switch (userText) {
@@ -54,9 +64,10 @@ const selfMenu = async (args, db) => {
                 // ).join("");
                 // response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
                 response = "CON Buy for self " +
-                    "\n1. MINI at UGX 10,000" +
-                    "\n2. MIDI at UGX 14,000" +
-                    "\n3. BIGGIE at UGX 18,000" +
+                    "\n1. S MINI at UGX 5,000" +
+                    "\n2. MINI at UGX 10,000" +
+                    "\n3. MIDI at UGX 14,000" +
+                    "\n4. BIGGIE at UGX 18,000" +
                     "\n0. Back \n00. Main Menu";
 
                 break;
@@ -77,20 +88,21 @@ const selfMenu = async (args, db) => {
             where: {
                 phone_number: `+256${phone}`,
                 policy_status: "paid",
-               [Op.or]: [
-                  { beneficiary: "FAMILY" },
-                  { beneficiary: "SELF" }
-                ]},
+                [Op.or]: [
+                    { beneficiary: "FAMILY" },
+                    { beneficiary: "SELF" }
+                ]
+            },
             limit: 1,
-          });
-      
+        });
 
-      
-        if(existingPolicy.count > 0) {
+
+
+        if (existingPolicy.count > 0) {
             response = "END You already have an active policy"
             return response;
         }
-       
+
 
         let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
         response = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${coverType.sum_insured} a year` +
@@ -99,9 +111,11 @@ const selfMenu = async (args, db) => {
             `\n2. UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep === 3) {
+        console.log("allSteps", allSteps )
         let paymentOption = parseInt(userText);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
         let policy_type = selectedPolicyType.name;
+        console.log(selectedPolicyType, policy_type, paymentOption)
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
@@ -152,23 +166,23 @@ const selfMenu = async (args, db) => {
 
             let checkPaidPolicy = await db.policies.findAndCountAll({
                 where: {
-                  user_id: existingUser.user_id,
-                  policy_status: 'paid',
+                    user_id: existingUser.user_id,
+                    policy_status: 'paid',
                 },
-              });
-              
-              let policyNumber =
+            });
+
+            let policyNumber =
                 checkPaidPolicy.count > 0
-                  ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1 }`
-                  : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
-              
+                    ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1}`
+                    : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
+
             let policyObject = {
                 policy_id: uuidv4(),
                 installment_type: installment_type == 1 ? 2 : 1,
                 installment_order: 1,
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
-                policy_pending_premium:selectedPolicyType.yearPemium - ultimatePremium.premium,
+                policy_pending_premium: selectedPolicyType.yearPemium - ultimatePremium.premium,
                 sum_insured: selectedPolicyType.sumInsured,
                 premium: installment_type == 1 ? ultimatePremium.premium : selectedPolicyType.yearPemium,
                 yearly_premium: selectedPolicyType.yearPemium,
@@ -189,31 +203,31 @@ const selfMenu = async (args, db) => {
                 first_name: existingUser?.first_name,
                 last_name: existingUser?.last_name,
                 policy_number: policyNumber
-
-
             }
 
 
-           let policy = await db.policies.create(policyObject);
+            let policy = await db.policies.create(policyObject);
+
+            console.log("=========== SELF POLICY ===========", policy);
 
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 
-            // const airtelMoneyPromise = airtelMoney(
-            //     existingUser.user_id,
-            //     2,
-            //     policy.policy_id,
-            //     phone,
-            //     ultimatePremium.premium,
-            //     existingUser.membership_id,
-            //     "UG",
-            //     "UGX"
-            // );
+            const airtelMoneyPromise = airtelMoney(
+                existingUser.user_id,
+                2,
+                policy.policy_id,
+                phone,
+                ultimatePremium.premium,
+                existingUser.membership_id,
+                "UG",
+                "UGX"
+            );
 
 
             const timeout = 1000;
 
             Promise.race([
-              // airtelMoneyPromise,
+                 airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));

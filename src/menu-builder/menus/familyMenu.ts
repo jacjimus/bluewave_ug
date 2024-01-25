@@ -30,6 +30,34 @@ const familyMenu = async (args, db) => {
       code_name: "M+1",
       packages: [
         {
+          name: "S Mini",
+          code_name: "S MINI",
+          premium: '10,000',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          last_expense_insured: '500000',
+          lastExpenseInsured: 500000,
+          year_premium: '120,000',
+          payment_options: [
+            {
+              name: 'Monthly',
+              code_name: 'monthly',
+              premium: '10,000',
+              yearly_premium: '120,000',
+              installment_type: 1,
+              period: 'monthly'
+            },
+            {
+              name: 'Yearly',
+              code_name: 'yearly',
+              premium: '120,000',
+              yearly_premium: '120,000',
+              installment_type: 2,
+              period: 'yearly'
+            }
+          ]
+        },
+        {
           name: "Mini",
           code_name: "MINI",
           premium: '20,000',
@@ -119,6 +147,34 @@ const familyMenu = async (args, db) => {
       name: "Self+Spouse+1 Child",
       code_name: "M+2",
       packages: [
+        {
+          name: "S Mini",
+          code_name: "S MINI",
+          premium: '15,000',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000,
+          year_premium: '180,000',
+          payment_options: [
+            {
+              name: 'Monthly',
+              code_name: 'monthly',
+              premium: '15,000',
+              yearly_premium: '180,000',
+              installment_type: 1,
+              period: 'monthly'
+            },
+            {
+              name: 'Yearly',
+              code_name: 'yearly',
+              premium: '180,000',
+              yearly_premium: '180,000',
+              installment_type: 2,
+              period: 'yearly'
+            }
+          ]
+        },
         {
           name: "Mini",
           code_name: "MINI",
@@ -211,6 +267,34 @@ const familyMenu = async (args, db) => {
       code_name: "M+3",
       packages: [
         {
+          name: "S Mini",
+          code_name: "S MINI",
+          premium: '20,000',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          last_expense_insured: '500,000',
+          lastExpenseInsured:500000,
+          year_premium: '240,000',
+          payment_options: [
+            {
+              name: 'Monthly',
+              code_name: 'monthly',
+              premium: '20,000',
+              yearly_premium: '240,000',
+              installment_type: 1,
+              period: 'monthly'
+            },
+            {
+              name: 'Yearly',
+              code_name: 'yearly',
+              premium: '240,000',
+              yearly_premium: '240,000',
+              installment_type: 2,
+              period: 'yearly'
+            }
+          ]
+        },
+        {
           name: "Mini",
           code_name: "MINI",
           premium: '40,000',
@@ -300,6 +384,34 @@ const familyMenu = async (args, db) => {
       name: "Self+Spouse+3 Children",
       code_name: "M+4",
       packages: [
+        {
+          name: "S Mini",
+          code_name: "S MINI",
+          premium: '25,000',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000,
+          year_premium: '300,000',
+          payment_options: [
+            {
+              name: 'Monthly',
+              code_name: 'monthly',
+              premium: '25,000',
+              yearly_premium: '300,000',
+              installment_type: 1,
+              period: 'monthly'
+            },
+            {
+              name: 'Yearly',
+              code_name: 'yearly',
+              premium: '300,000',
+              yearly_premium: '300,000',
+              installment_type: 2,
+              period: 'yearly'
+            }
+          ]
+        },
         {
           name: "Mini",
           code_name: "MINI",
@@ -391,6 +503,34 @@ const familyMenu = async (args, db) => {
       code_name: "M+5",
       packages: [
         {
+          name: "S Mini",
+          code_name: "S MINI",
+          premium: '30,000',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000,
+          year_premium: '360,000',
+          payment_options: [
+            {
+              name: 'Monthly',
+              code_name: 'monthly',
+              premium: '30,000',
+              yearly_premium: '360,000',
+              installment_type: 1,
+              period: 'monthly'
+            },
+            {
+              name: 'Yearly',
+              code_name: 'yearly',
+              premium: '360,000',
+              yearly_premium: '360,000',
+              installment_type: 2,
+              period: 'yearly'
+            }
+          ]
+        },
+        {
           name: "Mini",
           code_name: "MINI",
           premium: '60,000',
@@ -480,6 +620,34 @@ const familyMenu = async (args, db) => {
       name: "Self+Spouse+5 Children",
       code_name: "M+6",
       packages: [
+        {
+          name: "S Mini",
+          code_name: "S MINI",
+          premium: '35,000',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000,
+          year_premium: '420,000',
+          payment_options: [
+            {
+              name: 'Monthly',
+              code_name: 'monthly',
+              premium: '35,000',
+              yearly_premium: '420,000',
+              installment_type: 1,
+              period: 'monthly'
+            },
+            {
+              name: 'Yearly',
+              code_name: 'yearly',
+              premium: '420,000',
+              yearly_premium: '420,000',
+              installment_type: 2,
+              period: 'yearly'
+            }
+          ]
+        },
         {
           name: "Mini",
           code_name: "MINI",
@@ -643,11 +811,20 @@ const familyMenu = async (args, db) => {
     response = coverText;
   }
   else if (currentStep == 6) {
+    console.log("CURRENT STEP 6");
+    console.log("allSteps", allSteps);
+    console.log("userText", userText);
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
+    console.log("SELECTED COVER", selectedCover)
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
+    console.log("SELECTED PACKAGE", selectedPackage)
     let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
+    console.log("PREMIUM", premium);
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
+    console.log("PERIOD", period);
     let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+    console.log("FULL PHONE", fullPhone);
+
 
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
 
@@ -746,6 +923,8 @@ const familyMenu = async (args, db) => {
       }
 
       let policy = await db.policies.create(policyObject);
+
+      console.log("==== FAMILY POLICY ====", policy);
 
       console.log("============== START TIME - FAMILY ================ ",phoneNumber, new Date());
 

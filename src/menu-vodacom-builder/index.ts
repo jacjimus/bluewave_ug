@@ -54,6 +54,9 @@ let premiumPricing = {
   },
 };
 
+
+// number of vehicle of a fleet 
+
 export default function (args: RequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {

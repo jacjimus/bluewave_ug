@@ -126,6 +126,8 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
       },
     };
 
+    console.log("=========== paymentData AIRTEL MONEY  ===========", paymentData)
+
     const headers = {
       'Content-Type': 'application/json',
       Accept: '/',

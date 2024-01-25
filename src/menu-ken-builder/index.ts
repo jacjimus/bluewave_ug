@@ -105,6 +105,19 @@ export default function (args: RequestBody, db: any) {
         userText,
         allSteps,
       };
+
+      let existingPolicy = await db.policies.findAndCountAll({
+        where: {
+            phone_number: phoneNumber,
+            partner_id: 3,
+            policy_status: "paid",
+           [Op.or]: [
+              { beneficiary: "FAMILY" },
+              { beneficiary: "SELF" }
+            ]},
+        limit: 1,
+      });
+
      
 
       if (text == "") {

@@ -5,7 +5,7 @@ import SMSMessenger from "../../services/sendSMS";
 
 const claimMenu = async (args, db) => {
     let { response, currentStep, userText, allSteps } = args;
-
+let policy: any;
     if (currentStep === 1) {
         response = "CON Make Claim " +
             "\n1. Inpatient Claim" +
@@ -27,7 +27,7 @@ const claimMenu = async (args, db) => {
                 console.log("USER ID", user.user_id);
 
 
-                const policy = await db.policies.findOne({
+                 policy = await db.policies.findOne({
                     where: {
                         user_id: user?.user_id,
                         policy_status: "paid",
@@ -37,7 +37,7 @@ const claimMenu = async (args, db) => {
                 console.log("POLICY", policy);
 
                 if (!policy || !user) {
-                    response = "CON You have no paid policy found" + "\n0. Back \n00. Main Menu";
+                    response = "CON Sorry you have no active policy" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
 
@@ -58,6 +58,10 @@ const claimMenu = async (args, db) => {
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
                 break;
             case "2":
+                if(!policy){
+                    response = "CON Sorry you have no active policy" + "\n0. Back \n00. Main Menu";
+                    return response;
+                }
                 response = "CON Enter phone of next of Kin e.g 07XXXXXXXX"
                 break;
             default:

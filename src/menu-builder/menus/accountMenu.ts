@@ -48,7 +48,7 @@ const accountMenu = async (args: any, db: any) => {
     });
 
     if (paidPolicies.length == 0) {
-        response = "END You have no paid policies"
+        response = "END Sorry you have no active policy"
         return response
     }
 
@@ -91,18 +91,18 @@ const accountMenu = async (args: any, db: any) => {
         console.log('User text', userText)
         switch (userText) {
             case "1":
-                response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
+                response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END Sorry you have no active policy"
                 break;
             case "2":
                 // last 6 unpaid policies
                 paidPolicies = paidPolicies.slice(-6);
                 if (paidPolicies?.length === 0) {
-                    response = "END You have no paid policies"
+                    response = "END Sorry you have no active policy"
                 }
                 else {
                     // list all the pending policies
                     response = "CON " + paidPolicies.map((policy: any, index: number) => {
-                        return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()} `
+                        return `\n${index + 1}. ${policy.policy_type} at UGX ${policy.premium.toLocaleString()},  pending premium of UGX ${policy.policy_pending_premium.toLocaleString()}`
                     }
                     ).join("");
                 }
@@ -113,7 +113,7 @@ const accountMenu = async (args: any, db: any) => {
                     response = `CON ${policyMessages[policyMessages.length - 1]}\n1. Cancel Policy` + "\n0. Back \n00. Main Menu"
                 }
                 else {
-                    response = "END You have no policies"
+                    response = "END Sorry you have no active policy"
                 }
                 break;
             case "4":

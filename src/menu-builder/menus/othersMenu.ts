@@ -36,6 +36,15 @@ const othersMenu = async (args, db) => {
       last_expense_insured: '1M',
       packages: [
         {
+          name: 'S Mini',
+          sum_insured: '750,000',
+          sumInsured: 750000,
+          premium: '5,000',
+          yearly_premium: '60,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+        },
+        {
           name: 'Mini',
           sum_insured: '1.5M',
           sumInsured: 1500000,
@@ -71,6 +80,15 @@ const othersMenu = async (args, db) => {
       yearly_premium: '240,000',
       last_expense_insured: '2M',
       packages: [
+        {
+          name: 'S Mini',
+          sum_insured: '750,000',
+          sumInsured: 1500000,
+          premium: '10,000',
+          yearly_premium: '120,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+        },
         {
           name: 'Mini',
           sum_insured: '1.5M',
@@ -108,6 +126,15 @@ const othersMenu = async (args, db) => {
       last_expense_insured: '3M',
       packages: [
         {
+          name: 'S Mini',
+          sum_insured: '750,000',
+          sumInsured: 1500000,
+          premium: '15,000',
+          yearly_premium: '180,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+        },
+        {
           name: 'Mini',
           sum_insured: '1.5M',
           sumInsured: 1500000,
@@ -143,6 +170,15 @@ const othersMenu = async (args, db) => {
       yearly_premium: '480,000',
       last_expense_insured: '4M',
       packages: [
+        {
+          name: "S Mini",
+          sum_insured: '750,000',
+          sumInsured: 1500000,
+          premium: '20,000',
+          yearly_premium: '240,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+        },
         {
           name: 'Mini',
           sum_insured: '1.5M',
@@ -180,6 +216,15 @@ const othersMenu = async (args, db) => {
       last_expense_insured: '5M',
       packages: [
         {
+          name: 'S Mini',
+          sum_insured: '750,000',
+          sumInsured: 1500000,
+          premium: '25,000',
+          yearly_premium: '300,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+        },
+        {
           name: 'Mini',
           sum_insured: '1.5M',
           sumInsured: 6000000,
@@ -216,6 +261,15 @@ const othersMenu = async (args, db) => {
       last_expense_insured: '6M',
       packages: [
         {
+          name: 'S Mini',
+          sum_insured: '750,000',
+          sumInsured: 1500000,
+          premium: '30,000',
+          yearly_premium: '360,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+        },
+        {
           name: 'Mini',
           sum_insured: '1.5M',
           sumInsured: 1500000,
@@ -251,6 +305,16 @@ const othersMenu = async (args, db) => {
       yearly_premium: '840,000',
       last_expense_insured: '7M',
       packages: [
+        {
+          name: 'S Mini',
+          sum_insured: '750,000',
+          sumInsured: 1500000,
+          premium: '35,000',
+          yearly_premium: '420,000',
+          last_expense_insured: '500,000',
+          lastExpenseInsured: 500000
+
+        },
         {
           name: 'Mini',
           sum_insured: '1.5M',
@@ -303,10 +367,10 @@ const othersMenu = async (args, db) => {
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
   } else if (currentStep == 3) {
-    response = "CON Enter atleast Name of Other or 1 child\n"
+    response = "CON Enter atleast Full Name of Other or 1 child\n"
 
   }else if (currentStep == 4) {
-    response = "CON Enter Phone number for Other e.g 0700000000\n"
+    response = "CON Enter Phone number for Other e.g 07XXXXXXXX\n"
 
   } else if (currentStep == 5) {
     let otherName = allSteps[3];
@@ -315,7 +379,7 @@ const othersMenu = async (args, db) => {
 
     // IF NO NAME OR PHONE NUMBER
     if (otherPhone.length != 10) {
-      response = "END Sorry Phone number for Other not valid e.g 0700000000\n"
+      response = "END Sorry Phone number for Other not valid e.g 07XXXXXXXX\n"
       return response;
     }
     if (otherPhone.substring(1) == phone) {

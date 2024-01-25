@@ -28,10 +28,10 @@ export function globalSearch(array: any, searchTerm: any) {
     // Spread all object fields into the ITEM
     const ITEM = { ...item.dataValues, ...item?.user?.dataValues, ...item?.policy?.dataValues };
 
-   //console.log("ITEM", ITEM);
+    //console.log("ITEM", ITEM);
     // Combine all object values into a single string for searching
     const objectValues = Object.values(ITEM).join(' ').toLowerCase();
-   
+
     return objectValues.includes(search);
   });
 
@@ -90,7 +90,18 @@ export function calculatePaymentOptions(policyType: string, paymentOption: numbe
 
   console.log("POLICY TYPE", policyType);
 
-  if (policyType === "MINI") {
+  if (policyType === "S MINI") {
+    period = "yearly";
+    installmentType = 1;
+    sumInsured = 750000;
+    premium = 60000;
+
+    if (paymentOption === 1) {
+      period = "monthly";
+      premium = 5000;
+      installmentType = 2;
+    }
+  } else if (policyType === "MINI") {
     period = "yearly";
     installmentType = 1;
     sumInsured = 1500000;
@@ -136,69 +147,69 @@ export function calculatePaymentOptionsKenya(policyType: string, paymentOption: 
   let period, installmentType, sumInsured, premium, inPatient, outPatient, maternity, hospitalCash;
 
   console.log("POLICY TYPE", policyType);
-  
 
-if (policyType === "BAMBA") {
-  period = "yearly";
-  installmentType = 1;
-  inPatient = 0;
-  outPatient = 0;
-  maternity = 0;
-  hospitalCash = 4500;
 
-  if (paymentOption === 1) {
-    period = "monthly";
-    premium = 3294
-    installmentType = 2;
+  if (policyType === "BAMBA") {
+    period = "yearly";
+    installmentType = 1;
+    inPatient = 0;
+    outPatient = 0;
+    maternity = 0;
+    hospitalCash = 4500;
+
+    if (paymentOption === 1) {
+      period = "monthly";
+      premium = 3294
+      installmentType = 2;
+    }
+
+    sumInsured = 0;
+    premium = 300
   }
 
-  sumInsured = 0;
-  premium =300
-}
 
+  if (policyType === "ZIDI") {
+    period = "yearly";
+    installmentType = 1;
 
-if (policyType === "ZIDI") {
-  period = "yearly";
-  installmentType = 1;
+    inPatient = 300000;
+    outPatient = 0;
+    maternity = 100000;
 
-  inPatient = 300000;
-  outPatient = 0;
-  maternity = 100000;
+    if (paymentOption === 1) {
+      period = "monthly";
+      premium = 650;
+      installmentType = 2;
+    }
+    premium = 7140;
+    sumInsured = 0;
+    hospitalCash = 0;
 
-  if (paymentOption === 1) {
-    period = "monthly";
-    premium = 650;
-    installmentType = 2;
-  }
-  premium = 7140;
-  sumInsured = 0;
-  hospitalCash = 0;
-
-}
-
-
-if (policyType === "SMARTA") {
-  period = "yearly";
-  installmentType = 1;
- 
-  inPatient = 400000;
-  outPatient = 30000;
-  maternity = 100000;
-  hospitalCash = 0;
-
-  if (paymentOption === 1) {
-    period = "monthly";
-    premium = 1400; 
-    installmentType = 2;
   }
 
-  sumInsured = 0;
-  premium = 15873;
-}
+
+  if (policyType === "SMARTA") {
+    period = "yearly";
+    installmentType = 1;
+
+    inPatient = 400000;
+    outPatient = 30000;
+    maternity = 100000;
+    hospitalCash = 0;
+
+    if (paymentOption === 1) {
+      period = "monthly";
+      premium = 1400;
+      installmentType = 2;
+    }
+
+    sumInsured = 0;
+    premium = 15873;
+  }
 
 
 
-  return { period, installmentType, sumInsured, premium , hospitalCash, inPatient, outPatient, maternity};
+  return { period, installmentType, sumInsured, premium, hospitalCash, inPatient, outPatient, maternity };
 }
 
 
@@ -229,29 +240,29 @@ export const parseAmount = (amount) => {
   return NaN; // Return NaN for unsupported formats
 }
 
-export const formatAmount=(number: number)=> {
+export const formatAmount = (number: number) => {
   const formattedNumber = (number / 1000000).toFixed(1);
   return formattedNumber + "M";
 }
 
 
-    export const calculateProrationPercentage=(installments: number) =>{
-      if (installments >= 1 && installments <= 3) {
-          return 10;
-      } else if (installments >= 4 && installments <= 6) {
-          return 40;
-      } else if (installments >= 7 && installments <= 9) {
-          return 60;
-      } else if (installments >= 10 && installments <= 11) {
-          return 80;
-      } else if (installments === 12) {
-          return 100;
-      } else {
-          return 10;
-      }
+export const calculateProrationPercentage = (installments: number) => {
+  if (installments >= 1 && installments <= 3) {
+    return 10;
+  } else if (installments >= 4 && installments <= 6) {
+    return 40;
+  } else if (installments >= 7 && installments <= 9) {
+    return 60;
+  } else if (installments >= 10 && installments <= 11) {
+    return 80;
+  } else if (installments === 12) {
+    return 100;
+  } else {
+    return 10;
   }
+}
 
-  // fileFilter.js
+// fileFilter.js
 export const excelFilter = (req, file, cb) => {
   if (
     file.mimetype.includes("excel") ||
@@ -265,214 +276,246 @@ export const excelFilter = (req, file, cb) => {
   }
 };
 
+export const isInRange = (value, rangeStart, rangeEnd) => {
+  return value >= rangeStart && value <= rangeEnd;
+};
+
 
 export function calculatePremium(
-  vehiclePremiums, 
+  vehiclePremiums,
   vehicle_category,
   vehicle_type,
   vehicle_cv,
   vehicle_tonnage,
   vehicle_number_of_passengers,
-  is_fleet ){
+  is_fleet) {
 
-
-let categoryOne = ["CAR", "JEEP", "PICKUP"]
-
-let categoryTwo = ["TAXI", "BUS", "MINIBUS", "MINIVAN"]
-
-let categoryThree = ["TRUCKS"]
-
-vehicle_category = vehicle_category.toUpperCase();
-vehicle_type = vehicle_type.toUpperCase();
-
-// Parse vehicle_cv to a numeric value
-let vehicleCV = parseInt(vehicle_cv);
-console.log('vehicleCV', vehicleCV)
-console.log("vehicle_category", vehicle_category)
-console.log("vehicle_type", vehicle_type)
-console.log("number of passengers", vehicle_number_of_passengers)
-console.log("vehicle_tonnage", vehicle_tonnage)
-
-// Calculate premium based on vehicle details
-let premium = 0, message = "Premium calculated successfully";
-if (categoryOne.includes(vehicle_category)) {
-  console.log('categoryOne', categoryOne)
-  if (
-    categoryOne.includes(vehicle_category) &&
-    (vehicle_type === "PRIVATE" || vehicle_type === "CORPORATE") &&
-    vehicleCV
-  ) {
-    switch (true) {
-      case vehicleCV >= 0 && vehicleCV < 10:
-        premium = vehiclePremiums["CAR_JEEP_PICKUP"][vehicle_type]["0-9 CV"];
-        break;
-      case vehicleCV >= 10 && vehicleCV < 14:
-        console.log(vehiclePremiums[vehicle_category])
-        premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["10-13 CV"];
-        break;
-      case vehicleCV >= 14 && vehicleCV < 18:
-        premium = vehiclePremiums["CAR_JEEP_PICKUP"][vehicle_type]["14-17 CV"];
-        break;
-      case vehicleCV >= 18:
-        premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["18+"];
-        break;
-      default:
-       
-          message= "Invalid vehicle_cv range."
-        
-    }
-  }
-
-  // Additional logic for CORPORATE category with specific passenger counts
-  if (categoryOne.includes(vehicle_category) && vehicle_type === "CORPORATE" && vehicle_number_of_passengers) {
-    switch (vehicle_number_of_passengers) {
-      case vehicle_number_of_passengers <= 15:
-        premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_15"];
-        break;
-      case vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30:
-        premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_16-30"];
-        break;
-      case vehicle_number_of_passengers >= 31:
-        premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_31+"];
-        break;
-    }
-  }
-
-} else if (categoryTwo.includes(vehicle_category)) {
-  console.log('categoryTwo', categoryTwo)
+  console.log('vehiclePremiums', vehiclePremiums)
+  console.log('vehicle_category', vehicle_category)
+  console.log('vehicle_type', vehicle_type)
+  console.log('vehicle_cv', vehicle_cv)
+  console.log('vehicle_tonnage', vehicle_tonnage)
   console.log('vehicle_number_of_passengers', vehicle_number_of_passengers)
-  vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
-
-  is_fleet = JSON.parse(is_fleet);
+  console.log('is_fleet', is_fleet)
 
 
-  if (categoryTwo.includes(vehicle_category) && vehicle_number_of_passengers && !is_fleet) {
-    if (vehicle_number_of_passengers <= 5) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_<=5_passengers"];
-    } else if (vehicle_number_of_passengers >= 6 && vehicle_number_of_passengers <= 15) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_>5_passengers"];
-    } else if (vehicle_number_of_passengers === 15) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_15_paying"];
-    } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_16-30_paying"];
-    } else if (vehicle_number_of_passengers >= 31) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_31+_paying"];
+
+  let categoryOne =
+
+
+
+    vehicle_category = vehicle_category.toUpperCase();
+  vehicle_type = vehicle_type?.toUpperCase() || "";
+
+  // Parse vehicle_cv to a numeric value
+  let vehicleCV = parseInt(vehicle_cv);
+  console.log('vehicleCV', vehicleCV)
+  console.log("vehicle_category", vehicle_category)
+  console.log("vehicle_type", vehicle_type)
+  console.log("number of passengers", vehicle_number_of_passengers)
+  console.log("vehicle_tonnage", vehicle_tonnage)
+
+  // Calculate premium based on vehicle details
+  let premium = 0, message = "Premium calculated successfully";
+  if (["CAR", "JEEP", "PICKUP"].includes(vehicle_category)) {
+    console.log('categoryOne', categoryOne)
+    if (
+      (vehicle_type === "PRIVATE" || vehicle_type === "CORPORATE") &&
+      vehicleCV
+    ) {
+      switch (true) {
+        case vehicleCV >= 0 && vehicleCV < 10:
+          premium = vehiclePremiums["CAR_JEEP_PICKUP"][vehicle_type]["0-9 CV"];
+          break;
+        case vehicleCV >= 10 && vehicleCV < 14:
+          console.log(vehiclePremiums[vehicle_category])
+          premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["10-13 CV"];
+          break;
+        case vehicleCV >= 14 && vehicleCV < 18:
+          premium = vehiclePremiums["CAR_JEEP_PICKUP"][vehicle_type]["14-17 CV"];
+          break;
+        case vehicleCV >= 18:
+          premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["18+"];
+          break;
+        default:
+
+          message = "Invalid vehicle_cv range."
+
+      }
+    }
+
+    // Additional logic for CORPORATE category with specific passenger counts
+    if (vehicle_type === "CORPORATE" && vehicle_number_of_passengers) {
+      switch (vehicle_number_of_passengers) {
+        case vehicle_number_of_passengers <= 15:
+          premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_15"];
+          break;
+        case vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30:
+          premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_16-30"];
+          break;
+        case vehicle_number_of_passengers >= 31:
+          premium = vehiclePremiums['CAR_JEEP_PICKUP'][vehicle_type]["Bus_Minibus_Minivan_31+"];
+          break;
+      }
+    }
+
+  } else if (["TAXI", "BUS", "MINIBUS", "MINIVAN"].includes(vehicle_category)) {
+
+    //console.log('vehicle_number_of_passengers', vehicle_number_of_passengers)
+    vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+
+    is_fleet = JSON.parse(is_fleet);
+    console.log('IS FLEET', is_fleet)
+
+    if (vehicle_number_of_passengers && !is_fleet) {
+      vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+      if (vehicle_number_of_passengers <= 5) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_<=5_passengers"];
+      } else if (vehicle_number_of_passengers >= 6 && vehicle_number_of_passengers <= 15) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_>5_passengers"];
+      } else if (vehicle_number_of_passengers === 15) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_15_paying"];
+      } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_16-30_paying"];
+      } else if (vehicle_number_of_passengers >= 31) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Bus_Minibus_Minivan_31+_paying"];
+      } else {
+
+        message = "Invalid vehicle_number_of_passengers range."
+      }
+
+    } else if (vehicle_number_of_passengers && is_fleet) {
+      console.log('vehicle_number_of_passengers', vehicle_number_of_passengers)
+      console.log('vehicle_category', vehicle_category)
+
+      vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+
+      console.log(vehicle_number_of_passengers <= 5)
+
+      if (vehicle_number_of_passengers <= 5) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_Fleet_<=5_passengers"];
+        console.log('TAXI_FLEET_<=5_passengers', premium)
+      } else if (vehicle_number_of_passengers >= 6 && vehicle_number_of_passengers <= 15) {
+        premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_Fleet_>5_passengers"];
+        console.log('Taxi_Fleet_>5_passengers', premium)
+      } else {
+        message = "Invalid vehicle_number_of_passengers range. Please provide vehicle_number_of_passengers range of 1 - 15  0r check if fleet is true or false"
+      }
+
     } else {
-   
-   
-        message="Invalid vehicle_number_of_passengers range."
-    
+
+      message = "Invalid vehicle_number_of_passengers range. Please provide vehicle_number_of_passengers range of 1 - 15  0r check if fleet is true or false"
+
     }
-  }else if(categoryTwo.includes(vehicle_category) && vehicle_number_of_passengers && is_fleet){
-    if (vehicle_number_of_passengers <= 5) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_Fleet_<=5_passengers"];
-    } else if (vehicle_number_of_passengers >= 6 && vehicle_number_of_passengers <= 15) {
-      premium = vehiclePremiums['TAXI_BUS_MINIBUS_MINIVAN']["Taxi_Fleet_>5_passengers"];
+
+    console.log('BUS premium', premium)
+
+  } else if (vehicle_category === "DRIVING_SCHOOL") {
+    vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+
+    // driver school
+    if (vehicle_number_of_passengers && !vehicleCV) {
+      if (vehicle_number_of_passengers <= 15) {
+
+        premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_15_paying"];
+
+      } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
+        premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_16-30_paying"];
+
+      } else if (vehicle_number_of_passengers >= 31) {
+        premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_31+_paying"];
+      }
+    } else if (vehicleCV && !vehicle_number_of_passengers) {
+      if (vehicleCV >= 0 && vehicleCV < 10) {
+        premium = vehiclePremiums['DRIVING_SCHOOL']["0-9 CV"];
+      } else if (vehicleCV >= 10 && vehicleCV < 14) {
+        premium = vehiclePremiums['DRIVING_SCHOOL']["10-13 CV"];
+      } else if (vehicleCV >= 14 && vehicleCV < 18) {
+        premium = vehiclePremiums['DRIVING_SCHOOL']["14-17 CV"];
+      } else if (vehicleCV >= 18) {
+        premium = vehiclePremiums['DRIVING_SCHOOL']["18+"];
+      }
+    }else if (vehicleCV && vehicle_number_of_passengers) {
+     message = 'Please provide either vehicleCV or vehicle_number_of_passengers but not both'
+
     }
-  }else{
-   
-      message= "Invalid vehicle_number_of_passengers range. Please provide vehicle_number_of_passengers. eg, vehicle_number_of_passengers: 5 0r check if fleet is true or false"
-    
-  }
+    console.log('DRIVING_SCHOOL premium', premium)
 
 
+  } else if (vehicle_category === "TRUCKS") {
+  
+    // Function to check if a value is within a specific numerical range
+  
 
-} else if (vehicle_category === "DRIVING_SCHOOL") {
-  console.log('DRIVING_SCHOOL', vehicle_category)
-  vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
+    // Check for categoryThree and vehicle_tonnage
+    if (vehicle_tonnage) {
+      // Convert vehicle_tonnage to a numeric value
+      const tonnageNumeric = parseFloat(vehicle_tonnage);
+      console.log('tonnageNumeric', tonnageNumeric)
 
-  // driver school
-  if (vehicle_category === "DRIVING_SCHOOL" && vehicle_number_of_passengers) {
-    if (vehicle_number_of_passengers <= 15) {
+      // Determine the appropriate premium based on the tonnage range
+      if (isInRange(tonnageNumeric, 0, 3.5)) {
+        premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_<=3.5T"];
+      } else if (isInRange(tonnageNumeric, 3.6, 8)) {
+        premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_3.6T-8T"];
+      } else if (isInRange(tonnageNumeric, 9, 15)) {
+        premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_9T-15T"];
+      } else if (tonnageNumeric > 15) {
+        premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_15T+_Tracteur_routier"];
+      } else {
 
-      premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_15_paying"];
+        message = "Invalid vehicle_tonnage range."
 
-    } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
-      premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_16-30_paying"];
+      }
+      console.log('TRUCKS Tonnage premium', premium)
+    // } else if (vehicle_cv && !vehicle_tonnage) {
+    //   vehicle_cv = parseInt(vehicle_cv);
+    //   // Convert vehicle_tonnage to a numeric value
+    //   console.log('TRUCK vehicle_cv', vehicle_cv)
+    //   // Determine the appropriate premium based on the tonnage range
+    //   if (isInRange(vehicle_cv, 0, 9)) {
+    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["0-9 CV"];
+    //   } else if (isInRange(vehicle_cv, 10, 13)) {
+    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["10-13 CV"];
+    //   } else if (isInRange(vehicle_cv, 14, 17)) {
+    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["14-17 CV"];
+    //   } else if (vehicle_cv > 18) {
+    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["18+"];
+    //   } else {
 
-    } else if (vehicle_number_of_passengers >= 31) {
-      premium = vehiclePremiums['DRIVING_SCHOOL']["Bus_Minibus_Minivan_31+_paying"];
-    }
-  } else if (vehicle_category === "DRIVING_SCHOOL" && vehicleCV) {
-    if (vehicleCV >= 0 && vehicleCV < 10) {
-      premium = vehiclePremiums['DRIVING_SCHOOL']["0-9 CV"];
-    } else if (vehicleCV >= 10 && vehicleCV < 14) {
-      premium = vehiclePremiums['DRIVING_SCHOOL']["10-13 CV"];
-    } else if (vehicleCV >= 14 && vehicleCV < 18) {
-      premium = vehiclePremiums['DRIVING_SCHOOL']["14-17 CV"];
-    } else if (vehicleCV >= 18) {
-      premium = vehiclePremiums['DRIVING_SCHOOL']["18+"];
-    }
-  }
+    //     message = "Invalid vehicle_cv range."
 
+    //   }
+    //   console.log('TRUCKS Cv premium', premium)
 
-} else if (vehicle_category === "TRUCKS") {
-  console.log('TRUCKS', vehicle_category)
-  // Function to check if a value is within a specific numerical range
-  const isInRange = (value, rangeStart, rangeEnd) => {
-    return value >= rangeStart && value <= rangeEnd;
-  };
+    } else if (vehicle_number_of_passengers && !vehicle_cv && !vehicle_tonnage) {
+      vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);
 
-  // Check for categoryThree and vehicle_tonnage
-  if (categoryThree.includes(vehicle_category) && vehicle_tonnage) {
-    // Convert vehicle_tonnage to a numeric value
-    const tonnageNumeric = parseFloat(vehicle_tonnage);
-    console.log('tonnageNumeric', tonnageNumeric)
+      // Convert vehicle_tonnage to a numeric value
+      console.log('TRUCK vehicle_number_of_passengers*', vehicle_number_of_passengers)
+      // Determine the appropriate premium based on the tonnage range
+      if (vehicle_number_of_passengers <= 15) {
+        premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_15_paying"];
+      } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
+        premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_16-30_paying"];
+      } else if (vehicle_number_of_passengers >= 31) {
+        premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_31+_paying"];
+      }
 
-    // Determine the appropriate premium based on the tonnage range
-    if (isInRange(tonnageNumeric, 0, 3.5)) {
-      premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_<=3.5T"];
-    } else if (isInRange(tonnageNumeric, 3.6, 8)) {
-      premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_3.6T-8T"];
-    } else if (isInRange(tonnageNumeric, 9, 15)) {
-      premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_9T-15T"];
-    } else if (tonnageNumeric > 15) {
-      premium = vehiclePremiums['TRUCKS']['OWN_ACCOUNT_TRANSPORT']["Truck_15T+_Tracteur_routier"];
+      console.log('TRUCKS vehicle_number_of_passengers premium', premium)
     } else {
-     
-        message= "Invalid vehicle_tonnage range."
-      
-    }
-  } else if (categoryThree.includes(vehicle_category) && vehicle_cv) {
-    // Convert vehicle_tonnage to a numeric value
-    console.log('vehicle_cv', vehicle_cv)
-    // Determine the appropriate premium based on the tonnage range
-    if (isInRange(vehicle_cv, 0, 9)) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["0-9 CV"];
-    } else if (isInRange(vehicle_cv, 10, 13)) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["10-13 CV"];
-    } else if (isInRange(vehicle_cv, 14, 17)) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["14-17 CV"];
-    } else if (vehicle_cv > 18) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["18+"];
-    }else{
-      
-        message= "Invalid vehicle_cv range."
-    
-    }
-  } else if (categoryThree.includes(vehicle_category) && vehicle_number_of_passengers) {
-    // Convert vehicle_tonnage to a numeric value
-    console.log('vehicle_number_of_passengers*', vehicle_number_of_passengers)
-    // Determine the appropriate premium based on the tonnage range
-    if (vehicle_number_of_passengers <= 15) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_15_paying"];
-    } else if (vehicle_number_of_passengers >= 16 && vehicle_number_of_passengers <= 30) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_16-30_paying"];
-    } else if (vehicle_number_of_passengers >= 31) {
-      premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["Bus_Minibus_Minivan_31+_paying"];
+
+      message = "Invalid vehicle_tonnage range."
     }
 
   } else {
-    
-      message= "Invalid vehicle_tonnage range."
+    message = "Invalid vehicle_category."
   }
 
-}
-
-return {
-  premium,
-  message
-}
+  return {
+    premium,
+    message
+  }
 
 }
 

@@ -111,6 +111,7 @@ export default function (args: RequestBody, db: any) {
       let existingPolicy = await db.policies.findAndCountAll({
         where: {
             phone_number: phoneNumber,
+            partner_id: 2,
             policy_status: "paid",
            [Op.or]: [
               { beneficiary: "FAMILY" },
