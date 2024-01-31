@@ -4,6 +4,7 @@ import SMSMessenger from './sendSMS';
 import { db } from '../models/db';
 
 
+
 /* 
 function to send payment reminder to users on policy renewal date.
 Workflow 1:

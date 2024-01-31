@@ -18,7 +18,7 @@ const selfMenu = async (args, db) => {
         {
             name: "S MINI",
             sum_insured: "750,000",
-            sumInsured: 1500000,
+            sumInsured: 750000,
             premium: "5,000",
             yearly_premium: "60,000",
             yearPemium: 60000,

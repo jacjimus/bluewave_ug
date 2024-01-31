@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "aitel-payment-reconciliation",
+  "private_key_id": "abe90c6ab59ed215be6c0d8c04e596b5e1fa2d5a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCZyfkcWZ6/vb2b\nfnNopbqdFyoJK4EUvJJ4M7hpDsDYyxtSOyeP8VzwJYw1CNBidVs2VRwGgwJiWZS8\n/t1OmgC5n9uDf2qzgLPIRzqQ6gDfyO2CSZPPeuKXaYLES/O1nevesMtnuVeo0RXP\nTiYqAdPAgT0wW8m01l+OJCgNAL8kBpB3nnPAuAxvo2u2KtM32CNvFVcOgXgUXPL4\nMzlWwdeWaE4eYisbbQMxMxRV1IJbSoPdHBIuSErnsbAK5ZFTeDAFEz3oi0XxH+dc\nYKbEDToz3O09vPl8KRZ/10sxPFd1eghlz0Qj14QNNzGnNLF1lv2GxUbUunVZPNYv\nESzhDixPAgMBAAECggEAF2KQeECidJqYEeR1DSUiTs/eav2MB8iy5wdKU+NT7MNZ\nuLPZDLjRfozfGJNqCIa643SmqdDTFHx1sxV4NoMReCh4OzMtWPVJoTs/ixiiIGVP\nxF+G0+ZmPUrkgQ/hk6zbWIX+sBuNWlTM4bSK9hlIBz4/vTI/5jkw147k7jE+X25J\ng5xM2M5/bqq5qwyHJLBYVxVdWm/ARyeBxR3/O8mQeraWm3PoYTJgB0Sgaul+vcok\novj0OINQk00pUu8XDz3aWs2L0GzRMIrVrXIsp7O/DnyDONZCnZXHjXlxCpER4LRl\n8UgWwk5IE/MMgaKOi8s+5V7XltTbtNLqM2VX4x21aQKBgQDZJrmFKIioJM5WTvtM\n2U0KxHBwBv02LgJipmBRJDn87WfxD1s8nUKaNBVd9oUUo4wr3O5S5/lJiKg4Mr5a\nP8/WdT3hD0k/oKO1YojvHZyoG6w5v1yEK84gGO/2RjjHEqEemZpDSjhChCFT4KG4\npKBmju7wRBgTn2fqhSTbngbhqQKBgQC1TVQMm+AcS7OkKRqilSumRucd1Av6TtxR\npica9rG4QYahNaZIT3hUrZ5efZLewNPSQ0Mgw4otRSZM50KjTqqoy16QCLOQwQbB\nB1iHyFahoVB4/d6xgZ2vZ6leztSlKUJZNGLu/IGWr/Y+p9YHBqHTQZ8o9pS6LhUd\npVYo/vbJNwKBgQCTTfKhgqqZLUaPQ8qzCeF6QWFojUUtgK57jxNdV67ChaVx4BHr\nH16zzksET5tdMch/ZMKCmPwBRuOeI8X+4LSzbRrJ1h3BPM5w1+O+GR9Q5lzBW699\ntV2BZok5Tc9sM5X6dQYxSWK6tHkLNiFeaMaqa6FoeTi/7u2GKEWleSB/6QKBgHYp\nXOMO4GRwrjcKlxJpeFZZlZ2qKthLd2o7iPcY20FEa5M73RD5wmol8baRzxwgvq0m\nK2T6LF9O1yR+AL9gsPdr/EiRcz6fn2BFAl0Uo+mZslH426AC4xuDyy5ATPULy/NJ\nokUyCt+D9VBmoKZZmzSNa0cOVmZ1TEvTCzGS4pLHAoGAThPNm1Il4cvDoHUq8wMz\nkyc9NQX/Kl4mormDA+hWTY8d4iwDA4e6gIiHklnkvhU99ANQyI8cxC4UMPS1rHsw\nKCxUsS+3UhIQ65UC5Masko5n70dKHgzTLiYfT/K+kAs6cPVteNT3m50PNyyRqpVl\nkNTvmmraB6QjeH+Q9XVmXc4=\n-----END PRIVATE KEY-----\n",
+  "client_email": "airtel-payment-service-account@aitel-payment-reconciliation.iam.gserviceaccount.com",
+  "client_id": "110909661448485390009",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/airtel-payment-service-account%40aitel-payment-reconciliation.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

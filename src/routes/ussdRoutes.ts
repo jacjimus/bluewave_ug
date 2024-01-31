@@ -200,7 +200,9 @@ router.all("/callback", async (req, res) => {
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
         console.log("MEMBERS", members, policy.total_member_number);
 
-        let proratedPercentage = calculateProrationPercentage(policy.installment_order);
+        let proratedPercentage = calculateProrationPercentage(parseInt(policy.installment_order));
+
+              console.log("PRORATED PERCENTAGE", proratedPercentage);
 
         const sumInsured = policy.sum_insured * (proratedPercentage / 100);
         const lastExpenseInsured = policy.last_expense_insured * (proratedPercentage / 100);
@@ -266,7 +268,7 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
   console.log("Number of dependants:", number_of_dependants);
 
-  if (memberStatus.code === 200) {
+  if (memberStatus?.code === 200) {
     console.log("MEMBER STATUS:", memberStatus);
     policy.arr_policy_number = memberStatus?.policy_no;
   } else {
