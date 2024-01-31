@@ -77,7 +77,7 @@ const accountMenu = async (args: any, db: any) => {
     });
 
     if (currentStep == 1) {
-        response = "CON My Account" +
+        response = "CON My Policy" +
             "\n1. Policy Status" +
             "\n2. Renew Policy" +
             "\n3. Cancel Policy" +

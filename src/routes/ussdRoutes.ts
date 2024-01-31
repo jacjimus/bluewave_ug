@@ -215,7 +215,11 @@ router.all("/callback", async (req, res) => {
 
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
-        let congratText = generateCongratulatoryText(policy, user, members, sumInsured, lastExpenseInsured, thisDayThisMonth);
+
+        let sum_insured = policy.installment_type === 1 ? policy.sum_insured : sumInsured;
+        let last_expense_insured = policy.installment_type === 1 ? policy.last_expense_insured : lastExpenseInsured;
+
+        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
         await sendSMSNotification(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });

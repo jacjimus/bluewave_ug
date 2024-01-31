@@ -19,7 +19,7 @@ const hospitalMenu = async (args: any, db: any) => {
 
         
         if(userText == '1'){
-            response = "CON Type hospital name to search";
+            response = "CON Type hospital name to search" + "\n0. Back \n00. Main Menu";
         }else if(userText == '2'){
             const hospital_list_message =  'To view Full hospitals list, visit Ddwaliro Care Ts & Cs https://rb.gy/oeuua5';
             await SMSMessenger.sendSMS(smsPhone, hospital_list_message)
@@ -103,9 +103,9 @@ const hospitalMenu = async (args: any, db: any) => {
         });
 
 
-        let message = `Congratulations, you have selected  ${hospital.hospital_name} as your preferred Hospital. Hospital details:
-        Contact: ${hospital.hospital_contact_person} - ${hospital.hospital_contact}
-        Location: ${hospital.hospital_address} - ${hospital.region} `
+        let message = `Congratulations, you have selected  ${hospital.hospital_name} as your preferred Hospital. Hospital details:` +
+       ` \nContact: ${hospital.hospital_contact_person} - ${hospital.hospital_contact}` +
+        `\nLocation: ${hospital.hospital_address} - ${hospital.region} `
         console.log("MESSAGE", message)
 
         await SMSMessenger.sendSMS(smsPhone, message)
