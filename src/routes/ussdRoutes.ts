@@ -1,5 +1,5 @@
 import express from "express";
-import ussdUgaMenuBuilder from "../menu-builder";
+import ussdUgaMenuBuilder from "../menu-uga-builder";
 import ussdKenMenuBuilder from "../menu-ken-builder"
 import ussdVodacomMenuBuilder from "../menu-vodacom-builder";
 import moment from "moment";
