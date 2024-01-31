@@ -7,11 +7,13 @@ import { Op } from "sequelize";
 
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
-    let phone = phoneNumber?.replace('+', "")?.substring(3);
+    let phone = phoneNumber?.replace("+", "")?.substring(3);
+    console.log("phone", phone)
     let existingUser = await db.users.findOne({
         where: {
             phone_number: phone,
         },
+        limit : 1
     });
 
     const coverTypes = [
@@ -58,11 +60,6 @@ const selfMenu = async (args, db) => {
     if (currentStep === 1) {
         switch (userText) {
             case "1":
-                // const covers = coverTypes.map((coverType, index) => {
-                //     return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
-                // }
-                // ).join("");
-                // response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
                 response = "CON Buy for self " +
                     "\n1. S MINI at UGX 5,000" +
                     "\n2. MINI at UGX 10,000" +

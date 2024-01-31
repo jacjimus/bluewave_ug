@@ -44,7 +44,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
       // WELCOME SMS
       const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
       await SMSMessenger.sendSMS(user.phone_number, message);
-      console.log("USER FOR AIRTEL API", user);
+   
     }
 
     return userData;
@@ -72,10 +72,8 @@ async function getAirtelUser(
       Authorization: `Bearer ${token}`,
     };
 
-    phoneNumber = phoneNumber.replace("+", "");
-    // remove the first 3 characters
-    phoneNumber = phoneNumber.substring(3);
-
+    phoneNumber = phoneNumber.replace("+", "").substring(3);
+    
     // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL:   process.env.AIRTEL_AUTH_TOKEN_URL;
     const GET_USER_URL = `${process.env.PROD_AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
@@ -103,9 +101,7 @@ async function getAirtelKenyaUser(
       Authorization: `Bearer ${token}`,
     };
 
-    phoneNumber = phoneNumber.replace("+", "");
-    // remove the first 3 characters
-    phoneNumber = phoneNumber.substring(3);
+    phoneNumber = phoneNumber.replace("+", "").substring(3);
 
     const GET_USER_URL = `${process.env.AIRTEL_KYC_API_URL}/${phoneNumber}`;
 

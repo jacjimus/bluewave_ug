@@ -21,75 +21,75 @@ Workflow:
 2. The cron job will pull data from the google sheets
 3. The cron job will update the database with the new data
 
-*/  
+*/
 
 
 
 async function main() {
-  
+
   try {
     // Generating google sheet client
     const googleSheetClient = await _getGoogleSheetClient();
-  
+
     // Reading Google Sheet from a specific range
     const data = await _readGoogleSheet(googleSheetClient, sheetId, tabName, range);
     console.log(data.length);
-  data.forEach(async (row) => {
+    data.forEach(async (row) => {
 
-    let paymentData = {
-      id: row[0],
-      transaction_id : row[1],
-      external_reference: row[2],
-      transaction_date: row[3],
-      sender_mobile_number: row[4],
-      transaction_amount: row[6],
-      payment_status: row[13],
-      buyer_details: row[14],
-    }
-    console.log(paymentData);
-    // check if the data is in the database policy table paid
-    
- let policies = await db.policies.findAll({
-    where: {
-      phone_number:  `+256${paymentData.sender_mobile_number}`,
-      policy_status: 'paid',
-      premium:  parseInt(paymentData.transaction_amount.replace(/,/g, ''), 10)
-    }
-  })
+      let paymentData = {
+        id: row[0],
+        transaction_id: row[1],
+        external_reference: row[2],
+        transaction_date: row[3],
+        sender_mobile_number: row[4],
+        transaction_amount: row[6],
+        payment_status: row[13],
+        buyer_details: row[14],
+      }
+      console.log(paymentData);
+      // check if the data is in the database policy table paid
 
-  console.log("POLICIES",policies);
-  if(policies.length  == 0){
-    // update the policy table with the transaction id and the external reference
-  //   await db.policies.update({
-  //     transaction_id: paymentData.transaction_id,
-  //     external_reference: paymentData.external_reference,
-  //     payment_status: paymentData.payment_status
-  //   }, {
-  //     where: {
-  //       phone_number:  `+256${paymentData.sender_mobile_number}`,
-  //       policy_status: 'paid',
-  //       premium:  parseInt(paymentData.transaction_amount.replace(/,/g, ''), 10)
-  //     }
-  //   })
-  // }
+      let policies = await db.policies.findAll({
+        where: {
+          phone_number: `+256${paymentData.sender_mobile_number}`,
+          policy_status: 'paid',
+          premium: parseInt(paymentData.transaction_amount.replace(/,/g, ''), 10)
+        }
+      })
 
-  // create file with the data
-  let data = JSON.stringify(paymentData);
-  await fs.writeFile('paymentData.json', data);
-  console.log('Data written to file');
+      console.log("POLICIES", policies);
+      if (policies.length == 0) {
+        // update the policy table with the transaction id and the external reference
+        //   await db.policies.update({
+        //     transaction_id: paymentData.transaction_id,
+        //     external_reference: paymentData.external_reference,
+        //     payment_status: paymentData.payment_status
+        //   }, {
+        //     where: {
+        //       phone_number:  `+256${paymentData.sender_mobile_number}`,
+        //       policy_status: 'paid',
+        //       premium:  parseInt(paymentData.transaction_amount.replace(/,/g, ''), 10)
+        //     }
+        //   })
+        // }
 
-
-  }else{
-    console.log(" policies found");
-  }
-  
-})
+        // create file with the data
+        let data = JSON.stringify(paymentData);
+        await fs.writeFile('paymentData.json', data);
+        console.log('Data written to file');
 
 
-  }catch(error){
+      } else {
+        console.log(" policies found");
+      }
+
+    })
+
+
+  } catch (error) {
     console.log(error);
   }
-  
+
   // Adding a new row to Google Sheet
   // const dataToBeInserted = [
   //    ['11', 'rohith', 'Rohith', 'Sharma', 'Active'],
@@ -136,6 +136,8 @@ async function _writeGoogleSheet(googleSheetClient, sheetId, tabName, range, dat
 
 export const playground = async () => {
 
-//main();
+  //main();
   console.log("TESTING GROUND")
-}  
+}
+
+

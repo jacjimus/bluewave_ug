@@ -311,6 +311,9 @@ async function updatePremium(user: any, policy: any) {
 
       const response = await axios.request(config);
       console.log(JSON.stringify(response.data));
+      if(response.data.code == 200){
+        await db.policies.update({ arr_policy_number: response.data.policy_no }, { where: { policy_id: policy.policy_id } });
+      }
       return response.data;
     }
   } catch (error) {
@@ -487,41 +490,26 @@ async function fetchMemberStatusData({ member_no, unique_profile_id }) {
   }
 }
 
-
-async function processPolicy(user: any, policy: any, memberStatus: any) {
-  // Determine the number of dependants
+ async function processPolicy(user: any, policy: any, memberStatus: any) {
   console.log(policy?.total_member_number)
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
   console.log("Number of dependants:", number_of_dependants);
 
-  if (memberStatus.code === 200) {
-    // If the member status is 200, proceed with processing the policy
-    console.log("MEMBER STATUS:", memberStatus);
-    policy.arr_policy_number = memberStatus?.policy_no;
-    if(user.arr_member_number == null){
-      user.arr_member_number = memberStatus?.member_no;
-    }
-    await user.save();
+  if (memberStatus?.code === 200) {
+    await db.policies.update({ arr_policy_number: memberStatus.policy_no }, { where: { policy_id: policy.policy_id } });
   } else {
-    // If the member status is not 200, register the AAR user
     const registerAARUser = await registerPrincipal(user, policy);
-
-    if (registerAARUser.code === 200) {
-      // If the AAR user registration is successful
-      user.arr_member_number = registerAARUser.member_no;
-      await user.save();
-    }
-
+     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
-      // If there are dependants, create them
       await createDependant(user, policy);
     } else {
-      // If there are no dependants, update the premium
+      console.log("AAR NUMBER- member found", user.phone_number, user.name, user.arr_member_number);
       const updatePremiumData = await updatePremium(user, policy);
       console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
     }
   }
 }
+
 
 
 async function reconciliation(existingUser, paymentData) {
