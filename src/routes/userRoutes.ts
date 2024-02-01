@@ -23,7 +23,6 @@ const router = express.Router();
 const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
-
 router.get('/', isSuperAdmin, userController.findAllUsers)
 router.get('/partner', isSuperAdmin, userController.getPartner)
 router.get('/partners', isSuperAdmin, userController.listPartners)
@@ -39,6 +38,8 @@ router.post('/arr_member_registration', userController.arrMemberRegistration)
 router.put('/:user_id', userController.updateUser)
 router.put('/update/vehicle/:user_id', userController.updateUserVehicle)
 router.delete('/:user_id', userController.deleteUser)
+router.post('/password/reset', userController.forgotPassword)
+router.post('/password/change', userController.changePassword)
 
 
 

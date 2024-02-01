@@ -140,7 +140,15 @@ module.exports = (sequelize: any, DataTypes: any) => {
         cover_type: {
             type: DataTypes.STRING,
             allowNull: true
-        }
+        },
+        reset_token: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+         reset_token_timestamp : {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
        
     }, { timestamps: true },)
 

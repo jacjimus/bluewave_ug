@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 import { db } from "../models/db";
 import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 import welcomeTemplate from "../services/emailTemplates/welcome";
-import { sendWelcomeEmail } from "../services/emailService";
+import { sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 import {
@@ -1258,6 +1258,163 @@ async function updateUserVehicle(req, res) {
 
 }
 
+const tokenStore = new Map();
+
+// Placeholder for sending reset emails
+const nodemailer = require('nodemailer');
+
+async function sendResetEmail(email, token) {
+  try {
+
+    const user = await db.users.findOne({ where: { email } });
+    const subject = 'Password Reset';
+    const message = `Use this token to reset your password: ${token}`;
+
+    sendForgotPasswordEmail(user,subject,message)
+
+    console.log(`Reset email sent to ${email} with token: ${token}`);
+  } catch (error) {
+    console.error('Error sending reset email:', error);
+    throw new Error('Failed to send reset email.');
+  }
+}
+
+
+// Placeholder for generating a unique token
+function generateUniqueToken() {
+  const token = Math.floor(100000 + Math.random() * 900000);
+  tokenStore.set(token, Date.now());
+  return token
+ 
+}
+
+// Placeholder for storing the token in the database
+async function storeTokenInDatabase(email: string, token: number) {
+ const user = await db.users.findOne({ where: { email } });
+ user.reset_token = token.toString();
+  user.reset_token_timestamp = Date.now();
+  await user.save();
+  return user;
+}
+
+ /**
+ * @swagger
+ * /api/v1/users/password/reset:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: forgot Password
+ *     summary: forgot Password
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: email
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+async function forgotPassword(req:any, res: any) {
+  try {
+    // 1. Validate Input
+    const { email } = req.query
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required for password reset.' });
+    }
+
+    // 2. Generate Token
+    const resetToken = generateUniqueToken();
+
+    // 3. Store Token
+  let storeToken =  await storeTokenInDatabase(email, resetToken);
+    console.log("STORE TOKEN", storeToken);
+
+    // 4. Send Reset Email
+    await sendResetEmail(email, resetToken);
+
+    return res.status(200).json({ message: 'Password reset instructions sent to your email.' });
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+}
+
+// change password
+/**
+ * @swagger
+ * /api/v1/users/password/change:
+ *   post:
+ *     tags:
+ *       - Users
+ *     description: Change Password
+ *     summary: Change Password
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: email
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: token
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: newPassword
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+async function changePassword(req, res) {
+  try {
+    // 1. Validate Input
+    const { email, token, newPassword } = req.query
+    if (!email || !token || !newPassword) {
+      return res.status(400).json({ error: 'Email, token, and new password are required.' });
+    }
+
+    // 2. Verify Token
+    const user = await db.users.findOne({ where: { email } });
+    console.log("USER", user.reset_token);  
+    if (user.reset_token !== token) {
+      return res.status(400).json({ error: 'Invalid reset token.' });
+    }
+    // Check if token has expired
+    const tokenTimestamp = user.reset_token_timestamp;
+  // after 24 hours token expires
+    if ((Date.now() - tokenTimestamp) > 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ error: 'Expired reset token.' });
+    }
+
+    // 3. Update Password
+    
+    await db.users.update({ password:await bcrypt.hash(newPassword, 10) }, { where: { email } });
+
+    return res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error in changePassword:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+}
+
+
+
+
+
+
+
 
 
 module.exports = {
@@ -1275,5 +1432,7 @@ module.exports = {
   listPartners,
   arrMemberRegistration,
   findUserVehicle,
-  updateUserVehicle
+  updateUserVehicle,
+  forgotPassword,
+  changePassword
 };

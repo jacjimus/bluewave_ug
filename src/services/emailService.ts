@@ -3,6 +3,7 @@ import { google } from "googleapis"
 const OAuth2 = google.auth.OAuth2;
 import dotenv from 'dotenv'
 import welcomeTemplate from "./emailTemplates/welcome";
+import forgotPasswordTemplate from "./emailTemplates/forgotPassword";
 
 dotenv.config()
 
@@ -91,4 +92,29 @@ const sendWelcomeEmail= async(user: any, subject: string, message: any) =>{
 }
 
 
-export { sendWelcomeEmail , sendEmail}
+//forgot password email
+const sendForgotPasswordEmail= async(user: any, subject: string, message: any) =>{
+       try {
+            
+            const { email, name } = user
+            const emailData = {
+                name: name,
+                email: email,
+                //reset_url: process.env.RESET_URL || "http://localhost:3000/reset-password",
+                message: message,
+                
+            };
+    
+            const emailHtml = forgotPasswordTemplate(emailData);
+            await sendEmail(email, subject, emailHtml)
+
+        }
+        catch (err) {
+            console.log(err)
+        }
+    }
+
+
+
+
+export { sendWelcomeEmail , sendEmail ,sendForgotPasswordEmail}
