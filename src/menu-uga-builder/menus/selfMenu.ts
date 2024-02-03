@@ -58,11 +58,7 @@ const selfMenu = async (args, db) => {
     if (currentStep === 1) {
         switch (userText) {
             case "1":
-                // const covers = coverTypes.map((coverType, index) => {
-                //     return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
-                // }
-                // ).join("");
-                // response = "CON Buy for self " + covers + "\n0. Back \n00. Main Menu";
+        
                 response = "CON Buy for self " +
                     "\n1. S MINI at UGX 5,000" +
                     "\n2. MINI at UGX 10,000" +
@@ -262,7 +258,7 @@ export default selfMenu;
 
 ============== START TIME - SELF ======  +256706991200 2023-10-24T21:03:11.440Z
 =========== PUSH TO AIRTEL MONEY =========== 706991200 2023-10-24T21:03:11.441Z
-=========== AFTER CATCH TIMe==========   +256706991200 2023-10-24T21:03:11.490Z
+=========== AFTER CATCH TIME==========   +256706991200 2023-10-24T21:03:11.490Z
 === RETURN RESPONSE AIRTEL MONEY =========== 706991200 2023-10-24T21:03:16.115Z
 
 =======END TIME - SELF ================  +256706991200 2023-10-24T21:03:16.122Z

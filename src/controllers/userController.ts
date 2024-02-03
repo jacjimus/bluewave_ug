@@ -1258,10 +1258,7 @@ async function updateUserVehicle(req, res) {
 
 }
 
-const tokenStore = new Map();
 
-// Placeholder for sending reset emails
-const nodemailer = require('nodemailer');
 
 async function sendResetEmail(email, token) {
   try {
@@ -1283,7 +1280,7 @@ async function sendResetEmail(email, token) {
 // Placeholder for generating a unique token
 function generateUniqueToken() {
   const token = Math.floor(100000 + Math.random() * 900000);
-  tokenStore.set(token, Date.now());
+ 
   return token
  
 }

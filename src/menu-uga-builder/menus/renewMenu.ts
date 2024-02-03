@@ -27,14 +27,13 @@ const renewMenu = async (args: any, db: any) => {
 
     let paidPolicies = await db.policies.findAll({
         where: {
-            user_id: currentUser?.user_id,
+            phone_number: phoneNumber,
             policy_status: "paid"
         },
-        order: [
-            ['policy_id', 'DESC'],
-        ],
         limit: 6
     });
+
+    console.log("paidPolicies", paidPolicies)
 
     // let userPolicy = await db.policies.findOne({
     //     where: {
