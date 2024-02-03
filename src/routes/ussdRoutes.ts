@@ -257,8 +257,10 @@ const createPaymentRecord = async (policy, amount, user_id, policy_id, descripti
 };
 
 const calculateInsuredAmounts = (policy, proratedPercentage) => {
-  const sumInsured = policy.sum_insured * (proratedPercentage / 100);
-  const lastExpenseInsured = policy.last_expense_insured * (proratedPercentage / 100);
+  const sumInsured = policy.sum_insured 
+  //* (proratedPercentage / 100);
+  const lastExpenseInsured = policy.last_expense_insured
+  // * (proratedPercentage / 100);
   return { sumInsured, lastExpenseInsured };
 };
 
@@ -266,7 +268,7 @@ const generateCongratulatoryText = (policy, user, members, sumInsured, lastExpen
   if (policy.beneficiary === "FAMILY") {
     return `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
   } else if (policy.beneficiary === "SELF") {
-    return `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+    return `Congratulations! You bought ${policy.policy_type} cover for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
   } else if (policy.beneficiary === "OTHER")
     return `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`;
 }
