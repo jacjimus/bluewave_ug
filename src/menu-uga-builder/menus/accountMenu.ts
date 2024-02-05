@@ -78,8 +78,8 @@ const accountMenu = async (args: any, db: any) => {
             "\n2. Renew Policy" +
             "\n3. Cancel Policy" +
             "\n4. Add Next of Kin" +
-            "\n5. Update Gender and Date of birth" +
-            "\n6. Add Dependants" +
+            "\n5. Update Gender and Date of Birth" +
+            "\n6. Dependants" +
             "\n7. View Details";
     } else if (currentStep == 2) {
         console.log("allSteps", allSteps)
