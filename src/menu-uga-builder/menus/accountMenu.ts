@@ -155,7 +155,7 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 else {
 
-                    response = `CON Please enter the dependant full name \n e.g John Nyangweso \n 0.Back 00.Main Menu`
+                    response = `CON Please enter the dependant full name \n e.g John Mukasa \n 0.Back 00.Main Menu`
                 }
 
                 break;
@@ -329,7 +329,7 @@ const accountMenu = async (args: any, db: any) => {
                 full_name: allSteps[2],
                 beneficiary_type: "DEPENDANT",
                 user_id: currentUser.user_id,
-                dob: moment(userText, "DD/MM/YYYY").format("YYYY-MM-DD"),
+                dob: moment('01/01/1990', "DD/MM/YYYY").format("YYYY-MM-DD"),
                 principal_phone_number: trimmedPhoneNumber
             })
 
