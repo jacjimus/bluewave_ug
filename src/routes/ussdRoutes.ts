@@ -98,7 +98,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
     if (policy.installment_type === 2) {
       policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-      policy.installment_order = parseInt(policy.installment_order) + 1;
+      policy.installment_order = policy.policy_paid_amount  == amount ? 1 : parseInt(policy.installment_order) + 1;
       policy.installment_alert_date = installment_alert_date;
 
       if (policy.policy_paid_amount !== policy.premium) {

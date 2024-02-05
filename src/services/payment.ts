@@ -676,7 +676,7 @@ async function reconcilationCallback(transaction) {
     });
 
     // failed policy
-    await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
+   // await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
 
 
     return {
