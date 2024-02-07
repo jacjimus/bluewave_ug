@@ -1,10 +1,8 @@
 
 import jwt from 'jsonwebtoken';
 
-export const loggingMiddleware = async (req, res, next) => {
+export const loggingMiddleware = async (req: any, res: any, next: any) => {
   try {
-
-
     const operationType = `${req.method} ${req.originalUrl}`;
     const details = {
       requestBody: req.body,

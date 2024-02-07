@@ -378,7 +378,7 @@ const othersMenu = async (args, db) => {
         nationality: "KENYA"
       });
       const message = `Dear ${user.first_name}, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-      await SMSMessenger.sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(3,fullPhone, message);
 
     }
 

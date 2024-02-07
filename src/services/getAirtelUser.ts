@@ -43,7 +43,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
       // WELCOME SMS
       const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(user.phone_number, message);
+      await SMSMessenger.sendSMS(2,user.phone_number, message);
       console.log("USER FOR AIRTEL API", user);
     }
 

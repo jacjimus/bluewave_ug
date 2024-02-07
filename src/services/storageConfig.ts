@@ -2,10 +2,10 @@ import path from 'path';
 import multer from 'multer';
 
 export const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (req: any, file, cb) => {
     cb(null, path.join(__dirname, '../../uploads'));
   },
-  filename: (req, file, cb) => {
+  filename: (req: any, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });

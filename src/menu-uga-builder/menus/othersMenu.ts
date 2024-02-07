@@ -446,7 +446,7 @@ const othersMenu = async (args, db) => {
         nationality: "UGANDA"
       });
       const message = `Dear ${user?.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(`+256${otherUserPhone}`, message);
+      await SMSMessenger.sendSMS(2,`+256${otherUserPhone}`, message);
 
     }
 

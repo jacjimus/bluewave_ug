@@ -263,7 +263,7 @@ export const calculateProrationPercentage = (installments: number) => {
 }
 
 // fileFilter.js
-export const excelFilter = (req, file, cb) => {
+export const excelFilter = (req: any, file, cb) => {
   if (
     file.mimetype.includes("excel") ||
     file.mimetype.includes("spreadsheetml") ||
@@ -435,17 +435,17 @@ export function calculatePremium(
       } else if (vehicleCV >= 18) {
         premium = vehiclePremiums['DRIVING_SCHOOL']["18+"];
       }
-    }else if (vehicleCV && vehicle_number_of_passengers) {
-     message = 'Please provide either vehicleCV or vehicle_number_of_passengers but not both'
+    } else if (vehicleCV && vehicle_number_of_passengers) {
+      message = 'Please provide either vehicleCV or vehicle_number_of_passengers but not both'
 
     }
     console.log('DRIVING_SCHOOL premium', premium)
 
 
   } else if (vehicle_category === "TRUCKS") {
-  
+
     // Function to check if a value is within a specific numerical range
-  
+
 
     // Check for categoryThree and vehicle_tonnage
     if (vehicle_tonnage) {
@@ -468,25 +468,25 @@ export function calculatePremium(
 
       }
       console.log('TRUCKS Tonnage premium', premium)
-    // } else if (vehicle_cv && !vehicle_tonnage) {
-    //   vehicle_cv = parseInt(vehicle_cv);
-    //   // Convert vehicle_tonnage to a numeric value
-    //   console.log('TRUCK vehicle_cv', vehicle_cv)
-    //   // Determine the appropriate premium based on the tonnage range
-    //   if (isInRange(vehicle_cv, 0, 9)) {
-    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["0-9 CV"];
-    //   } else if (isInRange(vehicle_cv, 10, 13)) {
-    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["10-13 CV"];
-    //   } else if (isInRange(vehicle_cv, 14, 17)) {
-    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["14-17 CV"];
-    //   } else if (vehicle_cv > 18) {
-    //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["18+"];
-    //   } else {
+      // } else if (vehicle_cv && !vehicle_tonnage) {
+      //   vehicle_cv = parseInt(vehicle_cv);
+      //   // Convert vehicle_tonnage to a numeric value
+      //   console.log('TRUCK vehicle_cv', vehicle_cv)
+      //   // Determine the appropriate premium based on the tonnage range
+      //   if (isInRange(vehicle_cv, 0, 9)) {
+      //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["0-9 CV"];
+      //   } else if (isInRange(vehicle_cv, 10, 13)) {
+      //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["10-13 CV"];
+      //   } else if (isInRange(vehicle_cv, 14, 17)) {
+      //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["14-17 CV"];
+      //   } else if (vehicle_cv > 18) {
+      //     premium = vehiclePremiums["TRUCKS"]['OWN_ACCOUNT_TRANSPORT']["18+"];
+      //   } else {
 
-    //     message = "Invalid vehicle_cv range."
+      //     message = "Invalid vehicle_cv range."
 
-    //   }
-    //   console.log('TRUCKS Cv premium', premium)
+      //   }
+      //   console.log('TRUCKS Cv premium', premium)
 
     } else if (vehicle_number_of_passengers && !vehicle_cv && !vehicle_tonnage) {
       vehicle_number_of_passengers = parseInt(vehicle_number_of_passengers);

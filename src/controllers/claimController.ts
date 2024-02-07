@@ -56,12 +56,12 @@ const validateClaimsExistence = (claims) => {
  *       400:
  *         description: Invalid request
  */
-const getClaims = async (req, res) => {
+const getClaims = async (req: any, res) => {
     try {
         const { partner_id, page = 1, limit = 10, filter, start_date, end_date } = req.query;
         validatePartnerId(partner_id);
 
-        const claimWhere:any = { partner_id };
+        const claimWhere: any = { partner_id };
 
         if (start_date && end_date) {
             claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
@@ -138,7 +138,7 @@ const getClaims = async (req, res) => {
 *       400:
 *         description: Invalid request
 */
-const getClaim = async (req, res) => {
+const getClaim = async (req: any, res) => {
     try {
         const { claim_id } = req.params;
         const claim = await Claim.findByPk(claim_id, {
@@ -162,7 +162,7 @@ const getClaim = async (req, res) => {
     }
 };
 
-const findUserByPhoneNumberClaims = async (req, res) => {
+const findUserByPhoneNumberClaims = async (req: any, res) => {
     try {
         const { user_id } = req.params;
         const { partner_id, page = 1, limit = 10 } = req.query;
@@ -192,7 +192,7 @@ const findUserByPhoneNumberClaims = async (req, res) => {
     }
 };
 
-const getPolicyClaims = async (req, res) => {
+const getPolicyClaims = async (req: any, res) => {
     try {
         const { policy_id } = req.params;
         const { partner_id, page = 1, limit = 10 } = req.query;
@@ -260,7 +260,7 @@ const getPolicyClaims = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const createClaim = async (req, res) => {
+const createClaim = async (req: any, res) => {
     try {
         const { policy_id, user_id, partner_id } = req.query;
         const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments } = req.body;
@@ -347,7 +347,7 @@ const createClaim = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const updateClaim = async (req, res) => {
+const updateClaim = async (req: any, res) => {
     try {
         const { claim_id } = req.params;
         const { claim_date, claim_status, claim_amount, claim_description, claim_type, claim_documents, claim_comments } = req.body;
@@ -389,7 +389,7 @@ const updateClaim = async (req, res) => {
     }
 };
 
-const deleteClaim = async (req, res) => {
+const deleteClaim = async (req: any, res) => {
     try {
         const { claim_id } = req.params;
         const { partner_id } = req.query;

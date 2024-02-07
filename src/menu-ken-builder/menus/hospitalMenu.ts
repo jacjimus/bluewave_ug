@@ -112,7 +112,7 @@ const hospitalMenu = async (args: any, db: any) => {
                         Contact Number:  ${hospitalChoosen.hospital_contact}
                         Location: ${hospitalChoosen.hospital_address}`
 
-        await SMSMessenger.sendSMS(smsPhone, message)
+        await SMSMessenger.sendSMS(3,smsPhone, message)
 
         response = `CON You have selected ${hospitalChoosen.provider_name} as your preferred facility.` +
             `\nContact: ${hospitalChoosen.hospital_contact}` +

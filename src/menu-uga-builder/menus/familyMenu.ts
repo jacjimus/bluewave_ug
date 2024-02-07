@@ -864,7 +864,7 @@ const familyMenu = async (args, db) => {
       });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(2,fullPhone, message);
 
     }
 

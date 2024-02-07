@@ -4,9 +4,6 @@ const faqsMenu = async (args) => {
 
     const faqs = [
        
-
-
-
         {
             question: "Eligibility",
             answer: " Persons between the ages of 18 and 65 are eligible to purchase Medical cover Policy."

@@ -547,7 +547,7 @@ const familyMenu = async (args, db) => {
       });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membershierId} Dial *334*7*3# to access your account.`;
-      await SMSMessenger.sendSMS(fullPhone, message);
+      await SMSMessenger.sendSMS(3,fullPhone, message);
 
     }
 

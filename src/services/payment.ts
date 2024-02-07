@@ -652,7 +652,7 @@ async function reconcilationCallback(transaction) {
     }
     console.log("CONGRATULATORY TEXT", congratText);
 
-    //await SMSMessenger.sendSMS(to, congratText);
+    //await SMSMessenger.sendSMS(2,to, congratText);
 
     const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 

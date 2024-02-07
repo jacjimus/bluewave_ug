@@ -14,6 +14,7 @@ import {
 const { Op } = require("sequelize");
 const XLSX = require("xlsx");
 import { v4 as uuidv4 } from "uuid";
+import SMSMessenger from "../services/sendSMS";
 
 // Assigning users to the variable User
 const User = db.users;
@@ -62,7 +63,7 @@ async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
  *       400:
  *         description: Invalid request
  */
-const signup = async (req, res) => {
+const signup = async (req: any, res:any) => {
   try {
     const {
       first_name,
@@ -96,7 +97,7 @@ const signup = async (req, res) => {
     if (!isValidEmail(email)) {
       return res.status(400).json({ code: 400, message: "Please enter a valid email" });
     }
-    
+
     // Create user data object
     const userData = {
       membership_id: Math.floor(100000 + Math.random() * 900000),
@@ -268,30 +269,38 @@ const partnerRegistration = async (req: any, res: any) => {
  *       content:
  *         application/json:
  *           schema:
- *             example: {  "email":"dickensjuma13@gmail.com", "password": "pAssW0rd" }
+ *             example: {  "email":"dickensjuma13@gmail.com", "phone_number":"704868023", "password": "pAssW0rd" }
  *     responses:
  *       200:
  *         description: Successful authentication
  */
-const login = async (req, res) => {
+const login = async (req: any, res: any) => {
   try {
-    const { email, password } = req.body;
+    const { email,phone_number, password } = req.body;
 
     console.log("LOGIN", req.body);
 
 
     // Validate presence of email and password
-    if (!email || !password) {
+    if (!password) {
       return res.status(400).json({
         code: 400,
-        message: "Please provide an email and password",
+        message: "Please provide an password",
+      });
+    }else if (!email && !phone_number) {
+      return res.status(400).json({
+        code: 400,
+        message: "Please provide an email or phone number",
       });
     }
 
     // Find user by email
     const user = await User.findOne({
       where: {
-        email,
+        [Op.or]: [
+          { email: email },
+          { phone_number: phone_number },
+        ],
       },
     });
 
@@ -337,7 +346,6 @@ const login = async (req, res) => {
       // Remove sensitive information from the user object
       const sanitizedUser = {
         user_id: user.user_id,
-        full_name: user.name,
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
@@ -346,8 +354,6 @@ const login = async (req, res) => {
         partner_name: partner.partner_name,
         is_active: user.is_active,
         is_verified: user.is_verified,
-        countryCode: partner.country_code,
-        currencyCode: partner.currency_code,
       };
 
       return res.status(201).json({
@@ -428,7 +434,7 @@ const login = async (req, res) => {
  *       200:
  *         description: Successful response
  */
-const findAllUsers = async (req, res) => {
+const findAllUsers = async (req: any, res) => {
   const partner_id = req.query.partner_id;
   let filter = req.query?.filter
   const page = parseInt(req.query.page) || 1;
@@ -666,7 +672,7 @@ const updateUser = async (req: any, res: any) => {
 };
 
 // //deleting a user
-const deleteUser = async (req: any, res) => {
+const deleteUser = async (req: any, res: any) => {
   try {
     await User.destroy({
       where: {
@@ -1091,12 +1097,12 @@ async function arrMemberRegistration(req: any, res: any) {
 
     }
 
-   let excistingUser = await db.users.findOne({
+    let excistingUser = await db.users.findOne({
       where: {
         phone_number: phoneNumber.toString()
       }
     })
-    let updatedPremium = reconciliation( excistingUser, paymentData)
+    let updatedPremium = reconciliation(excistingUser, paymentData)
 
     return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium });
   } catch (error) {
@@ -1198,7 +1204,7 @@ async function findUserVehicle(req: any, res: any) {
  *       400:
  *         description: Invalid request
  */
-async function updateUserVehicle(req, res) {
+async function updateUserVehicle(req: any, res: any) {
   try {
     const { vehicle_id } = req.query
     const { user_id } = req.params
@@ -1267,7 +1273,7 @@ async function sendResetEmail(email, token) {
     const subject = 'Password Reset';
     const message = `Use this token to reset your password: ${token}`;
 
-    sendForgotPasswordEmail(user,subject,message)
+    sendForgotPasswordEmail(user, subject, message)
 
     console.log(`Reset email sent to ${email} with token: ${token}`);
   } catch (error) {
@@ -1280,59 +1286,83 @@ async function sendResetEmail(email, token) {
 // Placeholder for generating a unique token
 function generateUniqueToken() {
   const token = Math.floor(100000 + Math.random() * 900000);
- 
+
   return token
- 
+
 }
 
 // Placeholder for storing the token in the database
 async function storeTokenInDatabase(email: string, token: number) {
- const user = await db.users.findOne({ where: { email } });
- user.reset_token = token.toString();
+  const user = await db.users.findOne({ where: { email } });
+  user.reset_token = token.toString();
   user.reset_token_timestamp = Date.now();
   await user.save();
   return user;
 }
 
- /**
- * @swagger
- * /api/v1/users/password/reset:
- *   post:
- *     tags:
- *       - Users
- *     description: forgot Password
- *     summary: forgot Password
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - name: email
- *         in: query
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Information fetched succussfuly
- *       400:
- *         description: Invalid request
- */
-async function forgotPassword(req:any, res: any) {
+async function sendResetOTP(phone_number, token) {
   try {
-    // 1. Validate Input
-    const { email } = req.query
+    const user = await db.users.findOne({ where: { phone_number } });
+    const message = `Use this
+    token to reset your password: ${token}`;
+    SMSMessenger.sendSMS(3, user.phone_number, message)
+    console.log(`Reset OTP sent to ${phone_number} with token: ${token}`);
+  }
+  catch (error) {
+    console.error('Error sending reset OTP:', error);
+    throw new Error('Failed to send reset OTP.');
+  }
+}
+
+
+/**
+* @swagger
+* /api/v1/users/password/reset:
+*   post:
+*     tags:
+*       - Users
+*     description: forgot Password
+*     summary: forgot Password
+*     security:
+*       - ApiKeyAuth: []
+*     parameters:
+*       - name: email
+*         in: query
+*         required: true
+*         schema:
+*           type: string
+*       - name: phone_number
+*         in: query
+*         required: false
+*         schema:
+*           type: string
+*     responses:
+*       200:
+*         description: Information fetched succussfuly
+*       400:
+*         description: Invalid request
+*/
+async function forgotPassword(req: any, res: any) {
+  try {
+
+    const { email, phone_number } = req.query
     if (!email) {
       return res.status(400).json({ error: 'Email is required for password reset.' });
     }
-
-    // 2. Generate Token
     const resetToken = generateUniqueToken();
 
-    // 3. Store Token
-  let storeToken =  await storeTokenInDatabase(email, resetToken);
-    console.log("STORE TOKEN", storeToken);
+    await storeTokenInDatabase(email, resetToken);
 
-    // 4. Send Reset Email
-    await sendResetEmail(email, resetToken);
+
+    if (email) {
+
+      await sendResetEmail(email, resetToken);
+    } else if (phone_number) {
+
+      await sendResetOTP(phone_number, resetToken);
+    } else {
+      return res.status(400).json({ error: 'Email or phone number is required for password reset.' });
+    }
 
     return res.status(200).json({ message: 'Password reset instructions sent to your email.' });
   } catch (error) {
@@ -1341,7 +1371,6 @@ async function forgotPassword(req:any, res: any) {
   }
 }
 
-// change password
 /**
  * @swagger
  * /api/v1/users/password/change:
@@ -1374,7 +1403,7 @@ async function forgotPassword(req:any, res: any) {
  *       400:
  *         description: Invalid request
  */
-async function changePassword(req, res) {
+async function changePassword(req: any, res: any) {
   try {
     // 1. Validate Input
     const { email, token, newPassword } = req.query
@@ -1384,20 +1413,20 @@ async function changePassword(req, res) {
 
     // 2. Verify Token
     const user = await db.users.findOne({ where: { email } });
-    console.log("USER", user.reset_token);  
+    console.log("USER", user.reset_token);
     if (user.reset_token !== token) {
       return res.status(400).json({ error: 'Invalid reset token.' });
     }
     // Check if token has expired
     const tokenTimestamp = user.reset_token_timestamp;
-  // after 24 hours token expires
+    // after 24 hours token expires
     if ((Date.now() - tokenTimestamp) > 24 * 60 * 60 * 1000) {
       return res.status(400).json({ error: 'Expired reset token.' });
     }
 
     // 3. Update Password
-    
-    await db.users.update({ password:await bcrypt.hash(newPassword, 10) }, { where: { email } });
+
+    await db.users.update({ password: await bcrypt.hash(newPassword, 10) }, { where: { email } });
 
     return res.status(200).json({ message: 'Password updated successfully.' });
   } catch (error) {
@@ -1405,12 +1434,6 @@ async function changePassword(req, res) {
     return res.status(500).json({ error: 'Internal server error.' });
   }
 }
-
-
-
-
-
-
 
 
 

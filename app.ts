@@ -57,7 +57,7 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const errorHandler = (error: any, req: any, res: any, next: any) => {
-  console.log(`error ${error.message}`); 
+  console.log(`error ${error.message}`);
   const status = error.status || 400;
   res.status(status).send(error.message);
 };
@@ -78,7 +78,6 @@ cron.schedule("0 8 * * *", () => {
   console.log("Running a task every day at 8 AM");
   sendPolicyRenewalReminder();
 });
-
 
 playground();
 

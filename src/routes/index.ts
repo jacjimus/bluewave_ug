@@ -20,7 +20,7 @@ router.use("/claims", claimRoutes);
 router.use("/ussd", ussdRoutes);
 router.use("/reports", reportRoutes);
 router.use("/products", productRoutes);
-router.use("/documents", generalRoutes);
+router.use("/generals", generalRoutes);
 router.use("/logs", logRoutes);
 
 

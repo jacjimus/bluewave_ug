@@ -222,7 +222,7 @@ router.all("/callback", async (req, res) => {
 
         policy.policy_status = "paid";
         policy.save();
-        await SMSMessenger.sendSMS(to, congratText);
+        await SMSMessenger.sendSMS(2,to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
@@ -424,7 +424,7 @@ router.all("/callback/kenya", async (req, res) => {
           }
         }
 
-        await SMSMessenger.sendSMS(to, congratText);
+        await SMSMessenger.sendSMS(2,to, congratText);
 
         return res.status(200).json({
           code: 200,

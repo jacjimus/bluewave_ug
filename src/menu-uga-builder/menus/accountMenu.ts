@@ -411,8 +411,8 @@ const accountMenu = async (args: any, db: any) => {
                 dob: moment(userText, "DD/MM/YYYY").format("YYYY-MM-DD"),
                 principal_phone_number: trimmedPhoneNumber
             })
-
-            SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`)
+            const dependant_message = `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`
+            SMSMessenger.sendSMS(2,smsPhone,dependant_message )
             response = "CON Your dependant name saved successfully"
         }
     } else if (currentStep == 5) {
@@ -430,8 +430,9 @@ const accountMenu = async (args: any, db: any) => {
                 dob: moment(userText, "DD/MM/YYYY").format("YYYY-MM-DD"),
                 principal_phone_number: trimmedPhoneNumber
             })
+            const dependant_message =  `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`
 
-            SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`)
+            SMSMessenger.sendSMS(2,smsPhone,dependant_message)
             response = "CON Your dependant name saved successfully"
         } else if (allSteps[1] == '4') {
             console.log("allSteps", allSteps)
@@ -470,8 +471,8 @@ const accountMenu = async (args: any, db: any) => {
 
             await updateMember(data)
 
-
-            SMSMessenger.sendSMS(smsPhone, `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`)
+            const kin_message =  `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`
+            SMSMessenger.sendSMS(2,smsPhone, kin_message)
             response = "END Your next of kin details saved successfully"
         }
 

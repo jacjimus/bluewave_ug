@@ -163,7 +163,7 @@ const getPayment = async (req: any, res: any) => {
                 partner_id: partner_id
             },
             include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
-            limit:1
+            limit: 1
         });
 
 

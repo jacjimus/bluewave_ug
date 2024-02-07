@@ -291,7 +291,7 @@ const accountMenu = async (args: any, db: any) => {
 
                 await db.beneficiaries.create(nextOfKinDetails);
                 const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your AfyaShua Cover. Any benefits on the cover will be payable to your next of Kin.`
-                await SMSMessenger.sendSMS(smsPhone, sms);
+                await SMSMessenger.sendSMS(3,smsPhone, sms);
                 response = `END ${sms}`
                 break;
             default:

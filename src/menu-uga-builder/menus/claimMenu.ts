@@ -135,7 +135,7 @@ let policy: any;
         }
         
         const sms = `Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`
-        await SMSMessenger.sendSMS(`+256${user.phone_number}`, sms);
+        await SMSMessenger.sendSMS(2,`+256${user.phone_number}`, sms);
 
         response = `END Your claim documents have been received. Your claim is being processed.`;
         const claimId = generateClaimId();

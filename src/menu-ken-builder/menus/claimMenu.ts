@@ -72,8 +72,7 @@ const claimMenu = async (args, db) => {
                     claim_type: claim_type,
                     claim_amount: policy.sum_insured,
                 });
-        
-                
+
                 break;
             }
         }

@@ -155,7 +155,7 @@ async function registerPrincipal(user: any, policy: any) {
         principal_member.is_active= true
         principal_member.save();
         const message =`Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *185*7*6*3# and check on My Policy.`
-        await SMSMessenger.sendSMS(`+256${principal_member.phone_number}`, message);
+        await SMSMessenger.sendSMS(2,`+256${principal_member.phone_number}`, message);
         return { ...response.data, ...userData }
       }
     } catch (error) {
@@ -618,7 +618,7 @@ async function reconciliation(existingUser, paymentData) {
 //     congratText = `${existingUser.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
 //   }
 
-//  // await SMSMessenger.sendSMS(`+256${payment['Sender Mobile Number']}`, congratText);
+//  // await SMSMessenger.sendSMS(2,`+256${payment['Sender Mobile Number']}`, congratText);
 //  console.log("CONGRAT TEXT", congratText);
 
 

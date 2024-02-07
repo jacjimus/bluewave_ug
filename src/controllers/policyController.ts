@@ -85,7 +85,7 @@ interface Policy {
     *         description: Invalid request
     */
 
-const getPolicies = async (req, res) => {
+const getPolicies = async (req: any, res) => {
   try {
 
     const partner_id = req.query.partner_id;
@@ -204,7 +204,7 @@ const getPolicies = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const getPolicy = async (req: any, res: any) => {
+const getPolicy = async (req: any, res:any) => {
   try {
     const policy_id = req.params.policy_id;
     const partner_id = req.query.partner_id;
@@ -293,7 +293,7 @@ const getPolicy = async (req: any, res: any) => {
   *       400:
   *         description: Invalid request
   */
-const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
+const findUserByPhoneNumberPolicies = async (req: any, res:any) => {
   let status = {
     code: 200,
     result: {},
@@ -387,7 +387,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
   *         description: Invalid request
   */
 
-const createPolicy = async (req: any, res: any) => {
+const createPolicy = async (req: any, res:any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
     let partner = await Partner.findOne({ where: { partner_id } })
@@ -448,7 +448,7 @@ const createPolicy = async (req: any, res: any) => {
   *       400:
   *         description: Invalid request
   */
-const updatePolicy = async (req: any, res: any) => {
+const updatePolicy = async (req: any, res:any) => {
   try {
     const {
       user_id,
@@ -547,7 +547,7 @@ const updatePolicy = async (req: any, res: any) => {
   *       400:
   *         description: Invalid request
   */
-const deletePolicy = async (req: any, res: any) => {
+const deletePolicy = async (req: any, res:any) => {
   try {
     await Policy.destroy({
       where: {
@@ -592,7 +592,7 @@ const deletePolicy = async (req: any, res: any) => {
  *       400:
  *         description: Invalid request
  */
-async function vehicleRegistration(req: any, res: any) {
+async function vehicleRegistration(req: any, res:any) {
   try {
     // Destructure the request body to extract necessary information
     const {
@@ -691,7 +691,7 @@ async function vehicleRegistration(req: any, res: any) {
  *       400:
  *         description: Invalid request
  */
-async function calculatePremiumBasedOnVehicleDetails(req, res) {
+async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
   try {
     let {
       vehicle_category,
@@ -762,7 +762,7 @@ async function calculatePremiumBasedOnVehicleDetails(req, res) {
       },
     };
 
-   const premium = calculatePremium(
+    const premium = calculatePremium(
       vehiclePremiums,
       vehicle_category,
       vehicle_type,
@@ -776,7 +776,7 @@ async function calculatePremiumBasedOnVehicleDetails(req, res) {
       message: premium.message,
       currency_code: "USD",
       premium: premium.premium,
-      vehicle_data:{
+      vehicle_data: {
         vehicle_category,
         vehicle_type,
         vehicle_cv,
@@ -820,14 +820,14 @@ async function calculatePremiumBasedOnVehicleDetails(req, res) {
   *         description: Invalid request
   */
 
-const createHealthPolicy = async (req: any, res: any) => {
+const createHealthPolicy = async (req: any, res:any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
     let partner = await Partner.findOne({ where: { partner_id } })
- 
+
     console.log(req.body)
 
-   let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type, admin_email } = req.body
+    let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type, admin_email } = req.body
     let subject = "Health Insurance Policy"
     let emailHtml = `<p>Dear Admin,</p>  <p>Request for health insurance provider.
     <p>Company Name: ${company_name}</p>
@@ -838,9 +838,9 @@ const createHealthPolicy = async (req: any, res: any) => {
     <p>Number of Staff: ${number_of_staff}</p>
     <p>Medical Cover Type: ${medical_cover_type}</p>
     <p>Thank you.</p>`
-    await sendEmail( admin_email = "admin@bluewave.insure", subject, emailHtml)
+    await sendEmail( "admin@bluewave.insure", subject, emailHtml)
 
-   
+
     return res.status(200).json({
       result: {
         code: 200,
@@ -857,6 +857,69 @@ const createHealthPolicy = async (req: any, res: any) => {
   }
 }
 
+/**
+  * @swagger
+  * /api/v1/policies/self-cover:
+  *   post:
+  *     tags:
+  *       - Policies
+  *     description: buy health insurance
+  *     operationId:  submitSelfCover
+  *     summary:  submit self cover
+  *     security:
+  *       - ApiKeyAuth: []
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             example: {"membership_type": "individual", "number_of_family_members": 4, "medical_cover_type": "inpatient", "user_id": "8fd0627e-09df-44e2-a96c-29712388e5f5", "partner_id": 3  }
+  *     responses:
+  *       200:
+  *         description: Information fetched succussfuly
+  *       400:
+  *         description: Invalid request
+  */
+const submitSelfCover = async (req, res) => {
+  try {
+     const {membership_type, number_of_family_members,medical_cover_type, user_id, partner_id} = req.body
+   
+     const user = await User.findOne({where: {user_id: user_id, partner_id: partner_id}})
+     if (!user) {
+      return res.status(404).json({
+        code: 404,
+        message: "No user found"
+      });
+    }
+
+    console.log(user)
+
+    let subject = "Health Insurance Policy"
+    let emailHtml = `<p>Dear Admin,</p>  <p>Request for Self Cover health insurance.
+    <p>Membership Type: ${membership_type}</p>
+    <p>Number of Family Members: ${number_of_family_members}</p>
+    <p>Medical Cover Type: ${medical_cover_type}</p>
+    <p> Customer Name: ${user.name} of phone number ${user.phone_number}</p>
+    <p>Thank you.</p>`
+    await sendEmail("admin@bluewave.insure", subject, emailHtml)
+
+    return res.status(200).json({
+      result: {
+        code: 200,
+        message: "We have received your request. We will get back to you shortly.",
+      }
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error", error: error
+    });
+  }
+}
+
+
 
 
 module.exports = {
@@ -868,7 +931,8 @@ module.exports = {
   deletePolicy,
   vehicleRegistration,
   calculatePremiumBasedOnVehicleDetails,
-  createHealthPolicy
+  createHealthPolicy,
+  submitSelfCover
 }
 
 

@@ -522,7 +522,7 @@ const countClaimsByStatus = (claims: any[], status: string): number => {
  *       400:
  *         description: Invalid request
  */
-const getSalesReportByPeriod = async (req, res, periodType) => {
+const getSalesReportByPeriod = async (req: any,periodType: string) => {
   const { partner_id } = req.query;
 
   try {
@@ -573,14 +573,14 @@ const getSalesReportByPeriod = async (req, res, periodType) => {
   }
 };
 
-const getDailyPolicySalesReport = async (req, res) => {
+const getDailyPolicySalesReport = async (req: any, res: any) => {
   try {
     // Fetch sales reports for different periods
     const [dailyReport, weeklyReport, monthlyReport, yearlyReport] = await Promise.all([
-      getSalesReportByPeriod(req, res, 'daily'),
-      getSalesReportByPeriod(req, res, 'weekly'),
-      getSalesReportByPeriod(req, res, 'monthly'),
-      getSalesReportByPeriod(req, res, 'yearly'),
+      getSalesReportByPeriod(req, 'daily'),
+      getSalesReportByPeriod(req, 'weekly'),
+      getSalesReportByPeriod(req, 'monthly'),
+      getSalesReportByPeriod(req, 'yearly'),
     ]);
 
 
@@ -655,7 +655,7 @@ const getDailyPolicySalesReport = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const getPolicyExcelReportDownload = async (req, res) => {
+const getPolicyExcelReportDownload = async (req: any, res: any) => {
   let {
     partner_id,
     page = 1,
@@ -744,7 +744,7 @@ const getPolicyExcelReportDownload = async (req, res) => {
 };
 
 // Download endpoint handler
-const handleUsersDownload = (req, res) => {
+const handleUsersDownload = (req: any, res: any) => {
   const filePath = path.join(__dirname, "uploads", "users_report.xlsx");
   // Stream the file for download
   res.setHeader(
@@ -758,7 +758,7 @@ const handleUsersDownload = (req, res) => {
 
   fs.createReadStream(filePath).pipe(res);
 };
-const handlePolicyDownload = (req, res) => {
+const handlePolicyDownload = (req: any, res: any) => {
   const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
   // Stream the file for download
   res.setHeader(
@@ -773,7 +773,7 @@ const handlePolicyDownload = (req, res) => {
   fs.createReadStream(filePath).pipe(res);
 };
 
-const handleClaimDownload = (req, res) => {
+const handleClaimDownload = (req: any, res: any) => {
   const { token } = req.query;
 
   const filePath = path.join(__dirname, "uploads", "claim_report.xlsx");
@@ -951,7 +951,7 @@ const generateUserExcelReport = async (users) => {
  *       400:
  *         description: Invalid request
  */
-const getUserExcelReportDownload = async (req, res) => {
+const getUserExcelReportDownload = async (req: any, res: any) => {
   let {
     partner_id,
     page = 1,
@@ -1045,7 +1045,7 @@ const getUserExcelReportDownload = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const getAggregatedDailyPolicySalesReport = async (req, res) => {
+const getAggregatedDailyPolicySalesReport = async (req: any, res: any) => {
   try {
     const query = `
         SELECT
@@ -1141,7 +1141,7 @@ const getAggregatedDailyPolicySalesReport = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
+const getAggregatedAnnuallyPolicySalesReport = async (req: any, res: any) => {
   try {
     const query = `
       SELECT
@@ -1260,7 +1260,7 @@ const getAggregatedAnnuallyPolicySalesReport = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const getAggregatedMonthlySalesReport = async (req, res) => {
+const getAggregatedMonthlySalesReport = async (req: any, res: any) => {
   try {
     const filterMonth = req.query.month;
 
@@ -1416,7 +1416,7 @@ const getAggregatedMonthlySalesReport = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-const getClaimExcelReportDownload = async (req, res) => {
+const getClaimExcelReportDownload = async (req: any, res: any) => {
 
   let {
     partner_id,
@@ -1596,7 +1596,7 @@ function generateClaimExcelReport(claims: any[]) {
  *       400:
  *         description: Invalid request
  */
-const paymentReconciliation = async (req, res) => {
+const paymentReconciliation = async (req: any, res: any) => {
   try {
 
     if (!req.file) {
@@ -1615,7 +1615,7 @@ const paymentReconciliation = async (req, res) => {
     const worksheet = workbook.Sheets[workbook.SheetNames[1]];
 
     //console.log sheetNames
-    console.log("============ WORKSHEET ========",workbook.Sheets)
+    console.log("============ WORKSHEET ========", workbook.Sheets)
 
 
     if (!worksheet) {
@@ -1627,7 +1627,7 @@ const paymentReconciliation = async (req, res) => {
     console.log("+++++paymentDataArray+++++", paymentDataArray.length)
 
     for (let payment of paymentDataArray) {
-  
+
       console.log("PAYMENT", payment)
 
       // if - replace with / in the date
@@ -1644,7 +1644,7 @@ const paymentReconciliation = async (req, res) => {
 
       let transaction_date = moment(convertedDate)
 
-      let premium =payment['Transaction Amount'].replace(/,/g, '') 
+      let premium = payment['Transaction Amount'].replace(/,/g, '')
       let ext_ref = payment['External Reference']
       let airtel_money_id = payment['Transaction ID']
       let phone_number = payment['Sender Mobile Number']
@@ -1681,7 +1681,7 @@ const paymentReconciliation = async (req, res) => {
       });
 
 
-   // console.log("transactionId", transactionId)
+      // console.log("transactionId", transactionId)
 
       let paymentCallback = {
         transaction: {
@@ -1691,12 +1691,12 @@ const paymentReconciliation = async (req, res) => {
           airtel_money_id: airtel_money_id
         }
       }
-  
-      console.log("paymentCallback", paymentCallback)
-     // result = await reconcilationCallback(paymentCallback.transaction)
 
-     // get all policies that are policy_status is pending but payment record is payment_status paid and premium match
-     //throw error if you a such a policy
+      console.log("paymentCallback", paymentCallback)
+      // result = await reconcilationCallback(paymentCallback.transaction)
+
+      // get all policies that are policy_status is pending but payment record is payment_status paid and premium match
+      //throw error if you a such a policy
 
     }
 
@@ -1746,7 +1746,7 @@ const paymentReconciliation = async (req, res) => {
  *       400:
  *         description: Invalid request
  */
-async function policyReconciliation(req, res) {
+async function policyReconciliation(req: any, res: any) {
 
   try {
     let { partner_id, phone_number, transaction_date, premium } = req.query;

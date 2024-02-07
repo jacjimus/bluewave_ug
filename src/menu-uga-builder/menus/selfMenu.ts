@@ -149,7 +149,7 @@ const selfMenu = async (args, db) => {
                 });
 
                 const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-                await SMSMessenger.sendSMS(fullPhone, message);
+                await SMSMessenger.sendSMS(2,fullPhone, message);
 
             }
 

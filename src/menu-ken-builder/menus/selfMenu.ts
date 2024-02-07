@@ -128,7 +128,7 @@ const selfMenu = async (args, db) => {
       if (user?.first_name && user?.last_name) {
         existingUser = await createNewUser(phoneNumber, user, membershipId, db);
         const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-        await SMSMessenger.sendSMS(fullPhone, message);
+        await SMSMessenger.sendSMS(3,fullPhone, message);
       }
     }
   
