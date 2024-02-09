@@ -628,33 +628,8 @@ async function reconcilationCallback(transaction) {
     console.log("=== UPDATED POLICY ===", updatedPolicy)
 
 
-    const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
-    console.log("MEMBERS", members, policy.total_member_number);
-
-    //let proratedPercentage = calculateProrationPercentage(policy.installment_order);
-
-    const sumInsured = policy.sum_insured
-    //formatAmount(policy.sum_insured * (proratedPercentage / 100));
-    const lastExpenseInsured = policy.last_expense_insured
-    //formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
-    console.log("SUM INSURED", sumInsured);
-    console.log("LAST EXPENSE INSURED", lastExpenseInsured);
-
-
-    const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
-
-    let congratText = "";
-
-    if (policy.beneficiary == "FAMILY") {
-      congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
-    } else if (policy.beneficiary == "SELF")
-      congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
-    else if (policy.beneficiary == "OTHER") {
-      congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
-    }
-    console.log("CONGRATULATORY TEXT", congratText);
-
-    await SMSMessenger.sendSMS(2,to, congratText);
+    // send congratulatory message
+    await sendCongratulatoryMessage(updatedPolicy, user);
 
     const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
@@ -688,6 +663,46 @@ async function reconcilationCallback(transaction) {
   }
 }
 
+
+async function  sendCongratulatoryMessage(policy, user) {
+  try {
+
+  const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
+  console.log("MEMBERS", members, policy.total_member_number);
+
+  //let proratedPercentage = calculateProrationPercentage(policy.installment_order);
+
+  const sumInsured = policy.sum_insured
+  //formatAmount(policy.sum_insured * (proratedPercentage / 100));
+  const lastExpenseInsured = policy.last_expense_insured
+  //formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
+  console.log("SUM INSURED", sumInsured);
+  console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+
+
+  const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+
+  let congratText = "";
+
+  if (policy.beneficiary == "FAMILY") {
+    congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
+  } else if (policy.beneficiary == "SELF")
+    congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+  else if (policy.beneficiary == "OTHER") {
+    congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+  }
+  console.log("CONGRATULATORY TEXT", congratText);
+
+  let to = policy.phone_number;
+
+  await SMSMessenger.sendSMS(2,to, congratText);
+
+} catch (error) {
+  console.log(error);
+}
+}
+
+
 export {
   airtelMoney,
   initiateConsent,
@@ -701,5 +716,6 @@ export {
   inquireRecoveryTransaction,
   refundRecoveryTransaction,
   airtelMoneyKenya,
-  reconcilationCallback
+  reconcilationCallback,
+  sendCongratulatoryMessage
 };

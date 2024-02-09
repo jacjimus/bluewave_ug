@@ -216,8 +216,8 @@ router.all("/callback", async (req, res) => {
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
 
-        let sum_insured = policy.installment_type === 1 ? policy.sum_insured : sumInsured;
-        let last_expense_insured = policy.installment_type === 1 ? policy.last_expense_insured : lastExpenseInsured;
+        let sum_insured =  sumInsured;
+        let last_expense_insured =  lastExpenseInsured;
 
         policy.policy_status = "paid";
         policy.save();
@@ -262,8 +262,8 @@ const createPaymentRecord = async (policy, amount, user_id, policy_id, descripti
 const calculateInsuredAmounts = (policy, proratedPercentage) => {
   const sumInsured = policy.sum_insured 
   //* (proratedPercentage / 100);
-  const lastExpenseInsured = policy.last_expense_insured
-  // * (proratedPercentage / 100);
+  const lastExpenseInsured = policy.last_expense_insured 
+  //* (proratedPercentage / 100);
   return { sumInsured, lastExpenseInsured };
 };
 

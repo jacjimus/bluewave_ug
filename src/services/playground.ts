@@ -6,6 +6,7 @@ import fs from 'fs/promises';
 import { db } from '../models/db';
 import { getNewPolicies, numberAndValueOfFailedPayments } from './report';
 import Queue from 'bull';
+import { sendCongratulatoryMessage } from './payment';
 
 // import { google } from 'googleapis';
 
@@ -16,11 +17,11 @@ import Queue from 'bull';
 
 
 
-export const sendPolicyRenewalReminder = async () => {
+export const _sendPolicyRenewalReminder = async (phone_number: string) => {
     try {
       const policy = await db.policies.findOne({
         where: {
-          phone_number: '+256743453012',
+          phone_number:  phone_number,
           policy_status: 'paid',
           installment_type: 2,
           partner_id: 2,
@@ -157,11 +158,13 @@ export const sendPolicyRenewalReminder = async () => {
 
 
 
+
 export const playground = async () => {
 
    //getNewPolicies(2, '2023-01-01', '2024-02-7')
    //numberAndValueOfFailedPayments(2, '2023-01-01', '2024-02-07')
   //sendPolicyRenewalReminder()
+// sendCongratulatoryMessage(policy, user)
 
   console.log("TESTING GROUND")
 }
