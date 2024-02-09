@@ -260,8 +260,10 @@ const createPaymentRecord = async (policy, amount, user_id, policy_id, descripti
 };
 
 const calculateInsuredAmounts = (policy, proratedPercentage) => {
-  const sumInsured = policy.sum_insured * (proratedPercentage / 100);
-  const lastExpenseInsured = policy.last_expense_insured * (proratedPercentage / 100);
+  const sumInsured = policy.sum_insured 
+  //* (proratedPercentage / 100);
+  const lastExpenseInsured = policy.last_expense_insured
+  // * (proratedPercentage / 100);
   return { sumInsured, lastExpenseInsured };
 };
 
