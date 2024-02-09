@@ -631,10 +631,12 @@ async function reconcilationCallback(transaction) {
     const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
     console.log("MEMBERS", members, policy.total_member_number);
 
-    let proratedPercentage = calculateProrationPercentage(policy.installment_order);
+    //let proratedPercentage = calculateProrationPercentage(policy.installment_order);
 
-    const sumInsured = formatAmount(policy.sum_insured * (proratedPercentage / 100));
-    const lastExpenseInsured = formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
+    const sumInsured = policy.sum_insured
+    //formatAmount(policy.sum_insured * (proratedPercentage / 100));
+    const lastExpenseInsured = policy.last_expense_insured
+    //formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
     console.log("SUM INSURED", sumInsured);
     console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
