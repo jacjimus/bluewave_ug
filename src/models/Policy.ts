@@ -128,6 +128,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
             defaultValue: new Date()
         },
+        cancelled_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: new Date()
+        },
         policy_paid_amount: {
             type: DataTypes.NUMBER,
             allowNull: true,

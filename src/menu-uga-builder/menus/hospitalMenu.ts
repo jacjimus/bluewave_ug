@@ -8,18 +8,29 @@ const hospitalMenu = async (args: any, db: any) => {
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
     const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
 
-    // if (currentStep == 1) {
-    //     response = "CON Select Region" +
-    //         "\n1. Central" +
-    //         "\n2. Western" +
-    //         "\n3. Nothern" +
-    //         "\n4. Eastern" +
-    //         "\n5. West Nile" +
-    //         "\n6. Karamoja" + "\n0. Back \n00. Main Menu";
-    // } else 
     if (currentStep == 1) {
-        response = "CON Type your hospital name to search";
+        response = "CON " +
+            "\n1. Search by hospital name" +
+            "\n2. Get full hospitals list" +
+            "\n0. Back \n00. Main Menu";
     } else if (currentStep == 2) {
+        console.log("USER TEXT", userText)
+        console.log( "ALL STEPS", allSteps)
+
+        
+        if(userText == '1'){
+            response = "CON Type hospital name to search" + "\n0. Back \n00. Main Menu";
+        }else if(userText == '2'){
+            const hospital_list_message =  'To view Full hospitals list, visit Ddwaliro Care Ts & Cs https://rb.gy/oeuua5';
+            await SMSMessenger.sendSMS(2,smsPhone, hospital_list_message)
+            response = 'END Full hospitals list has been sent to your phone number via SMS'
+        }else{
+            response = "CON Invalid option selected. Please try again";
+        }
+      
+
+
+    } else if (currentStep == 3) {
         const userTextLower = userText.toLowerCase();
         console.log("USER TEXT", userTextLower)
         const hospitals = await db.hospitals.findAll({
@@ -28,8 +39,6 @@ const hospitalMenu = async (args: any, db: any) => {
                 hospital_name: {
                     [Op.iLike]: `%${userTextLower}%`
                 },
-
-
             },
             order: [
                 ['hospital_name', 'ASC'],
@@ -50,9 +59,9 @@ const hospitalMenu = async (args: any, db: any) => {
         }
 
 
-    } else if (currentStep == 3) {
+    } else if (currentStep == 4) {
 
-        const userChoice = allSteps[1].toLowerCase();
+        const userChoice = allSteps[2].toLowerCase();
         console.log("USER CHOICE", userChoice)
         const hospitals = await db.hospitals.findAll({
             where: {
@@ -68,7 +77,7 @@ const hospitalMenu = async (args: any, db: any) => {
             limit: 10,
         });
 
-        const hospitalSelected = hospitals[parseInt(allSteps[2]) - 1];
+        const hospitalSelected = hospitals[parseInt(allSteps[3]) - 1];
 
 
         const hospital = await db.hospitals.findOne({
@@ -76,6 +85,7 @@ const hospitalMenu = async (args: any, db: any) => {
                 hospital_id: hospitalSelected.hospital_id
             }
         });
+        console.log("HOSPITAL", hospital)
 
         const user = await db.users.findOne({
             where: {
@@ -90,18 +100,17 @@ const hospitalMenu = async (args: any, db: any) => {
             hospital_id: hospital.hospital_id
         });
 
-        let message = `Congratulations, you have selected  ${hospital.hospital_name} as your preferred Hospital. Below are the Hospital details:
-        Contact Number:  ${hospital.hospital_contact}
-        Location: ${hospital.hospital_address}`
+
+        let message = `Congratulations, you have selected  ${hospital.hospital_name} as your preferred Hospital. Hospital details:` +
+       ` \nContact: ${hospital.hospital_contact_person} - ${hospital.hospital_contact}` +
+        `\nLocation: ${hospital.hospital_address} - ${hospital.region} `
+        console.log("MESSAGE", message)
 
         await SMSMessenger.sendSMS(2,smsPhone, message)
 
         response = `CON You have selected ${hospital.hospital_name} as your preferred facility.` +
-            // `\n${hospital.hospital_name}` +
-            `\nContact: ${hospital.hospital_contact}` +
-            `\nLocation: ${hospital.hospital_address}` + "\n0. Back \n00. Main Menu";
-
-
+            `\nContact: ${hospital.hospital_contact_person} - ${hospital.hospital_contact}` +
+            `\nLocation: ${hospital.hospital_address} - ${hospital.region}` + "\n0. Back \n00. Main Menu";
     }
 
 

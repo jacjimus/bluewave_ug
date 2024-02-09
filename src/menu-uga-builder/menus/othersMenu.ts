@@ -367,7 +367,7 @@ const othersMenu = async (args, db) => {
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
   } else if (currentStep == 3) {
-    response = "CON Enter atleast Full Name of Other or 1 child\n"
+    response = "CON Enter atleast Full Name of Other or 1 child \n (Must be below 65 years) \n"
 
   }else if (currentStep == 4) {
     response = "CON Enter Phone number for Other e.g 07XXXXXXXX\n"

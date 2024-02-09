@@ -7,18 +7,20 @@ import { Op } from "sequelize";
 
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
-    let phone = phoneNumber?.replace('+', "")?.substring(3);
+    let phone = phoneNumber?.replace("+", "")?.substring(3);
+    console.log("phone", phone)
     let existingUser = await db.users.findOne({
         where: {
             phone_number: phone,
         },
+        limit : 1
     });
 
     const coverTypes = [
         {
             name: "S MINI",
             sum_insured: "750,000",
-            sumInsured: 1500000,
+            sumInsured: 750000,
             premium: "5,000",
             yearly_premium: "60,000",
             yearPemium: 60000,

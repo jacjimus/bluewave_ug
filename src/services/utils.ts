@@ -262,6 +262,18 @@ export const calculateProrationPercentage = (installments: number) => {
   }
 }
 
+export const formatPhoneNumber = (phoneNumber) => {
+  if (phoneNumber.startsWith("7")) {
+    return `+256${phoneNumber}`;
+  } else if (phoneNumber.startsWith("0")) {
+    return `+256${phoneNumber.substring(1)}`;
+  } else if (phoneNumber.startsWith("+")) {
+    return phoneNumber;
+  } else {
+    return `+256${phoneNumber}`;
+  }
+};
+
 // fileFilter.js
 export const excelFilter = (req: any, file, cb) => {
   if (

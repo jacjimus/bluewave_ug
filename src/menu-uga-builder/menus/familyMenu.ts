@@ -786,7 +786,7 @@ const familyMenu = async (args, db) => {
   }
   else if (currentStep == 3) {
     
-    response = "CON Enter atleast Full Name of spouse or 1 child\n"
+    response = "CON Enter atleast Full Name of spouse or 1 child\n (Must be below 65 years) \n"
   }
   else if (currentStep == 4) {
     response = "CON Enter Phone of spouse (or Main member, if dependent is child) eg. 0700000000 \n"

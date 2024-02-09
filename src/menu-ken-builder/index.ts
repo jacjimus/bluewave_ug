@@ -10,6 +10,7 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
+import { Op } from "sequelize";
 
 
 require("dotenv").config();

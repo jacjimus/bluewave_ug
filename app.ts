@@ -10,7 +10,10 @@ import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 import compression from "compression";
 import router from "./src/routes/index"
+import helmet from "helmet";
+import { RateLimiterMemory } from "rate-limiter-flexible";
 import { loggingMiddleware } from "./src/middleware/loggingMiddleware";
+import bodyParser from "body-parser";
 
 dotenv.config();
 
@@ -22,6 +25,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 app.use(compression());
+app.use(helmet());
+app.use(bodyParser.json({ limit: '1mb' }));
 app.use(
   morgan("dev", {
     skip: function (req: any, res: any) {
@@ -29,7 +34,23 @@ app.use(
     },
   })
 );
+ 
+const rateLimiter = new RateLimiterMemory({
+  points: 100, // 100 requests
+  duration: 1, // per 1 second by IP
+});
 
+app.use((req: any, res: any, next: any) => {
+  rateLimiter
+    .consume(req.ip)
+    .then(() => {
+      next();
+    })
+    .catch(() => {
+      console.log('Request IP: %s, Allowed: %s, Url: %s', req.ip, false, req.url)
+      res.status(429).send("Too Many Requests");
+    });
+});
 
 
 const swaggerOptions = {

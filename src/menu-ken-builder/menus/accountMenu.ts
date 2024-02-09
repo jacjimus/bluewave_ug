@@ -236,6 +236,7 @@ const accountMenu = async (args: any, db: any) => {
                     });
                     await db.policies.update({
                         policy_status: "cancelled",
+                        cancelled_at: new Date(),
                         user_id: user.user_id
                     }, {
                         where: {

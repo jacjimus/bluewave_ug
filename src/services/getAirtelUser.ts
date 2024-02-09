@@ -72,10 +72,8 @@ async function getAirtelUser(
       Authorization: `Bearer ${token}`,
     };
 
-    phoneNumber = phoneNumber.replace("+", "");
-    // remove the first 3 characters
-    phoneNumber = phoneNumber.substring(3);
-
+    phoneNumber = phoneNumber.replace("+", "").substring(3);
+    
     // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL:   process.env.AIRTEL_AUTH_TOKEN_URL;
     const GET_USER_URL = `${process.env.PROD_AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
@@ -103,9 +101,7 @@ async function getAirtelKenyaUser(
       Authorization: `Bearer ${token}`,
     };
 
-    phoneNumber = phoneNumber.replace("+", "");
-    // remove the first 3 characters
-    phoneNumber = phoneNumber.substring(3);
+    phoneNumber = phoneNumber.replace("+", "").substring(3);
 
     const GET_USER_URL = `${process.env.AIRTEL_KYC_API_URL}/${phoneNumber}`;
 
