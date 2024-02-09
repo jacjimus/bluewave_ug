@@ -194,7 +194,7 @@ router.all("/callback", async (req, res) => {
         policy.airtel_money_id = airtel_money_id;
 
         const to = formatPhoneNumber(user.phone_number);
-        const period = policy.installment_type === 1 ? "yearly" : "monthly";
+        //const period = policy.installment_type === 1 ? "yearly" : "monthly";
 
         const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);
         console.log("Payment record created successfully");
@@ -206,18 +206,15 @@ router.all("/callback", async (req, res) => {
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
         console.log("MEMBERS", members, policy.total_member_number);
 
-        let proratedPercentage = calculateProrationPercentage(parseInt(policy.installment_order));
-        console.log("PRORATED PERCENTAGE", proratedPercentage);
+        //let proratedPercentage = calculateProrationPercentage(parseInt(policy.installment_order));
+        
 
-        const { sumInsured, lastExpenseInsured } = calculateInsuredAmounts(policy, proratedPercentage);
-        console.log("SUM INSURED", sumInsured);
-        console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
 
-        let sum_insured =  sumInsured;
-        let last_expense_insured =  lastExpenseInsured;
+        let sum_insured =  policy.sum_insured;
+        let last_expense_insured =  policy.last_expense_insured;
 
         policy.policy_status = "paid";
         policy.save();
