@@ -31,7 +31,7 @@ const accountMenu = async (args: any, db: any) => {
         limit: 6
     });
 
-    console.log("PAID POLICIES", paidPolicies.length)
+    //console.log("PAID POLICIES", paidPolicies.length)
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
 

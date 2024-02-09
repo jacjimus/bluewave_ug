@@ -33,7 +33,7 @@ const accountMenu = async (args: any, db: any) => {
         limit: 6
     });
 
-    console.log("PAID POLICIES", paidPolicies)
+    //console.log("PAID POLICIES", paidPolicies)
 
     let userPolicy = await db.policies.findOne({
         where: {
@@ -77,7 +77,7 @@ const accountMenu = async (args: any, db: any) => {
             "\n1. Policy Status" +
             "\n2. Renew Policy" +
             "\n3. Cancel Policy" +
-            "\n4. Add Next of Kin" +
+            "\n4. Add and Update Next of Kin" +
             "\n5. Update Gender and Date of Birth" +
             "\n6. Dependants" +
             "\n7. View Details";
@@ -122,19 +122,17 @@ const accountMenu = async (args: any, db: any) => {
                         principal_phone_number: trimmedPhoneNumber,
                         beneficiary_type: "KIN"
                     },
-                    limit: 6
+                    limit: 1
                 });
 
-                //console.log("BENEFICIARIES", beneficiaries)
 
-                if (beneficiaries.length > 5) {
-                    response = `END You have reached the maximum number of next of kin for your policy type  ${userPolicy.beneficiary} ${userPolicy.policy_type}`
+                if (beneficiaries.length > 0) {
+                    response = `CON Your Next of Kin is ${beneficiaries[0].full_name} with Phone Number ${beneficiaries[0].phone_number},\nPress 1 to update \n0.Back \n00.Main Menu`
+                } else {
+                    response = "CON " +
+                        "\n1. Add Next of Kin" +
+                        "\n0. Back \n00. Main Menu"
                 }
-                else {
-                    // Enter Name of your Next of Kin (Above 18 years of age) 0.Back 00.Main Menu
-                    response = `CON Enter Full Name of your Next of Kin (Above 18 years of age) 0.Back 00.Main Menu`
-                }
-
 
                 break;
             case "5":
@@ -150,16 +148,20 @@ const accountMenu = async (args: any, db: any) => {
                     },
                     limit: 6
                 });
-                if (userPolicy.total_member_number == 'M' || dependants.length > 5) {
-                    response = `END You have reached the maximum number of dependants for your policy type  ${userPolicy.beneficiary} ${userPolicy.policy_type}`
+                if (userPolicy.total_member_number == 'M') {
+                    response = "END You have no dependants for your policy type " + userPolicy.beneficiary + " " + userPolicy.policy_type
+
+                } else if (dependants.length > 5) {
+                    response = `END You have reached the maximum number of dependants for your policy type ${userPolicy.beneficiary} ${userPolicy.policy_type}. \n Press 1 to view dependants`
                 }
                 else {
-
-                    response = `CON Please enter the dependant full name \n e.g John Mukasa \n 0.Back 00.Main Menu`
+                    response = "CON " +
+                        "\n1. View Dependants" +
+                        "\n2. Add New Dependant" +
+                        "\n0.Back \n00.Main Menu"
                 }
 
                 break;
-
             case "7":
                 response = `END You will receive an SMS confirming your personal and dependent details`
                 //Dear XXX, your Date of birth is XX, Gender XX, and dependents are. Please dial *185*7*6*3# to add any additional dependant.
@@ -315,40 +317,77 @@ const accountMenu = async (args: any, db: any) => {
             response = `END Cancelling, you will no longer be covered as from ${new Date(paidPolicies[0].policy_end_date).toDateString()}`
             // You have CANCELLED your Ddwaliror cover. Your Policy will expire on DD/MM/YYYY. Dial *185*7*6# to reactivate. (138 char)                
             const claim_message = `You have CANCELLED your Dwaliro cover. Your Policy will expire on ${new Date(paidPolicies[0].policy_end_date).toDateString()}. Dial *185*7*6# to reactivate.`
-            SMSMessenger.sendSMS(2,smsPhone, claim_message)
+            SMSMessenger.sendSMS(2, smsPhone, claim_message)
 
 
-        } else if (allSteps[1] == '4') {
+        } else if (allSteps[0] == '4' && allSteps[1] == '6') {
+            if (allSteps[1] == '6' && userText == '1') {
+                // list beneficiaries where beneficiary_type = DEPENDANT
+                let dependants = await db.beneficiaries.findAll({
+                    where: {
+                        principal_phone_number: trimmedPhoneNumber,
+                        beneficiary_type: "DEPENDANT"
+                    },
+                    limit: 6
+                });
 
-            response = "CON Enter Next of Kin Phone number (e.g 07XXXXXXXX)"
+                console.log("DEPENDANTS", dependants)
+
+                if (dependants.length > 0) {
+                    response = `CON Your dependants are ${dependants.map((dependant: any, index: number) => {
+                        return `\n${index + 1}. ${dependant.full_name}`
+                    }
+                    ).join("")}\n0.Back \n00.Main Menu`
+                } else {
+                    response = "END You have no dependants"
+                }
+
+            } else if (allSteps[1] == '6' && userText == '2') {
+                response = "CON Please enter the dependant full name \n e.g John Mukasa \n 0.Back 00.Main Menu"
+            } else {
+                response = "END Invalid option selected"
+            }
+
         } else if (allSteps[1] == '6') {
             console.log("allSteps", allSteps)
             console.log('Current step', currentStep);
             console.log('User text', userText)
-            await db.beneficiaries.create({
-                beneficiary_id: uuidv4(),
-                full_name: allSteps[2],
-                beneficiary_type: "DEPENDANT",
-                user_id: currentUser.user_id,
-                dob: moment('01/01/1990', "DD/MM/YYYY").format("YYYY-MM-DD"),
-                principal_phone_number: trimmedPhoneNumber
-            })
 
-            let dependant_message = `You have added successfully added ${allSteps[2]} as your dependant. Please dial *185*7*6*3# to add any additional dependant.`
+            if (allSteps[1] == "6" && userText == "1") {
+                // list beneficiaries where beneficiary_type = DEPENDANT
 
-            SMSMessenger.sendSMS(2,smsPhone, dependant_message)
-            response = "Your dependant name saved successfully"
+                let dependants = await db.beneficiaries.findAll({
+                    where: {
+                        principal_phone_number: trimmedPhoneNumber,
+                        beneficiary_type: "DEPENDANT"
+                    },
+                    limit: 6
+                });
+
+                if (dependants.length > 0) {
+                    response = `CON Your dependants are ${dependants.map((dependant: any, index: number) => {
+                        return `\n${index + 1}. ${dependant.full_name}`
+                    }
+                    ).join("")}\n0.Back \n00.Main Menu`
+                } else {
+                    response = "END You have no dependants"
+                }
+            } else if (allSteps[1] == "6" && userText == "2") {
+                response = "CON Please enter the dependant full name \n e.g John Mukasa \n 0.Back 00.Main Menu"
+            }
+        } else {
+            response = "END Invalid option selected"
         }
 
     } else if (currentStep == 4) {
         console.log("allSteps", allSteps)
         console.log('Current step', currentStep);
         console.log('User text', userText)
-        if (userText == "1") {
+        if (userText == "1" && allSteps[0] == '1') {
 
             response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
 
-        } else if (allSteps[2] == "2" || allSteps[2] == "1") {
+        } else if ((allSteps[2] == "2" || allSteps[2] == "1") && allSteps[0] == "5") {
             let gender = allSteps[2] == "1" ? "MALE" : "FEMALE";
             let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
             console.log(gender, dob);
@@ -389,25 +428,81 @@ const accountMenu = async (args: any, db: any) => {
 
             response = `END You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
             const dob_message = `You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
-            SMSMessenger.sendSMS(2,smsPhone, dob_message)
+            SMSMessenger.sendSMS(2, smsPhone, dob_message)
 
-        } else if (allSteps[2] == "99") {
-            response = 'CON whats the Dependant date of birth (dd/mm/yyyy) ';
+
         } else if (allSteps[1] == '4' && allSteps[0] == '4') {
-            console.log("allSteps", allSteps)
+            console.log("KIN PHONE NUMBERall Steps", allSteps)
             console.log('Current step', currentStep);
             console.log('User text', userText)
+            response = 'CON Enter New Next of Kin  Phone number e.g 07XXXXXXXX \n 0.Back 00.Main Menu'
+
+
+
+        } else if (allSteps[1] == '6' && allSteps[0] == '4' && allSteps[2] == '2') {
 
             await db.beneficiaries.create({
                 beneficiary_id: uuidv4(),
                 full_name: allSteps[3],
-                first_name: allSteps[3].split(" ")[0],
-                last_name: allSteps[3].split(" ")[1],
-                beneficiary_type: "KIN",
-                phone_number: userText,
+                beneficiary_type: "DEPENDANT",
                 user_id: currentUser.user_id,
+                dob: moment('01/01/1990', "DD/MM/YYYY").format("YYYY-MM-DD"),
                 principal_phone_number: trimmedPhoneNumber
             })
+
+            let dependant_message = `You have added successfully added ${allSteps[3]} as your dependant. Please dial *185*7*6*3# to add any additional dependant.`
+            console.log("DEPENDANT MESSAGE", dependant_message)
+
+            SMSMessenger.sendSMS(2, smsPhone, dependant_message)
+            response = `You have added successfully added ${allSteps[3]} as your dependant`
+
+        } else {
+            response = "END Invalid option selected"
+        }
+    } else if (currentStep == 5) {
+        if (allSteps[1] == "4" && allSteps[0] == "4") {
+            // list beneficiaries where beneficiary_type = KIN
+            console.log('trimmedPhoneNumber', trimmedPhoneNumber)
+            console.log('allSteps', allSteps)
+
+            console.log('userText', userText)
+            let beneficiaries = await db.beneficiaries.findAll({
+                where: {
+                    principal_phone_number: trimmedPhoneNumber,
+                    beneficiary_type: "KIN"
+                },
+                limit: 1
+            });
+            let beneficiary: any;
+
+            if (beneficiaries.length > 0) {
+                beneficiary = await db.beneficiaries.update({
+                    full_name: allSteps[3],
+                    first_name: allSteps[3].split(" ")[0],
+                    last_name: allSteps[3].split(" ")[1],
+                    beneficiary_type: "KIN",
+                    phone_number: userText,
+                    user_id: currentUser.user_id,
+                    principal_phone_number: trimmedPhoneNumber
+                }, {
+                    where: {
+                        principal_phone_number: trimmedPhoneNumber,
+                        beneficiary_type: "KIN"
+                    }
+                })
+            } else {
+                beneficiary = await db.beneficiaries.create({
+                    beneficiary_id: uuidv4(),
+                    full_name: allSteps[3],
+                    first_name: allSteps[3].split(" ")[0],
+                    last_name: allSteps[3].split(" ")[1],
+                    beneficiary_type: "KIN",
+                    phone_number: userText,
+                    user_id: currentUser.user_id,
+                    principal_phone_number: trimmedPhoneNumber
+                })
+            }
+
             let gender = currentUser.gender == "MALE" ? "1" : "2";
             const data = {
                 member_no: currentUser.arr_member_number,
@@ -427,73 +522,14 @@ const accountMenu = async (args: any, db: any) => {
                 member_status: "1",
                 reason_for_member_status: "next of kin update",
             }
-
+            console.log("DATA", data)
             await updateMember(data)
 
-            const kin_message =  `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`
-            SMSMessenger.sendSMS(2,smsPhone, kin_message)
-            response = "END Your next of kin details saved successfully"
+            const kin_message = `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`
+            SMSMessenger.sendSMS(2, smsPhone, kin_message)
+            response = `END You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover`
 
-        }
-    } else if (currentStep == 5) {
-        if (allSteps[2] == "99") {
-            console.log("allSteps", allSteps)
-            console.log('Current step', currentStep);
-            console.log('DOB User text', userText)
-            await db.beneficiaries.create({
-                beneficiary_id: uuidv4(),
-                full_name: allSteps[3],
-                first_name: allSteps[3].split(" ")[0],
-                last_name: allSteps[3].split(" ")[1],
-                beneficiary_type: "DEPENDANT",
-                user_id: currentUser.user_id,
-                dob: moment(userText, "DD/MM/YYYY").format("YYYY-MM-DD"),
-                principal_phone_number: trimmedPhoneNumber
-            })
 
-            SMSMessenger.sendSMS(2,smsPhone, `You have added ${allSteps[3]} as a dependant on your Dwaliro Cover. Any benefits on the cover will be payable to your dependant.`)
-            response = "CON Your dependant name saved successfully"
-
-            console.log("allSteps", allSteps)
-            console.log('Current step', currentStep);
-            console.log('User text', userText)
-
-            await db.beneficiaries.create({
-                beneficiary_id: uuidv4(),
-                full_name: allSteps[2],
-                first_name: allSteps[2].split(" ")[0],
-                last_name: allSteps[2].split(" ")[1],
-                beneficiary_type: "KIN",
-                phone_number: userText,
-                user_id: currentUser.user_id,
-                principal_phone_number: trimmedPhoneNumber
-            })
-            let gender = currentUser.gender == "MALE" ? "1" : "2";
-            const data = {
-                member_no: currentUser.arr_member_number,
-                surname: currentUser.last_name,
-                first_name: currentUser.first_name,
-                other_names: currentUser.middle_names || "other name",
-                gender: gender || '1',
-                dob: currentUser.dob || '1990-01-01',
-                tel_no: `256${currentUser.phone_number}`,
-                email: currentUser.email || "admin@bluewave.insure",
-                next_of_kin: {
-                    surname: allSteps[2].split(" ")[1] || "",
-                    first_name: allSteps[2].split(" ")[0],
-                    other_names: allSteps[2].split(" ")[1] || "",
-                    tel_no: userText,
-                },
-                member_status: "1",
-                reason_for_member_status: "next of kin update",
-            }
-
-            await updateMember(data)
-
-            // You have added <name> as the next of Kin on your Dddwaliro Cover. Any benefits on the cover will be payable to your next of Kin.        
-            const kin_message = `You have added ${allSteps[2]} as the next of Kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of Kin.`
-            SMSMessenger.sendSMS(2,smsPhone, kin_message)
-            response = `END You have added ${allSteps[2]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`
         }
     }
     return response
