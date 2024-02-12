@@ -189,7 +189,8 @@ const getPrivacyPolicy = async (req: any, res) => {
  */
 const getTermsAndConditions = async (req: any, res) => {
   try {
-    const termsAndConditions = 'https://rb.gy/g4hyk';
+    //src/assets/Motor Product - DRC Terms and conditions.pdf
+    const termsAndConditions = 'https://rb.gy/g4hyk'; 
     return res.json({ code: 200, message: 'Terms and Conditions fetched successfully', link: termsAndConditions });
   } catch (error) {
     console.error(error);

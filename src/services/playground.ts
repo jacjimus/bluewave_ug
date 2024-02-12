@@ -17,26 +17,70 @@ import { sendCongratulatoryMessage } from './payment';
 
 
 
-export const _sendPolicyRenewalReminder = async (phone_number: string) => {
-    try {
-      const policy = await db.policies.findOne({
-        where: {
-          phone_number:  phone_number,
-          policy_status: 'paid',
-          installment_type: 2,
-          partner_id: 2,
-        }
-      });
-      console.log(policy);
+export const _sendPolicyRenewalReminder = async (phone_number: string, type: string = 'reminder') => {
+  try {
+    const policy = await db.policies.findOne({
+      where: {
+        phone_number: phone_number,
+        policy_status: 'paid',
+        installment_type: 2,
+        partner_id: 2,
+      }
+    });
+    // console.log(policy);
 
-      const message =`Dear ${policy.first_name} ${policy.last_name}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE. Dial *185*7*6*3# to renew.`
-      console.log(message);
-      SMSMessenger.sendSMS(2,policy.phone_number, message );
 
-    }catch (error) {
-      console.log(error);
+
+    if (!policy) {
+      return {
+        status: false,
+        message: "policy not found"
+      }
     }
+
+    let message: string
+    if (type == 'reminder') {
+      const reminder_message = `Dear ${policy.first_name} ${policy.last_name}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE. Dial *185*7*6*3# to renew.`
+      console.log(reminder_message);
+      message = reminder_message
+
+    } else if (type == "policy_number") {
+      const customer = await db.users.findOne({
+        phone_number: phone_number.substring(3)
+      })
+
+      if (!customer.arr_member_number) {
+        const arrMember = await getMemberNumberData(phone_number)
+        console.log(arrMember)
+        if (arrMember.code == 624 || arrMember.code == 400) {
+          await registerPrincipal(customer, policy)
+
+          return {
+            status: true,
+            message: "successfully resent reminder sms"
+          }
+
+        } else {
+          const policy_number_message = `Dear customer, your Ddwaliro Care Policy number is ${customer.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *185*7*6*3# and check on My Policy.`
+
+          message = policy_number_message
+        }
+
+      }
+    } else {
+      throw new Error("type not recognized")
+    }
+
+    // SMSMessenger.sendSMS(2, policy.phone_number, message);
+    return {
+      status: true,
+      message: "successfully resent reminder sms"
+    }
+
+  } catch (error) {
+    console.log(error);
   }
+}
 
 // /*
 // function to pull data from google sheets and update the database
@@ -161,10 +205,10 @@ export const _sendPolicyRenewalReminder = async (phone_number: string) => {
 
 export const playground = async () => {
 
-   //getNewPolicies(2, '2023-01-01', '2024-02-7')
-   //numberAndValueOfFailedPayments(2, '2023-01-01', '2024-02-07')
-  //sendPolicyRenewalReminder()
-// sendCongratulatoryMessage(policy, user)
+  //getNewPolicies(2, '2023-01-01', '2024-02-7')
+  //numberAndValueOfFailedPayments(2, '2023-01-01', '2024-02-07')
+  // sendCongratulatoryMessage(policy, user)
+  //_sendPolicyRenewalReminder('+256708417179', "policy_number")
 
   console.log("TESTING GROUND")
 }

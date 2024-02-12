@@ -1,9 +1,10 @@
-const bcrypt = require("bcrypt");
+import { Request, Response } from 'express';
+import bcrypt from "bcrypt";
 import { db } from "../models/db";
 import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 import welcomeTemplate from "../services/emailTemplates/welcome";
 import { sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
-const jwt = require("jsonwebtoken");
+import  jwt from 'jsonwebtoken'
 const dotenv = require("dotenv").config();
 import {
   getRandomInt,
@@ -21,6 +22,7 @@ const User = db.users;
 const Partner = db.partners;
 const Policy = db.policies;
 const Log = db.logs;
+
 
 async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
   let user = await User.findOne({
@@ -254,6 +256,13 @@ const partnerRegistration = async (req: any, res: any) => {
   }
 };
 
+
+interface LoginRequestBody {
+  email?: string;
+  phone_number?: string;
+  password: string;
+}
+
 /**
  * @swagger
  * /api/v1/users/login:
@@ -274,36 +283,36 @@ const partnerRegistration = async (req: any, res: any) => {
  *       200:
  *         description: Successful authentication
  */
-const login = async (req: any, res: any) => {
+const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
   try {
     const { email,phone_number, password } = req.body;
 
     console.log("LOGIN", req.body);
 
 
-    // Validate presence of email and password
-    if (!password) {
-      return res.status(400).json({
-        code: 400,
-        message: "Please provide an password",
-      });
-    }else if (!email && !phone_number) {
-      return res.status(400).json({
-        code: 400,
-        message: "Please provide an email or phone number",
-      });
+     // Check if either email or phone_number is provided
+     if (!email && !phone_number) {
+      return res.status(400).json({ message: 'Email or phone number is required, e.g john@email.com or 07XXXXXXXXX' });
     }
 
-    // Find user by email
-    const user = await User.findOne({
-      where: {
-        [Op.or]: [
-          { email: email },
-          { phone_number: phone_number },
-        ],
-      },
-    });
+    // check password
+    if(!password)
+    {
+      return res.status(400).json({ message: 'password is required' });
+    }
 
+    
+    // Construct the query based on defined parameters
+    let whereClause: any = {};
+    if (email) {
+      whereClause.email = email;
+    }
+    if (phone_number) {
+      whereClause.phone_number = phone_number.replace(/^0/,'')
+    }
+
+    // Find user by email or phone number
+    const user = await User.findOne({ where: whereClause });
     // Check if user exists
     if (!user) {
       return res.status(401).json({

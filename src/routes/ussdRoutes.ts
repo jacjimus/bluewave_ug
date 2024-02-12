@@ -208,8 +208,6 @@ router.all("/callback", async (req, res) => {
 
         //let proratedPercentage = calculateProrationPercentage(parseInt(policy.installment_order));
         
-
-
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
 
