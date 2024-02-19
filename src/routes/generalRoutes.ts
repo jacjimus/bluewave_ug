@@ -24,7 +24,7 @@ const upload = multer({ storage: storage })
 
 
 // File upload route
-router.post('/upload', upload.single('file'), generalController.uploadDocument);
+router.post('/documents/upload', upload.single('file'), generalController.uploadDocument);
 router.get('/faqs', generalController.getFaqs);
 router.get('/privacy-policy', generalController.getPrivacyPolicy);
 router.get('/terms-and-conditions', generalController.getTermsAndConditions);
