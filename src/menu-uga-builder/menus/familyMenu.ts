@@ -11,9 +11,7 @@ const familyMenu = async (args, db) => {
     currentStep, previousStep, userText, allSteps
   } = args;
 
-  const Policy = db.policies;
   const Beneficiary = db.beneficiaries;
-  const User = db.users;
   console.log("CURRENT STEP", currentStep)
   let phone = phoneNumber?.replace('+', "")?.substring(3);
   let existingUser = await db.users.findOne({
@@ -273,7 +271,7 @@ const familyMenu = async (args, db) => {
           sum_insured: '750,000',
           sumInsured: 750000,
           last_expense_insured: '500,000',
-          lastExpenseInsured:500000,
+          lastExpenseInsured: 500000,
           year_premium: '240,000',
           payment_options: [
             {
@@ -738,12 +736,7 @@ const familyMenu = async (args, db) => {
   ];
 
   if (currentStep == 1) {
-    // const coversList = covers.map((cover, index) => {
-    //   return `\n${index + 1}. ${cover.name}`
-    // }).join("");
-    // response = "CON Buy for family " + coversList + "\n0. Back \n00. Main Menu";
 
-    // create a raw menu with the cover types without looping
     response = "CON Buy for family " +
       "\n1. Self+Spouse or Child" +
       "\n2. Self+Spouse+1 Child" +
@@ -761,20 +754,21 @@ const familyMenu = async (args, db) => {
     }
     let existingPolicy = await db.policies.findAndCountAll({
       where: {
-          phone_number: `+256${phone}`,
-          policy_status: "paid",
-         [Op.or]: [
-            { beneficiary: "FAMILY" },
-            { beneficiary: "SELF" }
-          ]},
+        phone_number: `+256${phone}`,
+        policy_status: "paid",
+        [Op.or]: [
+          { beneficiary: "FAMILY" },
+          { beneficiary: "SELF" }
+        ]
+      },
       limit: 1,
     });
 
 
-  if(existingPolicy && existingPolicy.count > 0) {
+    if (existingPolicy && existingPolicy.count > 0) {
       response = "END You already have an active policy"
       return response;
-  }
+    }
     const packages = selectedCover.packages.map((coverType, index) => {
       return `\n${index + 1}. ${coverType.name} at UGX ${coverType.premium}`
     }
@@ -782,10 +776,9 @@ const familyMenu = async (args, db) => {
 
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
-
   }
   else if (currentStep == 3) {
-    
+
     response = "CON Enter atleast Full Name of spouse or 1 child\n (Must be below 65 years) \n"
   }
   else if (currentStep == 4) {
@@ -801,8 +794,7 @@ const familyMenu = async (args, db) => {
       response = "END Sorry Phone number for Other not valid e.g 0700000000\n"
       return response;
     }
-     
-    // console.log("SELECTED PACKAGE", selectedPackage)
+
     let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
     let coverText = `CON Inpatient cover for 0${userPhoneNumber}, UGX ${selectedPackage.sum_insured} a year` +
       "\nPAY " +
@@ -838,7 +830,7 @@ const familyMenu = async (args, db) => {
       last_name: spouse?.split(" ")[2]?.toUpperCase() || spouse.split(" ")[1]?.toUpperCase(),
       relationship: "SPOUSE",
       member_number: selectedPolicyType.code_name,
-      phone_number : allSteps[4],
+      phone_number: allSteps[4],
       principal_phone_number: phoneNumber,
       //user_id: existingUser.user_id,
     };
@@ -864,7 +856,7 @@ const familyMenu = async (args, db) => {
       });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(2,fullPhone, message);
+      await SMSMessenger.sendSMS(2, fullPhone, message);
 
     }
 
@@ -875,7 +867,6 @@ const familyMenu = async (args, db) => {
   else if (currentStep == 7) {
 
     if (userText == "1") {
-      // NOT WORK
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE - FAMILY =======", new Date());
@@ -890,19 +881,20 @@ const familyMenu = async (args, db) => {
           policy_status: 'paid',
         },
       });
-      
+
       let policyNumber =
         checkPaidPolicy.count > 0
           ? `BW${phoneNumber?.replace('+', '')?.substring(3)}_${checkPaidPolicy.count + 1}`
           : `BW${phoneNumber?.replace('+', '')?.substring(3)}`;
-      
+
 
       let policyObject = {
         policy_id: uuidv4(),
         installment_type: parseInt(allSteps[5]) == 1 ? 2 : 1,
-        installment_order:  1,
+        installment_order: 1,
         policy_type: selectedPackage.code_name,
         policy_deduction_amount: ultimatePremium,
+        policy_next_deduction_date: parseInt(allSteps[5]) == 1 ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
         policy_pending_premium: parseAmount(selectedPackage.year_premium) - ultimatePremium,
         sum_insured: selectedPackage.sumInsured,
         premium: ultimatePremium,
@@ -911,6 +903,7 @@ const familyMenu = async (args, db) => {
         membership_id: existingUser.membership_id,
         beneficiary: "FAMILY",
         partner_id: 2,
+        policy_status: "pending",
         country_code: "UGA",
         currency_code: "UGX",
         product_id: "d18424d6-5316-4e12-9826-302b866a380c",
@@ -926,51 +919,51 @@ const familyMenu = async (args, db) => {
 
       console.log("==== FAMILY POLICY ====", policy);
 
-      console.log("============== START TIME - FAMILY ================ ",phoneNumber, new Date());
+      console.log("============== START TIME - FAMILY ================ ", phoneNumber, new Date());
 
-        const airtelMoneyPromise = airtelMoney(
-          existingUser.user_id,
-          2,
-          policy.policy_id,
-          phone,
-          ultimatePremium,
-          existingUser.membership_id,
-          "UG",
-          "UGX"
-        );
+      const airtelMoneyPromise = airtelMoney(
+        existingUser.user_id,
+        2,
+        policy.policy_id,
+        phone,
+        ultimatePremium,
+        existingUser.membership_id,
+        "UG",
+        "UGX"
+      );
 
-        const timeout = 1000;
+      const timeout = 1000;
 
-        Promise.race([
-          airtelMoneyPromise,
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              reject(new Error('Airtel Money operation timed out'));
-            }, timeout);
-          }),
-        ]).then((result) => {
-          console.log("============== END TIME - FAMIY ================ ",phoneNumber, new Date());
-          response = 'END Payment successful'; 
-          console.log("RESPONSE WAS CALLED", result);
-          return response;
-        })
+      Promise.race([
+        airtelMoneyPromise,
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error('Airtel Money operation timed out'));
+          }, timeout);
+        }),
+      ]).then((result) => {
+        console.log("============== END TIME - FAMIY ================ ", phoneNumber, new Date());
+        response = 'END Payment successful';
+        console.log("RESPONSE WAS CALLED", result);
+        return response;
+      })
         .catch((error) => {
-          response = 'END Payment failed'; 
+          response = 'END Payment failed';
           console.log("RESPONSE WAS CALLED EER", error);
           return response;
         })
-        
-        console.log("============== AFTER CATCH  TIME - FAMILY ================ ",phoneNumber, new Date());
-        
-      } else {
-        response = "END Thank you for using Ddwaliro Care"
-      }
+
+      console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, new Date());
+
+    } else {
+      response = "END Thank you for using Ddwaliro Care"
     }
-    
-    return response;
   }
-  
-  export default familyMenu;
+
+  return response;
+}
+
+export default familyMenu;
 
 
 

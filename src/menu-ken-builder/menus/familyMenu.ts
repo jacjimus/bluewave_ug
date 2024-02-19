@@ -557,7 +557,7 @@ const familyMenu = async (args, db) => {
       `\nConfirm to Agree and Pay \n Age 0 - 65 Years` + "\n1. Confirm \n0. Back" + "\n00. Main Menu";
   } else if (currentStep == 7) {
 console.log("existingUser", existingUser)
-    await processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser)
+    await processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser, db)
   }
 
   return response;
@@ -565,7 +565,7 @@ console.log("existingUser", existingUser)
 
 
 
-async function processUserText1(allSteps, phoneNumber, family_cover_data, existingUser) {
+async function processUserText1(allSteps, phoneNumber, family_cover_data, existingUser, db) {
   let response = '';
   response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
   console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", new Date());
@@ -575,7 +575,7 @@ async function processUserText1(allSteps, phoneNumber, family_cover_data, existi
   let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
 
   let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, phoneNumber, ultimatePremium);
-  let policy = await createAndSavePolicy(policyObject);
+  let policy = await createAndSavePolicy(policyObject, db);
 
   console.log("============== START TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
 
@@ -625,7 +625,7 @@ function createPolicyObject(selectedPackage, allSteps, family_cover_data, existi
   };
 }
 
-async function createAndSavePolicy(policyObject) {
+async function createAndSavePolicy(policyObject, db) {
   let policy = await db.policies.create(policyObject);
   return policy;
 }
@@ -655,9 +655,9 @@ async function processUserText2() {
   return 'END Thank you for using AfyaShua Care';
 }
 
-async function processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser) {
+async function processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser, db) {
   if (userText == "1") {
-    return processUserText1(allSteps, phoneNumber, family_cover_data, existingUser);
+    return processUserText1(allSteps, phoneNumber, family_cover_data, existingUser, db);
   } else {
     return processUserText2();
   }

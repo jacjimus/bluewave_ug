@@ -138,7 +138,7 @@ async function registerPrincipal(user: any, policy: any) {
         maxBodyLength: Infinity,
         url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
         headers: {
-          'Authorization': 'Bearer ' + await arr_uganda_login(),
+          'Authorization': 'Bearer ' + "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwODA3OTUyMCwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.mjlNsreLgJab1ns6MuI-80xK6WPD8KAeHW60ykNxXMK9GFH6sH0MxvP_Y4Wh3uAq5AJRBSGeULQnRVoGMvItpcP_2U_YBf6HIS98wDIok8wqnkoN3S3cUsjvQTvqccByqUVWuV6BJS73Dn7qFc0KUhvpiZNotcJHev-Awc_ApJJaOtiwUB3ZOdSHCZAhCgeCC64dQBaGP_Jxt5DbNhvIOZjgHRBDL02gJ14ZupwB2BKhuzcy7xZfaG6xvGmo7z-kw8LTsMm9sy6D1zKv22LL_31XjVRbLPMq5nDoSz5aTrqS6EYvRSLVWW8C2pAn2ZZm-fW8G95j9G0_YyUEYWnjWQ",
           'Content-Type': 'application/json',
         },
         data: userData,
@@ -158,7 +158,10 @@ async function registerPrincipal(user: any, policy: any) {
         await SMSMessenger.sendSMS(2,`+256${principal_member.phone_number}`, message);
         return { ...response.data, ...userData }
       }
+
+      return response.data;
     } catch (error) {
+   
       console.error(error);
     }
   }
@@ -723,7 +726,7 @@ async function getMemberNumberData(mobileNumber) {
   };
 
   const data = {
-    mobile_no: `${mobileNumber}`,
+    mobile_no: `256${mobileNumber}`,
   };
   try {
     const response = await axios.post(url, data, { headers });
@@ -733,7 +736,8 @@ async function getMemberNumberData(mobileNumber) {
    
     if(response.data.code == 200){
       // remove 256 from the phone number
-      await db.users.update({ arr_member_number: response.data.member_no }, { where: { phone_number: mobileNumber.substring(3) } });
+     let updateUserArr = await db.users.update({ arr_member_number: response.data.member_no }, { where: { phone_number: mobileNumber} });
+     console.log("UPDATE USER ARR", updateUserArr);
       return response.data;
     }else{
       return result

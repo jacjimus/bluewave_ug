@@ -72,7 +72,6 @@ const selfMenu = async (args, db) => {
             default:
                 response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
                 break;
-
         }
     }
     else if (currentStep === 2) {
@@ -93,8 +92,6 @@ const selfMenu = async (args, db) => {
             },
             limit: 1,
         });
-
-
 
         if (existingPolicy.count > 0) {
             response = "END You already have an active policy"
@@ -181,6 +178,7 @@ const selfMenu = async (args, db) => {
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: selectedPolicyType.yearPemium - ultimatePremium.premium,
+                policy_next_deduction_date: installment_type == 1 ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
                 sum_insured: selectedPolicyType.sumInsured,
                 premium: installment_type == 1 ? ultimatePremium.premium : selectedPolicyType.yearPemium,
                 yearly_premium: selectedPolicyType.yearPemium,
@@ -190,7 +188,7 @@ const selfMenu = async (args, db) => {
                 installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
                 membership_id: existingUser.membership_id,
                 beneficiary: "SELF",
-                policy_status: "pending",
+                policy_status: "pending", 
                 policy_deduction_day: new Date().getDate() - 1,
                 partner_id: 2,
                 country_code: "UGA",

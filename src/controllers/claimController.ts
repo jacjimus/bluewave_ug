@@ -89,6 +89,7 @@ const getClaims = async (req: any, res) => {
 
         return res.status(200).json({
             result: {
+                status: "OK",
                 code: 200,
                 count: claims.length,
                 items: paginatedClaims,
@@ -151,6 +152,7 @@ const getClaim = async (req: any, res) => {
 
         return res.status(200).json({
             result: {
+                status: "OK",
                 code: 200,
                 message: "Claim fetched successfully",
                 item: claim,
@@ -181,6 +183,7 @@ const findUserByPhoneNumberClaims = async (req: any, res) => {
         return res.status(200).json({
             result: {
                 code: 200,
+                status: "OK",
                 message: "Claims fetched successfully",
                 count: claims.length,
                 items: paginatedClaims,
@@ -211,6 +214,7 @@ const getPolicyClaims = async (req: any, res) => {
         return res.status(200).json({
             result: {
                 code: 200,
+                status: "OK",
                 count: claims.length,
                 items: paginatedClaims,
             },
@@ -294,6 +298,7 @@ const createClaim = async (req: any, res) => {
 
         return res.status(201).json({
             code: 201,
+            status: "OK",
             message: "Claim created successfully",
             claim: newClaim,
         });
@@ -380,6 +385,7 @@ const updateClaim = async (req: any, res) => {
         return res.status(200).json({
             result: {
                 code: 200,
+                status: "OK",
                 message: "Claim updated successfully",
             },
         });
@@ -401,6 +407,7 @@ const deleteClaim = async (req: any, res) => {
 
         return res.status(200).json({
             code: 200,
+            status: "OK",
             message: "Claim deleted successfully",
         });
     } catch (error) {

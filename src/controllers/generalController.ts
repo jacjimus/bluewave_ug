@@ -59,10 +59,13 @@ const uploadDocument = async (req: any, res) => {
 
     const fileUrl = uploadResult.Location;
 
-    return res.json({ code: 200, message: 'File uploaded successfully', fileUrl });
+    return res.json({
+      code: 200,
+      status: "OK", message: 'File uploaded successfully', fileUrl
+    });
   } catch (error) {
     console.error(error);
-    return res.status(error.code || 500).json({ code: error.code || 500, message: 'Internal server error', error: error.message });
+    return res.status(error.code || 500).json({status: "FAILED", code: error.code || 500, message: 'Internal server error', error: error.message });
   }
 };
 
@@ -133,10 +136,13 @@ const getFaqs = async (req: any, res) => {
         answer: "The insured is the Person who is registerd on the Airtel Money SIM, their chosen dependents or the persons who the Subscriber has purchased cover for.."
       }
     ]
-    return res.json({ code: 200, message: 'FAQs fetched successfully', faqs });
+    return res.json({
+      code: 200,
+      status: "OK", message: 'FAQs fetched successfully', faqs
+    });
   } catch (error) {
     console.error(error);
-    return res.status(error.code || 500).json({ code: error.code || 500, message: 'Internal server error', error: error.message });
+    return res.status(error.code || 500).json({status: "FAILED", code: error.code || 500, message: 'Internal server error', error: error.message });
   }
 
 }
@@ -162,10 +168,13 @@ const getFaqs = async (req: any, res) => {
 const getPrivacyPolicy = async (req: any, res) => {
   try {
     const privacyPolicy = `This Privacy Policy describes how your personal information is collected, used, and shared when you visit or make a purchase from www.bluwave.co.ke (the “Site”).`
-    return res.json({ code: 200, message: 'Privacy Policy fetched successfully', privacyPolicy });
+    return res.json({
+      code: 200,
+      status: "OK", message: 'Privacy Policy fetched successfully', privacyPolicy
+    });
   } catch (error) {
     console.error(error);
-    return res.status(error.code || 500).json({ code: error.code || 500, message: 'Internal server error', error: error.message });
+    return res.status(error.code || 500).json({status: "FAILED", code: error.code || 500, message: 'Internal server error', error: error.message });
   }
 
 }
@@ -190,11 +199,14 @@ const getPrivacyPolicy = async (req: any, res) => {
 const getTermsAndConditions = async (req: any, res) => {
   try {
     //src/assets/Motor Product - DRC Terms and conditions.pdf
-    const termsAndConditions = 'https://rb.gy/g4hyk'; 
-    return res.json({ code: 200, message: 'Terms and Conditions fetched successfully', link: termsAndConditions });
+    const termsAndConditions = 'https://rb.gy/g4hyk';
+    return res.json({
+      code: 200,
+      status: "OK", message: 'Terms and Conditions fetched successfully', link: termsAndConditions
+    });
   } catch (error) {
     console.error(error);
-    return res.status(error.code || 500).json({ code: error.code || 500, message: 'Internal server error', error: error.message });
+    return res.status(error.code || 500).json({status: "FAILED", code: error.code || 500, message: 'Internal server error', error: error.message });
   }
 
 }

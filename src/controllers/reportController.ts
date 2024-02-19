@@ -176,6 +176,7 @@ const getPolicySummary = async (req: any, res: any) => {
     return res.status(200).json({
       result: {
         code: 200,
+        status: "OK",
         countryCode: country_code,
         currencyCode: currency_code,
         items: summary,
@@ -321,6 +322,7 @@ const getClaimSummary = async (req: any, res: any) => {
     return res.status(200).json({
       result: {
         code: 200,
+        status: "OK",
         countryCode: partnerCountry.country_code,
         currencyCode: partnerCountry.currency_code,
         items: summary,
@@ -522,7 +524,7 @@ const countClaimsByStatus = (claims: any[], status: string): number => {
  *       400:
  *         description: Invalid request
  */
-const getSalesReportByPeriod = async (req: any,periodType: string) => {
+const getSalesReportByPeriod = async (req: any, periodType: string) => {
   const { partner_id } = req.query;
 
   try {
@@ -593,6 +595,7 @@ const getDailyPolicySalesReport = async (req: any, res: any) => {
     res.status(200).json({
       result: {
         code: 200,
+        status: "OK",
         countryCode: partnerCountry.country_code,
         currencyCode: partnerCountry.currency_code,
         items: { daily: dailyReport, weekly: weeklyReport, monthly: monthlyReport, yearly: yearlyReport },
@@ -1584,7 +1587,7 @@ function generateClaimExcelReport(claims: any[]) {
  *           type: number
  *     requestBody:
  *       content:
- *         multipart/form-data:   # Change content type to multipart/form-data
+ *         multipart/form-data: 
  *           schema:
  *             type: object
  *             properties:
@@ -1607,12 +1610,13 @@ const paymentReconciliation = async (req: any, res: any) => {
       code: 404
     }
 
+    console.log("PAYMENT RECONCILIATION", req.file)
     const partner_id = req.query.partner_id;
     const payment_file = req.file;
 
     // Read the uploaded Excel file
     const workbook = XLSX.readFile(payment_file.path, { cellDates: true, dateNF: 'mm/dd/yyyy hh:mm:ss' });
-    const worksheet = workbook.Sheets[workbook.SheetNames[1]];
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
     //console.log sheetNames
     console.log("============ WORKSHEET ========", workbook.Sheets)
@@ -1628,7 +1632,7 @@ const paymentReconciliation = async (req: any, res: any) => {
 
     for (let payment of paymentDataArray) {
 
-      console.log("PAYMENT", payment)
+      //  console.log("PAYMENT", payment)
 
       // if - replace with / in the date
 
@@ -1640,7 +1644,7 @@ const paymentReconciliation = async (req: any, res: any) => {
       // Rearrange the components to the desired format
       let convertedDate = components[1] + '/' + components[0] + '/' + components[2] + ' ' + components[3] + ':' + components[4];
 
-      console.log(convertedDate);
+      // console.log(convertedDate);
 
       let transaction_date = moment(convertedDate)
 
@@ -1649,10 +1653,10 @@ const paymentReconciliation = async (req: any, res: any) => {
       let airtel_money_id = payment['Transaction ID']
       let phone_number = payment['Sender Mobile Number']
 
-      console.log(`transaction_date, ${transaction_date}`)
+      // console.log(`transaction_date, ${transaction_date}`)
 
-      console.log(`premium, ${premium}`)
-      console.log(`existingUser,${phone_number}`)
+      // console.log(`premium, ${premium}`)
+      // console.log(`existingUser,${phone_number}`)
 
       // {
       //   "transaction": {
@@ -1663,36 +1667,41 @@ const paymentReconciliation = async (req: any, res: any) => {
       //   }
       // }
 
-      let policy = await db.policies.findOne({
+      let policy = await db.policies.findAll({
         where: {
           phone_number: `+256${phone_number}`,
           premium: premium,
+          policy_status: 'paid'
         },
         limit: 1,
       });
 
-      console.log("policy", policy.premium, policy.policy_number)
+      console.log("policy", policy[0].premium, policy[0].policy_number)
 
-      let transactionId = await db.transactions.findOne({
-        where: {
-          policy_id: policy.policy_id,
-        },
-        limit: 1,
-      });
+      if (policy.length == 0) {
+        return res.status(400).json({ message: "No policy found", phone_number: phone_number, premium: premium });
+      }
+
+      // let transactionId = await db.transactions.findOne({
+      //   where: {
+      //     policy_id: policy.policy_id,
+      //   },
+      //   limit: 1,
+      // });
 
 
       // console.log("transactionId", transactionId)
 
-      let paymentCallback = {
-        transaction: {
-          id: transactionId.transaction_id,
-          message: `PAID UGX ${premium} to AAR Uganda for Mini Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
-          status_code: "TS",
-          airtel_money_id: airtel_money_id
-        }
-      }
+      // let paymentCallback = {
+      //   transaction: {
+      //     id: transactionId.transaction_id,
+      //     message: `PAID UGX ${premium} to AAR Uganda for Mini Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
+      //     status_code: "TS",
+      //     airtel_money_id: airtel_money_id
+      //   }
+      // }
 
-      console.log("paymentCallback", paymentCallback)
+      // console.log("paymentCallback", paymentCallback)
       // result = await reconcilationCallback(paymentCallback.transaction)
 
       // get all policies that are policy_status is pending but payment record is payment_status paid and premium match
@@ -1700,10 +1709,10 @@ const paymentReconciliation = async (req: any, res: any) => {
 
     }
 
-    return res.status(200).json({ message: result });
+    return res.status(200).json({ status: "OK",message: result });
   } catch (error) {
     console.log(error)
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ status: "FAILED", message: "Internal server error", error: error.message });
   }
 }
 
@@ -1763,7 +1772,7 @@ async function policyReconciliation(req: any, res: any) {
 
     //4/2/2024 = 4th Feb 2024
 
-    transaction_date  = moment(transaction_date, "DD/MM/YYYY").format("YYYY-MM-DD")
+    transaction_date = moment(transaction_date, "DD/MM/YYYY").format("YYYY-MM-DD")
 
     console.log(`transaction_date, ${transaction_date}`)
     console.log(`premium, ${premium}`)
@@ -1782,18 +1791,18 @@ async function policyReconciliation(req: any, res: any) {
         policy_id: policy.policy_id,
         payment_status: 'paid',
         payment_amount: premium,
-      
+
       },
       limit: 1,
     });
 
     console.log("====== PAYMENT =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
 
-    console.log("===== POLICY =====", policy.policy_status , policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
+    console.log("===== POLICY =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
 
-    if(policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount ){
- 
-      return res.status(400).json({ message: "Policy already paid" });
+    if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount) {
+
+      return res.status(400).json({status: "FAILED", message: "Policy already paid" });
     }
 
     let transactionId = await db.transactions.findOne({
@@ -1809,21 +1818,21 @@ async function policyReconciliation(req: any, res: any) {
     let paymentCallback = {
       transaction: {
         id: transactionId.transaction_id,
-        message: `PAID UGX ${premium} to AAR Uganda for Mini Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
+        message: `PAID UGX ${premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
         status_code: "TS",
         airtel_money_id: airtel_money_id
       }
     }
 
-   // console.log("paymentCallback", paymentCallback)
-  result = await reconcilationCallback(paymentCallback.transaction)
+    // console.log("paymentCallback", paymentCallback)
+    result = await reconcilationCallback(paymentCallback.transaction)
 
 
 
-    return res.status(200).json({ message: "Policy Reconciliation done successfully", result });
+    return res.status(200).json({ status: "OK", message: "Policy Reconciliation done successfully", result });
   } catch (error) {
     console.log(error)
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({status: "FAILED", message: "Internal server error", error: error.message });
   }
 }
 

@@ -11,6 +11,7 @@ import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 import { Op } from "sequelize";
+import {db } from '../models/db'
 
 
 require("dotenv").config();
@@ -107,17 +108,17 @@ export default function (args: RequestBody, db: any) {
         allSteps,
       };
 
-      let existingPolicy = await db.policies.findAndCountAll({
-        where: {
-            phone_number: phoneNumber,
-            partner_id: 3,
-            policy_status: "paid",
-           [Op.or]: [
-              { beneficiary: "FAMILY" },
-              { beneficiary: "SELF" }
-            ]},
-        limit: 1,
-      });
+      // let existingPolicy = await db.policies.findAndCountAll({
+      //   where: {
+      //       phone_number: phoneNumber,
+      //       partner_id: 3,
+      //       policy_status: "paid",
+      //      [Op.or]: [
+      //         { beneficiary: "FAMILY" },
+      //         { beneficiary: "SELF" }
+      //       ]},
+      //   limit: 1,
+      // });
 
      
 

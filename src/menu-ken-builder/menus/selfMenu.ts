@@ -133,7 +133,7 @@ const selfMenu = async (args, db) => {
     }
   
     let policyObject = createPolicyObject(selectedPolicyType, allSteps, existingUser, phoneNumber);
-    let policy = await createPolicy(policyObject);
+    let policy = await createPolicy(policyObject, db);
   
     console.log("============== START TIME - SELFKENYA   ================ ", phoneNumber, new Date());
   
@@ -215,7 +215,7 @@ const selfMenu = async (args, db) => {
     return policyObject;
   }
   
-  async function createPolicy(policyObject) {
+  async function createPolicy(policyObject, db) {
     return await db.policies.create(policyObject);
   }
   

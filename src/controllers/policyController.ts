@@ -1,6 +1,7 @@
 
 import { db } from "../models/db";
 import { sendEmail } from "../services/emailService";
+import { airtelMoney } from "../services/payment";
 
 import { calculatePremium } from "../services/utils";
 const Policy = db.policies;
@@ -159,6 +160,7 @@ const getPolicies = async (req: any, res) => {
     };
     return res.status(200).json({
       code: 200,
+      status: "OK",
       result
     });
 
@@ -167,6 +169,7 @@ const getPolicies = async (req: any, res) => {
     console.error(error);
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error",
       error: error.message || "Unknown error",
     });
@@ -204,7 +207,7 @@ const getPolicies = async (req: any, res) => {
  *       400:
  *         description: Invalid request
  */
-const getPolicy = async (req: any, res:any) => {
+const getPolicy = async (req: any, res: any) => {
   try {
     const policy_id = req.params.policy_id;
     const partner_id = req.query.partner_id;
@@ -241,12 +244,14 @@ const getPolicy = async (req: any, res:any) => {
     };
     return res.status(200).json({
       code: 200,
+      status: "OK",
       result
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error", error: error.message
     });
   }
@@ -293,9 +298,10 @@ const getPolicy = async (req: any, res:any) => {
   *       400:
   *         description: Invalid request
   */
-const findUserByPhoneNumberPolicies = async (req: any, res:any) => {
+const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
   let status = {
     code: 200,
+    status: "OK",
     result: {},
 
   }
@@ -351,6 +357,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res:any) => {
     return res.status(status.code).json({
       result: {
         code: 200,
+        status: "OK",
         message: "Policies fetched successfully",
         item: status.result
       }
@@ -379,7 +386,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res:any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: {"user_id": 58094169, "product_id": 1,"partner_id": "1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "self", "policy_type": "bonze", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","premium": 47418.0, "sum_insured": 250000000.0, "policy_documents":[]}
+  *             example: {"user_id": 58094169, "product_id": 1,"partner_id": "1", "policy_start_date": "2021-05-22T02:30:00+08:00", "policy_status": "pending", "beneficiary": "self", "policy_type": "bonze", "policy_end_date": "2021-05-22T02:30:00+08:00", "policy_deduction_day": 7,"policy_deduction_amount": 1000.0, "policy_next_deduction_date": "2021-05-22T02:30:00+08:00","installment_order": 1,"installment_date": "2021-05-22T02:30:00+08:00", "installment_alert_date": "2021-05-22T02:30:00+08:00","premium": 47418.0, "sum_insured": 250000000.0}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -387,7 +394,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res:any) => {
   *         description: Invalid request
   */
 
-const createPolicy = async (req: any, res:any) => {
+const createPolicy = async (req: any, res: any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
     let partner = await Partner.findOne({ where: { partner_id } })
@@ -401,9 +408,10 @@ const createPolicy = async (req: any, res:any) => {
       return res.status(500).json({ message: "Error creating policy" });
     }
 
+
     return res.status(200).json({
       result: {
-        code: 200,
+        status: "OK",
         message: "Policy created successfully",
         policy: newPolicy
       }
@@ -412,6 +420,7 @@ const createPolicy = async (req: any, res:any) => {
     console.log(error)
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error", error: error
     });
   }
@@ -448,7 +457,7 @@ const createPolicy = async (req: any, res:any) => {
   *       400:
   *         description: Invalid request
   */
-const updatePolicy = async (req: any, res:any) => {
+const updatePolicy = async (req: any, res: any) => {
   try {
     const {
       user_id,
@@ -479,7 +488,7 @@ const updatePolicy = async (req: any, res:any) => {
       limit: 100,
     })
     if (!policy) {
-      return res.status(404).json({ message: "No policy found" });
+      return res.status(404).json({status: "FAILED", message: "No policy found" });
     }
 
     const data: Policy = {
@@ -512,13 +521,15 @@ const updatePolicy = async (req: any, res:any) => {
 
     return res.status(201).json({
       result: {
-        code: 200, message: "Policy updated successfully"
+        code: 200,
+        status: "OK", message: "Policy updated successfully"
       }
     });
   } catch (error) {
     console.log(error)
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error", error
     });
   }
@@ -547,7 +558,7 @@ const updatePolicy = async (req: any, res:any) => {
   *       400:
   *         description: Invalid request
   */
-const deletePolicy = async (req: any, res:any) => {
+const deletePolicy = async (req: any, res: any) => {
   try {
     await Policy.destroy({
       where: {
@@ -557,13 +568,15 @@ const deletePolicy = async (req: any, res:any) => {
 
     return res.status(201).json({
       result: {
-        code: 201, message: "Policy deleted successfully"
+        code: 201,
+        status: "OK", message: "Policy deleted successfully"
       }
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      code: 500, message: "Internal server error", error
+      code: 500,
+      status: "FAILED", message: "Internal server error", error
     });
 
   }
@@ -592,7 +605,7 @@ const deletePolicy = async (req: any, res:any) => {
  *       400:
  *         description: Invalid request
  */
-async function vehicleRegistration(req: any, res:any) {
+async function vehicleRegistration(req: any, res: any) {
   try {
     // Destructure the request body to extract necessary information
     const {
@@ -773,6 +786,7 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
 
     res.status(200).json({
       code: 200,
+      status: "OK",
       message: premium.message,
       currency_code: "USD",
       premium: premium.premium,
@@ -790,6 +804,7 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
     console.error(error);
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error",
       error,
     });
@@ -820,7 +835,7 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
   *         description: Invalid request
   */
 
-const createHealthPolicy = async (req: any, res:any) => {
+const createHealthPolicy = async (req: any, res: any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
     let partner = await Partner.findOne({ where: { partner_id } })
@@ -838,12 +853,13 @@ const createHealthPolicy = async (req: any, res:any) => {
     <p>Number of Staff: ${number_of_staff}</p>
     <p>Medical Cover Type: ${medical_cover_type}</p>
     <p>Thank you.</p>`
-    await sendEmail( "admin@bluewave.insure", subject, emailHtml)
+    await sendEmail("admin@bluewave.insure", subject, emailHtml)
 
 
     return res.status(200).json({
       result: {
         code: 200,
+        status: "OK",
         message: "We have received your request. We will get back to you shortly.",
         policy: req.body
       }
@@ -852,6 +868,7 @@ const createHealthPolicy = async (req: any, res:any) => {
     console.log(error)
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error", error: error
     });
   }
@@ -882,10 +899,10 @@ const createHealthPolicy = async (req: any, res:any) => {
   */
 const submitSelfCover = async (req, res) => {
   try {
-     const {membership_type, number_of_family_members,medical_cover_type, user_id, partner_id} = req.body
-   
-     const user = await User.findOne({where: {user_id: user_id, partner_id: partner_id}})
-     if (!user) {
+    const { membership_type, number_of_family_members, medical_cover_type, user_id, partner_id } = req.body
+
+    const user = await User.findOne({ where: { user_id: user_id, partner_id: partner_id } })
+    if (!user) {
       return res.status(404).json({
         code: 404,
         message: "No user found"
@@ -906,6 +923,7 @@ const submitSelfCover = async (req, res) => {
     return res.status(200).json({
       result: {
         code: 200,
+        status: "OK",
         message: "We have received your request. We will get back to you shortly.",
       }
     });
@@ -914,6 +932,7 @@ const submitSelfCover = async (req, res) => {
     console.log(error)
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error", error: error
     });
   }

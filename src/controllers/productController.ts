@@ -69,6 +69,7 @@ interface Product {
 const getProducts = async (req: any, res: any) => {
   let status = {
     code: 200,
+    status: "OK",
     result: {},
   };
   try {
@@ -147,10 +148,17 @@ const getProducts = async (req: any, res: any) => {
     };
 
 
-    return res.status(status.code).json({ code: 200, result: status.result });
+    return res.status(status.code).json({
+      code: 200,
+      status: "OK", result: status.result
+    });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED",
+       message: "Internal server error", error: error
+    });
   }
 };
 
@@ -182,6 +190,7 @@ const getProducts = async (req: any, res: any) => {
 const getProduct = async (req: any, res: any) => {
   let status = {
     code: 200,
+    status: "OK",
     result: {},
 
   }
@@ -201,10 +210,16 @@ const getProduct = async (req: any, res: any) => {
       item: product
     };
 
-    return res.status(status.code).json({ code: 200, result: status.result });
+    return res.status(status.code).json({
+      code: 200,
+      status: "OK", result: status.result
+    });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED", message: "Internal server error", error: error
+    });
   }
 
 }
@@ -239,20 +254,24 @@ const createProduct = async (req: any, res: any) => {
     const product: Product = req.body;
     const newProduct = await Product.create(product);
     if (!newProduct) {
-      return res.status(500).json({ message: "Error creating product" });
+      return res.status(500).json({status: "FAILED", message: "Error creating product" });
     }
 
 
     return res.status(200).json({
       result: {
         code: 200,
+        status: "OK",
         message: "Product created successfully",
         product: newProduct
       }
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED", message: "Internal server error", error: error
+    });
   }
 
 }
@@ -312,7 +331,7 @@ const updateProduct = async (req: any, res: any) => {
       }
     })
     if (!product) {
-      return res.status(404).json({ message: "No product found" });
+      return res.status(404).json({ status: "FAILED", message: "No product found" });
     }
 
     const data: Product = {
@@ -337,13 +356,15 @@ const updateProduct = async (req: any, res: any) => {
 
     return res.status(201).json({
       result: {
-        code: 200, message: "Product updated successfully"
+        code: 200,
+        status: "OK", message: "Product updated successfully"
       }
     });
   } catch (error) {
     console.log(error)
     return res.status(500).json({
-      code: 500, message: "Internal server error", error: error
+      code: 500,
+      status: "FAILED", message: "Internal server error", error: error
     });
   }
 }
@@ -381,13 +402,14 @@ const deleteProduct = async (req: any, res: any) => {
 
     return res.status(201).json({
       result: {
-        code: 200, message: "Product deleted successfully"
+        code: 200,
+        status: "OK", message: "Product deleted successfully"
       }
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      code: 200,
+      status: "FAILED",
       message: "Internal server error", error: error
     });
 

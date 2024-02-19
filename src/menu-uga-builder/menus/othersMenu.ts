@@ -410,13 +410,10 @@ const othersMenu = async (args, db) => {
     let period = paymentOption == 1 ? "monthly" : "yearly";
     let coverType = allSteps[2];
     console.log("COVER TYPE", coverType);
-    //console.log("SELECTED COVER", selectedCover);
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
-    //console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-    //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
     otherUserPhone = allSteps[4].substring(1)
 
@@ -450,7 +447,6 @@ const othersMenu = async (args, db) => {
 
     }
 
-    console.log("EXISTING OTHER", existingOther);
 
     response = `CON Pay UGX ${ultimatePremium} ${period}.` +
       `\nTerms&Conditions https://rb.gy/g4hyk` +
@@ -469,7 +465,6 @@ const othersMenu = async (args, db) => {
 
       let paymentOption = parseInt(allSteps[5]);
  
-      // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
       let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
       let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
@@ -486,8 +481,6 @@ const othersMenu = async (args, db) => {
         limit: 1,
       });
   
-      console.log("EXCISTING OTHER", existingOther)
-
       let policyObject = {
         policy_id: uuidv4(),
         installment_type: paymentOption == 1 ? 2 : 1,
@@ -514,7 +507,6 @@ const othersMenu = async (args, db) => {
         policy_number: policyNumber
       }
 
-      console.log("POLICY OBJECT", policyObject);
 
       try {
 

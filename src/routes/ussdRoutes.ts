@@ -98,7 +98,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
     if (policy.installment_type === 2) {
       policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-      policy.installment_order = policy.policy_paid_amount  == amount ? 1 : parseInt(policy.installment_order) + 1;
+      policy.installment_order = policy.policy_paid_amount == amount ? 1 : parseInt(policy.installment_order) + 1;
       policy.installment_alert_date = installment_alert_date;
 
       if (policy.policy_paid_amount !== policy.premium) {
@@ -207,27 +207,33 @@ router.all("/callback", async (req, res) => {
         console.log("MEMBERS", members, policy.total_member_number);
 
         //let proratedPercentage = calculateProrationPercentage(parseInt(policy.installment_order));
-        
+
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
 
-        let sum_insured =  policy.sum_insured;
-        let last_expense_insured =  policy.last_expense_insured;
+        let sum_insured = policy.sum_insured;
+        let last_expense_insured = policy.last_expense_insured;
 
         policy.policy_status = "paid";
         policy.save();
-    
+
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
         await sendSMSNotification(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
         await processPolicy(user, policy, memberStatus);
 
-        return res.status(200).json({ code: 200, message: "Payment record created successfully" });
+        return res.status(200).json({
+          code: 200,
+          status: "OK", message: "Payment record created successfully"
+        });
       } else {
         await handleFailedPaymentRecord(amount, user_id, policy_id, message, req.body, partner_id);
         console.log("Payment record for failed transaction created");
-        return res.status(200).json({ code: 200, message: "POST/GET request handled successfully" });
+        return res.status(200).json({
+          code: 200,
+          status: "OK", message: "POST/GET request handled successfully"
+        });
       }
     } else {
       return res.status(405).send("Method Not Allowed");
@@ -255,9 +261,9 @@ const createPaymentRecord = async (policy, amount, user_id, policy_id, descripti
 };
 
 const calculateInsuredAmounts = (policy, proratedPercentage) => {
-  const sumInsured = policy.sum_insured 
+  const sumInsured = policy.sum_insured
   //* (proratedPercentage / 100);
-  const lastExpenseInsured = policy.last_expense_insured 
+  const lastExpenseInsured = policy.last_expense_insured
   //* (proratedPercentage / 100);
   return { sumInsured, lastExpenseInsured };
 };
@@ -272,7 +278,7 @@ const generateCongratulatoryText = (policy, user, members, sumInsured, lastExpen
 }
 
 const sendSMSNotification = async (to, congratText) => {
-  await SMSMessenger.sendSMS(2,to, congratText);
+  await SMSMessenger.sendSMS(2, to, congratText);
 };
 
 
@@ -408,10 +414,11 @@ router.all("/callback/kenya", async (req, res) => {
           }
         }
 
-        await SMSMessenger.sendSMS(2,to, congratText);
+        await SMSMessenger.sendSMS(2, to, congratText);
 
         return res.status(200).json({
           code: 200,
+          status: "OK",
           message: "Payment record created successfully"
         });
       } else {
@@ -428,7 +435,10 @@ router.all("/callback/kenya", async (req, res) => {
         });
 
         console.log("Payment  for failed record created");
-        return res.status(200).json({ code: 200, message: "POST/GET request handled successfully" });
+        return res.status(200).json({
+          code: 200,
+          status: "OK", message: "POST/GET request handled successfully"
+        });
       }
     } else {
       return res.status(405).send("Method Not Allowed");

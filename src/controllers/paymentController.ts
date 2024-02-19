@@ -5,6 +5,7 @@ const User = db.users;
 const Claim = db.claims;
 const Log = db.logs;
 import { v4 as uuid_v4 } from "uuid";
+import { airtelMoney } from "../services/payment";
 uuid_v4()
 const { Op } = require("sequelize");
 
@@ -109,6 +110,7 @@ const getPayments = async (req: any, res: any) => {
         return res.status(200).json({
             result: {
                 code: 200,
+                status: "OK",
                 count: payments.length,
                 items: payments,
             },
@@ -117,6 +119,7 @@ const getPayments = async (req: any, res: any) => {
         console.log("ERROR", error);
         return res.status(500).json({
             code: 500,
+            status: "FAILED",
             message: "Internal server error", error: error
         });
     }
@@ -171,6 +174,7 @@ const getPayment = async (req: any, res: any) => {
             res.status(200).json({
                 result: {
                     code: 200,
+                    status: "OK",
                     item: payment
                 }
             });
@@ -181,7 +185,10 @@ const getPayment = async (req: any, res: any) => {
         }
     } catch (error) {
         console.error("ERROR", error);
-        res.status(500).json({ code: 500, message: "Internal server error", error: error.message });
+        res.status(500).json({
+            code: 500,
+            status: "FAILED", message: "Internal server error", error: error.message
+        });
     }
 };
 
@@ -258,7 +265,8 @@ const getPolicyPayments = async (req: any, res: any) => {
     } catch (error) {
         console.error("ERROR", error);
         res.status(500).json({
-            code: 500, message: "Internal server error", error: error.message
+            code: 500,
+            status: "FAILED", message: "Internal server error", error: error.message
         });
     }
 };
@@ -331,6 +339,7 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
         return res.status(200).json({
             result: {
                 code: 200,
+                status: "OK",
                 count: user_payments.length,
                 items: paginatedPayments
             }
@@ -339,6 +348,7 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
         console.error("ERROR", error);
         res.status(500).json({
             code: 500,
+            status: "FAILED",
             message: "Internal server error", error: error.message
         });
     }
@@ -366,7 +376,7 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
   *         application/json:
   *           schema:
   *             type: object
-  *             example: { "claim_id": 1,"user_id": 1,"partner_id":1, "policy_id": 3,"payment_date": "2023-6-22","payment_amount": 1000, "payment_metadata": { "payment_method": "mobile money","payment_reference": "1234567890","payment_phone_number": "256700000000","payment_email": "test@test","payment_country": "uganda","payment_currency": "ugx","payment_amount": 1000},"payment_type": "premium","payment_status": "paid","payment_description": "premium payment for policy 3"}
+  *             example: {partner_id : 2, "policy_id":"ea3f7e1b-8699-4a7e-a362-bfbd598ccdb1" ,"premium": 10000}
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -376,17 +386,94 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
 
 const createPayment = async (req: any, res: any) => {
     try {
-        const payment = await Payment.create(req.body);
+
+        const { policy_id, premium, partner_id } = req.body
+
+        const policy = await db.policies.findOne({
+            where: {
+                policy_status: 'pending',
+                premium: premium,
+                partner_id: partner_id,
+                policy_id: policy_id
+            },
+            include: [{
+                model: db.users,
+                where: {
+                    partner_id: partner_id
+                }
+            }]
+        });
+
+        console.log("POLICY", policy)
+
+        if (!policy) {
+            res.status(404).json({
+                status: "FAILED",
+                message: "no customer or policy found"
+            })
+        }
+
+        const existingUser = await db.users.findOne({
+            where: {
+                partner_id: partner_id,
+                user_id: policy.user_id
+            }
+        })
+
+
+
+        const airtelMoneyPromise = airtelMoney(
+            existingUser.user_id,
+            2,
+            policy.policy_id,
+            existingUser.phone_number,
+            policy.premium,
+            existingUser.membership_id,
+            "UG",
+            "UGX"
+        );
+
+
+        const timeout = 1000;
+
+        Promise.race([
+            airtelMoneyPromise,
+            new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(new Error('Airtel Money operation timed out'));
+                }, timeout);
+            })
+        ]).then((result) => {
+            // Airtel Money operation completed successfully
+
+            console.log(result)
+
+
+        }).catch((error) => {
+
+            console.log(error)
+
+        });
+
+
         return res.status(201).json({
             result: {
-                code: 201,
-                item: payment
+                status: "OK",
+                data: {
+                    customer_name: existingUser.name,
+                    cover_option: policy.beneficiary,
+                    policy_type: policy.policy_type,
+                    members: policy.total_member_number,
+                    premium: premium,
+
+                },
+                message: "payment prompt triggered to the customer phone number"
             }
         });
     } catch (error) {
         console.error("ERROR", error);
         res.status(500).json({
-            code: 500, message: "Internal server error", error: error.message
+            status: "FAILED", message: "Internal server error", error: error.message
         });
     }
 };

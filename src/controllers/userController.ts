@@ -4,7 +4,7 @@ import { db } from "../models/db";
 import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
 import welcomeTemplate from "../services/emailTemplates/welcome";
 import { sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
-import  jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 const dotenv = require("dotenv").config();
 import {
   getRandomInt,
@@ -65,7 +65,7 @@ async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
  *       400:
  *         description: Invalid request
  */
-const signup = async (req: any, res:any) => {
+const signup = async (req: any, res: any) => {
   try {
     const {
       first_name,
@@ -104,6 +104,8 @@ const signup = async (req: any, res:any) => {
     const userData = {
       membership_id: Math.floor(100000 + Math.random() * 900000),
       name: `${first_name} ${last_name}`,
+      first_name,
+      last_name,
       email,
       phone_number,
       national_id,
@@ -131,11 +133,11 @@ const signup = async (req: any, res:any) => {
     const emailExists = await User.findOne({ where: { email } });
 
     if (phoneNumberExists) {
-      return res.status(409).json({ code: 409, message: "Phone number already exists" });
+      return res.status(409).json({   status: "FAILED",code: 409, message: "Phone number already exists" });
     }
 
     if (emailExists) {
-      return res.status(409).json({ code: 409, message: "Email already exists" });
+      return res.status(409).json({  status: "FAILED", code: 409, message: "Email already exists" });
     }
 
     // Create a new user
@@ -152,6 +154,7 @@ const signup = async (req: any, res:any) => {
       return res.status(201).json({
         result: {
           code: 200,
+          status: "OK",
           message: "Customer registered successfully",
           token,
         },
@@ -159,7 +162,10 @@ const signup = async (req: any, res:any) => {
     }
   } catch (error) {
     console.error("ERROR", error);
-    return res.status(500).json({ code: 500, message: "Internal server error", error: error.message });
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED", message: "Internal server error", error: error.message
+    });
   }
 };
 
@@ -233,7 +239,7 @@ const partnerRegistration = async (req: any, res: any) => {
     //checking if the partner already exists using email and partner id
     let partner: any = await Partner.findOne({ where: { email: email } });
     if (partner && partner.length > 0) {
-      return res.status(409).json({ code: 409, message: "Partner already exists" });
+      return res.status(409).json({   status: "FAILED",code: 409, message: "Partner already exists" });
     }
 
     //saving the partner
@@ -246,13 +252,17 @@ const partnerRegistration = async (req: any, res: any) => {
         .status(201)
         .json({
           code: 201,
+          status: "OK",
           message: "Partner registered successfully",
           partner: newPartner,
         });
     }
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ code: 500, message: "Internal server error" });
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED", message: "Internal server error"
+    });
   }
 };
 
@@ -285,30 +295,29 @@ interface LoginRequestBody {
  */
 const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
   try {
-    const { email,phone_number, password } = req.body;
+    const { email, phone_number, password } = req.body;
 
     console.log("LOGIN", req.body);
 
 
-     // Check if either email or phone_number is provided
-     if (!email && !phone_number) {
-      return res.status(400).json({ message: 'Email or phone number is required, e.g john@email.com or 07XXXXXXXXX' });
+    // Check if either email or phone_number is provided
+    if (!email && !phone_number) {
+      return res.status(400).json({   status: "FAILED",message: 'Email or phone number is required, e.g john@email.com or 07XXXXXXXXX' });
     }
 
     // check password
-    if(!password)
-    {
-      return res.status(400).json({ message: 'password is required' });
+    if (!password) {
+      return res.status(400).json({  status: "FAILED", message: 'password is required' });
     }
 
-    
+
     // Construct the query based on defined parameters
     let whereClause: any = {};
     if (email) {
       whereClause.email = email;
     }
     if (phone_number) {
-      whereClause.phone_number = phone_number.replace(/^0/,'')
+      whereClause.phone_number = phone_number.replace(/^0/, '')
     }
 
     // Find user by email or phone number
@@ -317,6 +326,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     if (!user) {
       return res.status(401).json({
         code: 401,
+        status: "FAILED",
         message: "Invalid credentials",
       });
     }
@@ -368,6 +378,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
       return res.status(201).json({
         result: {
           code: 201,
+          status: "OK",
           message: "Login successful",
           token,
           role: user.role,
@@ -380,6 +391,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
       });
     } else {
       return res.status(401).json({
+        status: "FAILED",
         code: 401,
         message: "Invalid credentials",
       });
@@ -388,6 +400,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     console.error("ERROR", error);
     return res.status(500).json({
       code: 500,
+      status: "FAILED",
       message: "Internal server error",
       error: error.message,
     });
@@ -453,7 +466,7 @@ const findAllUsers = async (req: any, res) => {
 
   try {
     if (!partner_id) {
-      return res.status(400).json({ message: "Please provide a partner id" });
+      return res.status(400).json({  status: "FAILED", message: "Please provide a partner id" });
     }
 
 
@@ -503,10 +516,13 @@ const findAllUsers = async (req: any, res) => {
       });
     }
 
-    return res.status(404).json({ code: 404, message: "No customers found" });
+    return res.status(404).json({status: "FAILED", code: 404, message: "No customers found" });
   } catch (error) {
     console.error("ERROR", error);
-    return res.status(500).json({ code: 500, message: "Internal server error", error: error });
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED", message: "Internal server error", error: error
+    });
   }
 };
 
@@ -565,12 +581,17 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
 
     return res
       .status(200)
-      .json({ result: { code: 200, message: "Customer fetched successfully", item: user } });
+      .json({
+        result: {
+          code: 200,
+          status: "OK", message: "Customer fetched successfully", item: user
+        }
+      });
   } catch (error) {
     console.log("ERROR", error);
     return res
       .status(500)
-      .json({ message: "Internal server error", error: error });
+      .json({status: "FAILED", message: "Internal server error", error: error });
   }
 };
 
@@ -670,13 +691,16 @@ const updateUser = async (req: any, res: any) => {
     return res
       .status(201)
       .json({
-        result: { code: 201, message: "User updated successfully", item: updatedUser },
+        result: {
+          code: 201,
+          status: "OK", message: "User updated successfully", item: updatedUser
+        },
       });
   } catch (error) {
     console.log(error);
     return res
       .status(409)
-      .json({ message: "Details are not correct", error: error });
+      .json({ status: "FAILED", message: "Details are not correct", error: error });
   }
 };
 
@@ -691,7 +715,12 @@ const deleteUser = async (req: any, res: any) => {
 
     return res
       .status(201)
-      .json({ result: { code: 201, message: "Customer deleted successfully" } });
+      .json({
+        result: {
+          code: 201,
+          status: "OK", message: "Customer deleted successfully"
+        }
+      });
   } catch (error) {
     console.log("ERROR", error);
     return res.status(409).send("Details are not correct");
@@ -738,13 +767,19 @@ const getPartner = async (req: any, res: any) => {
     return res
       .status(200)
       .json({
-        result: { code: 200, message: "partner fetched successfully", item: partner },
+        result: {
+          code: 200,
+          status: "OK", message: "partner fetched successfully", item: partner
+        },
       });
   } catch (error) {
     console.log("ERROR", error);
     return res
       .status(500)
-      .json({ code: 500, message: "Internal server error", error: error });
+      .json({
+        code: 500,
+        status: "FAILED", message: "Internal server error", error: error
+      });
   }
 };
 
@@ -778,7 +813,10 @@ const listPartners = async (req: any, res: any) => {
       return res
         .status(200)
         .json({
-          result: { code: 200, message: "All partners fetched successfully", items: partner },
+          result: {
+            code: 200,
+            status: "OK", message: "All partners fetched successfully", items: partner
+          },
         });
     } else {
       partner = await Partner.findAll({
@@ -790,18 +828,24 @@ const listPartners = async (req: any, res: any) => {
 
 
     if (!partner || partner.length === 0) {
-      return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
+      return res.status(404).json({ status: "FAILED", message: "Sorry, No partner found" });
     }
     return res
       .status(200)
       .json({
-        result: { code: 200, message: "All partners fetched successfully", items: partner },
+        result: {
+          code: 200,
+          status: "OK", message: "All partners fetched successfully", items: partner
+        },
       });
   } catch (error) {
     console.log("ERROR", error);
     return res
       .status(500)
-      .json({ code: 500, message: "Internal server error", error: error });
+      .json({
+        code: 500,
+        status: "FAILED", message: "Internal server error", error: error
+      });
   }
 };
 
@@ -839,7 +883,7 @@ const partnerSwitch = async (req: any, res: any) => {
     });
     console.log("PARTNER", partner);
     if (!partner || partner.length === 0) {
-      return res.status(404).json({ item: 0, message: "Sorry, No partner found" });
+      return res.status(404).json({ item: 0,status: "FAILED", message: "Sorry, No partner found" });
     }
 
     let updatedUser = await User.update(
@@ -852,12 +896,18 @@ const partnerSwitch = async (req: any, res: any) => {
     );
 
     console.log("updated user", updatedUser);
-    return res.status(201).json({ code: 201, message: "Partner updated successfully" });
+    return res.status(201).json({
+      code: 201,
+      status: "OK", message: "Partner updated successfully"
+    });
   } catch (error) {
     console.log("ERROR", error);
     return res
       .status(500)
-      .json({ code: 500, message: "Internal server error", error: error });
+      .json({
+        code: 500,
+        status: "FAILED", message: "Internal server error", error: error
+      });
   }
 };
 
@@ -893,7 +943,7 @@ const partnerSwitch = async (req: any, res: any) => {
 const bulkUserRegistration = async (req: any, res: any) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({status: "FAILED", message: "No file uploaded" });
     }
 
     const partner_id = req.query.partner_id;
@@ -979,10 +1029,13 @@ const bulkUserRegistration = async (req: any, res: any) => {
 
     return res
       .status(200)
-      .json({ code: 200, message: "Customers created successfully", items: createdUsers });
+      .json({
+        code: 200,
+        status: "OK", message: "Customers created successfully", items: createdUsers
+      });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
   }
 };
 
@@ -1047,10 +1100,15 @@ async function adminSignup(req: any, res: any) {
 
 
     console.log("NEW ADMIN", newAdmin);
-    return res.status(200).json({ code: 200, message: 'Admin registered successfully' });
+    return res.status(200).json({
+      code: 200,
+      status: "OK", message: 'Admin registered successfully'
+    });
 
   } catch (error) {
-    return res.status(500).json({ code: 200, message: error.message })
+    return res.status(500).json({
+      status: "FAILED", message: error.message
+    })
 
   }
 
@@ -1113,11 +1171,14 @@ async function arrMemberRegistration(req: any, res: any) {
     })
     let updatedPremium = reconciliation(excistingUser, paymentData)
 
-    return res.status(200).json({ code: 200, message: 'ARR Member registered successfully and premium updated', item: updatedPremium });
+    return res.status(200).json({
+      code: 200,
+      status: "OK", message: 'ARR Member registered successfully and premium updated', item: updatedPremium
+    });
   } catch (error) {
 
     console.log(error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
 
   }
 }
@@ -1173,9 +1234,9 @@ async function findUserVehicle(req: any, res: any) {
       return res.status(404).json({ item: 0, message: "Sorry, No vehicle found" });
     }
 
-    res.status(200).json({ message: "succesfully fetched user vehicles", items: userVehicle })
+    res.status(200).json({status: "OK", message: "succesfully fetched user vehicles", items: userVehicle })
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
   }
 }
 
@@ -1241,7 +1302,7 @@ async function updateUserVehicle(req: any, res: any) {
     })
 
     if (!userVehicle || userVehicle.length === 0) {
-      return res.status(404).json({ item: 0, message: "Sorry, No vehicle found" });
+      return res.status(404).json({status: "FAILED", item: 0, message: "Sorry, No vehicle found" });
     }
 
     const data = {
@@ -1264,11 +1325,11 @@ async function updateUserVehicle(req: any, res: any) {
       },
     });
 
-    res.status(200).json({ message: "succesfully updated user vehicles" })
+    res.status(200).json({  status: "OK", message: "succesfully updated user vehicles" })
 
 
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({status: "FAILED", message: "Internal server error" });
   }
 
 }
@@ -1356,7 +1417,7 @@ async function forgotPassword(req: any, res: any) {
 
     const { email, phone_number } = req.query
     if (!email) {
-      return res.status(400).json({ error: 'Email is required for password reset.' });
+      return res.status(400).json({ status: "FAILED", error: 'Email is required for password reset.' });
     }
     const resetToken = generateUniqueToken();
 
@@ -1370,13 +1431,13 @@ async function forgotPassword(req: any, res: any) {
 
       await sendResetOTP(phone_number, resetToken);
     } else {
-      return res.status(400).json({ error: 'Email or phone number is required for password reset.' });
+      return res.status(400).json({ status: "FAILED", error: 'Email or phone number is required for password reset.' });
     }
 
-    return res.status(200).json({ message: 'Password reset instructions sent to your email.' });
+    return res.status(200).json({   status: "OK", message: 'Password reset instructions sent to your email.' });
   } catch (error) {
     console.error('Error in forgotPassword:', error);
-    return res.status(500).json({ error: 'Internal server error.' });
+    return res.status(500).json({ status: "FAILED", error: 'Internal server error.' });
   }
 }
 
@@ -1424,23 +1485,23 @@ async function changePassword(req: any, res: any) {
     const user = await db.users.findOne({ where: { email } });
     console.log("USER", user.reset_token);
     if (user.reset_token !== token) {
-      return res.status(400).json({ error: 'Invalid reset token.' });
+      return res.status(400).json({ status: "FAILED", error: 'Invalid reset token.' });
     }
     // Check if token has expired
     const tokenTimestamp = user.reset_token_timestamp;
     // after 24 hours token expires
     if ((Date.now() - tokenTimestamp) > 24 * 60 * 60 * 1000) {
-      return res.status(400).json({ error: 'Expired reset token.' });
+      return res.status(400).json({ status: "FAILED", error: 'Expired reset token.' });
     }
 
     // 3. Update Password
 
     await db.users.update({ password: await bcrypt.hash(newPassword, 10) }, { where: { email } });
 
-    return res.status(200).json({ message: 'Password updated successfully.' });
+    return res.status(200).json({  status: "OK", message: 'Password updated successfully.' });
   } catch (error) {
     console.error('Error in changePassword:', error);
-    return res.status(500).json({ error: 'Internal server error.' });
+    return res.status(500).json({status: "FAILED",  error: 'Internal server error.' });
   }
 }
 

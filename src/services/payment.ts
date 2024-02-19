@@ -104,6 +104,7 @@ async function createTransaction(user_id: any, partner_id: any, policy_id: any, 
 async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, reference, country, currency) {
   const status = {
     code: 200,
+    status: "OK",
     result: "",
     message: 'Payment successfully initiated'
   };
@@ -177,6 +178,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
 async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, reference,) {
   const status = {
     code: 200,
+    status: "OK",
     result: "",
     message: 'Payment successfully initiated'
   };
@@ -249,6 +251,7 @@ async function initiateConsent(product: any, start_date: any, end_date: any, pho
   console.log('PRODUCT', product, 'START DATE', start_date, 'END DATE', end_date, 'PHONE NUMBER', phoneNumber, 'AMOUNT', amount, 'PREMIUM', premium);
   const status = {
     code: 200,
+    status: "OK",
     result: "",
     message: 'Payment successfully initiated'
   };
@@ -637,6 +640,7 @@ async function reconcilationCallback(transaction) {
 
     return {
       code: 200,
+      status: "OK",
       message: "Payment record created successfully"
     }
   } else {
@@ -653,53 +657,54 @@ async function reconcilationCallback(transaction) {
     });
 
     // failed policy
-   // await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
+    // await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
 
 
     return {
       code: 500,
+      status: "FAILED",
       message: "Payment record created successfully"
     }
   }
 }
 
 
-async function  sendCongratulatoryMessage(policy, user) {
+async function sendCongratulatoryMessage(policy, user) {
   try {
 
-  const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
-  console.log("MEMBERS", members, policy.total_member_number);
+    const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
+    console.log("MEMBERS", members, policy.total_member_number);
 
-  //let proratedPercentage = calculateProrationPercentage(policy.installment_order);
+    //let proratedPercentage = calculateProrationPercentage(policy.installment_order);
 
-  const sumInsured = policy.sum_insured
-  //formatAmount(policy.sum_insured * (proratedPercentage / 100));
-  const lastExpenseInsured = policy.last_expense_insured
-  //formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
-  console.log("SUM INSURED", sumInsured);
-  console.log("LAST EXPENSE INSURED", lastExpenseInsured);
+    const sumInsured = policy.sum_insured
+    //formatAmount(policy.sum_insured * (proratedPercentage / 100));
+    const lastExpenseInsured = policy.last_expense_insured
+    //formatAmount(policy.last_expense_insured * (proratedPercentage / 100));
+    console.log("SUM INSURED", sumInsured);
+    console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
 
-  const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+    const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
-  let congratText = "";
+    let congratText = "";
 
-  if (policy.beneficiary == "FAMILY") {
-    congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
-  } else if (policy.beneficiary == "SELF")
-    congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
-  else if (policy.beneficiary == "OTHER") {
-    congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+    if (policy.beneficiary == "FAMILY") {
+      congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`
+    } else if (policy.beneficiary == "SELF")
+      congratText = `Congratulations! You are covered for Inpatient benefit of UGX ${sumInsured} and Funeral benefit of UGX ${lastExpenseInsured}. Cover valid till ${thisDayThisMonth.toDateString()}`;
+    else if (policy.beneficiary == "OTHER") {
+      congratText = `${user.first_name} has bought for you Ddwaliro Care for Inpatient ${sumInsured} and Funeral benefit of ${lastExpenseInsured}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+    }
+    console.log("CONGRATULATORY TEXT", congratText);
+
+    let to = policy.phone_number;
+
+    await SMSMessenger.sendSMS(2, to, congratText);
+
+  } catch (error) {
+    console.log(error);
   }
-  console.log("CONGRATULATORY TEXT", congratText);
-
-  let to = policy.phone_number;
-
-  await SMSMessenger.sendSMS(2,to, congratText);
-
-} catch (error) {
-  console.log(error);
-}
 }
 
 
