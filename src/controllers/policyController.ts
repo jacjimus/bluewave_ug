@@ -784,7 +784,7 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
       vehicle_number_of_passengers,
       is_fleet)
 
-    res.status(200).json({
+      return res.status(200).json({
       code: 200,
       status: "OK",
       message: premium.message,

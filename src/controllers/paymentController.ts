@@ -5,7 +5,7 @@ const User = db.users;
 const Claim = db.claims;
 const Log = db.logs;
 import { v4 as uuid_v4 } from "uuid";
-import { airtelMoney } from "../services/payment";
+import { airtelMoney, airtelMoneyKenya } from "../services/payment";
 uuid_v4()
 const { Op } = require("sequelize");
 
@@ -171,7 +171,7 @@ const getPayment = async (req: any, res: any) => {
 
 
         if (payment) {
-            res.status(200).json({
+            return res.status(200).json({
                 result: {
                     code: 200,
                     status: "OK",
@@ -179,7 +179,7 @@ const getPayment = async (req: any, res: any) => {
                 }
             });
         } else {
-            res.status(404).json({
+            return   res.status(404).json({
                 code: 404, message: "Payment not found"
             });
         }
@@ -253,7 +253,7 @@ const getPolicyPayments = async (req: any, res: any) => {
             const endIndex = page * limit;
             const results = payments.slice(startIndex, endIndex);
 
-            res.status(200).json({
+            return res.status(200).json({
                 result: {
                     count: payments.length,
                     items: results
@@ -384,77 +384,82 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
   *         description: Invalid request
   */
 
-const createPayment = async (req: any, res: any) => {
+const createPayment = async (req, res) => {
     try {
+        const { policy_id, premium, partner_id } = req.body;
 
-        const { policy_id, premium, partner_id } = req.body
+        console.log(partner_id, typeof partner_id);
 
         const policy = await db.policies.findOne({
             where: {
                 policy_status: 'pending',
-                premium: premium,
-                partner_id: partner_id,
-                policy_id: policy_id
+                premium,
+                partner_id,
+                policy_id
             },
             include: [{
                 model: db.users,
                 where: {
-                    partner_id: partner_id
+                    partner_id
                 }
             }]
         });
 
-        console.log("POLICY", policy)
+        console.log("POLICY", policy);
 
         if (!policy) {
-            res.status(404).json({
+            return res.status(404).json({
                 status: "FAILED",
-                message: "no customer or policy found"
-            })
+                message: "No customer or policy found"
+            });
         }
 
         const existingUser = await db.users.findOne({
             where: {
-                partner_id: partner_id,
+                partner_id,
                 user_id: policy.user_id
             }
-        })
+        });
 
+        let airtelMoneyPromise;
+        let timeout = 1000;
 
+        if (partner_id === 2) {
+            airtelMoneyPromise = airtelMoney(
+                existingUser.user_id,
+                2,
+                policy.policy_id,
+                existingUser.phone_number,
+                policy.premium,
+                existingUser.membership_id,
+                "UG",
+                "UGX"
+            );
+        } else if (partner_id === 3) {
+            airtelMoneyPromise = airtelMoneyKenya(
+                existingUser.user_id,
+                policy.policy_id,
+                existingUser.phone_number,
+                policy.premium,
+                existingUser.membership_id
+            );
+        } else {
+            return res.status(404).json({
+                status: 'FAILED',
+                error: "Partner not available"
+            });
+        }
 
-        const airtelMoneyPromise = airtelMoney(
-            existingUser.user_id,
-            2,
-            policy.policy_id,
-            existingUser.phone_number,
-            policy.premium,
-            existingUser.membership_id,
-            "UG",
-            "UGX"
-        );
-
-
-        const timeout = 1000;
-
-        Promise.race([
+        const paymentResult = await Promise.race([
             airtelMoneyPromise,
             new Promise((resolve, reject) => {
                 setTimeout(() => {
                     reject(new Error('Airtel Money operation timed out'));
                 }, timeout);
             })
-        ]).then((result) => {
-            // Airtel Money operation completed successfully
+        ]);
 
-            console.log(result)
-
-
-        }).catch((error) => {
-
-            console.log(error)
-
-        });
-
+        console.log(paymentResult);
 
         return res.status(201).json({
             result: {
@@ -464,20 +469,20 @@ const createPayment = async (req: any, res: any) => {
                     cover_option: policy.beneficiary,
                     policy_type: policy.policy_type,
                     members: policy.total_member_number,
-                    premium: premium,
-
+                    premium,
                 },
-                message: "payment prompt triggered to the customer phone number"
+                message: "Payment prompt triggered to the customer phone number"
             }
         });
     } catch (error) {
         console.error("ERROR", error);
         res.status(500).json({
-            status: "FAILED", message: "Internal server error", error: error.message
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message
         });
     }
 };
-
 
 
 module.exports = {

@@ -1234,7 +1234,7 @@ async function findUserVehicle(req: any, res: any) {
       return res.status(404).json({ item: 0, message: "Sorry, No vehicle found" });
     }
 
-    res.status(200).json({status: "OK", message: "succesfully fetched user vehicles", items: userVehicle })
+    return res.status(200).json({status: "OK", message: "succesfully fetched user vehicles", items: userVehicle })
   } catch (error) {
     return res.status(500).json({ status: "FAILED", message: "Internal server error" });
   }
@@ -1325,7 +1325,7 @@ async function updateUserVehicle(req: any, res: any) {
       },
     });
 
-    res.status(200).json({  status: "OK", message: "succesfully updated user vehicles" })
+    return res.status(200).json({  status: "OK", message: "succesfully updated user vehicles" })
 
 
   } catch (error) {

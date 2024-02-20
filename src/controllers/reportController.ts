@@ -487,7 +487,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     summary.policy.total_premium_amount = totalPremiumAmount;
 
     // Return the summary
-    res.status(200).json({ summary });
+    return  res.status(200).json({ summary });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error", error });
@@ -592,7 +592,7 @@ const getDailyPolicySalesReport = async (req: any, res: any) => {
       },
     });
 
-    res.status(200).json({
+    return  res.status(200).json({
       result: {
         code: 200,
         status: "OK",
@@ -739,7 +739,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
     const downloadURL = `${BASE_URL}/api/v1/reports/policy/excel/download?token=${downloadToken}`;
 
     // Return the download URL to the user
-    res.status(200).json({ downloadURL });
+    return res.status(200).json({ downloadURL });
   } catch (error) {
     console.error("Error generating Excel report:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -1018,7 +1018,7 @@ const getUserExcelReportDownload = async (req: any, res: any) => {
     const downloadURL = `${BASE_URL}/api/v1/reports/users/excel/download?token=${downloadToken}`;
 
     // Return the download URL to the user
-    res.status(200).json({ downloadURL });
+    return res.status(200).json({ downloadURL });
   } catch (error) {
     console.error("Error generating users Excel report:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -1112,7 +1112,7 @@ const getAggregatedDailyPolicySalesReport = async (req: any, res: any) => {
     };
 
     // Send the results as a response
-    res.status(200).json({ data });
+    return res.status(200).json({ data });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -1228,7 +1228,7 @@ const getAggregatedAnnuallyPolicySalesReport = async (req: any, res: any) => {
     };
 
     // Send the results as a response
-    res.status(200).json({ data });
+    return res.status(200).json({ data });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -1360,7 +1360,7 @@ const getAggregatedMonthlySalesReport = async (req: any, res: any) => {
       currencyCode: partnerData.currency_code,
     };
 
-    res.status(200).json({ data });
+    return  res.status(200).json({ data });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1492,7 +1492,7 @@ const getClaimExcelReportDownload = async (req: any, res: any) => {
 
 
     // Return the download URL to the user
-    res.status(200).json({ downloadURL });
+    return res.status(200).json({ downloadURL });
   }
   catch (error) {
     console.error("Error generating Excel report:", error);

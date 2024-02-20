@@ -24,22 +24,29 @@ let policy: any;
                     },
                     limit: 1,
                 });
-                console.log("USER ID", user.user_id);
+                console.log("USER ID", user.user_id, user.name, user.phone_number);
 
 
-                 policy = await db.policies.findOne({
+              
+                if (!user) {
+                    response = "CON Sorry, you must buy a policy first to claim" + "\n0. Back \n00. Main Menu";
+                    return response;
+                }
+
+                policy = await db.policies.findOne({
                     where: {
                         user_id: user?.user_id,
                         policy_status: "paid",
                     },
                 });
 
-                console.log("POLICY", policy);
-
-                if (!policy || !user) {
+                if (!policy) {
                     response = "CON Sorry you have no active policy" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
+
+                console.log("POLICY", policy.first_name, policy.last_name);
+
 
                 const claimId = generateClaimId();
 

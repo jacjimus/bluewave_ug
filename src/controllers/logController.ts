@@ -53,7 +53,7 @@ const getLogs = async (req: any, res: any) => {
     const offset = (page - 1) * limit;
     const { logs, totalLogsCount } = await fetchLogsFromDatabase(partner_id, user_id, offset, limit);
 
-    res.status(200).json({
+   return res.status(200).json({
       message: 'Information fetched successfully',
       logs: logs,
       pagination: {
@@ -158,7 +158,7 @@ const getSessions = async (req: any, res: any) => {
 
 
     // Return pagination information along with sessions
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Information fetched successfully',
       sessions: sessions,
       pagination: {
@@ -242,7 +242,7 @@ async function ussdSessions(req: any, res) {
 
 
     //let response = '';
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Sessions fetched successfully from AfricanStalking',
       sessions: req.body,
 
