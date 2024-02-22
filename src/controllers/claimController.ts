@@ -17,29 +17,23 @@ const validateClaimsExistence = (claims) => {
     }
 };
 
-
 /**
  * @swagger
- * /api/v1/claims/{user_id}:
+ * /api/v1/claims/all:
  *   get:
  *     tags:
  *       - Claims
- *     description: List Claims by user ID
- *     operationId: ListClaimsByUser
- *     summary: List Claims by user ID
+ *     description: List all Claims
+ *     operationId:  getAllClaims
+ *     summary: List all Claims by partner ID
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
- *         schema:
- *           type: number
- *       - name: user_id
- *         in: path
  *         required: true
  *         schema:
- *           type: string
+ *           type: number
  *       - name: page
  *         in: query
  *         required: false
@@ -56,7 +50,8 @@ const validateClaimsExistence = (claims) => {
  *       400:
  *         description: Invalid request
  */
-const getClaims = async (req: any, res) => {
+const getAllClaims = async (req: any, res) => {
+
     try {
         const { partner_id, page = 1, limit = 10, filter, start_date, end_date } = req.query;
         validatePartnerId(partner_id);
@@ -97,28 +92,117 @@ const getClaims = async (req: any, res) => {
         });
     } catch (error) {
         console.error("Error fetching claims:", error);
-        return res.status(error.code || 500).json({ code: error.code || 500, message: error.message });
+        return res.status(error.code || 500).json({ status: 'FAILED',code: error.code || 500, message: error.message });
+    }
+}
+
+
+/**
+ * @swagger
+ * /api/v1/claims/user/{user_id}:
+ *   get:
+ *     tags:
+ *       - Claims
+ *     description: List Claims by user ID
+ *     operationId: ListClaimsByUser
+ *     summary: List Claims by user ID
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+const getUserClaims = async (req: any, res) => {
+    try {
+        const { partner_id, page = 1, limit = 10, filter, start_date, end_date } = req.query;
+        validatePartnerId(partner_id);
+        const { user_id } = req.params;
+
+        console.log("GET CLAIMS", req.query);
+        console.log("GET CLAIMS", req.params);
+
+
+        const claimWhere: any = { partner_id, user_id };
+
+        if (start_date && end_date) {
+            claimWhere.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+        } else if (start_date) {
+            claimWhere.createdAt = { [Op.gte]: new Date(start_date) };
+        } else if (end_date) {
+            claimWhere.createdAt = { [Op.lte]: new Date(end_date) };
+        }
+
+        let claims = await Claim.findAll({
+            where: claimWhere,
+            order: [["createdAt", "DESC"]],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+        });
+
+        if (filter) {
+            const search = filter.trim().toLowerCase();
+            claims = globalSearch(claims, search);
+        }
+
+        validateClaimsExistence(claims);
+
+        const offset = (page - 1) * limit;
+        const paginatedClaims = claims.slice(offset, offset + limit);
+
+        return res.status(200).json({
+            result: {
+                status: "OK",
+                code: 200,
+                count: claims.length,
+                items: paginatedClaims,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching claims:", error);
+        return res.status(error.code || 500).json({ status: 'FAILED',code: error.code || 500, message: error.message });
     }
 };
 
 /**
 * @swagger
-* /api/v1/claims/{policy_id}:
+* /api/v1/claims/{claim_id}:
 *   get:
 *     tags:
 *       - Claims
-*     description: list claims by policy id
-*     operationId: listClaimsByPolicyId
-*     summary: list claims by policy id
+*     description: List Claims by Claim ID
+*     operationId: listClaimsByClaimId
+*     summary: list claims by claim id
 *     security:
 *       - ApiKeyAuth: []
 *     parameters:
 *       - name: partner_id
 *         in: query
-*         required: false
+*         required: true
 *         schema:
 *           type: number
-*       - name: policy_id
+*       - name: claim_id
 *         in: path
 *         required: true
 *         schema:
@@ -141,8 +225,8 @@ const getClaims = async (req: any, res) => {
 */
 const getClaim = async (req: any, res) => {
     try {
-        const { claim_id } = req.params;
-        const claim = await Claim.findByPk(claim_id, {
+        console.log("GET CLAIMS", req.query);
+        const claim = await Claim.findByPk(req.params.claim_id, {
             include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
         });
 
@@ -195,6 +279,44 @@ const findUserByPhoneNumberClaims = async (req: any, res) => {
     }
 };
 
+/**
+* @swagger
+* /api/v1/claims/policy/{policy_id}:
+*   get:
+*     tags:
+*       - Claims
+*     description: List Claims by Policy ID
+*     operationId: listClaimsByPolicyId
+*     summary: list claims by policy id
+*     security:
+*       - ApiKeyAuth: []
+*     parameters:
+*       - name: partner_id
+*         in: query
+*         required: true
+*         schema:
+*           type: number
+*       - name: policy_id
+*         in: path
+*         required: true
+*         schema:
+*           type: string
+*       - name: page
+*         in: query
+*         required: false
+*         schema:
+*           type: number
+*       - name: limit
+*         in: query
+*         required: false
+*         schema:
+*           type: number
+*     responses:
+*       200:
+*         description: Information fetched successfully
+*       400:
+*         description: Invalid request
+*/
 const getPolicyClaims = async (req: any, res) => {
     try {
         const { policy_id } = req.params;
@@ -227,7 +349,7 @@ const getPolicyClaims = async (req: any, res) => {
 
 /**
  * @swagger
- * /api/v1/claims:
+ * /api/v1/claims/create:
  *   post:
  *     tags:
  *       - Claims
@@ -395,6 +517,45 @@ const updateClaim = async (req: any, res) => {
     }
 };
 
+
+/**
+* @swagger
+* /api/v1/claims/{claim_id}:
+*   delete:
+*     tags:
+*       - Claims
+*     description: delete claim by claim id
+*     operationId: deleteClaim
+*     summary: delete claim by claim id
+*     security:
+*       - ApiKeyAuth: []
+*     parameters:
+*       - name: partner_id
+*         in: query
+*         required: true
+*         schema:
+*           type: number
+*       - name: claim_id
+*         in: path
+*         required: true
+*         schema:
+*           type: string
+*       - name: page
+*         in: query
+*         required: false
+*         schema:
+*           type: number
+*       - name: limit
+*         in: query
+*         required: false
+*         schema:
+*           type: number
+*     responses:
+*       200:
+*         description: Information fetched successfully
+*       400:
+*         description: Invalid request
+*/
 const deleteClaim = async (req: any, res) => {
     try {
         const { claim_id } = req.params;
@@ -417,11 +578,12 @@ const deleteClaim = async (req: any, res) => {
 };
 
 module.exports = {
-    getClaims,
-    createClaim,
     getClaim,
-    findUserByPhoneNumberClaims,
+    getAllClaims,
+    getUserClaims,
     getPolicyClaims,
+    createClaim,
+    findUserByPhoneNumberClaims,
     updateClaim,
     deleteClaim,
 };

@@ -13,11 +13,11 @@ const {
 
 const router = express.Router()
 
-router.get('/', isSuperAdmin, claimController.getClaims)
-router.post('/', isSuperAdmin, claimController.createClaim)
-router.get('/:claim_id', isSuperAdmin, claimController.getClaim)
-router.get('/user/:user_id', isSuperAdmin, claimController.findUserByPhoneNumberClaims)
-router.get('/policies/:policy_id', isSuperAdmin, isSuperAdmin, claimController.getPolicyClaims)
+router.get('/all', isSuperAdmin, claimController.getAllClaims)
+router.get('/:claim_id', claimController.getClaim)
+router.post('/create', claimController.createClaim)
+router.get('/user/:user_id',  claimController.getUserClaims)
+router.get('/policy/:policy_id',  isSuperAdmin, claimController.getPolicyClaims)
 router.put('/:claim_id', isSuperAdmin, claimController.updateClaim)
 router.delete('/:claim_id', isSuperAdmin, claimController.deleteClaim)
 

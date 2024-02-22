@@ -783,10 +783,23 @@ export default function (args: RequestBody, db: any) {
           "\n1. Confirm" +
           "\n0. Back" +
           "\n00.Main Menu";
+
+          const policyData = {
+            cover_type: allSteps[2],
+             vehicle_category: allSteps[3],
+             chassis_number: allSteps[4],
+             cv: allSteps[5],
+             registration_number: allSteps[6],
+             user_id: existingUser?.user_id,
+             premium: vehiclePremium,
+              partner_id: 3,
+              
+           };
       } else if (currentStep == 8) {
         //registration complete
         console.log(allSteps, currentStep, userText);
         if (allSteps[0] == "1") {
+        
 
           response = 'END Please wait for Vodacom Pin prompt to complete the payment'
         } else if (allSteps[0] == "2") {
