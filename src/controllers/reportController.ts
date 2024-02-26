@@ -1,3 +1,4 @@
+import { all } from "axios";
 import { db } from "../models/db";
 import { reconcilationCallback } from "../services/payment";
 
@@ -487,7 +488,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     summary.policy.total_premium_amount = totalPremiumAmount;
 
     // Return the summary
-    return  res.status(200).json({ summary });
+    return res.status(200).json({ summary });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error", error });
@@ -592,7 +593,7 @@ const getDailyPolicySalesReport = async (req: any, res: any) => {
       },
     });
 
-    return  res.status(200).json({
+    return res.status(200).json({
       result: {
         code: 200,
         status: "OK",
@@ -1360,7 +1361,7 @@ const getAggregatedMonthlySalesReport = async (req: any, res: any) => {
       currencyCode: partnerData.currency_code,
     };
 
-    return  res.status(200).json({ data });
+    return res.status(200).json({ data });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1599,119 +1600,82 @@ function generateClaimExcelReport(claims: any[]) {
  *       400:
  *         description: Invalid request
  */
-const paymentReconciliation = async (req: any, res: any) => {
+const paymentReconciliation = async (req, res) => {
   try {
-
+    // Check if a file is uploaded
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    let result = {
-      message: "error",
-      code: 404
-    }
 
-    console.log("PAYMENT RECONCILIATION", req.file)
-    const partner_id = req.query.partner_id;
     const payment_file = req.file;
 
     // Read the uploaded Excel file
     const workbook = XLSX.readFile(payment_file.path, { cellDates: true, dateNF: 'mm/dd/yyyy hh:mm:ss' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    //console.log sheetNames
-    console.log("============ WORKSHEET ========", workbook.Sheets)
-
-
+    // Check if worksheet exists
     if (!worksheet) {
       return res.status(400).json({ message: "Empty worksheet in the Excel file" });
     }
 
     // Convert worksheet data to an array of objects
     const paymentDataArray = XLSX.utils.sheet_to_json(worksheet, { raw: false });
-    console.log("+++++paymentDataArray+++++", paymentDataArray.length)
 
     for (let payment of paymentDataArray) {
-
-      //  console.log("PAYMENT", payment)
-
-      // if - replace with / in the date
-
+      // Replace '-' with '/' in the date
       payment['Transaction Date'] = payment['Transaction Date'].replace(/-/g, '/');
 
-      // Split the original date into components
+      // Split the date into components and rearrange them
       let components = payment['Transaction Date'].split(/[/\s:]/);
+      let convertedDate = `${components[1]}/${components[0]}/${components[2]} ${components[3]}:${components[4]}`;
 
-      // Rearrange the components to the desired format
-      let convertedDate = components[1] + '/' + components[0] + '/' + components[2] + ' ' + components[3] + ':' + components[4];
+      // Parse the date using moment.js
+      let transaction_date = moment(convertedDate);
 
-      // console.log(convertedDate);
+      // Remove commas from the payment amount
+      let premium = payment['Transaction Amount'].replace(/,/g, '');
 
-      let transaction_date = moment(convertedDate)
+      // Construct data object
+      let data = {
+        phone_number: `+256${payment['Sender Mobile Number']}`,
+        airtel_money_id: payment['Transaction ID'],
+        premium: premium
+      };
 
-      let premium = payment['Transaction Amount'].replace(/,/g, '')
-      let ext_ref = payment['External Reference']
-      let airtel_money_id = payment['Transaction ID']
-      let phone_number = payment['Sender Mobile Number']
-
-      // console.log(`transaction_date, ${transaction_date}`)
-
-      // console.log(`premium, ${premium}`)
-      // console.log(`existingUser,${phone_number}`)
-
-      // {
-      //   "transaction": {
-      //     "id": "f987ca0d-ed41-4fe0-99f6-94af613360ac",
-      //     "message": "PAID UGX 14,000 to AAR Uganda for Mini Cover Charge UGX 0. Bal UGX 14,000. TID: 715XXXXXXXX. Date: 1-dec-2023 9:19",
-      //     "status_code": "TS",
-      //     "airtel_money_id": "MP210603.1234.L06941"
-      //   }
-      // }
-
-      let policy = await db.policies.findAll({
+      // Retrieve policy from the database
+      let policy = await db.policies.findOne({
         where: {
-          phone_number: `+256${phone_number}`,
+          phone_number: data.phone_number,
           premium: premium,
-          policy_status: 'paid'
+          policy_status: 'paid',
+          partner_id: 2
+          
         },
+       
         limit: 1,
       });
 
-      console.log("policy", policy[0].premium, policy[0].policy_number)
-
-      if (policy.length == 0) {
-        return res.status(400).json({ message: "No policy found", phone_number: phone_number, premium: premium });
+      // Update policy if it's paid and airtel money details are missing
+      if (policy && (policy.airtel_money_id === null || policy.airtel_transaction_id === null)) {
+        console.log("==== AIRTEL MONEY UPDATE === ", policy?.first_name, policy?.last_name, policy.policy_number, policy.premium, data.airtel_money_id);
+        await db.policies.update({
+          airtel_money_id: data.airtel_money_id,
+          airtel_transaction_id: data.airtel_money_id
+        }, {
+          where: {
+            policy_id: policy.policy_id,
+          },
+        });
+      }else{
+        
+        console.log("AIRTEL MONEY ID FOUND ", policy?.first_name, policy?.last_name, policy?.phone_number, policy?.premium, data.airtel_money_id);
       }
-
-      // let transactionId = await db.transactions.findOne({
-      //   where: {
-      //     policy_id: policy.policy_id,
-      //   },
-      //   limit: 1,
-      // });
-
-
-      // console.log("transactionId", transactionId)
-
-      // let paymentCallback = {
-      //   transaction: {
-      //     id: transactionId.transaction_id,
-      //     message: `PAID UGX ${premium} to AAR Uganda for Mini Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
-      //     status_code: "TS",
-      //     airtel_money_id: airtel_money_id
-      //   }
-      // }
-
-      // console.log("paymentCallback", paymentCallback)
-      // result = await reconcilationCallback(paymentCallback.transaction)
-
-      // get all policies that are policy_status is pending but payment record is payment_status paid and premium match
-      //throw error if you a such a policy
-
     }
 
-    return res.status(200).json({ status: "OK",message: result });
+    return res.status(200).json({ status: "OK", message: "Payment Reconciliation done successfully" });
+
   } catch (error) {
-    console.log(error)
+    console.error(error);
     res.status(500).json({ status: "FAILED", message: "Internal server error", error: error.message });
   }
 }
@@ -1802,7 +1766,7 @@ async function policyReconciliation(req: any, res: any) {
 
     if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount) {
 
-      return res.status(400).json({status: "FAILED", message: "Policy already paid" });
+      return res.status(400).json({ status: "FAILED", message: "Policy already paid" });
     }
 
     let transactionId = await db.transactions.findOne({
@@ -1820,7 +1784,8 @@ async function policyReconciliation(req: any, res: any) {
         id: transactionId.transaction_id,
         message: `PAID UGX ${premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
         status_code: "TS",
-        airtel_money_id: airtel_money_id
+        airtel_money_id: airtel_money_id,
+        payment_date: transactionId.createdAt
       }
     }
 
@@ -1832,7 +1797,7 @@ async function policyReconciliation(req: any, res: any) {
     return res.status(200).json({ status: "OK", message: "Policy Reconciliation done successfully", result });
   } catch (error) {
     console.log(error)
-    res.status(500).json({status: "FAILED", message: "Internal server error", error: error.message });
+    res.status(500).json({ status: "FAILED", message: "Internal server error", error: error.message });
   }
 }
 

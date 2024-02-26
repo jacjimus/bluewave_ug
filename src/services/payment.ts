@@ -29,7 +29,7 @@ async function getAuthToken() {
       }
     );
 
-    //console.log('====================== AUTH TOKEN RESPONSE =================', response.data);
+    console.log('====================== AUTH TOKEN RESPONSE =================', response.data);
     if (response.status === 200) {
       const { access_token } = response.data;
       return access_token;
@@ -78,7 +78,7 @@ async function getAuthKenyaToken() {
   }
 }
 
-async function createTransaction(user_id: any, partner_id: any, policy_id: any, transactionId: any, amount: any) {
+const createTransaction = async  (user_id: any, partner_id: any, policy_id: any, transactionId: any, amount: any) => {
   try {
     //console.log('TRANSACTION ID', transactionId, 'AMOUNT', amount, 'USER ID', user_id, 'POLICY ID', policy_id, 'PARTNER ID', partner_id);
     const transaction = await Transaction.create({
@@ -569,7 +569,7 @@ async function refundRecoveryTransaction(transactionId: any, country: any, curre
 
 async function reconcilationCallback(transaction) {
 
-  const { id, status_code, message, airtel_money_id } = transaction;
+  const { id, status_code, message, airtel_money_id, payment_date } = transaction;
 
   const transactionData = await findTransactionById(id);
 
@@ -617,7 +617,7 @@ async function reconcilationCallback(transaction) {
       policy_id,
       payment_status: "paid",
       payment_description: message,
-      payment_date: new Date(),
+      payment_date: payment_date,
       payment_metadata: transaction,
       partner_id,
     });
@@ -722,5 +722,6 @@ export {
   refundRecoveryTransaction,
   airtelMoneyKenya,
   reconcilationCallback,
-  sendCongratulatoryMessage
+  sendCongratulatoryMessage,
+  createTransaction
 };

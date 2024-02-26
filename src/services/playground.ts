@@ -6,7 +6,7 @@ import fs from 'fs/promises';
 import { db } from '../models/db';
 import { getNewPolicies, numberAndValueOfFailedPayments } from './report';
 import Queue from 'bull';
-import { sendCongratulatoryMessage } from './payment';
+import { createTransaction, sendCongratulatoryMessage } from './payment';
 import { v4 as uuidv4 } from 'uuid';
 // import { google } from 'googleapis';
 
@@ -1089,6 +1089,8 @@ async function _checkIfPolicyExistsInAAR() {
 // }
 
 
+
+
 export const playground = async () => {
 
   //getNewPolicies(2, '2023-01-01', '2024-02-7')
@@ -1100,6 +1102,8 @@ export const playground = async () => {
  // _checkIfPolicyExistsInAAR()
 // _updateUserNumberOfPolicies()
 //updateAirtelMoneyId(array_of_phone_numbers);
+
+
 
 
   console.log("TESTING GROUND")

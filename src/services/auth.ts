@@ -11,7 +11,7 @@ async function authToken(partner_id: number) {
 
         switch (partner_id) {
             case 1:
-                AUTH_TOKEN_URL = process.env.AIRTEL_AUTH_TOKEN_URL_UAT
+                AUTH_TOKEN_URL = process.env.KEN_AIRTEL_AUTH_TOKEN_URL
                 inputBody = {
                     client_id: process.env.AIRTEL_KEN_CLIENT_ID,
                     client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
@@ -30,8 +30,8 @@ async function authToken(partner_id: number) {
             default:
                 AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL
                 inputBody = {
-                    client_id: process.env.AIRTEL_CLIENT_ID,
-                    client_secret: process.env.AIRTEL_CLIENT_SECRET,
+                    client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
+                    client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
         }
