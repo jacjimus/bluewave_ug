@@ -1,33 +1,30 @@
-
 import axios from 'axios';
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from 'dotenv';
+dotenv.config();
 
-
-
-async function authToken(partner_id: number) {
+async function authTokenByPartner(partner_id: number) {
     try {
-        let inputBody: any, AUTH_TOKEN_URL: string;
+        let AUTH_TOKEN_URL: string, inputBody: any;
 
         switch (partner_id) {
             case 1:
-                AUTH_TOKEN_URL = process.env.KEN_AIRTEL_AUTH_TOKEN_URL
+                AUTH_TOKEN_URL = process.env.KEN_AIRTEL_AUTH_TOKEN_URL;
                 inputBody = {
                     client_id: process.env.AIRTEL_KEN_CLIENT_ID,
                     client_secret: process.env.AIRTEL_KEN_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
                 break;
-                case 2:
-               AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL
+            case 2:
+                AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL;
                 inputBody = {
                     client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
-                    client_secret:process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
+                    client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
                 break;
             default:
-                AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL
+                AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL;
                 inputBody = {
                     client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
                     client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
@@ -40,10 +37,11 @@ async function authToken(partner_id: number) {
             Accept: '*/*',
         };
 
-        console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL)
+        console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL);
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
       
-        console.log("response", response.data)
+        console.log("========= AUTHTOKEN RESPONSE ======= ", response.data);
+        
         if (response.status === 200) {
             const token = response.data.access_token;
             return token;
@@ -57,4 +55,4 @@ async function authToken(partner_id: number) {
     }
 }
 
-export default authToken;
+export default authTokenByPartner;

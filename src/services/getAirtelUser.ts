@@ -1,11 +1,11 @@
 
 import axios from "axios";
-import authToken from "./auth";
 import bcrypt from "bcrypt";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "./sendSMS";
 import dotenv from "dotenv";
+import authTokenByPartner from "./auth";
 dotenv.config();
 
 const User = db.users;
@@ -62,7 +62,7 @@ async function getAirtelUser(
 ) {
   try {
 
-    const token = await authToken(partner_id);
+    const token = await authTokenByPartner(partner_id);
 
     const headers = {
       Accept: "*/*",
@@ -91,7 +91,7 @@ async function getAirtelKenyaUser(
 ) {
   try {
 
-    const token = await authToken(1);
+    const token = await authTokenByPartner(1);
     console.log("TOKEN I AM GETTING", token);
     const headers = {
       Accept: "*/*",
