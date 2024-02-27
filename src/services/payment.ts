@@ -6,6 +6,7 @@ import { findTransactionById, updateUserPolicyStatus } from '../routes/ussdRoute
 import { calculateProrationPercentage, formatAmount } from './utils';
 import SMSMessenger from './sendSMS';
 import { fetchMemberStatusData, processPolicy } from './aar';
+import { sendEmail } from './emailService';
 dotenv.config();
 
 const User = db.users;
@@ -34,9 +35,16 @@ async function getAuthToken() {
       const { access_token } = response.data;
       return access_token;
     } else {
+      const emailData ={
+        email: process.env.ADMIN_EMAIL,
+        subject: "Airtel Money Token Error",
+        emailHtml: `Failed to get authentication token: ${response.statusText}`
+      }
+     // await sendEmail( process.env.ADMIN_EMAIL, "Airtel Money Token Error",emailData );
       throw new Error(`Failed to get authentication token: ${response.statusText}`);
     }
   } catch (error) {
+    
     throw new Error(`An error occurred while getting the authentication token: ${error.message}`);
   }
 }
@@ -157,7 +165,9 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
       createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
       return status;
     }).catch((error) => {
+
       console.log("=========== PUSH INSIDE TO AIRTEL MONEY  ===========", phoneNumber, new Date())
+     // SMSMessenger.sendSMS(2, "256782619000", "Failed to initiate payment: " + error.message);
       status.code = 500;
       status.result = error;
       status.message = 'Sorry, Transaction failed';
