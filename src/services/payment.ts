@@ -14,11 +14,9 @@ const Transaction = db.transactions;
 
 async function getAuthToken() {
   try {
-    let response: any;
-
-    response = await axios.post(process.env.PROD_AIRTEL_AUTH_TOKEN_URL,
+    const response = await axios.post(
+      process.env.PROD_AIRTEL_AUTH_TOKEN_URL,
       {
-
         client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
         client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
         grant_type: 'client_credentials',
@@ -30,24 +28,19 @@ async function getAuthToken() {
       }
     );
 
-    console.log('====================== AUTH TOKEN RESPONSE =================', response.data);
+    console.log('======= AUTH TOKEN RESPONSE ======', response.data);
+
     if (response.status === 200) {
       const { access_token } = response.data;
       return access_token;
     } else {
-      const emailData ={
-        email: process.env.ADMIN_EMAIL,
-        subject: "Airtel Money Token Error",
-        emailHtml: `Failed to get authentication token: ${response.statusText}`
-      }
-     // await sendEmail( process.env.ADMIN_EMAIL, "Airtel Money Token Error",emailData );
       throw new Error(`Failed to get authentication token: ${response.statusText}`);
     }
   } catch (error) {
-    
     throw new Error(`An error occurred while getting the authentication token: ${error.message}`);
   }
 }
+
 
 
 
