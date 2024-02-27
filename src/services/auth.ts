@@ -25,7 +25,6 @@ async function authToken(partner_id: number) {
                     client_secret:process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
                     grant_type: 'client_credentials',
                 };
-                
                 break;
             default:
                 AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL
@@ -44,7 +43,7 @@ async function authToken(partner_id: number) {
         console.log("AUTH_TOKEN_URL", AUTH_TOKEN_URL)
         const response = await axios.post(AUTH_TOKEN_URL, inputBody, { headers });
       
-
+        console.log("response", response.data)
         if (response.status === 200) {
             const token = response.data.access_token;
             return token;

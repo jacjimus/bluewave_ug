@@ -36,7 +36,6 @@ const renewMenu = async (args: any, db: any) => {
         limit: 4
     });
 
-    console.log("paidPolicies", paidPolicies)
 
     if (paidPolicies.length == 0) {
         response = "END Sorry you have no active policy"
