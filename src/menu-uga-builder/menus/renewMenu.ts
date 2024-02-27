@@ -3,8 +3,6 @@ import { registerDependant, fetchMemberStatusData, updatePremium } from "../../s
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";
-import { calculateProrationPercentage, formatAmount } from "../../services/utils";
-import moment from "moment";
 
 
 
@@ -60,8 +58,6 @@ const renewMenu = async (args: any, db: any) => {
             ).join("");
         }
 
-
-
     } else if (currentStep == 2) {
 
         console.log("allSteps", allSteps)
@@ -83,7 +79,7 @@ const renewMenu = async (args: any, db: any) => {
             limit: 1,
         });
 
-        console.log("paidPolicies", paidPolicies)
+
 
         let choosenPolicy = paidPolicies[allSteps[1] - 1];
 
