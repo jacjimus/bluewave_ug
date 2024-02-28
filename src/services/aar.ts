@@ -102,6 +102,8 @@ async function registerPrincipal(user: any, policy: any) {
 
 
   if (policy && user) {
+
+    let policyType = policy.policy_type.toUpperCase() == "S MINI" ? "AIRTEL_SMINI" : "AIRTEL_" + policy.policy_type.toUpperCase();
    
     const userData: PrincipalRegistration = {
       surname: user.last_name || `256${user.phone_number}`,
@@ -121,7 +123,7 @@ async function registerPrincipal(user: any, policy: any) {
       },
       member_status: "1",
       health_option: "64",
-      health_plan: "AIRTEL_" + policy.policy_type,
+      health_plan: policyType,
       corp_id: "758",
       policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
       policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
@@ -138,7 +140,7 @@ async function registerPrincipal(user: any, policy: any) {
         maxBodyLength: Infinity,
         url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
         headers: {
-          'Authorization': 'Bearer ' + "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhYXJ1ZyIsImV4cCI6MTcwODA3OTUyMCwidXNlciI6W3siZnVsbF9uYW1lcyI6ImFpcnRlbCJ9XX0.mjlNsreLgJab1ns6MuI-80xK6WPD8KAeHW60ykNxXMK9GFH6sH0MxvP_Y4Wh3uAq5AJRBSGeULQnRVoGMvItpcP_2U_YBf6HIS98wDIok8wqnkoN3S3cUsjvQTvqccByqUVWuV6BJS73Dn7qFc0KUhvpiZNotcJHev-Awc_ApJJaOtiwUB3ZOdSHCZAhCgeCC64dQBaGP_Jxt5DbNhvIOZjgHRBDL02gJ14ZupwB2BKhuzcy7xZfaG6xvGmo7z-kw8LTsMm9sy6D1zKv22LL_31XjVRbLPMq5nDoSz5aTrqS6EYvRSLVWW8C2pAn2ZZm-fW8G95j9G0_YyUEYWnjWQ",
+          'Authorization': 'Bearer ' + await arr_uganda_login(),
           'Content-Type': 'application/json',
         },
         data: userData,

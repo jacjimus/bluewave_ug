@@ -312,11 +312,7 @@ export function calculatePremium(
 
 
 
-  let categoryOne =
-
-
-
-    vehicle_category = vehicle_category.toUpperCase();
+  let categoryOne =vehicle_category = vehicle_category.toUpperCase();
   vehicle_type = vehicle_type?.toUpperCase() || "";
 
   // Parse vehicle_cv to a numeric value
@@ -530,4 +526,6 @@ export function calculatePremium(
   }
 
 }
+
+
 
