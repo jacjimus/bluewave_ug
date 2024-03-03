@@ -2,7 +2,7 @@ import { airtelMoney, airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
-import { getAirtelKenyaUser, getAirtelUser } from "../../services/getAirtelUser"
+import { getAirtelUser } from "../../services/getAirtelUserKyc";
 
 
 const familyMenu = async (args, db) => {
@@ -532,7 +532,7 @@ const familyMenu = async (args, db) => {
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
-      let user = await getAirtelKenyaUser(phoneNumber);
+      let user = await getAirtelUser(phoneNumber, 2);
       let membershierId = Math.floor(100000 + Math.random() * 900000);
       existingUser = await db.users.create({
         user_id: uuidv4(),
@@ -547,7 +547,7 @@ const familyMenu = async (args, db) => {
       });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membershierId} Dial *334*7*3# to access your account.`;
-      await SMSMessenger.sendSMS(3,fullPhone, message);
+      await SMSMessenger.sendSMS(3, fullPhone, message);
 
     }
 
@@ -556,7 +556,7 @@ const familyMenu = async (args, db) => {
       `\nTerms&Conditions - Terms&Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay \n Age 0 - 65 Years` + "\n1. Confirm \n0. Back" + "\n00. Main Menu";
   } else if (currentStep == 7) {
-console.log("existingUser", existingUser)
+    console.log("existingUser", existingUser)
     await processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser, db)
   }
 
@@ -585,6 +585,7 @@ async function processUserText1(allSteps, phoneNumber, family_cover_data, existi
     phoneNumber,
     ultimatePremium,
     existingUser.membership_id,
+    existingUser.partner_id
   );
 
   response = await handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber);

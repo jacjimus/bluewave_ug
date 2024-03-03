@@ -5,7 +5,7 @@ import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "./sendSMS";
 import dotenv from "dotenv";
-import authTokenByPartner from "./auth";
+import authTokenByPartner from "./authorization";
 dotenv.config();
 
 const User = db.users;
@@ -43,7 +43,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
       // WELCOME SMS
       const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(2,user.phone_number, message);
+      await SMSMessenger.sendSMS(2, user.phone_number, message);
       console.log("USER FOR AIRTEL API", user);
     }
 
@@ -54,61 +54,28 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 }
 
 
-async function getAirtelUser(
-  phoneNumber: string,
-  country: string,
-  currency: string,
-  partner_id: number
-) {
+async function getAirtelUser(phoneNumber: string, partnerId: number) {
   try {
+    const token = await authTokenByPartner(partnerId);
 
-    const token = await authTokenByPartner(partner_id);
+    let countryCode = partnerId === 1 ? "KE" : "UG";
+    let currencyCode = partnerId === 1 ? "KES" : "UGX";
 
     const headers = {
       Accept: "*/*",
-      "X-Country": country,
-      "X-Currency": currency,
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
-
-    phoneNumber = phoneNumber.replace("+", "").substring(3);
-    
-    // process.env.ENVIROMENT == 'PROD' ? process.env.PROD_AIRTEL_AUTH_TOKEN_URL:   process.env.AIRTEL_AUTH_TOKEN_URL;
-    const GET_USER_URL = `${process.env.PROD_AIRTEL_KYC_API_URL}/${phoneNumber}`;
-
-    const { data } = await axios.get(GET_USER_URL, { headers });
-    console.log("RESPONSE KYC", data.data);
-    return data?.data;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-
-async function getAirtelKenyaUser(
-  phoneNumber: string,
-) {
-  try {
-
-    const token = await authTokenByPartner(1);
-    console.log("TOKEN I AM GETTING", token);
-    const headers = {
-      Accept: "*/*",
-      "X-Country": 'KE',
-      "X-Currency": 'KES',
+      "X-Country": countryCode,
+      "X-Currency": currencyCode,
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     };
 
     phoneNumber = phoneNumber.replace("+", "").substring(3);
 
-    const GET_USER_URL = `${process.env.AIRTEL_KYC_API_URL}/${phoneNumber}`;
-
-    console.log("GET_USER_URL", GET_USER_URL);
+    const baseUrl = partnerId === 1 ? process.env.KEN_AIRTEL_API_URL : process.env.PROD_AIRTEL_API_URL;
+    const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
     const { data } = await axios.get(GET_USER_URL, { headers });
-    console.log("RESPONSE KYC", data.data);
+    console.log(`RESPONSE KYC - ${countryCode}:`, data.data);
     return data?.data;
   } catch (error) {
     console.error(error);
@@ -138,4 +105,4 @@ function generatePIN() {
   return Math.floor(1000 + Math.random() * 9000);
 }
 
-export { getAirtelUser, getUserByPhoneNumber, getAirtelKenyaUser };
+export { getAirtelUser, getUserByPhoneNumber };

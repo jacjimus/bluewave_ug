@@ -2,7 +2,7 @@ import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
-import { getAirtelUser } from "../../services/getAirtelUser";
+import { getAirtelUser } from  "../../services/getAirtelUserKyc"
 import { Op } from "sequelize";
 
 const selfMenu = async (args, db) => {
@@ -13,7 +13,7 @@ const selfMenu = async (args, db) => {
         where: {
             phone_number: phone,
         },
-        limit : 1
+        limit: 1
     });
 
     const coverTypes = [
@@ -60,7 +60,7 @@ const selfMenu = async (args, db) => {
     if (currentStep === 1) {
         switch (userText) {
             case "1":
-        
+
                 response = "CON Buy for self " +
                     "\n1. S MINI at UGX 5,000" +
                     "\n2. MINI at UGX 10,000" +
@@ -106,7 +106,7 @@ const selfMenu = async (args, db) => {
             `\n2. UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep === 3) {
-        console.log("allSteps", allSteps )
+        console.log("allSteps", allSteps)
         let paymentOption = parseInt(userText);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
         let policy_type = selectedPolicyType.name;
@@ -129,7 +129,7 @@ const selfMenu = async (args, db) => {
 
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
-                let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+                let user = await getAirtelUser(phoneNumber, 2);
 
                 let membershipId = Math.floor(100000 + Math.random() * 900000);
 
@@ -148,7 +148,7 @@ const selfMenu = async (args, db) => {
                 });
 
                 const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-                await SMSMessenger.sendSMS(2,fullPhone, message);
+                await SMSMessenger.sendSMS(2, fullPhone, message);
 
             }
 
@@ -188,7 +188,7 @@ const selfMenu = async (args, db) => {
                 installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
                 membership_id: existingUser.membership_id,
                 beneficiary: "SELF",
-                policy_status: "pending", 
+                policy_status: "pending",
                 policy_deduction_day: new Date().getDate() - 1,
                 partner_id: 2,
                 country_code: "UGA",
@@ -223,7 +223,7 @@ const selfMenu = async (args, db) => {
             const timeout = 1000;
 
             Promise.race([
-                 airtelMoneyPromise,
+                airtelMoneyPromise,
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Airtel Money operation timed out'));

@@ -1732,8 +1732,6 @@ async function policyReconciliation(req: any, res: any) {
       message: "error",
       code: 404
     }
-
-
     //4/2/2024 = 4th Feb 2024
 
     transaction_date = moment(transaction_date, "DD/MM/YYYY").format("YYYY-MM-DD")

@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { sendPolicyRenewalReminder } from "./src/services/crons";
+import { sendPolicyRenewalReminder } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";

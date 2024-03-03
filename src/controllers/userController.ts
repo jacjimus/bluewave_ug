@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from "bcrypt";
 import { db } from "../models/db";
-import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aar";
+import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aarServices";
 import welcomeTemplate from "../services/emailTemplates/welcome";
 import { sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
 import jwt from 'jsonwebtoken'
@@ -133,11 +133,11 @@ const signup = async (req: any, res: any) => {
     const emailExists = await User.findOne({ where: { email } });
 
     if (phoneNumberExists) {
-      return res.status(409).json({   status: "FAILED",code: 409, message: "Phone number already exists" });
+      return res.status(409).json({ status: "FAILED", code: 409, message: "Phone number already exists" });
     }
 
     if (emailExists) {
-      return res.status(409).json({  status: "FAILED", code: 409, message: "Email already exists" });
+      return res.status(409).json({ status: "FAILED", code: 409, message: "Email already exists" });
     }
 
     // Create a new user
@@ -239,7 +239,7 @@ const partnerRegistration = async (req: any, res: any) => {
     //checking if the partner already exists using email and partner id
     let partner: any = await Partner.findOne({ where: { email: email } });
     if (partner && partner.length > 0) {
-      return res.status(409).json({   status: "FAILED",code: 409, message: "Partner already exists" });
+      return res.status(409).json({ status: "FAILED", code: 409, message: "Partner already exists" });
     }
 
     //saving the partner
@@ -302,12 +302,12 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
 
     // Check if either email or phone_number is provided
     if (!email && !phone_number) {
-      return res.status(400).json({   status: "FAILED",message: 'Email or phone number is required, e.g john@email.com or 07XXXXXXXXX' });
+      return res.status(400).json({ status: "FAILED", message: 'Email or phone number is required, e.g john@email.com or 07XXXXXXXXX' });
     }
 
     // check password
     if (!password) {
-      return res.status(400).json({  status: "FAILED", message: 'password is required' });
+      return res.status(400).json({ status: "FAILED", message: 'password is required' });
     }
 
 
@@ -466,7 +466,7 @@ const findAllUsers = async (req: any, res) => {
 
   try {
     if (!partner_id) {
-      return res.status(400).json({  status: "FAILED", message: "Please provide a partner id" });
+      return res.status(400).json({ status: "FAILED", message: "Please provide a partner id" });
     }
 
 
@@ -506,6 +506,16 @@ const findAllUsers = async (req: any, res) => {
       attributes: {
         exclude: ["password", "pin"],
       },
+      include: [
+        {
+          model: Policy,
+          attributes: ["beneficiary", "policy_type", "policy_type", "policy_status", "premium","policy_paid_amount","installment_type","installment_order", "policy_start_date",  "createdAt"],
+          where : {
+            partner_id: partner_id,
+            policy_status: "paid"
+          }
+        },
+      ],
     });
 
 
@@ -516,7 +526,7 @@ const findAllUsers = async (req: any, res) => {
       });
     }
 
-    return res.status(404).json({status: "FAILED", code: 404, message: "No customers found" });
+    return res.status(404).json({ status: "FAILED", code: 404, message: "No customers found" });
   } catch (error) {
     console.error("ERROR", error);
     return res.status(500).json({
@@ -591,7 +601,7 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
     console.log("ERROR", error);
     return res
       .status(500)
-      .json({status: "FAILED", message: "Internal server error", error: error });
+      .json({ status: "FAILED", message: "Internal server error", error: error });
   }
 };
 
@@ -883,7 +893,7 @@ const partnerSwitch = async (req: any, res: any) => {
     });
     console.log("PARTNER", partner);
     if (!partner || partner.length === 0) {
-      return res.status(404).json({ item: 0,status: "FAILED", message: "Sorry, No partner found" });
+      return res.status(404).json({ item: 0, status: "FAILED", message: "Sorry, No partner found" });
     }
 
     let updatedUser = await User.update(
@@ -943,7 +953,7 @@ const partnerSwitch = async (req: any, res: any) => {
 const bulkUserRegistration = async (req: any, res: any) => {
   try {
     if (!req.file) {
-      return res.status(400).json({status: "FAILED", message: "No file uploaded" });
+      return res.status(400).json({ status: "FAILED", message: "No file uploaded" });
     }
 
     const partner_id = req.query.partner_id;
@@ -1234,7 +1244,7 @@ async function findUserVehicle(req: any, res: any) {
       return res.status(404).json({ item: 0, message: "Sorry, No vehicle found" });
     }
 
-    return res.status(200).json({status: "OK", message: "succesfully fetched user vehicles", items: userVehicle })
+    return res.status(200).json({ status: "OK", message: "succesfully fetched user vehicles", items: userVehicle })
   } catch (error) {
     return res.status(500).json({ status: "FAILED", message: "Internal server error" });
   }
@@ -1302,7 +1312,7 @@ async function updateUserVehicle(req: any, res: any) {
     })
 
     if (!userVehicle || userVehicle.length === 0) {
-      return res.status(404).json({status: "FAILED", item: 0, message: "Sorry, No vehicle found" });
+      return res.status(404).json({ status: "FAILED", item: 0, message: "Sorry, No vehicle found" });
     }
 
     const data = {
@@ -1325,11 +1335,11 @@ async function updateUserVehicle(req: any, res: any) {
       },
     });
 
-    return res.status(200).json({  status: "OK", message: "succesfully updated user vehicles" })
+    return res.status(200).json({ status: "OK", message: "succesfully updated user vehicles" })
 
 
   } catch (error) {
-    return res.status(500).json({status: "FAILED", message: "Internal server error" });
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
   }
 
 }
@@ -1434,7 +1444,7 @@ async function forgotPassword(req: any, res: any) {
       return res.status(400).json({ status: "FAILED", error: 'Email or phone number is required for password reset.' });
     }
 
-    return res.status(200).json({   status: "OK", message: 'Password reset instructions sent to your email.' });
+    return res.status(200).json({ status: "OK", message: 'Password reset instructions sent to your email.' });
   } catch (error) {
     console.error('Error in forgotPassword:', error);
     return res.status(500).json({ status: "FAILED", error: 'Internal server error.' });
@@ -1498,10 +1508,10 @@ async function changePassword(req: any, res: any) {
 
     await db.users.update({ password: await bcrypt.hash(newPassword, 10) }, { where: { email } });
 
-    return res.status(200).json({  status: "OK", message: 'Password updated successfully.' });
+    return res.status(200).json({ status: "OK", message: 'Password updated successfully.' });
   } catch (error) {
     console.error('Error in changePassword:', error);
-    return res.status(500).json({status: "FAILED",  error: 'Internal server error.' });
+    return res.status(500).json({ status: "FAILED", error: 'Internal server error.' });
   }
 }
 

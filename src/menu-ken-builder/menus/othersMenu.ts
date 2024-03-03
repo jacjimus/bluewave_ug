@@ -1,7 +1,7 @@
 import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
-import { getAirtelKenyaUser, getAirtelUser } from "../../services/getAirtelUser";
+import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { all } from "axios";
 
@@ -362,7 +362,7 @@ const othersMenu = async (args, db) => {
 
     if (!existingUser) {
 
-      let user = await getAirtelKenyaUser(phoneNumber)
+      let user = await getAirtelUser(phoneNumber, 1)
       let membershipId = Math.floor(100000 + Math.random() * 900000);
 
       existingUser = await db.users.create({
@@ -378,7 +378,7 @@ const othersMenu = async (args, db) => {
         nationality: "KENYA"
       });
       const message = `Dear ${user.first_name}, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-      await SMSMessenger.sendSMS(3,fullPhone, message);
+      await SMSMessenger.sendSMS(3, fullPhone, message);
 
     }
 
@@ -441,7 +441,7 @@ const othersMenu = async (args, db) => {
         installment_order,
         policy_type: policyType.name.toUpperCase(),
         policy_deduction_amount: parseAmount(ultimatePremium),
-        policy_pending_premium: parseAmount(policyType.yearly_premium) -parseAmount(ultimatePremium),
+        policy_pending_premium: parseAmount(policyType.yearly_premium) - parseAmount(ultimatePremium),
         sum_insured: policyType.sumInsured,
         premium: parseAmount(ultimatePremium),
         yearly_premium: parseAmount(policyType.yearly_premium),
@@ -475,6 +475,7 @@ const othersMenu = async (args, db) => {
           phone,
           parseAmount(ultimatePremium),
           existingUser.membership_id,
+          existingUser.partner_id
         );
 
         const timeout = 3000;

@@ -1,5 +1,5 @@
 import SMSMessenger from "../../services/sendSMS";
-import { registerDependant, fetchMemberStatusData, updatePremium, updateMember } from "../../services/aar";
+import { registerDependant, fetchMemberStatusData, updatePremium, updateMember } from "../../services/aarServices";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney } from "../../services/payment";
 import { Op } from "sequelize";

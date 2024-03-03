@@ -24,12 +24,7 @@ async function authTokenByPartner(partner_id: number) {
                 };
                 break;
             default:
-                AUTH_TOKEN_URL = process.env.PROD_AIRTEL_AUTH_TOKEN_URL;
-                inputBody = {
-                    client_id: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
-                    client_secret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
-                    grant_type: 'client_credentials',
-                };
+                throw new Error('Invalid partner id');
         }
 
         const headers = {

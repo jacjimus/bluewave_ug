@@ -8,7 +8,7 @@ import SMSMessenger from "../services/sendSMS";
 import { db } from "../models/db";
 import { v4 as uuidv4 } from "uuid";
 import { initiateConsent } from "../services/payment"
-import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aar"
+import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aarServices"
 import { calculateProrationPercentage, formatAmount, formatPhoneNumber } from "../services/utils";
 import { Op } from 'sequelize';
 

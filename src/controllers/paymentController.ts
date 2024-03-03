@@ -423,8 +423,16 @@ const createPayment = async (req, res) => {
 
         let airtelMoneyPromise;
         let timeout = 1000;
-
-        if (partner_id === 2) {
+        if (partner_id === 1) {
+            airtelMoneyPromise = airtelMoneyKenya(
+                existingUser.user_id,
+                policy.policy_id,
+                existingUser.phone_number,
+                policy.premium,
+                existingUser.membership_id,
+                existingUser.partner_id
+            );
+        } else if (partner_id === 2) {
             airtelMoneyPromise = airtelMoney(
                 existingUser.user_id,
                 2,
@@ -436,12 +444,14 @@ const createPayment = async (req, res) => {
                 "UGX"
             );
         } else if (partner_id === 3) {
+            // vodacom - cooming soon
             airtelMoneyPromise = airtelMoneyKenya(
                 existingUser.user_id,
                 policy.policy_id,
                 existingUser.phone_number,
                 policy.premium,
-                existingUser.membership_id
+                existingUser.membership_id,
+                existingUser.partner_id
             );
         } else {
             return res.status(404).json({

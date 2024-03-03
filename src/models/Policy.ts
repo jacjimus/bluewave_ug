@@ -117,21 +117,18 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        // TEXT []
+      
         policy_documents: {
             type: DataTypes.ARRAY(DataTypes.TEXT),
             allowNull: true
-
         },
         policy_paid_date: {
             type: DataTypes.DATE,
             allowNull: true,
-            defaultValue: new Date()
         },
         cancelled_at: {
             type: DataTypes.DATE,
             allowNull: true,
-            defaultValue: new Date()
         },
         policy_paid_amount: {
             type: DataTypes.NUMBER,
@@ -228,10 +225,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
     });
 
-    // Policy.hasMany(Payment, {
-    //     as: "payments",
-    //     foreignKey: "policy_id",
-    // });
     return Policy
 }
 

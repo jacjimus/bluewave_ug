@@ -1,5 +1,5 @@
 import SMSMessenger from "../../services/sendSMS";
-import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aar";
+import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aarServices";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { Op } from "sequelize";
@@ -46,13 +46,13 @@ const accountMenu = async (args: any, db: any) => {
             "\n2. Renew Cover" +
             "\n3. Cancel Policy" +
             "\n4. Add Next of Kin" +
-            "\n5. Update Gender and Date of birth"+
-            "\n6. Add Dependants" ;
+            "\n5. Update Gender and Date of birth" +
+            "\n6. Add Dependants";
 
     }
     else if (currentStep == 2) {
         // console.log('Current step', currentStep);
-         console.log('User text', userText)
+        console.log('User text', userText)
         switch (userText) {
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
@@ -103,11 +103,11 @@ const accountMenu = async (args: any, db: any) => {
                 break;
             case "5":
                 response = 'CON Choose your Gender ' +
-                 "\n1. Male" +
-                 "\n2. Female" ;
+                    "\n1. Male" +
+                    "\n2. Female";
                 break;
             case "6":
-                response = 'CON Dependant full name ' ;
+                response = 'CON Dependant full name ';
                 break;
             default:
                 response = "END Invalid option selected"
@@ -186,7 +186,7 @@ const accountMenu = async (args: any, db: any) => {
                 paidPolicies = paidPolicies.slice(-6);
 
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
-               
+
                 console.log("CHOOSEN POLICY", choosenPolicy)
 
 
@@ -196,6 +196,7 @@ const accountMenu = async (args: any, db: any) => {
                     phoneNumber.replace("+", "").substring(3),
                     choosenPolicy.premium,
                     existingUser.membership_id,
+                    existingUser.partner_id
                 );
 
 
@@ -286,13 +287,13 @@ const accountMenu = async (args: any, db: any) => {
                     phone_number: userText,
                     user_id: existingUser.user_id,
                     bonus: allSteps[2],
-                    category : "KIN"
+                    category: "KIN"
                 }
 
 
                 await db.beneficiaries.create(nextOfKinDetails);
                 const sms = `You have added ${nextOfKinDetails.name} as the next of Kin on your AfyaShua Cover. Any benefits on the cover will be payable to your next of Kin.`
-                await SMSMessenger.sendSMS(3,smsPhone, sms);
+                await SMSMessenger.sendSMS(3, smsPhone, sms);
                 response = `END ${sms}`
                 break;
             default:
@@ -301,21 +302,21 @@ const accountMenu = async (args: any, db: any) => {
         }
 
 
-    } else if (currentStep == 5){
-        console.log('==5 userText',userText)
+    } else if (currentStep == 5) {
+        console.log('==5 userText', userText)
         console.log(" ===5 ALLSTEPS", allSteps)
-      // update gender and dob
-      const existingUser = await db.users.findOne({
-        where: {
-            [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
-        },
-        limit: 1,
-    });
-   response = 'CON whats your date of birth in the format YYYY-MM-DD'
+        // update gender and dob
+        const existingUser = await db.users.findOne({
+            where: {
+                [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+            },
+            limit: 1,
+        });
+        response = 'CON whats your date of birth in the format YYYY-MM-DD'
 
-    }else if(currentStep == 6){
+    } else if (currentStep == 6) {
 
-        console.log('==6 userText',userText)
+        console.log('==6 userText', userText)
         console.log(" ===6 ALLSTEPS", allSteps)
         //update dependant
 

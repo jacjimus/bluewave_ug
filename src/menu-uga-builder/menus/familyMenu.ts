@@ -2,7 +2,7 @@ import { airtelMoney } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
-import { getAirtelUser } from "../../services/getAirtelUser"
+import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { Op } from 'sequelize';
 
 
@@ -840,7 +840,7 @@ const familyMenu = async (args, db) => {
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY");
-      let user = await getAirtelUser(phoneNumber, "UG", "UGX", 2);
+      let user = await getAirtelUser(phoneNumber, 2);
       let membershierId = Math.floor(100000 + Math.random() * 900000);
       existingUser = await db.users.create({
         user_id: uuidv4(),

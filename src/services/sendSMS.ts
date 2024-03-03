@@ -15,24 +15,23 @@ class SMSMessenger {
 
 
 
-
-  static async sendSMS(partner_id: number,phoneNumber:string, message:string) {
-   // const sms = SMSMessenger.africastalking.SMS;
+  static async sendSMS(partner_id: number, phoneNumber: string, message: string) {
+    // const sms = SMSMessenger.africastalking.SMS;
 
     const sms = partner_id === 3 ? SMSMessenger.africastalkingKen.SMS : SMSMessenger.africastalking.SMS;
-    
+
     const options = {
-      from: partner_id === 3 ? process.env.AFRICA_TALKING_KEN_SHORTCODE: process.env.AFRICA_TALKING_SHORTCODE,
+      from: partner_id === 3 ? process.env.AFRICA_TALKING_KEN_SHORTCODE : process.env.AFRICA_TALKING_SHORTCODE,
       to: phoneNumber,
       message: message,
     };
 
-    console.log('AFRICASLKING OPTIONS ',options);
+    console.log('AFRICASLKING OPTIONS ', options);
     try {
       const response = await sms.send(options);
-      console.log('AFRICASLKING RESPONSE ',response);
+      console.log('AFRICASLKING RESPONSE ', response);
     } catch (error) {
-      console.log("AFRICASTALKING ERR ",error);
+      console.log("AFRICASTALKING ERR ", error);
     }
   }
 
