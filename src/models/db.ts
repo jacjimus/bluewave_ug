@@ -1,7 +1,13 @@
 const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 require('dotenv').config()
 
-const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres" })
+const DB_URL = process.env.ENV === 'PROD' ? process.env.DB_URL : process.env.DB_URL_DEV
+const sequelize = new Sequelize(process.env.DB_URL, { dialect: "postgres", dialectOptions: {
+  ssl: {
+    require: true,
+    rejectUnauthorized: false 
+  }
+}})
 
 sequelize.authenticate().then(() => {
   console.log(`Database connected to Bluewave! time: ${new Date()}`)
