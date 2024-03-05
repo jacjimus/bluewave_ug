@@ -154,8 +154,8 @@ const getPolicySummary = async (req: any, res: any) => {
         partner_id: partner_id,
         policy_status: 'pending',
         policy_start_date: {
-          [Op.gte]: startDate.toDate(),
-          [Op.lt]: endDate.toDate()
+          [Op.gte]: startDate,
+          [Op.lt]: endDate
         }
       },
       limit:1
