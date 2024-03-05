@@ -2,7 +2,7 @@ import { all } from "axios";
 import { db } from "../models/db";
 import { reconcilationCallback } from "../services/payment";
 
-const { Op, QueryTypes } = require("sequelize");
+const { Op, QueryTypes , Sequelize} = require("sequelize");
 const moment = require("moment");
 const excelJS = require("exceljs");
 const fs = require("fs");
@@ -90,12 +90,14 @@ const getPolicySummary = async (req: any, res: any) => {
       endDate = new Date();
     }
 
+   endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
+
     let policyQuery = {
       where: {
         createdAt: {
           [Op.between]: [startDate, endDate],
         },
-        ...(partner_id != 1 && { partner_id }),
+        ...(partner_id != 4 && { partner_id }),
       },
       limit: 100,
     };
@@ -113,6 +115,7 @@ const getPolicySummary = async (req: any, res: any) => {
         partner_id,
       },
     });
+
     // await db.payments.sum("payment_amount", {
     //   where: {
     //     payment_status: "paid",
@@ -146,6 +149,18 @@ const getPolicySummary = async (req: any, res: any) => {
       },
     });
 
+    const freePolicies = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'pending',
+        policy_start_date: {
+          [Op.gte]: startDate.toDate(),
+          [Op.lt]: endDate.toDate()
+        }
+      },
+      limit:1
+    });
+
     let summary = {
       total_users: await db.users.count({ where: { partner_id } }),
       total_policies_paid: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
@@ -154,6 +169,7 @@ const getPolicySummary = async (req: any, res: any) => {
       total_paid_payment_amount: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
       total_policies_renewed: renewalsCount.count,
       total_policies_renewed_premium: total_policies_renewed_premium,
+      total_free_policies: freePolicies.count,
     };
 
     let country_code, currency_code;
@@ -162,6 +178,7 @@ const getPolicySummary = async (req: any, res: any) => {
       1: { country_code: "KE", currency_code: "KES" },
       2: { country_code: "UG", currency_code: "UGX" },
       3: { country_code: "CD", currency_code: "COD" },
+      4: { country_code: "KE", currency_code: "KES" },
       // Add more partner countries as needed
     };
 
@@ -1649,9 +1666,9 @@ const paymentReconciliation = async (req, res) => {
           premium: premium,
           policy_status: 'paid',
           partner_id: 2
-          
+
         },
-       
+
         limit: 1,
       });
 
@@ -1666,8 +1683,8 @@ const paymentReconciliation = async (req, res) => {
             policy_id: policy.policy_id,
           },
         });
-      }else{
-        
+      } else {
+
         console.log("AIRTEL MONEY ID FOUND ", policy?.first_name, policy?.last_name, policy?.phone_number, policy?.premium, data.airtel_money_id);
       }
     }
@@ -1800,6 +1817,344 @@ async function policyReconciliation(req: any, res: any) {
 }
 
 
+/**
+ * @swagger
+ * /api/v1/reports/policy/summary/snapshot:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Policy Summary Snapshot
+ *     operationId: Policy Summary Snapshot
+ *     summary: Policy Summary Snapshot
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: from_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: to_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+
+async function getPolicySummarySnapshot(req, res) {
+  try {
+    let { partner_id, from_date, to_date } = req.query;
+
+    // if date is not provided, use the this year
+    if (!from_date) {
+      from_date = moment().startOf('year').format("YYYY-MM-DD");
+    }
+
+    if (!to_date) {
+      to_date = moment().endOf('year').format("YYYY-MM-DD");
+    }
+
+    // Initialize quarterData array to hold data for each quarter
+    const quarterData = [];
+
+    // Split the date range into quarters
+    const quarterStartDate = moment(from_date).startOf('quarter');
+    const quarterEndDate = moment(to_date).endOf('quarter');
+
+    // Loop through each quarter
+    for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+      const quarterEnd = moment(quarterStart).endOf('quarter');
+
+      // Initialize months array to hold data for each month within the quarter
+      const months = [];
+
+      // Loop through each month within the quarter
+      for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
+        const monthEnd = moment(monthStart).endOf('month');
+
+        // Fetch data for each month
+        const monthData = await fetchMonthData(partner_id, monthStart, monthEnd);
+
+        months.push(monthData);
+      }
+
+      // Construct data object for the quarter
+      const quarterDataObject = {
+        quarter: quarterStart.format('Q YYYY'),
+        months: months
+      };
+
+      // Push the quarter data object to quarterData array
+      quarterData.push(quarterDataObject);
+    }
+
+    // Return the quarterData in the response
+    return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", quarterData });
+  }
+  catch (error) {
+    console.log(error)
+    res.status(500).json({ status: "FAILED", message: "Internal server error" });
+  }
+}
+
+// Function to fetch data for a specific month
+async function fetchMonthData(partner_id, monthStart, monthEnd) {
+  const freePolicies = await db.policies.findAndCountAll({
+    where: {
+      partner_id: partner_id,
+      policy_status: 'pending',
+      policy_start_date: {
+        [Op.gte]: monthStart.toDate(),
+        [Op.lt]: monthEnd.toDate()
+      }
+    },
+    limit:1
+  });
+
+  // Fetch other required data similarly for each month
+      let policyRenewals = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'paid',
+        installment_order: {
+          [Op.gt]: 1
+        },
+        policy_start_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        }
+      },
+    });
+
+    let freePoliciesExpirations = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'pending',
+        policy_end_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        }
+      },
+    });
+
+    let policyExpirations = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'expired',
+        policy_end_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        }
+      },
+    });
+
+    let totalPremium = await db.policies.findAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'paid',
+        policy_paid_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        }
+      },
+      attributes: [
+        [Sequelize.fn('sum', Sequelize.col('policy_paid_amount')), 'total_premium']
+      ],
+    });
+
+    console.log("totalPremium", totalPremium[0].dataValues.total_premium)
+
+    let firstTimePolicies = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'paid',
+        installment_order: 1,
+        policy_start_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        }
+      },
+      attributes: [
+        [Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']
+      ],
+    });
+
+    let activePolicies = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'paid',
+        policy_start_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        }
+      },
+      attributes: [
+        [Sequelize.fn('count', Sequelize.col('policy_id')), 'active_policies']
+      ],
+    });
+
+    // Calculate retention rate
+    let retentionRate = ((policyRenewals.count / (activePolicies.count + policyExpirations.count)) * 100).toFixed(0);
+
+    // Calculate conversion rate
+    let conversionRate =((firstTimePolicies.count / freePolicies.count) * 100).toFixed(0);
+
+
+  // Construct and return data object for the month
+  return {
+    month: monthStart.format('MMMM YYYY'),
+    free_policies: freePolicies.count,
+    active_policies: activePolicies.count,
+    first_time_policies: firstTimePolicies.count,
+    renewals: policyRenewals.count,
+    free_policy_expiration: freePoliciesExpirations.count, // Is this correct?
+    paid_policy_expiration: policyExpirations.count,
+    retention_rate: parseInt(retentionRate),
+    conversion_rate: parseInt(conversionRate),
+    total_premium: parseInt(totalPremium[0].dataValues.total_premium)
+
+  };
+}
+
+// async function getPolicySummarySnapshot(req: any, res: any) {
+//   try {
+//     let { partner_id, from_date , to_date} = req.query;
+
+//     let freePolicies = await db.policies.findAndCountAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'pending',
+//         policy_start_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//       limit:1
+      
+//     });
+
+//     let policyRenewals = await db.policies.findAndCountAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'paid',
+//         installment_order: {
+//           [Op.gt]: 1
+//         },
+//         policy_start_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//     });
+
+//     let freePoliciesExpirations = await db.policies.findAndCountAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'pending',
+//         policy_end_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//     });
+
+//     let policyExpirations = await db.policies.findAndCountAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'expired',
+//         policy_end_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//     });
+
+//     let totalPremium = await db.policies.findAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'paid',
+//         policy_paid_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//       attributes: [
+//         [Sequelize.fn('sum', Sequelize.col('policy_paid_amount')), 'total_premium']
+//       ],
+//     });
+
+//     console.log("totalPremium", totalPremium[0].dataValues.total_premium)
+
+//     let firstTimePolicies = await db.policies.findAndCountAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'paid',
+//         installment_order: 1,
+//         policy_start_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//       attributes: [
+//         [Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']
+//       ],
+//     });
+
+//     let activePolicies = await db.policies.findAndCountAll({
+//       where: {
+//         partner_id: partner_id,
+//         policy_status: 'paid',
+//         policy_start_date: {
+//           [Op.gte]: new Date(from_date),
+//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//         }
+//       },
+//       attributes: [
+//         [Sequelize.fn('count', Sequelize.col('policy_id')), 'active_policies']
+//       ],
+//     });
+
+//     // Calculate retention rate
+//     let retentionRate = ((policyRenewals.count / (activePolicies.count + policyExpirations.count)) * 100).toFixed(0);
+
+//     // Calculate conversion rate
+//     let conversionRate =((firstTimePolicies.count / freePolicies.count) * 100).toFixed(0);
+
+//     let policySnapshot = {
+//       free_policies: freePolicies.count,
+//       active_policies: activePolicies.count,
+//       first_time_policies: firstTimePolicies.count,
+//       renewals: policyRenewals.count,
+//       free_policy_expiration: freePoliciesExpirations.count, // Is this correct?
+//       paid_policy_expiration: policyExpirations.count,
+//       retention_rate: parseInt(retentionRate),
+//       conversion_rate: parseInt(conversionRate),
+//       total_premium: parseInt(totalPremium[0].dataValues.total_premium)
+//     }
+
+//     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", policySnapshot });
+//   }
+//   catch (error) {
+//     console.log(error)
+//     res.status(500).json({ status: "FAILED", message: "Internal server error" });
+//   }
+// }
+
+
+
+
 module.exports = {
   policyReconciliation,
   paymentReconciliation,
@@ -1815,5 +2170,6 @@ module.exports = {
   handleUsersDownload,
   handleClaimDownload,
   getClaimExcelReportDownload,
-  getUserExcelReportDownload
+  getUserExcelReportDownload,
+  getPolicySummarySnapshot
 };
