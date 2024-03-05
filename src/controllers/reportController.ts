@@ -1846,6 +1846,21 @@ async function policyReconciliation(req: any, res: any) {
  *         schema:
  *           type: string
  *           format: date
+ *       - name: category
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: policy_type
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: policy_duration
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -1855,7 +1870,7 @@ async function policyReconciliation(req: any, res: any) {
 
 async function getPolicySummarySnapshot(req, res) {
   try {
-    let { partner_id, from_date, to_date } = req.query;
+    let { partner_id, from_date, to_date,category,policy_type, policy_duration } = req.query;
 
     // if date is not provided, use the this year
     if (!from_date) {
@@ -1865,6 +1880,7 @@ async function getPolicySummarySnapshot(req, res) {
     if (!to_date) {
       to_date = moment().endOf('year').format("YYYY-MM-DD");
     }
+   
 
     // Initialize quarterData array to hold data for each quarter
     const quarterData = [];
@@ -1885,7 +1901,7 @@ async function getPolicySummarySnapshot(req, res) {
         const monthEnd = moment(monthStart).endOf('month');
 
         // Fetch data for each month
-        const monthData = await fetchMonthData(partner_id, monthStart, monthEnd);
+        const monthData = await fetchMonthData(partner_id, monthStart, monthEnd,  category, policy_type, policy_duration)
 
         months.push(monthData);
       }
@@ -1910,7 +1926,9 @@ async function getPolicySummarySnapshot(req, res) {
 }
 
 // Function to fetch data for a specific month
-async function fetchMonthData(partner_id, monthStart, monthEnd) {
+async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+  let beneficiary = category
+  let installment_type = policy_duration
   const freePolicies = await db.policies.findAndCountAll({
     where: {
       partner_id: partner_id,
@@ -1918,7 +1936,11 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
       policy_start_date: {
         [Op.gte]: monthStart.toDate(),
         [Op.lt]: monthEnd.toDate()
-      }
+      },
+      ...(beneficiary && { beneficiary }),
+      ...(policy_type && { policy_type }),
+      ...(installment_type && { installment_type }),
+
     },
     limit:1
   });
@@ -1934,7 +1956,10 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
         policy_start_date: {
           [Op.gte]: new Date(monthStart),
           [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        }
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
       },
     });
 
@@ -1945,7 +1970,10 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
         policy_end_date: {
           [Op.gte]: new Date(monthStart),
           [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        }
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
       },
     });
 
@@ -1956,7 +1984,10 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
         policy_end_date: {
           [Op.gte]: new Date(monthStart),
           [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        }
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
       },
     });
 
@@ -1967,7 +1998,10 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
         policy_paid_date: {
           [Op.gte]: new Date(monthStart),
           [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        }
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
       },
       attributes: [
         [Sequelize.fn('sum', Sequelize.col('policy_paid_amount')), 'total_premium']
@@ -1984,7 +2018,10 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
         policy_start_date: {
           [Op.gte]: new Date(monthStart),
           [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        }
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
       },
       attributes: [
         [Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']
@@ -1998,7 +2035,10 @@ async function fetchMonthData(partner_id, monthStart, monthEnd) {
         policy_start_date: {
           [Op.gte]: new Date(monthStart),
           [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        }
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
       },
       attributes: [
         [Sequelize.fn('count', Sequelize.col('policy_id')), 'active_policies']
