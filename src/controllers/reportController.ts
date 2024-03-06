@@ -1834,13 +1834,13 @@ async function policyReconciliation(req: any, res: any) {
  *         required: true
  *         schema:
  *           type: number
- *       - name: from_date
+ *       - name: start_date
  *         in: query
  *         required: false
  *         schema:
  *           type: string
  *           format: date
- *       - name: to_date
+ *       - name: end_date
  *         in: query
  *         required: false
  *         schema:
@@ -1870,15 +1870,15 @@ async function policyReconciliation(req: any, res: any) {
 
 async function getPolicySummarySnapshot(req, res) {
   try {
-    let { partner_id, from_date, to_date,category,policy_type, policy_duration } = req.query;
+    let { partner_id, start_date, end_date,category,policy_type, policy_duration } = req.query;
 
     // if date is not provided, use the this year
-    if (!from_date) {
-      from_date = moment().startOf('year').format("YYYY-MM-DD");
+    if (!start_date) {
+      start_date = moment().startOf('year').format("YYYY-MM-DD");
     }
 
-    if (!to_date) {
-      to_date = moment().endOf('year').format("YYYY-MM-DD");
+    if (!end_date) {
+      end_date = moment().endOf('year').format("YYYY-MM-DD");
     }
    
 
@@ -1886,8 +1886,8 @@ async function getPolicySummarySnapshot(req, res) {
     const quarterData = [];
 
     // Split the date range into quarters
-    const quarterStartDate = moment(from_date).startOf('quarter');
-    const quarterEndDate = moment(to_date).endOf('quarter');
+    const quarterStartDate = moment(start_date).startOf('quarter');
+    const quarterEndDate = moment(end_date).endOf('quarter');
 
     // Loop through each quarter
     for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
@@ -2070,15 +2070,15 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 
 // async function getPolicySummarySnapshot(req: any, res: any) {
 //   try {
-//     let { partner_id, from_date , to_date} = req.query;
+//     let { partner_id, start_date , end_date} = req.query;
 
 //     let freePolicies = await db.policies.findAndCountAll({
 //       where: {
 //         partner_id: partner_id,
 //         policy_status: 'pending',
 //         policy_start_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //       limit:1
@@ -2093,8 +2093,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //           [Op.gt]: 1
 //         },
 //         policy_start_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //     });
@@ -2104,8 +2104,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //         partner_id: partner_id,
 //         policy_status: 'pending',
 //         policy_end_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //     });
@@ -2115,8 +2115,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //         partner_id: partner_id,
 //         policy_status: 'expired',
 //         policy_end_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //     });
@@ -2126,8 +2126,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //         partner_id: partner_id,
 //         policy_status: 'paid',
 //         policy_paid_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //       attributes: [
@@ -2143,8 +2143,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //         policy_status: 'paid',
 //         installment_order: 1,
 //         policy_start_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //       attributes: [
@@ -2157,8 +2157,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //         partner_id: partner_id,
 //         policy_status: 'paid',
 //         policy_start_date: {
-//           [Op.gte]: new Date(from_date),
-//           [Op.lt]: new Date(moment(to_date).add(1, 'days').format("YYYY-MM-DD"))
+//           [Op.gte]: new Date(start_date),
+//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
 //         }
 //       },
 //       attributes: [

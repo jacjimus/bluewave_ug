@@ -382,7 +382,6 @@ router.all("/callback/kenya", async (req, res) => {
         console.log("MEMBERS", members, policy.total_member_number);
 
 
-
         const inPatientCover = formatAmount(policy.inpatient_cover);
         const outPatientCover = formatAmount(policy.outpatient_cover);
         const maternityCover = formatAmount(policy.maternity_cover);

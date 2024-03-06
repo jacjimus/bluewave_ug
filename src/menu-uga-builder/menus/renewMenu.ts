@@ -83,7 +83,7 @@ const renewMenu = async (args: any, db: any) => {
 
         let choosenPolicy = paidPolicies[allSteps[1] - 1];
 
-        console.log("CHOOSEN POLICY", choosenPolicy)
+        //console.log("CHOOSEN POLICY", choosenPolicy)
         const airtelMoneyPromise = await airtelMoney(
             existingUser.user_id,
             2,

@@ -2,7 +2,7 @@ import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
-import { airtelMoney } from "../../services/payment";
+import { airtelMoney, processPayment } from "../../services/payment";
 
 
 const othersMenu = async (args, db) => {
@@ -390,6 +390,7 @@ const othersMenu = async (args, db) => {
 
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
+    console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
 
     otherUser = await db.users.findOne({
       where: {
@@ -457,6 +458,7 @@ const othersMenu = async (args, db) => {
 
     if (userText == "1") {
 
+
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
 
@@ -507,60 +509,60 @@ const othersMenu = async (args, db) => {
         policy_number: policyNumber
       }
 
+      await processPayment(policyObject, phone, existingOther)
 
-      try {
-
-        let policy = await db.policies.create(policyObject);
-
-        const airtelMoneyPromise = await airtelMoney(
-          existingOther.user_id,
-          2,
-          policy.policy_id,
-          phone,
-          policy.policy_deduction_amount,
-          existingOther.membership_id,
-          "UG",
-          "UGX"
-        );
-
-        console.log("============== START TIME ================ ", new Date());
+  
 
 
-        const timeout = 1000;
+      //   let policy = await db.policies.create(policyObject);
 
-        Promise.race([
-          airtelMoneyPromise,
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              reject(new Error('Airtel Money operation timed out'));
-            }, timeout);
-          })
-        ])
-          .then((result) => {
-            // Airtel Money operation completed successfully
-            response = 'END Payment successful';
-            console.log("RESPONSE WAS CALLED", result);
-            return response;
-          })
-          .catch((error) => {
-            console.log("An error occurred:", error);
-            response = 'END Payment failed';
-            console.log("RESPONSE WAS CALLED", response);
-            return response;
-          });
+      //   const airtelMoneyPromise = await airtelMoney(
+      //     existingOther.user_id,
+      //     2,
+      //     policy.policy_id,
+      //     phone,
+      //     policy.policy_deduction_amount,
+      //     existingOther.membership_id,
+      //     "UG",
+      //     "UGX"
+      //   );
 
-      } catch (error) {
-        console.log("RESPONSE WAS CALLED EER", error);
-      }
+      //   console.log("============== START TIME ================ ", new Date());
+
+
+      //   const timeout = 1000;
+
+      //   Promise.race([
+      //     airtelMoneyPromise,
+      //     new Promise((resolve, reject) => {
+      //       setTimeout(() => {
+      //         reject(new Error('Airtel Money operation timed out'));
+      //       }, timeout);
+      //     })
+      //   ])
+      //     .then((result) => {
+      //       // Airtel Money operation completed successfully
+      //       response = 'END Payment successful';
+      //       console.log("RESPONSE WAS CALLED", result);
+      //       return response;
+      //     })
+      //     .catch((error) => {
+      //       console.log("An error occurred:", error);
+      //       response = 'END Payment failed';
+      //       console.log("RESPONSE WAS CALLED", response);
+      //       return response;
+      //     });
+
+      // } catch (error) {
+      //   console.log("RESPONSE WAS CALLED EER", error);
+      // }
       console.log("============== AFTER CATCH  TIME ================ ", new Date());
-
-
-    } else {
-      response = "END Thank you for using Ddwaliro Care"
-    }
+  
   }
+}
 
   return response;
+
 
 }
 

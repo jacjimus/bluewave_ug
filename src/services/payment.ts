@@ -681,6 +681,45 @@ async function sendCongratulatoryMessage(policy, user) {
   }
 }
 
+async function processPayment(policyObject, phone, existingOther) {
+  try {
+    let policy = await db.policies.create(policyObject);
+
+    const airtelMoneyPromise = await airtelMoney(
+      existingOther.user_id,
+      2,
+      policy.policy_id,
+      phone,
+      policy.policy_deduction_amount,
+      existingOther.membership_id,
+      "UG",
+      "UGX"
+    );
+
+    console.log("============== START TIME ================ ", new Date());
+
+    const timeout = 1000;
+
+    const result = await Promise.race([
+      airtelMoneyPromise,
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error('Airtel Money operation timed out'));
+        }, timeout);
+      })
+    ]);
+
+    // Airtel Money operation completed successfully
+    console.log("RESPONSE WAS CALLED", result);
+    return 'END Payment successful';
+  } catch (error) {
+    console.log("An error occurred:", error);
+    return 'END Payment failed';
+  }
+}
+
+
+
 
 export {
   airtelMoney,
@@ -697,5 +736,6 @@ export {
   airtelMoneyKenya,
   reconcilationCallback,
   sendCongratulatoryMessage,
-  createTransaction
+  createTransaction,
+  processPayment
 };

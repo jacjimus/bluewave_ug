@@ -71,7 +71,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 
     phoneNumber = phoneNumber.replace("+", "").substring(3);
 
-    const baseUrl = partnerId === 1 ? process.env.KEN_AIRTEL_API_URL : process.env.PROD_AIRTEL_API_URL;
+    const baseUrl = partnerId === 1 ? process.env.KEN_AIRTEL_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
     const { data } = await axios.get(GET_USER_URL, { headers });
