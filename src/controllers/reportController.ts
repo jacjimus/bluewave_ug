@@ -1912,6 +1912,8 @@ async function getPolicySummarySnapshot(req, res) {
         months: months
       };
 
+      console.log("quarterDataObject", quarterDataObject)
+
       // Push the quarter data object to quarterData array
       quarterData.push(quarterDataObject);
     }
@@ -1977,6 +1979,9 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
       },
     });
 
+    console.log("freePoliciesExpirations", freePoliciesExpirations.count)
+
+
     let policyExpirations = await db.policies.findAndCountAll({
       where: {
         partner_id: partner_id,
@@ -2008,7 +2013,7 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
       ],
     });
 
-    console.log("totalPremium", totalPremium[0].dataValues.total_premium)
+   // console.log("totalPremium", totalPremium[0].dataValues.total_premium)
 
     let firstTimePolicies = await db.policies.findAndCountAll({
       where: {
@@ -2027,6 +2032,8 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
         [Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']
       ],
     });
+
+    //console.log("firstTimePolicies", firstTimePolicies.count)
 
     let activePolicies = await db.policies.findAndCountAll({
       where: {
@@ -2061,9 +2068,9 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
     renewals: policyRenewals.count,
     free_policy_expiration: freePoliciesExpirations.count, // Is this correct?
     paid_policy_expiration: policyExpirations.count,
-    retention_rate: parseInt(retentionRate),
-    conversion_rate: parseInt(conversionRate),
-    total_premium: parseInt(totalPremium[0].dataValues.total_premium)
+    retention_rate: parseInt(retentionRate) || 0,
+    conversion_rate: parseInt(conversionRate) || 0,
+    total_premium: parseInt(totalPremium[0].dataValues.total_premium) || 0
 
   };
 }
