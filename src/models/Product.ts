@@ -79,6 +79,19 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.JSONB,
             allowNull: true
         },
+        
+        policy_type : {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true,
+            default: []
+
+        },
+        policy_category : {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true,
+            default: []
+
+        }
     })
  Product.hasMany(sequelize.models.policy, {
 as: "policies",

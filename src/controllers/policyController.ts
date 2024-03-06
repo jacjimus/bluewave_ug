@@ -939,8 +939,6 @@ const submitSelfCover = async (req, res) => {
 }
 
 
-
-
 module.exports = {
   getPolicies,
   getPolicy,

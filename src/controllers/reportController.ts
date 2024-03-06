@@ -2068,6 +2068,9 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
   };
 }
 
+
+
+
 // async function getPolicySummarySnapshot(req: any, res: any) {
 //   try {
 //     let { partner_id, start_date , end_date} = req.query;
@@ -2191,6 +2194,7 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 //     res.status(500).json({ status: "FAILED", message: "Internal server error" });
 //   }
 // }
+
 
 
 

@@ -16,7 +16,9 @@ interface Product {
   product_status: string,
   product_duration: number,
   underwriter: string,
-  benefits: object
+  benefits: object,
+  policy_type: string[],
+  policy_category: string[],
 
 }
 
@@ -344,7 +346,9 @@ const updateProduct = async (req: any, res: any) => {
       product_status: product_status,
       product_duration: product_duration,
       underwriter: underwriter,
-      benefits: benefits
+      benefits: benefits,
+      policy_type: [],
+      policy_category: [],
 
     };
     //saving the product
@@ -418,12 +422,73 @@ const deleteProduct = async (req: any, res: any) => {
 
 
 
+/**
+  * @swagger
+  * /api/v1/products/policy_details:
+  *   get:
+  *     tags:
+  *       - Products
+  *     description:  Get product policy details by partner
+  *     operationId:  getProductPolicyDetailsByPartner
+  *     summary:   Get product policy details by partner
+  *     security:
+  *       - ApiKeyAuth: []
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: string
+  *     responses:
+  *       200:
+  *         description: Information fetched succussfuly
+  *       400:
+  *         description: Invalid request
+  */
+async function getProductPolicyDetailsByPartner(req: any, res: any) {
+
+  try {
+    const partner_id = req.query.partner_id;
+
+
+    const product = await Product.findOne({
+      where: {
+        partner_id: partner_id,
+      }
+    })
+
+    if (!product || product.length === 0) {
+      return res.status(404).json({ message: "No product found" });
+    }
+     
+
+    return res.status(200).json({
+      code: 200,
+      status: "OK", result: {
+        country : product.country,
+        policy_type: product.policy_type,
+        policy_category: product.policy_category,
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED", message: "Internal server error", error: error
+    });
+  }
+
+}
+
+
+
 module.exports = {
   getProducts,
   getProduct,
   createProduct,
   updateProduct,
   deleteProduct,
+  getProductPolicyDetailsByPartner
 }
 
 
