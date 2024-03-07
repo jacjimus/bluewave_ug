@@ -19,7 +19,9 @@ router.get('/', isSuperAdmin, paymentController.getPayments)
 router.get('/:payment_id', isSuperAdmin, paymentController.getPayment)
 router.get('/policy/:policy_id', isSuperAdmin, paymentController.getPolicyPayments)
 router.get('/user/:user_id', isSuperAdmin, paymentController.findUserByPhoneNumberPayments)
+router.get('/customer/payment_attempts',  paymentController.customerPaymentAttempts)
 router.post('/create', isSuperAdmin, isSuperAdmin, paymentController.createPayment)
+
 
 export default router;
 

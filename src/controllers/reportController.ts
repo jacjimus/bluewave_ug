@@ -1880,6 +1880,17 @@ async function getPolicySummarySnapshot(req, res) {
     if (!end_date) {
       end_date = moment().endOf('year').format("YYYY-MM-DD");
     }
+
+     // Ensure start date is before or equal to end date
+     if (start_date > end_date) {
+      return res.status(400).json({
+        code: 400,
+        status: "FAILED",
+        message: "Start date cannot be after end date",
+      });
+    }
+
+
    
 
     // Initialize quarterData array to hold data for each quarter

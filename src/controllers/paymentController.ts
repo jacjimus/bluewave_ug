@@ -7,7 +7,8 @@ const Log = db.logs;
 import { v4 as uuid_v4 } from "uuid";
 import { airtelMoney, airtelMoneyKenya } from "../services/payment";
 uuid_v4()
-const { Op } = require("sequelize");
+const { Op , Sequelize} = require("sequelize");
+import moment from "moment";
 
 
 /**
@@ -165,7 +166,7 @@ const getPayment = async (req: any, res: any) => {
                 payment_id: payment_id,
                 partner_id: partner_id
             },
-            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
             limit: 1
         });
 
@@ -179,7 +180,7 @@ const getPayment = async (req: any, res: any) => {
                 }
             });
         } else {
-            return   res.status(404).json({
+            return res.status(404).json({
                 code: 404, message: "Payment not found"
             });
         }
@@ -494,7 +495,337 @@ const createPayment = async (req, res) => {
     }
 };
 
+// async function customerPaymentAttempts (){
+//     try {
 
+// /* implement logic to get the following payment attempts for every quarter of the year with its respective months
+// 1. payment attempts
+// 2. successful payments
+// 3. QWP Paid
+// 4. wrong pin failed payments
+// 5. insufficient funds failed payments
+// */
+
+
+
+//     } catch (error) {
+//         console.error("ERROR", error);
+//         return null;
+//     }
+
+// }
+
+/**
+ * @swagger
+ * /api/v1/payments/customer/payment_attempts:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     description:  Get customer payment attempts
+ *     operationId: customerPaymentAttempts
+ *     summary: Get customer payment attempts
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: start_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: end_date
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: category
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: policy_type
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: policy_duration
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+
+async function customerPaymentAttempts(req, res) {
+    try {
+
+        const { partner_id, start_date, end_date, category, policy_type, policy_duration } = req.query;
+        if (!partner_id) {
+            return res.status(400).json({
+                code: 400,
+                status: "FAILED",
+                message: "Partner ID is required",
+            });
+        }
+
+        // Handle optional start_date and end_date parameters
+        const startDate = start_date ? moment(start_date).startOf('day').toDate() : moment().startOf('year').toDate();
+        const endDate = end_date ? moment(end_date).endOf('day').toDate() : moment().endOf('year').toDate();
+
+        // Ensure start date is before or equal to end date
+        if (startDate > endDate) {
+            return res.status(400).json({
+                code: 400,
+                status: "FAILED",
+                message: "Start date cannot be after end date",
+            });
+        }
+
+
+        // Initialize quarterData array to hold data for each quarter
+        const quarterData = [];
+
+        // Split the date range into quarters
+        const quarterStartDate = moment(start_date).startOf('quarter');
+        const quarterEndDate = moment(end_date).endOf('quarter');
+
+        // Loop through each quarter
+        for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+            const quarterEnd = moment(quarterStart).endOf('quarter');
+
+            // Initialize months array to hold data for each month within the quarter
+            const months = [];
+
+            // Loop through each month within the quarter
+            for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
+                const monthEnd = moment(monthStart).endOf('month');
+
+                // Fetch data for each month
+                const monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+
+                months.push(monthData);
+            }
+
+            // Construct data object for the quarter
+            const quarterDataObject = {
+                quarter: quarterStart.format('Q YYYY'),
+                months: months
+            };
+
+            
+            // Push the quarter data object to quarterData array
+            quarterData.push(quarterDataObject);
+        }
+        console.log("quarterData", quarterData)
+        // Return the quarter data
+        return res.status(200).json({
+            code: 200,
+            status: "OK",
+            data: quarterData,
+        });
+    } catch (error) {
+        console.error("ERROR", error);
+        return res.status(500).json({
+            code: 500,
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+}
+
+// Function to get start and end months for a quarter
+function getQuarterBoundaries(quarter) {
+    const month = parseInt(quarter.slice(1)) - 1; // Extract quarter number (1-based) and subtract 1 for zero-based indexing
+    const year = parseInt(quarter.slice(-4)); // Extract year
+
+    const startMonth = month * 3; // Months start from 0 (January), so multiply by 3
+    const endMonth = startMonth + 2; // Add 2 to get the last month of the quarter
+
+    return { startMonth, endMonth };
+}
+
+// Function to fetch payment data for a specific month range (implementation details depend on your data source)
+async function fetchMonthData(partner_id, monthStart, endMonth, category, policy_type, policy_duration) {
+
+    const paymentAttempts = await getPaymentAttempts(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+     const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+     const qwpPaid = await getQwpPaid(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+     const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+    const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+
+    console.log("paymentAttempts", paymentAttempts);
+    // console.log("successfulPayments", successfulPayments);
+    console.log("qwpPaid", qwpPaid);
+    // console.log("wrongPinFailures", wrongPinFailures);
+    // console.log("insufficientFundsFailures", insufficientFundsFailures);
+
+
+    const monthData = {
+        month: monthStart.format('MMMM YYYY'),
+        paymentAttempts,
+        successfulPayments,
+        qwpPaid,
+        wrongPinFailures,
+        insufficientFundsFailures,
+    };
+
+    return monthData;
+}
+
+async function getPaymentAttempts(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+
+    // search where category, policy_type, policy_duration on policy table
+    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
+    if (category) {
+        queryFilter.beneficiary = category;
+    }
+    if (policy_type) {
+        queryFilter.policy_type = policy_type;
+    }
+    if (policy_duration) {
+        queryFilter.installment_type = policy_duration;
+    }
+    const paymentAttempts = await Payment.count({
+        where: {
+            partner_id,
+            //group: ["payment_status"],
+            createdAt: {
+                [Op.gte]: monthStart.toDate(),
+                [Op.lt]: monthEnd.toDate()
+            },
+        },
+        include: [{ model: Policy, as: "policy", where: queryFilter }],
+
+    });
+
+    return paymentAttempts;
+}
+
+
+async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
+    if (category) {
+        queryFilter.beneficiary = category;
+    }
+    if (policy_type) {
+        queryFilter.policy_type = policy_type;
+    }
+    if (policy_duration) {
+        queryFilter.installment_type = policy_duration;
+    }
+
+    const successfulPayments = await Payment.count({
+        where: {
+            partner_id,
+            payment_status: "paid",
+            createdAt: {
+                [Op.gte]: monthStart.toDate(),
+                [Op.lt]: monthEnd.toDate()
+            },
+        },
+        include: [{ model: Policy, as: "policy", where: queryFilter }],
+
+    });
+
+    return successfulPayments;
+}
+
+
+async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+    
+    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
+    if (category) {
+        queryFilter.beneficiary = category;
+    }
+    if (policy_type) {
+        queryFilter.policy_type = policy_type;
+    }
+
+    if (policy_duration) {
+        queryFilter.installment_type = policy_duration;
+    }
+  
+    const total_amount = await Payment.sum("payment_amount", {
+        where: {
+          partner_id: partner_id,
+          payment_status: "paid",
+         // group: ["payment_status"],
+          createdAt: {
+            [Op.gte]: monthStart.toDate(),
+            [Op.lt]: monthEnd.toDate()
+          }
+        },
+     
+      });
+    return total_amount;
+  }
+  
+function getFailuresByDateRange(whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
+    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
+    if (category) {
+        queryFilter.beneficiary = category;
+    }
+    if (policy_type) {
+        queryFilter.policy_type = policy_type;
+    }
+    if (policy_duration) {
+        queryFilter.installment_type = policy_duration;
+    }
+    return Payment.count({
+        where: {
+            ...whereClause,
+            createdAt: {
+                [Op.gte]: monthStart.toDate(),
+                [Op.lt]: monthEnd.toDate()
+            },
+        },
+        include: [{ model: Policy, as: "policy", where: queryFilter }],
+
+    });
+}
+
+
+async function getWrongPinFailures(partner_id, startMonth, endMonth, category, policy_type, policy_duration) {
+    // Create a reusable function to filter by date range
+
+    // Filter for wrong PIN failures using description or a more specific pattern (if applicable)
+    const wrongPinFailures = await getFailuresByDateRange({
+        partner_id,
+        payment_status: "failed",
+        payment_description: { [Op.like]: "%invalid PIN length%" }, // Replace with specific string or pattern if needed
+    },
+        startMonth, endMonth,
+        category, policy_type, policy_duration);
+
+    return wrongPinFailures;
+}
+
+async function getInsufficientFundsFailures(partner_id, startMonth, endMonth, category, policy_type, policy_duration) {
+    // Reuse the getFailuresByDateRange function
+    const insufficientFundsFailures = await getFailuresByDateRange({
+        partner_id,
+        payment_status: "failed",
+        payment_description: { [Op.like]: "%insufficient money%" }, // Replace with specific string or pattern if needed
+    },
+        startMonth, endMonth,
+        category, policy_type, policy_duration
+    );
+
+    return insufficientFundsFailures;
+}
 
 
 
@@ -503,6 +834,7 @@ module.exports = {
     getPayment,
     getPolicyPayments,
     findUserByPhoneNumberPayments,
-    createPayment
+    createPayment,
+    customerPaymentAttempts
 
 }
