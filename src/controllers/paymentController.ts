@@ -579,10 +579,14 @@ async function customerPaymentAttempts(req, res) {
                 message: "Partner ID is required",
             });
         }
+        console.log("REQ", req.query)
 
         // Handle optional start_date and end_date parameters
         const startDate = start_date ? moment(start_date).startOf('day').toDate() : moment().startOf('year').toDate();
         const endDate = end_date ? moment(end_date).endOf('day').toDate() : moment().endOf('year').toDate();
+
+        console.log("startDate", startDate);
+        console.log("endDate", endDate);
 
         // Ensure start date is before or equal to end date
         if (startDate > endDate) {
@@ -598,12 +602,17 @@ async function customerPaymentAttempts(req, res) {
         const quarterData = [];
 
         // Split the date range into quarters
-        const quarterStartDate = moment(start_date).startOf('quarter');
-        const quarterEndDate = moment(end_date).endOf('quarter');
+        const quarterStartDate = moment(startDate).startOf('quarter');
+        const quarterEndDate = moment(endDate).endOf('quarter');
+
+        console.log("quarterStartDate", quarterStartDate);
+        console.log("quarterEndDate", quarterEndDate);
 
         // Loop through each quarter
         for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
             const quarterEnd = moment(quarterStart).endOf('quarter');
+            console.log("quarterStart", quarterStart);
+            console.log("quarterEnd", quarterEnd);
 
             // Initialize months array to hold data for each month within the quarter
             const months = [];
@@ -624,6 +633,7 @@ async function customerPaymentAttempts(req, res) {
                 months: months
             };
 
+            console.log("quarterDataObject", quarterDataObject);
             
             // Push the quarter data object to quarterData array
             quarterData.push(quarterDataObject);
@@ -659,6 +669,12 @@ function getQuarterBoundaries(quarter) {
 
 // Function to fetch payment data for a specific month range (implementation details depend on your data source)
 async function fetchMonthData(partner_id, monthStart, endMonth, category, policy_type, policy_duration) {
+
+    console.log("monthStart", monthStart);
+    console.log("endMonth", endMonth);
+console.log("category", category);
+console.log("policy_type", policy_type);
+console.log("policy_duration", policy_duration);
 
     const paymentAttempts = await getPaymentAttempts(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
      const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
@@ -698,6 +714,9 @@ async function getPaymentAttempts(partner_id, monthStart, monthEnd, category, po
     if (policy_duration) {
         queryFilter.installment_type = policy_duration;
     }
+
+
+    console.log("queryFilter", queryFilter);
     const paymentAttempts = await Payment.count({
         where: {
             partner_id,
@@ -726,6 +745,7 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
     if (policy_duration) {
         queryFilter.installment_type = policy_duration;
     }
+    console.log("queryFilter", queryFilter);
 
     const successfulPayments = await Payment.count({
         where: {
