@@ -7,7 +7,7 @@ const Log = db.logs;
 import { v4 as uuid_v4 } from "uuid";
 import { airtelMoney, airtelMoneyKenya } from "../services/payment";
 uuid_v4()
-const { Op , Sequelize} = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
 import moment from "moment";
 
 
@@ -608,7 +608,7 @@ async function customerPaymentAttempts(req, res) {
         // Loop through each quarter
         for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
             const quarterEnd = moment(quarterStart).endOf('quarter');
-    
+
 
             // Initialize months array to hold data for each month within the quarter
             const months = [];
@@ -620,14 +620,14 @@ async function customerPaymentAttempts(req, res) {
                 // Fetch data for each month
                 let monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
 
-    
+
                 months.push(monthData);
             }
 
             // Construct data object for the quarter
             const quarterDataObject = {
                 quarter: quarterStart.format('Q YYYY'),
-                accumulated_report : {
+                accumulated_report: {
                     payment_attempts: months.reduce((acc, item) => acc + item.paymentAttempts, 0),
                     successful_payments: months.reduce((acc, item) => acc + item.successfulPayments, 0),
                     qwp_paid: months.reduce((acc, item) => acc + item.qwpPaid, 0),
@@ -640,11 +640,11 @@ async function customerPaymentAttempts(req, res) {
             console.log("quarterDataObject", quarterDataObject);
 
 
-            
+
             // Push the quarter data object to quarterData array
             quarterData.push(quarterDataObject);
         }
-       // console.log("quarterData", quarterData)
+        // console.log("quarterData", quarterData)
         // Return the quarter data
         return res.status(200).json({
             code: 200,
@@ -678,14 +678,14 @@ async function fetchMonthData(partner_id, monthStart, endMonth, category, policy
 
     console.log("monthStart", monthStart);
     console.log("endMonth", endMonth);
-console.log("category", category);
-console.log("policy_type", policy_type);
-console.log("policy_duration", policy_duration);
+    console.log("category", category);
+    console.log("policy_type", policy_type);
+    console.log("policy_duration", policy_duration);
 
     const paymentAttempts = await getPaymentAttempts(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-     const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-     const qwpPaid = await getQwpPaid(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-     const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+    const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+    const qwpPaid = await getQwpPaid(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+    const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
     const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
 
     // console.log("paymentAttempts", paymentAttempts);
@@ -771,7 +771,7 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
 
 
 async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
-    
+
     const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
     if (category) {
         queryFilter.beneficiary = category;
@@ -783,23 +783,23 @@ async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_typ
     if (policy_duration) {
         queryFilter.installment_type = policy_duration;
     }
-  
+
     const total_amount = await Payment.findAll({
         where: {
-          partner_id: partner_id,
-          payment_status: "paid",
-         // group: ["payment_status"],
-          createdAt: {
-            [Op.gte]: monthStart.toDate(),
-            [Op.lt]: monthEnd.toDate()
-          }
+            partner_id: partner_id,
+            payment_status: "paid",
+            // group: ["payment_status"],
+            createdAt: {
+                [Op.gte]: monthStart.toDate(),
+                [Op.lt]: monthEnd.toDate()
+            }
         },
         include: [{ model: Policy, as: "policy", where: queryFilter }]
-     
-      });
+
+    });
     return total_amount.reduce((acc, item) => acc + item.payment_amount, 0);
-  }
-  
+}
+
 function getFailuresByDateRange(whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
     const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
     if (category) {
@@ -855,6 +855,116 @@ async function getInsufficientFundsFailures(partner_id, startMonth, endMonth, ca
 }
 
 
+/*
+type of failures and ultimate outcomes and for the last 1 month
+insufficient fund and wrong pin failures
+calculate percentage of failures and outcomes
+*/
+
+
+/**
+ * @swagger
+ * /api/v1/payments/customer/failures_outcomes_last_month:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     description:  Get customer failures and outcomes for the last month
+ *     operationId: getFailuresAndOutcomesLastMonth
+ *     summary: Get customer failures and outcomes for the last month
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+async function getFailuresAndOutcomesLastMonth(req, res) {
+    const { partner_id, endMonth, category, policy_type, policy_duration } = req.query;
+    const lastMonthStart = moment().subtract(1, 'month').startOf('month');
+    const lastMonthEnd = moment().subtract(1, 'month').endOf('month');
+
+    try {
+
+        const wrongPinFailures = await getWrongPinFailures(partner_id, lastMonthStart, lastMonthEnd, category, policy_type, policy_duration);
+        console.log("wrongPinFailures", wrongPinFailures);
+
+        const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, lastMonthStart, lastMonthEnd, category, policy_type, policy_duration);
+
+        console.log("insufficientFundsFailures", insufficientFundsFailures);
+
+        const wrongPinFailersSuccessfulPayments = await Payment.count({
+            where: {
+                partner_id,
+                payment_status: "paid",
+                payment_description: { [Op.like]: "%invalid PIN length%" },
+                createdAt: {
+                    [Op.gte]: lastMonthStart.toDate(),
+                    [Op.lt]: lastMonthEnd.toDate()
+                },
+            },
+
+        });
+
+        console.log("wrongPinFailersSuccessfulPayments", wrongPinFailersSuccessfulPayments);
+
+        const insifficientFundsFailersSuccessfulPayments = await Payment.count({
+            where: {
+                partner_id,
+                payment_status: "paid",
+                payment_description: { [Op.like]: "%insufficient money%" },
+                createdAt: {
+                    [Op.gte]: lastMonthStart.toDate(),
+                    [Op.lt]: lastMonthEnd.toDate()
+                },
+            },
+
+        });
+
+        console.log("insifficientFundsFailersSuccessfulPayments", insifficientFundsFailersSuccessfulPayments)
+
+        // calculate percentage of failures and outcomes
+        const wrongPinFailuresPercentage = ((wrongPinFailures / (wrongPinFailures + wrongPinFailersSuccessfulPayments)) * 100).toFixed(2);
+        const insufficientFundsFailuresPercentage =((insufficientFundsFailures / (insufficientFundsFailures + insifficientFundsFailersSuccessfulPayments)) * 100).toFixed(2);
+
+        console.log("wrongPinFailuresPercentage", wrongPinFailuresPercentage);
+        console.log("insufficientFundsFailuresPercentage", insufficientFundsFailuresPercentage);
+
+        return res.status(200).json({
+            code: 200,
+            status: "OK",
+            data: {
+                wrongPinFailures,
+                insufficientFundsFailures,
+                wrongPinFailersSuccessfulPayments,
+                insifficientFundsFailersSuccessfulPayments,
+                wrongPinFailuresPercentage,
+                insufficientFundsFailuresPercentage
+            }
+
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+
+}
+
+
+
 
 module.exports = {
     getPayments,
@@ -862,6 +972,7 @@ module.exports = {
     getPolicyPayments,
     findUserByPhoneNumberPayments,
     createPayment,
-    customerPaymentAttempts
+    customerPaymentAttempts,
+    getFailuresAndOutcomesLastMonth
 
 }

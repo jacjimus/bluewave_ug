@@ -938,6 +938,119 @@ const submitSelfCover = async (req, res) => {
   }
 }
 
+/*
+customer that were never paid for the last month
+category: "S MINI", "MINI", "MIDI", "BIGGIE"
+calculate the percentages of the categories
+*/
+
+
+/**
+  * @swagger
+  * /api/v1/policies/category/not-paid-last-month:
+  *   get:
+  *     tags:
+  *       - Policies
+  *     description: get category not paid last month
+  *     operationId:  getCategoryNotPaidLastmonth
+  *     summary:  get category not paid last month
+  *     security:
+  *       - ApiKeyAuth: []
+  *     parameters:
+  *       - name: partner_id
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: number
+  *     responses:
+  *       200:
+  *         description: Information fetched succussfuly
+  *       400:
+  *         description: Invalid request
+  */
+const getCategoryNotPaidLastmonth = async (req, res) => {
+  try {
+    const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
+
+    const categoryData = await db.policies.findAll({
+      where: {
+        partner_id: req.query.partner_id,
+        policy_status: "pending",
+        createdAt: {
+          [Op.between]: [lastMonth, new Date()],
+        },
+      },
+      attributes: [
+        [Sequelize.fn("COUNT", Sequelize.col("policy_id")), "total_count"],
+        [
+          Sequelize.literal(`SUM(CASE WHEN policy_type = 'S MINI' THEN 1 ELSE 0 END)`),
+          'sMiniCategory_count'
+        ],
+        [
+          Sequelize.literal(`SUM(CASE WHEN policy_type = 'MINI' THEN 1 ELSE 0 END)`),
+          'miniCategory_count'
+        ],
+        [
+          Sequelize.literal(`SUM(CASE WHEN policy_type = 'MIDI' THEN 1 ELSE 0 END)`),
+          'middieCategory_count'
+        ],
+        [
+          Sequelize.literal(`SUM(CASE WHEN policy_type = 'BIGGIE' THEN 1 ELSE 0 END)`),
+          'biggieCategory_count'
+        ],
+      ],
+      
+      raw: true, // Return raw object with calculated values
+    });
+    
+    
+    console.log(categoryData)
+
+    if (!categoryData || categoryData.length === 0) {
+      return res.status(200).json({
+        code: 200,
+        status: "OK",
+        message: "No pending payments found last month",
+        total_failed_payments_last_month: 0,
+        sMiniCategoryPercentage: 0,
+        miniCategoryPercentage: 0,
+        middieCategoryPercentage: 0,
+        biggieCategoryPercentage: 0,
+      });
+    }
+
+    const totalPayments = categoryData[0].total_count;
+    const sMiniCategoryCount = categoryData[0].sMiniCategory_count;
+    const miniCategoryCount = categoryData[0].miniCategory_count;
+    const middieCategoryCount = categoryData[0].middieCategory_count;
+    const biggieCategoryCount = categoryData[0].biggieCategory_count;
+
+    const sMiniCategoryPercentage = ((sMiniCategoryCount / totalPayments) * 100).toFixed(2);
+    const miniCategoryPercentage = ((miniCategoryCount / totalPayments) * 100).toFixed(2);
+    const middieCategoryPercentage = ((middieCategoryCount / totalPayments) * 100).toFixed(2);
+    const biggieCategoryPercentage = ((biggieCategoryCount / totalPayments) * 100).toFixed(2);
+
+    return res.status(200).json({
+      code: 200,
+      status: "OK",
+      message: "Percentages calculated successfully",
+      total_failed_payments_last_month: totalPayments,
+      sMiniCategoryPercentage,
+      miniCategoryPercentage,
+      middieCategoryPercentage,
+      biggieCategoryPercentage,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED",
+      message: "Internal server error",
+      error: error.message || "Unknown error",
+    });
+  }
+};
+
 
 module.exports = {
   getPolicies,
@@ -949,7 +1062,8 @@ module.exports = {
   vehicleRegistration,
   calculatePremiumBasedOnVehicleDetails,
   createHealthPolicy,
-  submitSelfCover
+  submitSelfCover,
+  getCategoryNotPaidLastmonth
 }
 
 

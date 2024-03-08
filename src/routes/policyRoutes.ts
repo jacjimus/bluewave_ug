@@ -19,6 +19,7 @@ const router = express.Router()
 
 router.get('/', isSuperAdmin, policyController.getPolicies)
 router.get('/:policy_id', isSuperAdmin, policyController.getPolicy)
+router.get('/category/not-paid-last-month', policyController.getCategoryNotPaidLastmonth)
 router.post('/create', isSuperAdmin, policyController.createPolicy)
 router.post('/vehicle/registration', policyController.vehicleRegistration)
 router.post('/calculate/premium', policyController.calculatePremiumBasedOnVehicleDetails)

@@ -20,6 +20,7 @@ router.get('/:payment_id', isSuperAdmin, paymentController.getPayment)
 router.get('/policy/:policy_id', isSuperAdmin, paymentController.getPolicyPayments)
 router.get('/user/:user_id', isSuperAdmin, paymentController.findUserByPhoneNumberPayments)
 router.get('/customer/payment_attempts',  paymentController.customerPaymentAttempts)
+router.get('/customer/failures_outcomes_last_month',  paymentController.getFailuresAndOutcomesLastMonth)
 router.post('/create', isSuperAdmin, isSuperAdmin, paymentController.createPayment)
 
 
