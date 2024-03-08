@@ -618,18 +618,28 @@ async function customerPaymentAttempts(req, res) {
                 const monthEnd = moment(monthStart).endOf('month');
 
                 // Fetch data for each month
-                const monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+                let monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
 
+    
                 months.push(monthData);
             }
 
             // Construct data object for the quarter
             const quarterDataObject = {
                 quarter: quarterStart.format('Q YYYY'),
+                accumulated_report : {
+                    payment_attempts: months.reduce((acc, item) => acc + item.paymentAttempts, 0),
+                    successful_payments: months.reduce((acc, item) => acc + item.successfulPayments, 0),
+                    qwp_paid: months.reduce((acc, item) => acc + item.qwpPaid, 0),
+                    wrong_pin_failures: months.reduce((acc, item) => acc + item.wrongPinFailures, 0),
+                    insufficient_funds_failures: months.reduce((acc, item) => acc + item.insufficientFundsFailures, 0),
+                },
                 months: months
             };
 
             console.log("quarterDataObject", quarterDataObject);
+
+
             
             // Push the quarter data object to quarterData array
             quarterData.push(quarterDataObject);
