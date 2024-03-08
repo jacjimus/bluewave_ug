@@ -1917,10 +1917,24 @@ async function getPolicySummarySnapshot(req, res) {
         months.push(monthData);
       }
 
+      //console.log("months", months)
+
       // Construct data object for the quarter
       const quarterDataObject = {
         quarter: quarterStart.format('Q YYYY'),
+        accumulated_report : {
+          free_policies:  months.reduce((acc, month) => acc + month.free_policies, 0),
+          active_policies: months.reduce((acc, month) => acc + month.active_policies, 0),
+          first_time_policies: months.reduce((acc, month) => acc + month.first_time_policies, 0),
+          renewals: months.reduce((acc, month) => acc + month.renewals, 0),
+          free_policy_expiration: months.reduce((acc, month) => acc + month.free_policy_expiration, 0),
+          paid_policy_expiration: months.reduce((acc, month) => acc + month.paid_policy_expiration, 0),
+          retention_rate: (months.reduce((acc, month) => acc + month.retention_rate, 0) / months.length).toFixed(0),
+          conversion_rate: (months.reduce((acc, month) => acc + month.conversion_rate, 0) / months.length).toFixed(0),
+          total_premium: months.reduce((acc, month) => acc + month.total_premium, 0),
+        },
         months: months
+
       };
 
       console.log("quarterDataObject", quarterDataObject)

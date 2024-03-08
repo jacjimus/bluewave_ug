@@ -585,8 +585,6 @@ async function customerPaymentAttempts(req, res) {
         const startDate = start_date ? moment(start_date).startOf('day').toDate() : moment().startOf('year').toDate();
         const endDate = end_date ? moment(end_date).endOf('day').toDate() : moment().endOf('year').toDate();
 
-        console.log("startDate", startDate);
-        console.log("endDate", endDate);
 
         // Ensure start date is before or equal to end date
         if (startDate > endDate) {
@@ -605,14 +603,12 @@ async function customerPaymentAttempts(req, res) {
         const quarterStartDate = moment(startDate).startOf('quarter');
         const quarterEndDate = moment(endDate).endOf('quarter');
 
-        console.log("quarterStartDate", quarterStartDate);
-        console.log("quarterEndDate", quarterEndDate);
+
 
         // Loop through each quarter
         for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
             const quarterEnd = moment(quarterStart).endOf('quarter');
-            console.log("quarterStart", quarterStart);
-            console.log("quarterEnd", quarterEnd);
+    
 
             // Initialize months array to hold data for each month within the quarter
             const months = [];
