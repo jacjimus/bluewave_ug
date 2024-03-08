@@ -628,7 +628,7 @@ async function customerPaymentAttempts(req, res) {
             // Push the quarter data object to quarterData array
             quarterData.push(quarterDataObject);
         }
-        console.log("quarterData", quarterData)
+       // console.log("quarterData", quarterData)
         // Return the quarter data
         return res.status(200).json({
             code: 200,
@@ -666,9 +666,9 @@ async function fetchMonthData(partner_id, monthStart, endMonth, category, policy
      const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
     const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
 
-    console.log("paymentAttempts", paymentAttempts);
+    // console.log("paymentAttempts", paymentAttempts);
     // console.log("successfulPayments", successfulPayments);
-    console.log("qwpPaid", qwpPaid);
+    // console.log("qwpPaid", qwpPaid);
     // console.log("wrongPinFailures", wrongPinFailures);
     // console.log("insufficientFundsFailures", insufficientFundsFailures);
 
@@ -758,7 +758,7 @@ async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_typ
         queryFilter.installment_type = policy_duration;
     }
   
-    const total_amount = await Payment.sum("payment_amount", {
+    const total_amount = await Payment.findAll({
         where: {
           partner_id: partner_id,
           payment_status: "paid",
@@ -768,9 +768,10 @@ async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_typ
             [Op.lt]: monthEnd.toDate()
           }
         },
+        include: [{ model: Policy, as: "policy", where: queryFilter }]
      
       });
-    return total_amount;
+    return total_amount.reduce((acc, item) => acc + item.payment_amount, 0);
   }
   
 function getFailuresByDateRange(whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
