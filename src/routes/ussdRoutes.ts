@@ -72,9 +72,7 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
     policy.policy_status = "paid";
     policy.bluewave_transaction_id = payment.payment_id;
     policy.airtel_transaction_id = airtel_money_id;
-    policy.policy_paid_amount = amount;
     policy.policy_deduction_amount = amount;
-    policy.premium = amount;
 
     await policy.save();
 
@@ -105,8 +103,8 @@ const updateInstallmentLogic = async (policy, amount) => {
         policy.policy_paid_amount = policy.policy_paid_amount + amount;
         policy.policy_pending_premium = policy.policy_pending_amount - amount;
       }
-      if (policy.policy_pending_premium + policy.policy_paid_amount !== policy.yearly_premium) {
-        policy.policy_pending_premium = policy.yearly_premium - policy.policy_paid_amount;
+      if (policy.policy_pending_premium + policy.policy_paid_amount == policy.yearly_premium) {
+        policy.policy_pending_premium = 0
       }
 
       await policy.save();

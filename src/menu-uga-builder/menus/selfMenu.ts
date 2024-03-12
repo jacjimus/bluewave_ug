@@ -8,7 +8,6 @@ import { Op } from "sequelize";
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
     let phone = phoneNumber?.replace("+", "")?.substring(3);
-    console.log("phone", phone)
     let existingUser = await db.users.findOne({
         where: {
             phone_number: phone,
@@ -106,11 +105,9 @@ const selfMenu = async (args, db) => {
             `\n2. UGX ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
     }
     else if (currentStep === 3) {
-        console.log("allSteps", allSteps)
         let paymentOption = parseInt(userText);
         let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
         let policy_type = selectedPolicyType.name;
-        console.log(selectedPolicyType, policy_type, paymentOption)
 
         let options = calculatePaymentOptions(policy_type, paymentOption);
 
@@ -147,7 +144,7 @@ const selfMenu = async (args, db) => {
                     nationality: "UGANDA",
                 });
 
-                const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+                const message = `Dear ${existingUser?.first_name || 'Customer'}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
                 await SMSMessenger.sendSMS(2, fullPhone, message);
 
             }
@@ -204,7 +201,7 @@ const selfMenu = async (args, db) => {
 
             let policy = await db.policies.create(policyObject);
 
-            console.log("=========== SELF POLICY ===========", policy);
+           // console.log("=========== SELF POLICY ===========", policy);
 
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 

@@ -12,7 +12,6 @@ const familyMenu = async (args, db) => {
   } = args;
 
   const Beneficiary = db.beneficiaries;
-  console.log("CURRENT STEP", currentStep)
   let phone = phoneNumber?.replace('+', "")?.substring(3);
   let existingUser = await db.users.findOne({
     where: {
@@ -785,9 +784,7 @@ const familyMenu = async (args, db) => {
     response = "CON Enter Phone of spouse (or Main member, if dependent is child) eg. 0700000000 \n"
   }
   else if (currentStep == 5) {
-    console.log("allSteps", allSteps);
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
-    //console.log("SELECTED COVER", selectedCover)
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
 
     if (allSteps[4].length < 10) {
@@ -803,19 +800,12 @@ const familyMenu = async (args, db) => {
     response = coverText;
   }
   else if (currentStep == 6) {
-    console.log("CURRENT STEP 6");
-    console.log("allSteps", allSteps);
-    console.log("userText", userText);
+
     const selectedCover = covers[parseInt(allSteps[1]) - 1];
-    console.log("SELECTED COVER", selectedCover)
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    console.log("SELECTED PACKAGE", selectedPackage)
     let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
-    console.log("PREMIUM", premium);
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
-    console.log("PERIOD", period);
     let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
-    console.log("FULL PHONE", fullPhone);
 
 
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
@@ -834,7 +824,6 @@ const familyMenu = async (args, db) => {
       principal_phone_number: phoneNumber,
       //user_id: existingUser.user_id,
     };
-    // console.log("BENEFICIARY", beneficiary);
 
     await Beneficiary.create(beneficiary);
 
@@ -854,8 +843,7 @@ const familyMenu = async (args, db) => {
         partner_id: 2,
         nationality: "UGANDA"
       });
-      console.log("USER DOES NOT EXIST", user);
-      const message = `Dear ${existingUser.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
+      const message = `Dear ${existingUser.first_name || "Customer"}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
       await SMSMessenger.sendSMS(2, fullPhone, message);
 
     }
@@ -917,7 +905,6 @@ const familyMenu = async (args, db) => {
 
       let policy = await db.policies.create(policyObject);
 
-      console.log("==== FAMILY POLICY ====", policy);
 
       console.log("============== START TIME - FAMILY ================ ", phoneNumber, new Date());
 

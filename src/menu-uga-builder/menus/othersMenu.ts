@@ -390,7 +390,7 @@ const othersMenu = async (args, db) => {
 
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
-    console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
+    // console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
 
     otherUser = await db.users.findOne({
       where: {
@@ -410,7 +410,7 @@ const othersMenu = async (args, db) => {
     let paymentOption = parseInt(userText);
     let period = paymentOption == 1 ? "monthly" : "yearly";
     let coverType = allSteps[2];
-    console.log("COVER TYPE", coverType);
+    // console.log("COVER TYPE", coverType);
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
@@ -443,7 +443,7 @@ const othersMenu = async (args, db) => {
         role: "user",
         nationality: "UGANDA"
       });
-      const message = `Dear ${user?.first_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+      const message = `Dear ${user?.first_name || 'Customer'}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
       await SMSMessenger.sendSMS(2, `+256${otherUserPhone}`, message);
 
     }
@@ -455,9 +455,7 @@ const othersMenu = async (args, db) => {
   }
   else if (currentStep == 7) {
 
-
     if (userText == "1") {
-
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
@@ -511,55 +509,10 @@ const othersMenu = async (args, db) => {
 
       await processPayment(policyObject, phone, existingOther)
 
-  
-
-
-      //   let policy = await db.policies.create(policyObject);
-
-      //   const airtelMoneyPromise = await airtelMoney(
-      //     existingOther.user_id,
-      //     2,
-      //     policy.policy_id,
-      //     phone,
-      //     policy.policy_deduction_amount,
-      //     existingOther.membership_id,
-      //     "UG",
-      //     "UGX"
-      //   );
-
-      //   console.log("============== START TIME ================ ", new Date());
-
-
-      //   const timeout = 1000;
-
-      //   Promise.race([
-      //     airtelMoneyPromise,
-      //     new Promise((resolve, reject) => {
-      //       setTimeout(() => {
-      //         reject(new Error('Airtel Money operation timed out'));
-      //       }, timeout);
-      //     })
-      //   ])
-      //     .then((result) => {
-      //       // Airtel Money operation completed successfully
-      //       response = 'END Payment successful';
-      //       console.log("RESPONSE WAS CALLED", result);
-      //       return response;
-      //     })
-      //     .catch((error) => {
-      //       console.log("An error occurred:", error);
-      //       response = 'END Payment failed';
-      //       console.log("RESPONSE WAS CALLED", response);
-      //       return response;
-      //     });
-
-      // } catch (error) {
-      //   console.log("RESPONSE WAS CALLED EER", error);
-      // }
       console.log("============== AFTER CATCH  TIME ================ ", new Date());
-  
+
+    }
   }
-}
 
   return response;
 

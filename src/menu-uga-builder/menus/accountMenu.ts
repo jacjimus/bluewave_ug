@@ -33,7 +33,6 @@ const accountMenu = async (args: any, db: any) => {
         limit: 6
     });
 
-    //console.log("PAID POLICIES", paidPolicies)
 
     let userPolicy = await db.policies.findOne({
         where: {
@@ -82,9 +81,7 @@ const accountMenu = async (args: any, db: any) => {
             "\n6. Dependants" +
             "\n7. View Details";
     } else if (currentStep == 2) {
-        console.log("allSteps", allSteps)
-        console.log('Current step', currentStep);
-        console.log('User text', userText)
+       
         switch (userText) {
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END Sorry you have no active policy"
@@ -116,7 +113,6 @@ const accountMenu = async (args: any, db: any) => {
             case "4":
 
                 // list beneficiaries where beneficiary_type = KIN
-                console.log('trimmedPhoneNumber', trimmedPhoneNumber)
                 let beneficiaries = await db.beneficiaries.findAll({
                     where: {
                         principal_phone_number: trimmedPhoneNumber,
@@ -178,7 +174,6 @@ const accountMenu = async (args: any, db: any) => {
                 }
                 ).join("");
                 const details_message = `Dear ${currentUser.first_name}, your Date of birth is ${currentUser.dob}, Gender ${currentUser.gender}, and dependents are ${dependants_name}. Please dial *185*7*6*3# to add any additional dependant.`
-                console.log("DETAILS MESSAGE", details_message)
                 SMSMessenger.sendSMS(2, smsPhone, details_message)
 
                 break;
@@ -188,9 +183,7 @@ const accountMenu = async (args: any, db: any) => {
         }
 
     } else if (currentStep == 3) {
-        console.log("allSteps", allSteps, allSteps[1])
-        console.log('Current step', currentStep);
-        console.log('User text', userText)
+        
         if (userText == "1" && allSteps[1] == '1') {
 
             if (userText == "1" && paidPolicies.length > 1) {
@@ -203,7 +196,6 @@ const accountMenu = async (args: any, db: any) => {
                         }`
 
                 } else {
-                    console.log("POLICIES", paidPolicies[0].policy_id)
                     const payments = await db.payments.findAll({
                         where: {
                             policy_id: paidPolicies[0].policy_id,
@@ -211,15 +203,11 @@ const accountMenu = async (args: any, db: any) => {
                         },
                         limit: 3,
                     });
-                    console.log("PAYMENTS", payments.length)
                     let proratedPercentage = calculateProrationPercentage(payments.length)
-                    console.log("PRORATED PERCENTAGE", paidPolicies[0].sum_insured / proratedPercentage)
 
                     // add 3 months to the policy start date
                     let policyStartDate = new Date(paidPolicies[0].policy_start_date)
-                    console.log("POLICY START DATE", policyStartDate)
                     policyStartDate.setMonth(policyStartDate.getMonth() + payments.length)
-                    console.log("POLICY START DATE", policyStartDate)
 
 
                     if (policyStartDate > new Date() && paidPolicies[0].installment_type == 2) {
@@ -242,7 +230,6 @@ const accountMenu = async (args: any, db: any) => {
             }
 
         } else if (allSteps[1] == '2' && allSteps[0] == '4') {
-            console.log("allSteps", allSteps, allSteps[2]);
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
             // last 6 unpaid policies
             const existingUser = await db.users.findOne({
@@ -253,11 +240,9 @@ const accountMenu = async (args: any, db: any) => {
             });
 
             paidPolicies = paidPolicies.slice(-6);
-            console.log("paidPolicies", paidPolicies)
 
             let choosenPolicy = paidPolicies[allSteps[2] - 1];
 
-            //console.log("CHOOSEN POLICY", choosenPolicy)
             const airtelMoneyPromise = await airtelMoney(
                 existingUser.user_id,
                 2,
@@ -297,8 +282,6 @@ const accountMenu = async (args: any, db: any) => {
 
             response = 'CON Enter your date of birth (dd/mm/yyyy)';
         } else if (allSteps[1] == '3' && userText.length == 4) {
-            console.log("allSteps", allSteps, allSteps[1]);
-            console.log("User text cancel", userText, userText.length == 4)
             const user = await db.users.findOne({
                 where: {
                     phone_number: phoneNumber.replace("+", "").substring(3),
@@ -331,7 +314,6 @@ const accountMenu = async (args: any, db: any) => {
                     limit: 6
                 });
 
-                console.log("DEPENDANTS", dependants)
 
                 if (dependants.length > 0) {
                     response = `CON Your dependants are ${dependants.map((dependant: any, index: number) => {
@@ -349,9 +331,7 @@ const accountMenu = async (args: any, db: any) => {
             }
 
         } else if (allSteps[1] == '6') {
-            console.log("allSteps", allSteps)
-            console.log('Current step', currentStep);
-            console.log('User text', userText)
+        
 
             if (allSteps[1] == "6" && userText == "1") {
                 // list beneficiaries where beneficiary_type = DEPENDANT
@@ -380,9 +360,7 @@ const accountMenu = async (args: any, db: any) => {
         }
 
     } else if (currentStep == 4) {
-        console.log("allSteps", allSteps)
-        console.log('Current step', currentStep);
-        console.log('User text', userText)
+       
         if (userText == "1" && allSteps[0] == '1') {
 
             response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
@@ -390,7 +368,7 @@ const accountMenu = async (args: any, db: any) => {
         } else if ((allSteps[2] == "2" || allSteps[2] == "1") && allSteps[0] == "5") {
             let gender = allSteps[2] == "1" ? "MALE" : "FEMALE";
             let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
-            console.log(gender, dob);
+          
 
             const user = await db.users.findOne({
                 where: {
@@ -432,9 +410,7 @@ const accountMenu = async (args: any, db: any) => {
 
 
         } else if (allSteps[1] == '4' && allSteps[0] == '4') {
-            console.log("KIN PHONE NUMBERall Steps", allSteps)
-            console.log('Current step', currentStep);
-            console.log('User text', userText)
+      
             response = 'CON Enter New Next of Kin  Phone number e.g 07XXXXXXXX \n 0.Back 00.Main Menu'
 
 
@@ -451,7 +427,7 @@ const accountMenu = async (args: any, db: any) => {
             })
 
             let dependant_message = `You have added successfully added ${allSteps[3]} as your dependant. Please dial *185*7*6*3# to add any additional dependant.`
-            console.log("DEPENDANT MESSAGE", dependant_message)
+        
 
             SMSMessenger.sendSMS(2, smsPhone, dependant_message)
             response = `You have added successfully added ${allSteps[3]} as your dependant`
@@ -462,10 +438,7 @@ const accountMenu = async (args: any, db: any) => {
     } else if (currentStep == 5) {
         if (allSteps[1] == "4" && allSteps[0] == "4") {
             // list beneficiaries where beneficiary_type = KIN
-            console.log('trimmedPhoneNumber', trimmedPhoneNumber)
-            console.log('allSteps', allSteps)
-
-            console.log('userText', userText)
+           
             let beneficiaries = await db.beneficiaries.findAll({
                 where: {
                     principal_phone_number: trimmedPhoneNumber,
@@ -522,7 +495,7 @@ const accountMenu = async (args: any, db: any) => {
                 member_status: "1",
                 reason_for_member_status: "next of kin update",
             }
-            console.log("DATA", data)
+        
             await updateMember(data)
 
             const kin_message = `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`

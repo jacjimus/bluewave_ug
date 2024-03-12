@@ -563,6 +563,10 @@ async function reconcilationCallback(transaction) {
 
     const user = await db.users.findOne({ where: { user_id } });
 
+    if (!user) {
+      console.log("user_id", user_id)
+      throw new Error("User not found");
+    }
     let policy = await db.policies.findOne({
       where:
       {
@@ -571,11 +575,13 @@ async function reconcilationCallback(transaction) {
       }
     });
 
-    if (!policy || !policy) {
+    if (!policy) {
+      console.log("policy_id and user_id", policy_id, user_id)
 
       throw new Error("Policy not found");
 
     }
+
 
     policy.airtel_money_id = airtel_money_id;
 

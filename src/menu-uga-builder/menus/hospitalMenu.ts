@@ -14,9 +14,6 @@ const hospitalMenu = async (args: any, db: any) => {
             "\n2. Get full hospitals list" +
             "\n0. Back \n00. Main Menu";
     } else if (currentStep == 2) {
-        console.log("USER TEXT", userText)
-        console.log( "ALL STEPS", allSteps)
-
         
         if(userText == '1'){
             response = "CON Type hospital name to search" + "\n0. Back \n00. Main Menu";
@@ -32,7 +29,6 @@ const hospitalMenu = async (args: any, db: any) => {
 
     } else if (currentStep == 3) {
         const userTextLower = userText.toLowerCase();
-        console.log("USER TEXT", userTextLower)
         const hospitals = await db.hospitals.findAll({
             where: {
 
@@ -62,7 +58,6 @@ const hospitalMenu = async (args: any, db: any) => {
     } else if (currentStep == 4) {
 
         const userChoice = allSteps[2].toLowerCase();
-        console.log("USER CHOICE", userChoice)
         const hospitals = await db.hospitals.findAll({
             where: {
 
@@ -85,7 +80,6 @@ const hospitalMenu = async (args: any, db: any) => {
                 hospital_id: hospitalSelected.hospital_id
             }
         });
-        console.log("HOSPITAL", hospital)
 
         const user = await db.users.findOne({
             where: {
@@ -104,7 +98,6 @@ const hospitalMenu = async (args: any, db: any) => {
         let message = `Congratulations, you have selected  ${hospital.hospital_name} as your preferred Hospital. Hospital details:` +
        ` \nContact: ${hospital.hospital_contact_person} - ${hospital.hospital_contact}` +
         `\nLocation: ${hospital.hospital_address} - ${hospital.region} `
-        console.log("MESSAGE", message)
 
         await SMSMessenger.sendSMS(2,smsPhone, message)
 

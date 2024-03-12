@@ -10,7 +10,7 @@ const renewMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
-    const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
+   // const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
 
     const currentUser = await db.users.findOne({
         where: {
@@ -68,7 +68,6 @@ const renewMenu = async (args: any, db: any) => {
             return response
         }
 
-        console.log("allSteps", allSteps, allSteps[1]);
         response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
 
         // last 6 unpaid policies
@@ -80,10 +79,8 @@ const renewMenu = async (args: any, db: any) => {
         });
 
 
-
         let choosenPolicy = paidPolicies[allSteps[1] - 1];
 
-        //console.log("CHOOSEN POLICY", choosenPolicy)
         const airtelMoneyPromise = await airtelMoney(
             existingUser.user_id,
             2,
@@ -120,11 +117,6 @@ const renewMenu = async (args: any, db: any) => {
     } else {
         response = "END Invalid option"
     }
-
-
-
-
-
 
     return response
 }

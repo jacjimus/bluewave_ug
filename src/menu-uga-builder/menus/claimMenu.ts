@@ -24,7 +24,6 @@ let policy: any;
                     },
                     limit: 1,
                 });
-                console.log("USER ID", user.user_id, user.name, user.phone_number);
 
 
               
@@ -44,8 +43,6 @@ let policy: any;
                     response = "CON Sorry you have no active policy" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
-
-                console.log("POLICY", policy.first_name, policy.last_name);
 
 
                 const claimId = generateClaimId();
@@ -93,7 +90,6 @@ let policy: any;
             dateOfDeath: allSteps[5],
         }
 
-        console.log("deathData", deathData);
 
         // CREATE CLAIM
         
@@ -106,7 +102,6 @@ let policy: any;
             },
             limit: 1,
         });
-        //console.log("USER CLAIM ", user.user_id, user.first_name, user.last_name);
 
         if (!user) {
             response = "CON Sorry no customer found with that phone number" + "\n0. Back \n00. Main Menu";
@@ -147,7 +142,6 @@ let policy: any;
         response = `END Your claim documents have been received. Your claim is being processed.`;
         const claimId = generateClaimId();
 
-        console.log("CLAIM POLICY", policy[policy.length - 1].policy_id);
 
          await db.claims.create({
             claim_number: claimId,
