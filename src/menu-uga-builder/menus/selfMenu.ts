@@ -119,7 +119,7 @@ const selfMenu = async (args, db) => {
         if (userText == "1") {
 
             response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-            console.log("=============== END SCREEN USSD RESPONCE SELF =======", phoneNumber, new Date());
+            console.log("=============== END SCREEN USSD RESPONCE -  SELF =======", phoneNumber, new Date());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
             let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
@@ -230,11 +230,11 @@ const selfMenu = async (args, db) => {
                 // Airtel Money operation completed successfully
                 console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
-                console.log("RESPONSE WAS CALLED", result);
+                console.log(" SELF RESPONSE WAS CALLED", result);
                 return response;
             }).catch((error) => {
                 response = 'END Payment failed';
-                console.log("RESPONSE WAS CALLED", error);
+                console.log("SELF RESPONSE WAS CALLED", error);
                 return response;
             });
 

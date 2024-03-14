@@ -914,6 +914,19 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
 
         });
 
+        const wrongPinFailersFialedPayments = await Payment.count({
+            where: {
+                partner_id,
+                payment_status: "failed",
+                payment_description: { [Op.like]: "%invalid PIN length%" },
+                createdAt: {
+                    [Op.gte]: lastMonthStart.toDate(),
+                    [Op.lt]: lastMonthEnd.toDate()
+                },
+            },
+
+        });
+
         console.log("wrongPinFailersSuccessfulPayments", wrongPinFailersSuccessfulPayments);
 
         const insifficientFundsFailersSuccessfulPayments = await Payment.count({
@@ -929,12 +942,31 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
 
         });
 
+        const insifficientFundsFailersFailedPayments = await Payment.count({
+            where: {
+                partner_id,
+                payment_status: "failed",
+                payment_description: { [Op.like]: "%insufficient money%" },
+                createdAt: {
+                    [Op.gte]: lastMonthStart.toDate(),
+                    [Op.lt]: lastMonthEnd.toDate()
+                },
+            },
+
+        });
+
         console.log("insifficientFundsFailersSuccessfulPayments", insifficientFundsFailersSuccessfulPayments)
 
-        // calculate percentage of failures and outcomes
-        const wrongPinFailuresPercentage = ((wrongPinFailures / (wrongPinFailures + wrongPinFailersSuccessfulPayments)) * 100).toFixed(2);
-        const insufficientFundsFailuresPercentage =((insufficientFundsFailures / (insufficientFundsFailures + insifficientFundsFailersSuccessfulPayments)) * 100).toFixed(2);
+      // calculate percentage of failures and outcomes
+            const totalWrongPinPayments = wrongPinFailersSuccessfulPayments + wrongPinFailersFialedPayments;
+            const totalInsufficientFundsPayments = insifficientFundsFailersSuccessfulPayments + insifficientFundsFailersFailedPayments;
 
+            const wrongPinFailuresPercentage = ((wrongPinFailersFialedPayments / totalWrongPinPayments) * 100).toFixed(2);
+            const insufficientFundsFailuresPercentage =((insifficientFundsFailersFailedPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
+
+            const wrongPinFailersSuccessfulPaymentsPercentage = ((wrongPinFailersSuccessfulPayments / totalWrongPinPayments) * 100).toFixed(2);
+
+           const insifficientFundsFailersSuccessfulPaymentsPercentage = ((insifficientFundsFailersSuccessfulPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
         console.log("wrongPinFailuresPercentage", wrongPinFailuresPercentage);
         console.log("insufficientFundsFailuresPercentage", insufficientFundsFailuresPercentage);
 
@@ -942,12 +974,18 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
             code: 200,
             status: "OK",
             data: {
-                wrongPinFailures,
-                insufficientFundsFailures,
+                // wrongPinFailures,
+                // insufficientFundsFailures,
                 wrongPinFailersSuccessfulPayments,
-                insifficientFundsFailersSuccessfulPayments,
+                wrongPinFailersFialedPayments,
                 wrongPinFailuresPercentage,
-                insufficientFundsFailuresPercentage
+                wrongPinFailersSuccessfulPaymentsPercentage,
+
+
+                insifficientFundsFailersSuccessfulPayments,
+                insifficientFundsFailersFailedPayments,
+                insufficientFundsFailuresPercentage,
+                insifficientFundsFailersSuccessfulPaymentsPercentage
             }
 
         });

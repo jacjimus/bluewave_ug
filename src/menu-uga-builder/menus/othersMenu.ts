@@ -390,7 +390,6 @@ const othersMenu = async (args, db) => {
 
     let selectedCover = covers[parseInt(allSteps[1]) - 1];
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
-    // console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
 
     otherUser = await db.users.findOne({
       where: {
@@ -410,7 +409,6 @@ const othersMenu = async (args, db) => {
     let paymentOption = parseInt(userText);
     let period = paymentOption == 1 ? "monthly" : "yearly";
     let coverType = allSteps[2];
-    // console.log("COVER TYPE", coverType);
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
@@ -458,7 +456,7 @@ const othersMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED=======", new Date());
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED - OTHER =======", new Date());
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
@@ -470,7 +468,6 @@ const othersMenu = async (args, db) => {
       let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
 
       otherUserPhone = replaceLeadingZero(allSteps[4])
-      console.log("OTHER USER PHONE", otherUserPhone);
 
       let policyNumber = "BW" + otherUserPhone.toString()
 
@@ -509,7 +506,7 @@ const othersMenu = async (args, db) => {
 
       await processPayment(policyObject, phone, existingOther)
 
-      console.log("============== AFTER CATCH  TIME ================ ", new Date());
+      console.log("============== AFTER CATCH  TIME - OTHER ================ ", new Date());
 
     }
   }

@@ -929,14 +929,14 @@ const familyMenu = async (args, db) => {
           }, timeout);
         }),
       ]).then((result) => {
-        console.log("============== END TIME - FAMIY ================ ", phoneNumber, new Date());
+        console.log("============== END TIME - FAMILY ================ ", phoneNumber, new Date());
         response = 'END Payment successful';
-        console.log("RESPONSE WAS CALLED", result);
+        console.log("FAMILY - RESPONSE WAS CALLED", result);
         return response;
       })
         .catch((error) => {
           response = 'END Payment failed';
-          console.log("RESPONSE WAS CALLED EER", error);
+          console.log("FAMILY - RESPONSE WAS CALLED EER", error);
           return response;
         })
 

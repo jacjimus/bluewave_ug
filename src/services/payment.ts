@@ -717,10 +717,10 @@ async function processPayment(policyObject, phone, existingOther) {
 
     // Airtel Money operation completed successfully
     console.log("RESPONSE WAS CALLED", result);
-    return 'END Payment successful';
+   // return 'END Payment successful';
   } catch (error) {
     console.log("An error occurred:", error);
-    return 'END Payment failed';
+   // return 'END Payment failed';
   }
 }
 

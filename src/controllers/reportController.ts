@@ -1929,6 +1929,7 @@ async function getPolicySummarySnapshot(req, res) {
           renewals: months.reduce((acc, month) => acc + month.renewals, 0),
           free_policy_expiration: months.reduce((acc, month) => acc + month.free_policy_expiration, 0),
           paid_policy_expiration: months.reduce((acc, month) => acc + month.paid_policy_expiration, 0),
+          cancelled_policies: months.reduce((acc, month) => acc + month.cancelled_policies, 0),
           retention_rate: (months.reduce((acc, month) => acc + month.retention_rate, 0) / months.length).toFixed(2),
           conversion_rate: (months.reduce((acc, month) => acc + month.conversion_rate, 0) / months.length).toFixed(2),
           total_premium: months.reduce((acc, month) => acc + month.total_premium, 0),
@@ -1943,8 +1944,26 @@ async function getPolicySummarySnapshot(req, res) {
       quarterData.push(quarterDataObject);
     }
 
+
+     // Construct annual report
+     const annualReport = {
+      accumulated_report: {
+        free_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.free_policies, 0),
+        active_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.active_policies, 0),
+        first_time_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.first_time_policies, 0),
+        renewals: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.renewals, 0),
+        free_policy_expiration: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.free_policy_expiration, 0),
+        paid_policy_expiration: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.paid_policy_expiration, 0),
+        cancelled_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.cancelled_policies, 0),
+        retention_rate: (quarterData.reduce((acc, quarter) => acc + parseFloat(quarter.accumulated_report.retention_rate), 0) / quarterData.length).toFixed(2),
+        conversion_rate: (quarterData.reduce((acc, quarter) => acc + parseFloat(quarter.accumulated_report.conversion_rate), 0) / quarterData.length).toFixed(2),
+        total_premium: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.total_premium, 0),
+      }
+    };
+
+
     // Return the quarterData in the response
-    return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", quarterData });
+    return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully",annualReport, quarterData });
   }
   catch (error) {
     console.log(error)
@@ -2077,6 +2096,25 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
       ],
     });
 
+    //cancelled policies
+
+ let cancelledPolicies = await db.policies.findAndCountAll({
+      where: {
+        partner_id: partner_id,
+        policy_status: 'cancelled',
+        policy_start_date: {
+          [Op.gte]: new Date(monthStart),
+          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
+        },
+        ...(beneficiary && { beneficiary }),
+        ...(policy_type && { policy_type }),
+        ...(installment_type && { installment_type }),
+      },
+      attributes: [
+        [Sequelize.fn('count', Sequelize.col('policy_id')), 'cancelled_policies']
+      ],
+    });
+
     // Calculate retention rate
     let retentionRate = ((policyRenewals.count / (activePolicies.count + policyExpirations.count)) * 100).toFixed(2);
 
@@ -2093,6 +2131,7 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
     renewals: policyRenewals.count,
     free_policy_expiration: freePoliciesExpirations.count, // Is this correct?
     paid_policy_expiration: policyExpirations.count,
+    cancelled_policies: cancelledPolicies.count,
     retention_rate: parseInt(retentionRate) || 0,
     conversion_rate: parseInt(conversionRate) || 0,
     total_premium: parseInt(totalPremium[0].dataValues.total_premium) || 0
