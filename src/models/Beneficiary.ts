@@ -73,6 +73,14 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
     });
 
+    // Beneficiary.belongsTo(sequelize.models.policies, {
+    //     foreignKey: "user_id",
+    // });
+
+    // sequelize.models.policies.hasMany(Beneficiary, {
+    //     foreignKey: "user_id",
+    // });
+
     return Beneficiary
 }
 

@@ -152,6 +152,11 @@ module.exports = (sequelize: any, DataTypes: any) => {
        
     }, { timestamps: true },)
 
+    // associations with beneficiary
+
+
+
+
 
     return User
 }

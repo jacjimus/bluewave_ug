@@ -7,6 +7,7 @@ import { calculatePremium } from "../services/utils";
 const Policy = db.policies;
 const User = db.users;
 const Partner = db.partners;
+const Beneficiary = db.beneficiaries;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
 
@@ -142,7 +143,22 @@ const getPolicies = async (req: any, res) => {
         {
           model: User,
           as: "user",
-        }
+          include: [
+            {
+              model: Beneficiary,
+              as: "beneficiaries"
+            },
+            {
+              model : db.payments,
+              as : "payments"
+            },
+            {
+              model : db.claims,
+              as : "claims"
+            }
+          ]
+        },
+
       ],
       offset,
       limit,

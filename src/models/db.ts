@@ -44,6 +44,8 @@ db.payments.belongsTo(db.users, { foreignKey: 'user_id' });
 db.payments.belongsTo(db.policies, { foreignKey: 'policy_id' });
 db.policies.hasMany(db.payments, { foreignKey: 'policy_id' });
 db.policies.hasMany(db.claims, { foreignKey: 'policy_id' });
+db.policies.hasMany(db.beneficiaries, { foreignKey: 'user_id' });
+db.beneficiaries.belongsTo(db.policies, { foreignKey: 'user_id' });
 db.claims.belongsTo(db.policies, { foreignKey: 'policy_id' });
 db.users.hasMany(db.claims, { foreignKey: 'user_id' });
 db.claims.belongsTo(db.users, { foreignKey: 'user_id' });

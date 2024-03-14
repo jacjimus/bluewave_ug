@@ -5,6 +5,7 @@ import { uuid } from 'uuidv4';
 const User = db.users;
 const Payment = db.payments;
 const Policy = db.policies;
+const Beneficiary = db.beneficiaries;
 
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
@@ -221,9 +222,14 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
     });
     User.hasMany(Policy, {
-        as: "policies",
+        as: "policy",
         foreignKey: "user_id",
     });
+
+    // Policy.hasMany(Beneficiary, {
+    //     as: "beneficiary",
+    //     foreignKey: "user_id",
+    // });
 
     return Policy
 }
