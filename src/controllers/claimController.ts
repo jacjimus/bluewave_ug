@@ -141,9 +141,6 @@ const getUserClaims = async (req: any, res) => {
         validatePartnerId(partner_id);
         const { user_id } = req.params;
 
-        console.log("GET CLAIMS", req.query);
-        console.log("GET CLAIMS", req.params);
-
 
         const claimWhere: any = { partner_id, user_id };
 
@@ -225,7 +222,6 @@ const getUserClaims = async (req: any, res) => {
 */
 const getClaim = async (req: any, res) => {
     try {
-        console.log("GET CLAIMS", req.query);
         const claim = await Claim.findByPk(req.params.claim_id, {
             include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
         });
@@ -416,7 +412,6 @@ const createClaim = async (req: any, res) => {
             partner_id,
         });
 
-        console.log("NEW CLAIM", newClaim);
 
         return res.status(201).json({
             code: 201,

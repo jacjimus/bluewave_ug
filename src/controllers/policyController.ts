@@ -730,7 +730,6 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
       vehicle_number_of_passengers,
       is_fleet
     } = req.query;
-    console.log(req.query)
 
     // Validate required parameters
     if (!vehicle_category) {
@@ -856,7 +855,6 @@ const createHealthPolicy = async (req: any, res: any) => {
     let partner_id = (req.body.partner_id).toString()
     let partner = await Partner.findOne({ where: { partner_id } })
 
-    console.log(req.body)
 
     let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type, admin_email } = req.body
     let subject = "Health Insurance Policy"
@@ -924,8 +922,6 @@ const submitSelfCover = async (req, res) => {
         message: "No user found"
       });
     }
-
-    console.log(user)
 
     let subject = "Health Insurance Policy"
     let emailHtml = `<p>Dear Admin,</p>  <p>Request for Self Cover health insurance.
@@ -1020,7 +1016,6 @@ const getCategoryNotPaidLastmonth = async (req, res) => {
     });
     
     
-    console.log(categoryData)
 
     if (!categoryData || categoryData.length === 0) {
       return res.status(200).json({

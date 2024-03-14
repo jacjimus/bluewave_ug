@@ -389,7 +389,6 @@ const createPayment = async (req, res) => {
     try {
         const { policy_id, premium, partner_id } = req.body;
 
-        console.log(partner_id, typeof partner_id);
 
         const policy = await db.policies.findOne({
             where: {
@@ -406,7 +405,6 @@ const createPayment = async (req, res) => {
             }]
         });
 
-        console.log("POLICY", policy);
 
         if (!policy) {
             return res.status(404).json({
@@ -461,7 +459,7 @@ const createPayment = async (req, res) => {
             });
         }
 
-        const paymentResult = await Promise.race([
+       await Promise.race([
             airtelMoneyPromise,
             new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -470,7 +468,6 @@ const createPayment = async (req, res) => {
             })
         ]);
 
-        console.log(paymentResult);
 
         return res.status(201).json({
             result: {
@@ -579,7 +576,6 @@ async function customerPaymentAttempts(req, res) {
                 message: "Partner ID is required",
             });
         }
-        console.log("REQ", req.query)
 
         // Handle optional start_date and end_date parameters
         const startDate = start_date ? moment(start_date).startOf('day').toDate() : moment().startOf('year').toDate();
@@ -637,14 +633,12 @@ async function customerPaymentAttempts(req, res) {
                 months: months
             };
 
-            console.log("quarterDataObject", quarterDataObject);
 
 
 
             // Push the quarter data object to quarterData array
             quarterData.push(quarterDataObject);
         }
-        // console.log("quarterData", quarterData)
         // Return the quarter data
         return res.status(200).json({
             code: 200,
@@ -676,24 +670,11 @@ function getQuarterBoundaries(quarter) {
 // Function to fetch payment data for a specific month range (implementation details depend on your data source)
 async function fetchMonthData(partner_id, monthStart, endMonth, category, policy_type, policy_duration) {
 
-    console.log("monthStart", monthStart);
-    console.log("endMonth", endMonth);
-    console.log("category", category);
-    console.log("policy_type", policy_type);
-    console.log("policy_duration", policy_duration);
-
     const paymentAttempts = await getPaymentAttempts(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
     const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
     const qwpPaid = await getQwpPaid(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
     const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
     const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-
-    // console.log("paymentAttempts", paymentAttempts);
-    // console.log("successfulPayments", successfulPayments);
-    // console.log("qwpPaid", qwpPaid);
-    // console.log("wrongPinFailures", wrongPinFailures);
-    // console.log("insufficientFundsFailures", insufficientFundsFailures);
-
 
     const monthData = {
         month: monthStart.format('MMMM YYYY'),
@@ -722,7 +703,6 @@ async function getPaymentAttempts(partner_id, monthStart, monthEnd, category, po
     }
 
 
-    console.log("queryFilter", queryFilter);
     const paymentAttempts = await Payment.count({
         where: {
             partner_id,
@@ -751,7 +731,6 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
     if (policy_duration) {
         queryFilter.installment_type = policy_duration;
     }
-    console.log("queryFilter", queryFilter);
 
     const successfulPayments = await Payment.count({
         where: {
@@ -895,11 +874,9 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
     try {
 
         const wrongPinFailures = await getWrongPinFailures(partner_id, lastMonthStart, lastMonthEnd, category, policy_type, policy_duration);
-        console.log("wrongPinFailures", wrongPinFailures);
 
         const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, lastMonthStart, lastMonthEnd, category, policy_type, policy_duration);
 
-        console.log("insufficientFundsFailures", insufficientFundsFailures);
 
         const wrongPinFailersSuccessfulPayments = await Payment.count({
             where: {
@@ -927,7 +904,6 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
 
         });
 
-        console.log("wrongPinFailersSuccessfulPayments", wrongPinFailersSuccessfulPayments);
 
         const insifficientFundsFailersSuccessfulPayments = await Payment.count({
             where: {
@@ -955,7 +931,6 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
 
         });
 
-        console.log("insifficientFundsFailersSuccessfulPayments", insifficientFundsFailersSuccessfulPayments)
 
       // calculate percentage of failures and outcomes
             const totalWrongPinPayments = wrongPinFailersSuccessfulPayments + wrongPinFailersFialedPayments;
@@ -967,8 +942,7 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
             const wrongPinFailersSuccessfulPaymentsPercentage = ((wrongPinFailersSuccessfulPayments / totalWrongPinPayments) * 100).toFixed(2);
 
            const insifficientFundsFailersSuccessfulPaymentsPercentage = ((insifficientFundsFailersSuccessfulPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
-        console.log("wrongPinFailuresPercentage", wrongPinFailuresPercentage);
-        console.log("insufficientFundsFailuresPercentage", insufficientFundsFailuresPercentage);
+    
 
         return res.status(200).json({
             code: 200,

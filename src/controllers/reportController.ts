@@ -55,7 +55,6 @@ const Partner = db.partners;
  *         description: Invalid request
  */
 const getPolicySummary = async (req: any, res: any) => {
-  console.log("getPolicySummary");
 
   try {
     const partner_id = req.query.partner_id;
@@ -247,7 +246,6 @@ const getPolicySummary = async (req: any, res: any) => {
 
 const getClaimSummary = async (req: any, res: any) => {
   try {
-    console.log("getClaimSummary");
 
     const partner_id = req.query.partner_id;
     const today = req.query.today === "true"; // Convert to a boolean value
@@ -1117,7 +1115,6 @@ const getAggregatedDailyPolicySalesReport = async (req: any, res: any) => {
         partner_id: req.query.partner_id,
       },
     });
-    console.log("RESULTS", results)
 
     const data = {
       labels: labels,
@@ -1233,7 +1230,6 @@ const getAggregatedAnnuallyPolicySalesReport = async (req: any, res: any) => {
       },
     });
 
-    console.log("RESULTS", results);
 
     const data = {
       labels: labels,
@@ -1367,7 +1363,6 @@ const getAggregatedMonthlySalesReport = async (req: any, res: any) => {
         partner_id: req.query.partner_id,
       },
     });
-    console.log("RESULTS", results)
     const data = {
       labels: labels,
       datasets: datasets,
@@ -1490,7 +1485,6 @@ const getClaimExcelReportDownload = async (req: any, res: any) => {
       return res.status(404).json({ message: "No claims found" });
     }
 
-    console.log("I WAS CALLED  claims", claims)
 
 
     const workbook = await generateClaimExcelReport(claims);
@@ -1674,7 +1668,6 @@ const paymentReconciliation = async (req, res) => {
 
       // Update policy if it's paid and airtel money details are missing
       if (policy && (policy.airtel_money_id === null || policy.airtel_transaction_id === null)) {
-        console.log("==== AIRTEL MONEY UPDATE === ", policy?.first_name, policy?.last_name, policy.policy_number, policy.premium, data.airtel_money_id);
         await db.policies.update({
           airtel_money_id: data.airtel_money_id,
           airtel_transaction_id: data.airtel_money_id
@@ -1685,7 +1678,6 @@ const paymentReconciliation = async (req, res) => {
         });
       } else {
 
-        console.log("AIRTEL MONEY ID FOUND ", policy?.first_name, policy?.last_name, policy?.phone_number, policy?.premium, data.airtel_money_id);
       }
     }
 
@@ -1759,6 +1751,7 @@ async function policyReconciliation(req: any, res: any) {
 
     let policy = await db.policies.findOne({
       where: {
+        partner_id: partner_id,
         phone_number: `+256${phone_number}`,
         premium: premium,
       },
@@ -1775,9 +1768,9 @@ async function policyReconciliation(req: any, res: any) {
       limit: 1,
     });
 
-    console.log("====== PAYMENT =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
+    console.log("====== PAYMENT - RECON =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
 
-    console.log("===== POLICY =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
+    console.log("===== POLICY  - RECON =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
 
     if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount) {
 
@@ -1792,8 +1785,6 @@ async function policyReconciliation(req: any, res: any) {
     });
 
 
-    // console.log("transactionId", transactionId)
-
     let paymentCallback = {
       transaction: {
         id: transactionId.transaction_id,
@@ -1804,7 +1795,6 @@ async function policyReconciliation(req: any, res: any) {
       }
     }
 
-    // console.log("paymentCallback", paymentCallback)
     result = await reconcilationCallback(paymentCallback.transaction)
 
 
@@ -1917,7 +1907,6 @@ async function getPolicySummarySnapshot(req, res) {
         months.push(monthData);
       }
 
-      //console.log("months", months)
 
       // Construct data object for the quarter
       const quarterDataObject = {
@@ -1938,7 +1927,6 @@ async function getPolicySummarySnapshot(req, res) {
 
       };
 
-      console.log("quarterDataObject", quarterDataObject)
 
       // Push the quarter data object to quarterData array
       quarterData.push(quarterDataObject);
@@ -2023,7 +2011,6 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
       },
     });
 
-    console.log("freePoliciesExpirations", freePoliciesExpirations.count)
 
 
     let policyExpirations = await db.policies.findAndCountAll({
@@ -2057,8 +2044,6 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
       ],
     });
 
-   // console.log("totalPremium", totalPremium[0].dataValues.total_premium)
-
     let firstTimePolicies = await db.policies.findAndCountAll({
       where: {
         partner_id: partner_id,
@@ -2077,7 +2062,6 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
       ],
     });
 
-    //console.log("firstTimePolicies", firstTimePolicies.count)
 
     let activePolicies = await db.policies.findAndCountAll({
       where: {

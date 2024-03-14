@@ -22,6 +22,8 @@ const User = db.users;
 const Partner = db.partners;
 const Policy = db.policies;
 const Log = db.logs;
+const Beneficiary = db.beneficiaries;
+const Payments = db.payments;
 
 
 async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
@@ -30,6 +32,20 @@ async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
       user_id: user_id,
       partner_id: partner_id,
     },
+    include: [
+      {
+        model: Beneficiary,
+        as: "beneficiaries",
+      },
+      {
+        model: Payments,
+        as: "payments",
+      },
+      {
+        model: Policy,
+        as: "policies",
+      }
+    ],
   });
   //remove password from the response
   if (user) {
@@ -296,9 +312,6 @@ interface LoginRequestBody {
 const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
   try {
     const { email, phone_number, password } = req.body;
-
-    console.log("LOGIN", req.body);
-
 
     // Check if either email or phone_number is provided
     if (!email && !phone_number) {
@@ -574,7 +587,6 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
     let partner_id = req.query.partner_id;
 
     let user: any = await findUserByPhoneNumberFunc(user_id, partner_id);
-    console.log(user);
 
     if (!user || user.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
@@ -769,7 +781,6 @@ const getPartner = async (req: any, res: any) => {
         partner_id: partner_id + "",
       },
     });
-    // console.log(partner);
 
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, message: "No partner found" });
@@ -891,7 +902,6 @@ const partnerSwitch = async (req: any, res: any) => {
         id: req.partner_id
       },
     });
-    console.log("PARTNER", partner);
     if (!partner || partner.length === 0) {
       return res.status(404).json({ item: 0, status: "FAILED", message: "Sorry, No partner found" });
     }
@@ -905,7 +915,6 @@ const partnerSwitch = async (req: any, res: any) => {
       }
     );
 
-    console.log("updated user", updatedUser);
     return res.status(201).json({
       code: 201,
       status: "OK", message: "Partner updated successfully"
@@ -970,7 +979,6 @@ const bulkUserRegistration = async (req: any, res: any) => {
     const createdUsers = [];
 
     for (const userData of userDataArray) {
-      console.log("USER DATA", userData);
       // Convert keys to lowercase
       const lowerCaseUserData: any = Object.keys(userData).reduce(
         (acc, key) => {
@@ -980,7 +988,6 @@ const bulkUserRegistration = async (req: any, res: any) => {
         {}
       );
 
-      console.log("USER DATA", lowerCaseUserData);
 
       const {
         first_name,
@@ -1109,7 +1116,6 @@ async function adminSignup(req: any, res: any) {
     await sendWelcomeEmail(admin, "Admin Registration", welcomeTemplate)
 
 
-    console.log("NEW ADMIN", newAdmin);
     return res.status(200).json({
       code: 200,
       status: "OK", message: 'Admin registered successfully'
@@ -1228,9 +1234,7 @@ async function findUserVehicle(req: any, res: any) {
   try {
     const { partner_id } = req.query
     const { user_id } = req.params
-    console.log(" req.query", req.query);
-    console.log("USER ID", user_id);
-    console.log("PARTNER ID", partner_id);
+  
 
     const userVehicle = await db.vehicles.findAll({
       where: {
@@ -1355,7 +1359,6 @@ async function sendResetEmail(email, token) {
 
     sendForgotPasswordEmail(user, subject, message)
 
-    console.log(`Reset email sent to ${email} with token: ${token}`);
   } catch (error) {
     console.error('Error sending reset email:', error);
     throw new Error('Failed to send reset email.');
@@ -1386,7 +1389,6 @@ async function sendResetOTP(phone_number, token) {
     const message = `Use this
     token to reset your password: ${token}`;
     SMSMessenger.sendSMS(3, user.phone_number, message)
-    console.log(`Reset OTP sent to ${phone_number} with token: ${token}`);
   }
   catch (error) {
     console.error('Error sending reset OTP:', error);
@@ -1493,7 +1495,6 @@ async function changePassword(req: any, res: any) {
 
     // 2. Verify Token
     const user = await db.users.findOne({ where: { email } });
-    console.log("USER", user.reset_token);
     if (user.reset_token !== token) {
       return res.status(400).json({ status: "FAILED", error: 'Invalid reset token.' });
     }

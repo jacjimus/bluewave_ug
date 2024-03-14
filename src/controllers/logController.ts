@@ -154,7 +154,6 @@ const getSessions = async (req: any, res: any) => {
 
     // Fetch sessions from the database with pagination
     const { sessions, totalSessionsCount } = await fetchSessionsFromDatabase(partner_id, user_id, phone_number, offset, limit);
-    console.log("SESSIONS ", sessions);
 
 
     // Return pagination information along with sessions
@@ -199,7 +198,6 @@ const fetchSessionsFromDatabase = async (partner_id: any, user_id: string, phone
       phonenumber: phone_number
     };
   }
-  console.log("WHERE ", whereCondition);
 
   // Example query using Sequelize
   let sessions = await db.sessions.findAll({
@@ -207,7 +205,6 @@ const fetchSessionsFromDatabase = async (partner_id: any, user_id: string, phone
     offset: offset,
     limit: limit
   });
-  console.log("SESSIONS ", sessions);
 
   // Calculate total sessions count based on the query result
   const totalSessionsCount = await db.sessions.count({
