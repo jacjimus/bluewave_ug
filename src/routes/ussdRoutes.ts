@@ -86,32 +86,34 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
 const updateInstallmentLogic = async (policy, amount) => {
   try {
     let date = new Date();
-    let installment_alert_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day - 3);
-
-    if (policy.policy_deduction_day - 3 < 1) {
-      installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 28);
+    let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
+    
+    // Handle negative dates by rolling back to the previous month's end
+    if (installment_alert_date.getDate() < 1) {
+      installment_alert_date.setDate(0);
     }
 
     policy.policy_paid_date = new Date();
-
+    
     if (policy.installment_type === 2) {
       policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-      policy.installment_order = policy.policy_paid_amount == amount ? 1 : parseInt(policy.installment_order) + 1;
+      policy.installment_order = policy.policy_paid_amount === amount ? 1 : parseInt(policy.installment_order) + 1;
       policy.installment_alert_date = installment_alert_date;
 
       if (policy.policy_paid_amount !== policy.premium) {
-        policy.policy_paid_amount = policy.policy_paid_amount + amount;
-        policy.policy_pending_premium = policy.policy_pending_amount - amount;
+        policy.policy_paid_amount += amount;
+        policy.policy_pending_premium -= amount;
       }
-      if (policy.policy_pending_premium + policy.policy_paid_amount == policy.yearly_premium) {
-        policy.policy_pending_premium = policy.yearly_premium - policy.policy_paid_amount  
+
+      if (policy.policy_pending_premium + policy.policy_paid_amount === policy.yearly_premium) {
+        policy.policy_pending_premium = policy.yearly_premium - policy.policy_paid_amount;
       }
 
       await policy.save();
     } else {
       policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
 
-      if (policy.installment_order == 12) {
+      if (policy.installment_order === 12) {
         policy.policy_status = "expired";
       }
 
@@ -122,6 +124,7 @@ const updateInstallmentLogic = async (policy, amount) => {
     throw error;
   }
 };
+
 
 const updateUserInformation = async (policy) => {
   try {
