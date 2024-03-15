@@ -73,7 +73,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
       status.result = paymentResponse.data.status;
 
       // Create transaction
-      createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
+     await createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
 
       return status;
   } catch (error) {

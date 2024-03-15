@@ -58,6 +58,7 @@ export const findTransactionById = async (transactionId) => {
         { transaction_id: transactionId },
         { transaction_reference: transactionId },
       ],
+      status: "pending",
 
     },
   });
