@@ -102,5 +102,5 @@ cron.schedule("0 8 * * *", () => {
 
 playground();
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`Server listening at port ${port}`));
