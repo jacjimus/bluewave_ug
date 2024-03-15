@@ -117,6 +117,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
           console.log("Updated policy:", policy);
       } else {
+        policy.policy_paid_amount = parseInt(amount);
           policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
 
           if (policy.installment_order === 12) {
