@@ -265,7 +265,7 @@ async function updatePremium(user: any, policy: any) {
   try {
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if (user.user_id !== policy.user_id) {
-      console.log("POLICY NOT FOR USER");
+      console.log("POLICY NOT FOR USER", user.name, policy.policy_type, user.total_member_number);
     } else {
 
       console.log('UPDATE PREMIUM', user.name, policy.policy_type, user.total_member_number)
@@ -277,7 +277,7 @@ async function updatePremium(user: any, policy: any) {
 
       if (policy.total_member_number !== "M" && policy.total_member_number !== null) {
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-        console.log("Number of dependants:", number_of_dependants);
+        console.log("UPDATE AAR  premium - Number of dependants:", number_of_dependants);
 
         const policyPremium = policy.premium
         const memberSize = (policy.total_member_number).split("")[2]
@@ -310,7 +310,7 @@ async function updatePremium(user: any, policy: any) {
         },
         data: JSON.stringify(requestData),
       };
-      console.log("CONFIG", config);
+      console.log("UPDATE PREMIUM ARR CONFIG", config);
 
       const response = await axios.request(config);
       console.log(JSON.stringify(response.data));
@@ -486,6 +486,8 @@ async function fetchMemberStatusData({ member_no, unique_profile_id }) {
       }
     };
     const response = await axios.request(config);
+
+    console.log('fetchMemberStatusData',JSON.stringify(response.data));
 
     return response.data;
   } catch (error) {

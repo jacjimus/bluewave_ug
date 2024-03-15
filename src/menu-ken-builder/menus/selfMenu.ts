@@ -233,10 +233,10 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
       })
     ]);
     console.log("============== END TIME - SELF KENYA  ================ ", phoneNumber, new Date());
-    console.log("RESPONSE WAS CALLED KENYA ",);
-    return 'END Payment successful';
+    console.log("SELF RESPONSE WAS CALLED KENYA ",);
+    return 'END P- ayment successful';
   } catch (error) {
-    console.log("RESPONSE WAS CALLED KENYA ", error);
+    console.log("SELF - RESPONSE WAS CALLED KENYA ", error);
     return 'END Payment failed';
   } finally {
     console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", phoneNumber, new Date());

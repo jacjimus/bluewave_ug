@@ -26,7 +26,8 @@ const renewMenu = async (args: any, db: any) => {
     let paidPolicies = await db.policies.findAll({
         where: {
             phone_number: phoneNumber,
-            policy_status: "paid"
+            policy_status: "paid",
+            installment_type: 2,
         },
         order: [
             ['policy_start_date', 'DESC'],
@@ -39,6 +40,7 @@ const renewMenu = async (args: any, db: any) => {
         response = "END Sorry you have no active policy"
         return response
     }
+
 
 
     if (currentStep == 1) {
@@ -60,8 +62,8 @@ const renewMenu = async (args: any, db: any) => {
 
     } else if (currentStep == 2) {
 
-        console.log("allSteps", allSteps)
-        console.log('Current step', currentStep);
+        console.log("allSteps ", allSteps)
+        console.log('Current step 2', currentStep);
         console.log('User text', userText)
         if ((userText * 1) > 3) {
             response = "END Invalid option"
@@ -80,6 +82,8 @@ const renewMenu = async (args: any, db: any) => {
 
 
         let choosenPolicy = paidPolicies[allSteps[1] - 1];
+
+        console.log("============== choosenPolicy ================ ", choosenPolicy);
 
         const airtelMoneyPromise = await airtelMoney(
             existingUser.user_id,
@@ -105,11 +109,11 @@ const renewMenu = async (args: any, db: any) => {
             // Airtel Money operation completed successfully
             console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
             response = 'END Payment successful';
-            console.log("RESPONSE WAS CALLED", result);
+            console.log("RENEW - RESPONSE WAS CALLED", result);
             return response;
         }).catch((error) => {
             response = 'END Payment failed';
-            console.log("RESPONSE WAS CALLED", error);
+            console.log("RENEW - RESPONSE WAS CALLED", error);
             return response;
         });
 

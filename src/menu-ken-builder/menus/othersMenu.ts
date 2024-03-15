@@ -490,19 +490,19 @@ const othersMenu = async (args, db) => {
         ]).then((result) => {
           console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
           response = 'END Payment successful';
-          console.log("RESPONSE WAS CALLED", result);
+          console.log("OTHER - RESPONSE WAS CALLED", result);
           return response;
         })
           .catch((error) => {
             response = 'END Payment failed';
-            console.log("RESPONSE WAS CALLED EER", error);
+            console.log("OTHER - RESPONSE WAS CALLED EER", error);
             return response;
           })
 
         console.log("============== AFTER CATCH  TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
-        console.log("RESPONSE WAS CALLED EER", error);
+        console.log("OTHER - RESPONSE WAS CALLED EER", error);
       }
       console.log("============== AFTER CATCH  TIME KENYA ================ ", new Date());
 

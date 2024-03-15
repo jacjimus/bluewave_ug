@@ -76,6 +76,8 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
 
     await policy.save();
 
+    console.log("Policy details updated successfully");
+
     return policy;
   } catch (error) {
     console.error("Error updating policy details:", error);
@@ -85,43 +87,49 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
 
 const updateInstallmentLogic = async (policy, amount) => {
   try {
-    let date = new Date();
-    let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
-    
-    // Handle negative dates by rolling back to the previous month's end
-    if (installment_alert_date.getDate() < 1) {
-      installment_alert_date.setDate(0);
-    }
+      let date = new Date();
+      let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
 
-    policy.policy_paid_date = new Date();
-    
-    if (policy.installment_type === 2) {
-      policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-      policy.installment_order = policy.policy_paid_amount === amount ? 1 : parseInt(policy.installment_order) + 1;
-      policy.installment_alert_date = installment_alert_date;
-
-      if (policy.policy_paid_amount !== policy.premium) {
-        policy.policy_paid_amount += amount;
-        policy.policy_pending_premium -= amount;
+      // Handle negative dates by rolling back to the previous month's end
+      if (installment_alert_date.getDate() < 1) {
+          installment_alert_date.setDate(0);
       }
 
-      if (policy.policy_pending_premium + policy.policy_paid_amount === policy.yearly_premium) {
-        policy.policy_pending_premium = policy.yearly_premium - policy.policy_paid_amount;
+      policy.policy_paid_date = new Date();
+
+      if (policy.installment_type === 2) {
+          policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
+          policy.installment_order = policy.policy_paid_amount === amount ? 1 : parseInt(policy.installment_order) + 1;
+          policy.installment_alert_date = installment_alert_date;
+
+          // Adjust policy amounts
+          if (parseInt(policy.policy_paid_amount) !== parseInt(policy.premium)) {
+
+              policy.policy_paid_amount  = parseInt(policy.installment_order) * parseInt(policy.premium);
+              policy.policy_pending_premium -= parseInt(amount);
+
+              console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
+          }
+
+          if (parseInt(policy.policy_pending_premium) + parseInt(policy.policy_paid_amount) === parseInt(policy.yearly_premium)) {
+              policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
+          }
+
+          console.log("Updated policy:", policy);
+      } else {
+          policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+
+          if (policy.installment_order === 12) {
+              policy.policy_status = "expired";
+          }
+
+          console.log("Updated policy:", policy);
       }
 
       await policy.save();
-    } else {
-      policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
-
-      if (policy.installment_order === 12) {
-        policy.policy_status = "expired";
-      }
-
-      await policy.save();
-    }
   } catch (error) {
-    console.error("Error updating installment logic:", error);
-    throw error;
+      console.error("Error updating installment logic:", error);
+      throw error;
   }
 };
 
@@ -135,6 +143,10 @@ const updateUserInformation = async (policy) => {
     await db.users.update({ number_of_policies: policyPaidCountOfUser }, {
       where: { user_id: policy.user_id }
     });
+
+
+    console.log("User information updated successfully");
+
   } catch (error) {
     console.error("Error updating user information:", error);
     throw error;
@@ -143,7 +155,7 @@ const updateUserInformation = async (policy) => {
 
 
 export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
-  console.log("UPDATE STATUS WAS CALLED", policy);
+  console.log("UPDATE STATUS WAS CALLED");
 
   try {
     await updatePolicyDetails(policy, amount, payment, airtel_money_id);
@@ -188,6 +200,8 @@ router.all("/callback", async (req, res) => {
           }
         });
 
+        console.log("POLICY", policy);
+
         if (!policy) {
           return res.status(404).json({ message: "Policy not found" });
         }
@@ -207,7 +221,6 @@ router.all("/callback", async (req, res) => {
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
         console.log("MEMBERS", members, policy.total_member_number);
 
-        //let proratedPercentage = calculateProrationPercentage(parseInt(policy.installment_order));
 
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
@@ -219,7 +232,7 @@ router.all("/callback", async (req, res) => {
         policy.save();
 
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
-        await sendSMSNotification(to, congratText);
+         await sendSMSNotification(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
         await processPolicy(user, policy, memberStatus);
@@ -301,13 +314,14 @@ const handleFailedPaymentRecord = async (amount, user_id, policy_id, description
 
 
 export async function processPolicy(user: any, policy: any, memberStatus: any) {
-  console.log(policy?.total_member_number)
+
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
   console.log("Number of dependants:", number_of_dependants);
 
   if (memberStatus?.code === 200) {
-    console.log("", memberStatus);
     await db.policies.update({ arr_policy_number: memberStatus.policy_no }, { where: { policy_id: policy.policy_id } });
+
+    console.log("AAR POLICY NUMBER UPDATED", user.phone_number, user.name, memberStatus.policy_no);
 
   } else {
     const registerAARUser = await registerPrincipal(user, policy);

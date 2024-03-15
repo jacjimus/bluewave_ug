@@ -267,11 +267,11 @@ const accountMenu = async (args: any, db: any) => {
                 // Airtel Money operation completed successfully
                 console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
-                console.log("RESPONSE WAS CALLED", result);
+                console.log("OTHER - RESPONSE WAS CALLED", result);
                 return response;
             }).catch((error) => {
                 response = 'END Payment failed';
-                console.log("RESPONSE WAS CALLED", error);
+                console.log("OTHER - RESPONSE WAS CALLED", error);
                 return response;
             });
 
