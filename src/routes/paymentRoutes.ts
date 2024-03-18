@@ -21,6 +21,7 @@ router.get('/policy/:policy_id', isSuperAdmin, paymentController.getPolicyPaymen
 router.get('/user/:user_id', isSuperAdmin, paymentController.findUserByPhoneNumberPayments)
 router.get('/customer/payment_attempts',  paymentController.customerPaymentAttempts)
 router.get('/customer/failures_outcomes_last_month',  paymentController.getFailuresAndOutcomesLastMonth)
+router.get('/customer/payment_outcomes_trends',  paymentController.getPaymentOutcomesTrends)
 router.post('/create', isSuperAdmin, isSuperAdmin, paymentController.createPayment)
 
 

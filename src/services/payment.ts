@@ -65,6 +65,7 @@ async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, 
       };
 
       const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
+      console.log("PAYMENT DATA", paymentData, "HEADERS", headers, "TOKEN", token, "AIRTEL_PAYMENT_URL", AIRTEL_PAYMENT_URL)
 
       // Make payment request
       const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });

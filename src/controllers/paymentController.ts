@@ -975,6 +975,84 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
 
 }
 
+/* PAYMENT TRENDS 
+1.Payment outcomes % trends from january to december
+*/
+
+/**
+ * @swagger
+ * /api/v1/payments/customer/payment_outcomes_trends:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     description:  Get customer payment outcomes trends
+ *     operationId: getPaymentOutcomesTrends
+ *     summary: Get customer payment outcomes trends
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+
+async function getPaymentOutcomesTrends(req, res) {
+    const { partner_id, category, policy_type, policy_duration } = req.query;
+    const year = moment().year();
+    const months = moment.months();
+    try {
+        const trends = [];
+        for (let i = 0; i < months.length; i++) {
+            const monthStart = moment(`${year}-${i + 1}-01`).startOf('month');
+            const monthEnd = moment(`${year}-${i + 1}-01`).endOf('month');
+
+            const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresByDateRange({
+                partner_id,
+                payment_status: "failed",
+            },
+                monthStart, monthEnd,
+                category, policy_type, policy_duration);
+
+            const totalPayments = successfulPayments + failedPayments;
+
+            const monthData = {
+                month: months[i],
+                successfulPayments,
+                failedPayments,
+                totalPayments,
+                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
+                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
+            };
+
+            trends.push(monthData);
+        }
+
+        return res.status(200).json({
+            code: 200,
+            status: "OK",
+            data: trends,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+
 
 
 
@@ -985,6 +1063,7 @@ module.exports = {
     findUserByPhoneNumberPayments,
     createPayment,
     customerPaymentAttempts,
-    getFailuresAndOutcomesLastMonth
+    getFailuresAndOutcomesLastMonth,
+    getPaymentOutcomesTrends
 
 }
