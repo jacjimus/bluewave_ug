@@ -492,25 +492,6 @@ const createPayment = async (req, res) => {
     }
 };
 
-// async function customerPaymentAttempts (){
-//     try {
-
-// /* implement logic to get the following payment attempts for every quarter of the year with its respective months
-// 1. payment attempts
-// 2. successful payments
-// 3. QWP Paid
-// 4. wrong pin failed payments
-// 5. insufficient funds failed payments
-// */
-
-
-
-//     } catch (error) {
-//         console.error("ERROR", error);
-//         return null;
-//     }
-
-// }
 
 /**
  * @swagger
@@ -732,6 +713,8 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
         queryFilter.installment_type = policy_duration;
     }
 
+    console.log('getSuccessfulPayments',monthStart.toDate(), monthEnd.toDate());
+
     const successfulPayments = await Payment.count({
         where: {
             partner_id,
@@ -790,6 +773,8 @@ function getFailuresByDateRange(whereClause, monthStart, monthEnd, category, pol
     if (policy_duration) {
         queryFilter.installment_type = policy_duration;
     }
+
+    console.log('getFailuresByDateRange',monthStart.toDate(), monthEnd.toDate());
     return Payment.count({
         where: {
             ...whereClause,
@@ -834,12 +819,6 @@ async function getInsufficientFundsFailures(partner_id, startMonth, endMonth, ca
 }
 
 
-/*
-type of failures and ultimate outcomes and for the last 1 month
-insufficient fund and wrong pin failures
-calculate percentage of failures and outcomes
-*/
-
 
 /**
  * @swagger
@@ -872,10 +851,6 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
     const lastMonthEnd = moment().subtract(1, 'month').endOf('month');
 
     try {
-
-        const wrongPinFailures = await getWrongPinFailures(partner_id, lastMonthStart, lastMonthEnd, category, policy_type, policy_duration);
-
-        const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, lastMonthStart, lastMonthEnd, category, policy_type, policy_duration);
 
 
         const wrongPinFailersSuccessfulPayments = await Payment.count({
@@ -975,9 +950,6 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
 
 }
 
-/* PAYMENT TRENDS 
-1.Payment outcomes % trends from january to december
-*/
 
 /**
  * @swagger
@@ -1024,14 +996,21 @@ async function getPaymentOutcomesTrends(req, res) {
                 category, policy_type, policy_duration);
 
             const totalPayments = successfulPayments + failedPayments;
+            const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+
 
             const monthData = {
                 month: months[i],
                 successfulPayments,
                 failedPayments,
+                wrongPinFailures: wrongPinFailures,
+                insufficientFundsFailures: insufficientFundsFailures,
                 totalPayments,
                 successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
                 failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
+                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
+                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
             };
 
             trends.push(monthData);
@@ -1053,10 +1032,259 @@ async function getPaymentOutcomesTrends(req, res) {
 }
 
 
+/**
+ * @swagger
+ * /api/v1/payments/customer/payment_attempt_outcomes_by_day_of_week:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     description:  Get customer payment attempt and outcomes by day of week
+ *     operationId: getPaymentAttemptOutcomesByDayOfWeek
+ *     summary: Get customer payment attempt and outcomes by day of week
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+
+async function getPaymentAttemptOutcomesByDayOfWeek(req, res) {
+    const { partner_id, category, policy_type, policy_duration } = req.query;
+    const days = Array.from({ length: 7 }, (_, i) => i); // Create an array of 0 to 6 representing days of the week
+    try {
+        const trends = [];
+        for (let i = 0; i < days.length; i++) {
+            const dayStart = moment().startOf('week').add(i, 'days');
+            const dayEnd = moment().endOf('week').add(i, 'days');
+
+            console.log('dayStart',dayStart, dayStart.toDate());
+            console.log('dayEnd', dayEnd,dayEnd.toDate());
+
+            const successfulPayments = await getSuccessfulPayments(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresByDateRange({
+                partner_id,
+                payment_status: "failed",
+            },
+                dayStart, dayEnd,
+                category, policy_type, policy_duration);
+
+            const totalPayments = successfulPayments + failedPayments;
+            const wrongPinFailures = await getWrongPinFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
+            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
+
+
+            const dayData = {
+                day: i, // Use index as day of the week
+                successfulPayments,
+                failedPayments,
+                wrongPinFailures: wrongPinFailures,
+                insufficientFundsFailures: insufficientFundsFailures,
+                totalPayments,
+                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
+                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
+                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
+                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
+            };
+
+            trends.push(dayData);
+        }
+
+        return res.status(200).json({
+            code: 200,
+            status: "OK",
+            data: trends,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+
+
+/**
+ * @swagger
+ * /api/v1/payments/customer/payment_attempt_outcomes_by_day_of_month:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     description:  Get customer payment attempt and outcomes by day of month
+ *     operationId: getPaymentAttemptOutcomesByDayOfMonth
+ *     summary: Get customer payment attempt and outcomes by day of month
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+
+async function getPaymentAttemptOutcomesByDayOfMonth(req, res) {
+    const { partner_id, category, policy_type, policy_duration } = req.query;
+    const daysInMonth = moment().daysInMonth(); // Get the number of days in the current month
+    try {
+        const trends = [];
+        for (let i = 1; i <= daysInMonth; i++) { // Iterate through each day of the month
+            const dayStart = moment().startOf('month').add(i - 1, 'days'); // Subtract 1 from i to get the correct index
+            const dayEnd = moment().startOf('month').add(i, 'days'); // Increment i for the end of the day
+
+            const successfulPayments = await getSuccessfulPayments(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresByDateRange({
+                partner_id,
+                payment_status: "failed",
+            },
+                dayStart, dayEnd,
+                category, policy_type, policy_duration);
+
+            const totalPayments = successfulPayments + failedPayments;
+            const wrongPinFailures = await getWrongPinFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
+            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
+
+
+            const dayData = {
+                day: i,
+                successfulPayments,
+                failedPayments,
+                wrongPinFailures: wrongPinFailures,
+                insufficientFundsFailures: insufficientFundsFailures,
+                totalPayments,
+                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
+                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
+                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
+                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
+            };
+
+            trends.push(dayData);
+        }
+
+        return res.status(200).json({
+            code: 200,
+            status: "OK",
+            data: trends,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+
+
+/**
+ * @swagger
+ * /api/v1/payments/customer/payment_attempt_outcomes_by_time_of_day:
+ *   get:
+ *     tags:
+ *       - Payments
+ *     description:  Get customer payment attempt and outcomes by time of day
+ *     operationId: getPaymentAttemptOutcomesByTimeOfDay
+ *     summary: Get customer payment attempt and outcomes by time of day
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfuly
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+
+async function getPaymentAttemptOutcomesByTimeOfDay(req, res) {
+    const { partner_id, category, policy_type, policy_duration } = req.query;
+    const hours = Array.from({ length: 24 }, (_, i) => i); // Create an array of 24 hours
+    try {
+        const trends = [];
+        for (let i = 0; i < hours.length; i++) {
+            const hourStart = moment().startOf('day').add(i, 'hours');
+            const hourEnd = moment().startOf('day').add(i + 1, 'hours'); // Increment hour for end time
+
+            const successfulPayments = await getSuccessfulPayments(partner_id, hourStart, hourEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresByDateRange({
+                partner_id,
+                payment_status: "failed",
+            },
+                hourStart, hourEnd,
+                category, policy_type, policy_duration);
+
+            const totalPayments = successfulPayments + failedPayments;
+            const wrongPinFailures = await getWrongPinFailures(partner_id, hourStart, hourEnd, category, policy_type, policy_duration);
+            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, hourStart, hourEnd, category, policy_type, policy_duration);
+
+
+            const hourData = {
+                hour: i, // Use index as hour
+                successfulPayments,
+                failedPayments,
+                wrongPinFailures: wrongPinFailures,
+                insufficientFundsFailures: insufficientFundsFailures,
+                totalPayments,
+                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
+                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
+                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
+                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
+            };
+
+            trends.push(hourData);
+        }
+
+        return res.status(200).json({
+            code: 200,
+            status: "OK",
+            data: trends,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            status: "FAILED",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+
+
 
 
 
 module.exports = {
+
     getPayments,
     getPayment,
     getPolicyPayments,
@@ -1064,6 +1292,9 @@ module.exports = {
     createPayment,
     customerPaymentAttempts,
     getFailuresAndOutcomesLastMonth,
-    getPaymentOutcomesTrends
+    getPaymentOutcomesTrends,
+    getPaymentAttemptOutcomesByDayOfWeek,
+    getPaymentAttemptOutcomesByDayOfMonth,
+    getPaymentAttemptOutcomesByTimeOfDay
 
 }
