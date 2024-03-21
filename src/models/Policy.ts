@@ -212,7 +212,17 @@ module.exports = (sequelize, DataTypes) => {
         policy_number: {
             type: DataTypes.STRING,
             allowNull: true
-        }
+        },
+        is_cancelled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false
+        },
+        is_expired: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false
+        },
     },
 
         { timestamps: true },)

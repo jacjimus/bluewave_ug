@@ -289,7 +289,7 @@ const accountMenu = async (args: any, db: any) => {
                 limit: 1,
             });
             await db.policies.update({
-                policy_status: "cancelled",
+                is_cancelled : true,
                 cancelled_at: new Date(),
                 user_id: user.user_id
             }, {

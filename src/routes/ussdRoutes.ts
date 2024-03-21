@@ -122,7 +122,7 @@ const updateInstallmentLogic = async (policy, amount) => {
           policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
 
           if (policy.installment_order === 12) {
-              policy.policy_status = "expired";
+              policy.is_expired = true;
           }
 
           console.log("Updated policy:", policy);
