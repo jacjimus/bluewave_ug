@@ -459,7 +459,7 @@ const createPayment = async (req, res) => {
             });
         }
 
-       await Promise.race([
+        await Promise.race([
             airtelMoneyPromise,
             new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -545,11 +545,11 @@ const createPayment = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
 async function customerPaymentAttempts(req, res) {
     try {
-
         const { partner_id, start_date, end_date, category, policy_type, policy_duration } = req.query;
+
+        // Validation
         if (!partner_id) {
             return res.status(400).json({
                 code: 400,
@@ -562,7 +562,7 @@ async function customerPaymentAttempts(req, res) {
         const startDate = start_date ? moment(start_date).startOf('day').toDate() : moment().startOf('year').toDate();
         const endDate = end_date ? moment(end_date).endOf('day').toDate() : moment().endOf('year').toDate();
 
-
+        console.log('startDate', startDate, 'endDate', endDate);
         // Ensure start date is before or equal to end date
         if (startDate > endDate) {
             return res.status(400).json({
@@ -572,7 +572,6 @@ async function customerPaymentAttempts(req, res) {
             });
         }
 
-
         // Initialize quarterData array to hold data for each quarter
         const quarterData = [];
 
@@ -580,46 +579,36 @@ async function customerPaymentAttempts(req, res) {
         const quarterStartDate = moment(startDate).startOf('quarter');
         const quarterEndDate = moment(endDate).endOf('quarter');
 
-
-
         // Loop through each quarter
         for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
             const quarterEnd = moment(quarterStart).endOf('quarter');
 
-
-            // Initialize months array to hold data for each month within the quarter
-            const months = [];
-
-            // Loop through each month within the quarter
-            for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
+            // Fetch data for each quarter in parallel
+            const months = await Promise.all([...Array(3)].map((_, index) => {
+                const monthStart = moment(quarterStart).add(index, 'month');
                 const monthEnd = moment(monthStart).endOf('month');
+                return fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+            }));
 
-                // Fetch data for each month
-                let monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
-
-
-                months.push(monthData);
-            }
+            console.log('months', months);
 
             // Construct data object for the quarter
             const quarterDataObject = {
                 quarter: quarterStart.format('Q YYYY'),
                 accumulated_report: {
-                    payment_attempts: months.reduce((acc, item) => acc + item.paymentAttempts, 0),
-                    successful_payments: months.reduce((acc, item) => acc + item.successfulPayments, 0),
-                    qwp_paid: months.reduce((acc, item) => acc + item.qwpPaid, 0),
-                    wrong_pin_failures: months.reduce((acc, item) => acc + item.wrongPinFailures, 0),
-                    insufficient_funds_failures: months.reduce((acc, item) => acc + item.insufficientFundsFailures, 0),
+                    payment_attempts: months.reduce((acc, item) => acc + parseInt(item.paymentAttempts), 0),
+                    successful_payments: months.reduce((acc, item) => acc + parseInt(item.successfulPayments), 0),
+                    qwp_paid: months.reduce((acc, item) => acc + parseInt(item.qwpPaid), 0),
+                    wrong_pin_failures: months.reduce((acc, item) => acc + parseInt(item.wrongPinFailures), 0),
+                    insufficient_funds_failures: months.reduce((acc, item) => acc + parseInt(item.insufficientFundsFailures), 0),
                 },
                 months: months
             };
 
-
-
-
             // Push the quarter data object to quarterData array
             quarterData.push(quarterDataObject);
         }
+
         // Return the quarter data
         return res.status(200).json({
             code: 200,
@@ -636,6 +625,187 @@ async function customerPaymentAttempts(req, res) {
         });
     }
 }
+        // // Split the date range into quarters
+        // const quarterStartDate = moment(startDate).startOf('quarter');
+        // const quarterEndDate = moment(endDate).endOf('quarter');
+
+
+
+        // // Loop through each quarter
+        // for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+        //     const quarterEnd = moment(quarterStart).endOf('quarter');
+
+
+        //     // Initialize months array to hold data for each month within the quarter
+        //     const months = [];
+
+        //     // Loop through each month within the quarter
+        //     for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
+        //         const monthEnd = moment(monthStart).endOf('month');
+
+        //         // Fetch data for each month
+        //         let monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+
+
+        //         months.push(monthData);
+        //     }
+
+
+
+async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+    // Fetch all metrics for the month with a single query
+    const monthData = await getPaymentAttemptsByPartner(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+    // Payment.findAll({
+    //     attributes: [
+    //         [Sequelize.fn('COUNT', Sequelize.col('payment.payment_status')), 'paymentAttempts'],
+    //         [Sequelize.fn('SUM', Sequelize.literal("CASE WHEN payment.payment_status = 'paid' THEN 1 ELSE 0 END")), 'successfulPayments'],
+    //         [Sequelize.fn('SUM', Sequelize.literal("CASE WHEN payment.payment_status = 'paid' THEN payment.payment_amount ELSE 0 END")), 'qwpPaid'],
+    //         [Sequelize.fn('SUM', Sequelize.literal("CASE WHEN payment.payment_status = 'failed' AND payment.payment_description LIKE '%invalid PIN length%' THEN 1 ELSE 0 END")), 'wrongPinFailures'],
+    //         [Sequelize.fn('SUM', Sequelize.literal("CASE WHEN payment.payment_status = 'failed' AND payment.payment_description LIKE '%insufficient money%' THEN 1 ELSE 0 END")), 'insufficientFundsFailures']
+    //     ],
+    //     where: {
+    //         partner_id,
+    //         createdAt: {
+    //             [Op.gte]: monthStart.toDate(),
+    //             [Op.lt]: monthEnd.toDate()
+    //         }
+    //     },
+    //     include: [{
+    //         model: Policy,
+    //         as: "policy",
+    //         where: {
+    //             ...(category && { beneficiary: category }),
+    //             ...(policy_type && { policy_type }),
+    //             ...(policy_duration && { installment_type: policy_duration })
+    //         }
+    //     }],
+    //     raw: true
+    // });
+
+    return {
+        month: monthStart.format('MMMM YYYY'),
+        paymentAttempts: monthData[0].paymentAttempts || 0,
+        successfulPayments: monthData[0].successfulPayments || 0,
+        qwpPaid: monthData[0].qwpPaid || 0,
+        wrongPinFailures: monthData[0].wrongPinFailures || 0,
+        insufficientFundsFailures: monthData[0].insufficientFundsFailures || 0
+    };
+}
+async function getPaymentAttemptsByPartner(partnerId, startDate, endDate, category, policy_type, policy_duration) {
+    let filterClause = '';
+
+    if (category) {
+        filterClause += `AND "policy"."beneficiary" = '${category}' `;
+    }
+    if (policy_type) {
+        filterClause += `AND "policy"."policy_type" = '${policy_type}' `;
+    }
+    if (policy_duration) {
+        filterClause += `AND "policy"."installment_type" = '${policy_duration}' `;
+    }
+
+    const paymentQuery = `
+        SELECT
+            COUNT(*) AS "paymentAttempts", 
+            SUM(CASE WHEN policy.policy_status = 'paid' THEN 1 ELSE 0 END) AS "successfulPayments",
+            SUM(CASE WHEN policy.policy_status = 'paid' THEN policy.policy_paid_amount ELSE 0 END) AS "qwpPaid",
+            SUM(CASE WHEN payment.payment_status = 'failed' AND payment_description LIKE '%invalid PIN length%' THEN 1 ELSE 0 END) AS "wrongPinFailures",
+            SUM(CASE WHEN payment.payment_status = 'failed' AND payment_description LIKE '%insufficient money%' THEN 1 ELSE 0 END) AS "insufficientFundsFailures"
+        FROM "payments" AS "payment"
+        INNER JOIN "policies" AS "policy" ON "payment"."policy_id" = "policy"."policy_id"
+        WHERE "payment"."partner_id" = ${partnerId}
+        AND "payment"."createdAt" >= '${startDate.toISOString()}'
+        AND "payment"."createdAt" < '${endDate.toISOString()}'
+        ${filterClause}
+    `;
+
+    const results = await db.sequelize.query(paymentQuery, {
+        type: Sequelize.QueryTypes.SELECT
+    });
+
+    return results;
+}
+
+
+// async function customerPaymentAttempts(req, res) {
+//     try {
+//         const { partner_id, start_date, end_date, category, policy_type, policy_duration } = req.query;
+
+//         // Validation
+//         if (!partner_id) {
+//             return res.status(400).json({
+//                 code: 400,
+//                 status: "FAILED",
+//                 message: "Partner ID is required",
+//             });
+//         }
+
+//         // Handle optional start_date and end_date parameters
+//         const startDate = start_date ? moment(start_date).startOf('day').toDate() : moment().startOf('year').toDate();
+//         const endDate = end_date ? moment(end_date).endOf('day').toDate() : moment().endOf('year').toDate();
+
+//         // Ensure start date is before or equal to end date
+//         if (startDate > endDate) {
+//             return res.status(400).json({
+//                 code: 400,
+//                 status: "FAILED",
+//                 message: "Start date cannot be after end date",
+//             });
+//         }
+
+//         // Initialize quarterData array to hold data for each quarter
+//         const quarterData = [];
+
+//         // Split the date range into quarters
+//         const quarterStartDate = moment(startDate).startOf('quarter');
+//         const quarterEndDate = moment(endDate).endOf('quarter');
+
+//         // Loop through each quarter
+//         for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+//             const quarterEnd = moment(quarterStart).endOf('quarter');
+
+//             // Fetch data for each quarter in parallel
+//             const months = await Promise.all([...Array(3)].map((_, index) => {
+//                 const monthStart = moment(quarterStart).add(index, 'month');
+//                 const monthEnd = moment(monthStart).endOf('month');
+//                 return fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+//             }));
+
+//             // Construct data object for the quarter
+//             const quarterDataObject = {
+//                 quarter: quarterStart.format('Q YYYY'),
+//                 accumulated_report: {
+//                     payment_attempts: months.reduce((acc, item) => acc + item.paymentAttempts, 0),
+//                     successful_payments: months.reduce((acc, item) => acc + item.successfulPayments, 0),
+//                     qwp_paid: months.reduce((acc, item) => acc + item.qwpPaid, 0),
+//                     wrong_pin_failures: months.reduce((acc, item) => acc + item.wrongPinFailures, 0),
+//                     insufficient_funds_failures: months.reduce((acc, item) => acc + item.insufficientFundsFailures, 0),
+//                 },
+//                 months: months
+//             };
+
+//             // Push the quarter data object to quarterData array
+//             quarterData.push(quarterDataObject);
+//         }
+
+//         // Return the quarter data
+//         return res.status(200).json({
+//             code: 200,
+//             status: "OK",
+//             data: quarterData,
+//         });
+//     } catch (error) {
+//         console.error("ERROR", error);
+//         return res.status(500).json({
+//             code: 500,
+//             status: "FAILED",
+//             message: "Internal server error",
+//             error: error.message,
+//         });
+//     }
+// }
+
+
 
 // Function to get start and end months for a quarter
 function getQuarterBoundaries(quarter) {
@@ -649,25 +819,32 @@ function getQuarterBoundaries(quarter) {
 }
 
 // Function to fetch payment data for a specific month range (implementation details depend on your data source)
-async function fetchMonthData(partner_id, monthStart, endMonth, category, policy_type, policy_duration) {
 
-    const paymentAttempts = await getPaymentAttempts(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-    const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-    const qwpPaid = await getQwpPaid(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-    const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
-    const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, endMonth, category, policy_type, policy_duration);
+// async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+//     const [
+//         paymentAttempts,
+//         successfulPayments,
+//         qwpPaid,
+//         wrongPinFailures,
+//         insufficientFundsFailures
+//     ] = await Promise.all([
+//         getPaymentAttempts(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
+//         getSuccessfulPayments(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
+//         getQwpPaid(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
+//         getWrongPinFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
+//         getInsufficientFundsFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration)
+//     ]);
 
-    const monthData = {
-        month: monthStart.format('MMMM YYYY'),
-        paymentAttempts,
-        successfulPayments,
-        qwpPaid,
-        wrongPinFailures,
-        insufficientFundsFailures,
-    };
+//     return {
+//         month: monthStart.format('MMMM YYYY'),
+//         paymentAttempts,
+//         successfulPayments,
+//         qwpPaid,
+//         wrongPinFailures,
+//         insufficientFundsFailures
+//     };
+// }
 
-    return monthData;
-}
 
 async function getPaymentAttempts(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
 
@@ -713,7 +890,7 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
         queryFilter.installment_type = policy_duration;
     }
 
-    console.log('getSuccessfulPayments',monthStart.toDate(), monthEnd.toDate());
+    console.log('getSuccessfulPayments', monthStart.toDate(), monthEnd.toDate());
 
     const successfulPayments = await Payment.count({
         where: {
@@ -774,7 +951,7 @@ function getFailuresByDateRange(whereClause, monthStart, monthEnd, category, pol
         queryFilter.installment_type = policy_duration;
     }
 
-    console.log('getFailuresByDateRange',monthStart.toDate(), monthEnd.toDate());
+    console.log('getFailuresByDateRange', monthStart.toDate(), monthEnd.toDate());
     return Payment.count({
         where: {
             ...whereClause,
@@ -907,17 +1084,17 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
         });
 
 
-      // calculate percentage of failures and outcomes
-            const totalWrongPinPayments = wrongPinFailersSuccessfulPayments + wrongPinFailersFialedPayments;
-            const totalInsufficientFundsPayments = insifficientFundsFailersSuccessfulPayments + insifficientFundsFailersFailedPayments;
+        // calculate percentage of failures and outcomes
+        const totalWrongPinPayments = wrongPinFailersSuccessfulPayments + wrongPinFailersFialedPayments;
+        const totalInsufficientFundsPayments = insifficientFundsFailersSuccessfulPayments + insifficientFundsFailersFailedPayments;
 
-            const wrongPinFailuresPercentage = ((wrongPinFailersFialedPayments / totalWrongPinPayments) * 100).toFixed(2);
-            const insufficientFundsFailuresPercentage =((insifficientFundsFailersFailedPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
+        const wrongPinFailuresPercentage = ((wrongPinFailersFialedPayments / totalWrongPinPayments) * 100).toFixed(2);
+        const insufficientFundsFailuresPercentage = ((insifficientFundsFailersFailedPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
 
-            const wrongPinFailersSuccessfulPaymentsPercentage = ((wrongPinFailersSuccessfulPayments / totalWrongPinPayments) * 100).toFixed(2);
+        const wrongPinFailersSuccessfulPaymentsPercentage = ((wrongPinFailersSuccessfulPayments / totalWrongPinPayments) * 100).toFixed(2);
 
-           const insifficientFundsFailersSuccessfulPaymentsPercentage = ((insifficientFundsFailersSuccessfulPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
-    
+        const insifficientFundsFailersSuccessfulPaymentsPercentage = ((insifficientFundsFailersSuccessfulPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
+
 
         return res.status(200).json({
             code: 200,
@@ -1067,8 +1244,8 @@ async function getPaymentAttemptOutcomesByDayOfWeek(req, res) {
             const dayStart = moment().startOf('week').add(i, 'days');
             const dayEnd = moment().endOf('week').add(i, 'days');
 
-            console.log('dayStart',dayStart, dayStart.toDate());
-            console.log('dayEnd', dayEnd,dayEnd.toDate());
+            console.log('dayStart', dayStart, dayStart.toDate());
+            console.log('dayEnd', dayEnd, dayEnd.toDate());
 
             const successfulPayments = await getSuccessfulPayments(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
             const failedPayments = await getFailuresByDateRange({
