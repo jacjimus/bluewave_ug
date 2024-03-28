@@ -17,67 +17,30 @@ import moment from 'moment';
 // const range = 'A:R'
 
 
-//transacactions_id phone_number premium
-// 101218305593		756397323		10,000
-// 101216819283		740908849		5,000
-// 101216073305		741766299		14,000
-// 101215607810		752313357		10,000
-// 101214115466		709849481		5,000
-// 101212924400		751135621		18,000
-// 101210926195		756836565		5,000
-// 101210067782		701674627		5,000
-// 101207521079		700990835		5,000
-// 101207075221		757413568		5,000
-// 101204496653		705490445		10,000
-// 101203083760		743115641		5,000
-// 101202856654		702927265		10,000
-// 101200150842		709669204		5,000
-// 101199096180		709397577		5,000
-// 101198033157		705452546		18,000
-// 101196969788		742359110		5,000
-// 101194842378		752045756		5,000
-// 101194776961		759169126		10,000
-// 101189743724		709656472		5,000
-// 101183768941		740543909		5,000
-// 101183074378		751912602		10,000
-// 101181312922		752969155		5,000
-// 101179047067		753958367		18,000
-// 101176763034		741000021		5,000
-// 101176544184		742009761		20,000
-// 101176315128		754298782		18,000
-// 101174278265		757917247		5,000
+//transacactions_id trasaction_date phone_number  premium 
+//99458339221	15-02-2024 12:20 PM	704036045	5,000
 
 const array_of_phone_numbers = [
 
-  //{ phone_number: '740652878',premium: 10000,airtel_money_id: '100915364940' },
-{ phone_number: '756397323', premium: 10000, airtel_money_id: '101218305593' },
-{ phone_number: '740908849', premium: 5000, airtel_money_id: '101216819283' },
-{ phone_number: '741766299', premium: 14000, airtel_money_id: '101216073305' },
-{ phone_number: '752313357', premium: 10000, airtel_money_id: '101215607810' },
-{ phone_number: '709849481', premium: 5000, airtel_money_id: '101214115466' },
-{ phone_number: '751135621', premium: 18000, airtel_money_id: '101212924400' },
-{ phone_number: '756836565', premium: 5000, airtel_money_id: '101210926195' },
-{ phone_number: '701674627', premium: 5000, airtel_money_id: '101210067782' },
-{ phone_number: '700990835', premium: 5000, airtel_money_id: '101207521079' },
-{ phone_number: '757413568', premium: 5000, airtel_money_id: '101207075221' },
-{ phone_number: '705490445', premium: 10000, airtel_money_id: '101204496653' },
-{ phone_number: '743115641', premium: 5000, airtel_money_id: '101203083760' },
-{ phone_number: '702927265', premium: 10000, airtel_money_id: '101202856654' },
-{ phone_number: '709669204', premium: 5000, airtel_money_id: '101200150842' },
-{ phone_number: '709397577', premium: 5000, airtel_money_id: '101199096180' },
-{ phone_number: '705452546', premium: 18000, airtel_money_id: '101198033157' },
-{ phone_number: '742359110', premium: 5000, airtel_money_id: '101196969788' },
-{ phone_number: '752045756', premium: 5000, airtel_money_id: '101194842378' },
-{ phone_number: '759169126', premium: 10000, airtel_money_id: '101194776961' },
-{ phone_number: '709656472', premium: 5000, airtel_money_id: '101189743724' },
-{ phone_number: '740543909', premium: 5000, airtel_money_id: '101183768941' },
-{ phone_number: '751912602', premium: 10000, airtel_money_id: '101183074378' },
-{ phone_number: '752969155', premium: 5000, airtel_money_id: '101181312922' },
-{ phone_number: '753958367', premium: 18000, airtel_money_id: '101179047067' },
-{ phone_number: '741000021', premium: 5000, airtel_money_id: '101176763034' },
-{ phone_number: '742009761', premium: 20000, airtel_money_id: '101176544184' },
-{ phone_number: '754298782', premium: 18000, airtel_money_id: '101176315128' },
-{ phone_number: '757917247', premium: 5000, airtel_money_id: '101174278265' }
+  //{ airtel_money_id: '100915364940',transaction_date: "24-03-2024 10:31 PM", phone_number: '740652878',premium: 10000},
+
+  // { airtel_money_id: '101433338446', transaction_date: "25-03-2024 05:02 PM", phone_number: '703962963', premium: 18000 },
+  // { airtel_money_id: '101431613103', transaction_date: "25-03-2024 04:23 PM", phone_number: '759761564', premium: 10000 },
+  // { airtel_money_id: '101430931356', transaction_date: "25-03-2024 04:07 PM", phone_number: '706451196', premium: 5000 },
+  // { airtel_money_id: '101428603263', transaction_date: "25-03-2024 03:09 PM", phone_number: '704599076', premium: 5000 },
+  // { airtel_money_id: '101425513198', transaction_date: "25-03-2024 01:54 PM", phone_number: '744080344', premium: 10000 },
+  // { airtel_money_id: '101425343098', transaction_date: "25-03-2024 01:50 PM", phone_number: '702446362', premium: 5000 },
+  // { airtel_money_id: '101420321143', transaction_date: "25-03-2024 11:53 AM", phone_number: '702507012', premium: 5000 },
+  // { airtel_money_id: '101420310167', transaction_date: "25-03-2024 11:53 AM", phone_number: '752862263', premium: 5000 },
+  //{ airtel_money_id: '101420060651', transaction_date: "25-03-2024 11:47 AM", phone_number: '700904628', premium: 5000 },
+  //{ airtel_money_id: '101418711540', transaction_date: "25-03-2024 11:15 AM", phone_number: '740042971', premium: 10000 },
+  //{ airtel_money_id: '101418173211', transaction_date: "25-03-2024 11:02 AM", phone_number: '740042971', premium: 10000 },
+  // { airtel_money_id: '101415043394', transaction_date: "25-03-2024 09:46 AM", phone_number: '703619277', premium: 15000 },
+  // { airtel_money_id: '101411775872', transaction_date: "25-03-2024 08:09 AM", phone_number: '750131788', premium: 14000 },
+  // { airtel_money_id: '101411305259', transaction_date: "25-03-2024 07:51 AM", phone_number: '753757802', premium: 5000 },
+  // { airtel_money_id: '101410242367', transaction_date: "25-03-2024 06:47 AM", phone_number: '703485624', premium: 60000 },
+ 
+
 
 
 
@@ -94,7 +57,9 @@ async function policyReconciliation() {
     let result
     array_of_phone_numbers.forEach(async (item) => {
 
-      let transaction_date = moment('2024-03-20').format('YYYY-MM-DD HH:mm:ss')
+     //let transaction_date = moment('2024-03-24').format('YYYY-MM-DD HH:mm:ss')
+      const transaction_date = moment(item.transaction_date, "YYYY-MM-DD h:mm A");
+      console.log("transaction_date_str", transaction_date)
       let policy = await db.policies.findAll({
         where: {
           phone_number: `+256${item.phone_number}`,
@@ -123,15 +88,19 @@ async function policyReconciliation() {
       });
 
 
-      if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount) {
-        console.log(" ===== policy paid  and payment match =======", policy.first_name, policy.last_name, policy.phone_number, policy.premium, policy.policy_status, payment.payment_status)
-       let  user = policy.user
-        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-        console.log(memberStatus)
-      }
-      // console.log("====== PAYMENT =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
+      // if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount && item.installment_count > 1) {
+      //   console.log(" ===== policy paid  and payment match =======", policy.first_name, policy.last_name, policy.phone_number, policy.premium, policy.policy_status, payment.payment_status)
+      //  let  user = policy.user
+      //   const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+      //   console.log(memberStatus)
+      //   if(item.installment_count > 1){
+      //     result= 'Payment already reconciled'
+      //     //result = await reconciliation({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "", amount: item.premium, transaction_date: transaction_date, installment_count: item.installment_count });
+      //   }
+      // }
+       console.log("====== PAYMENT =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata)
 
-      // console.log("===== POLICY =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
+       console.log("===== POLICY =====", policy.policy_id,policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
 
       let transaction = await db.transactions.findOne({
         where: {
@@ -140,8 +109,9 @@ async function policyReconciliation() {
         limit: 1,
       });
 
+      console.log("===== TRANSACTION =====", transaction)
 
-      if (transaction == null && policy.policy_status !== 'paid') {
+      if (transaction.status == null && policy.policy_status !== 'paid') {
         // create transaction
         let user_id = policy.user_id
         let partner_id = policy.partner_id
@@ -156,7 +126,7 @@ async function policyReconciliation() {
 
       //console.log("transaction", transaction)
 
-      if (transaction.transaction_id !== null && policy.policy_status !== 'paid') {
+      if (transaction.transaction_id !== null) {
 
         let paymentCallback = {
           transaction: {
@@ -164,12 +134,15 @@ async function policyReconciliation() {
             message: `PAID UGX ${item.premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${item.premium}. TID: ${item.airtel_money_id}. Date: ${transaction_date}`,
             status_code: "TS",
             airtel_money_id: item.airtel_money_id,
-            payment_date: transaction.createdAt
+            payment_date: transaction.createdAt,
+           
           }
         }
 
         // console.log("paymentCallback", paymentCallback)
         result = await reconcilationCallback(paymentCallback.transaction)
+        // slow down the loop
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
       }
       console.log("RESULT ", result);
@@ -241,7 +214,7 @@ export const playground = async () => {
    // getaRRMemberNumberData()
   // check_if_phone_number_has_paid_poicy(array_of_phone_numbers_to_check_paid_policies)
   //findDuplicatePhoneNumbers(array_of_phone_numbers_to_check_paid_policies)
-   //policyReconciliation()
+   policyReconciliation()
 
   //console.log("TESTING GROUND")
 }

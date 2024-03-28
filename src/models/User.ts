@@ -62,15 +62,6 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        weight: {
-            type: DataTypes.NUMBER,
-            allowNull: true
-        },
-
-        height: {
-            type: DataTypes.NUMBER,
-            allowNull: true
-        },
 
         email: {
             type: DataTypes.STRING,
@@ -149,6 +140,10 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.DATE,
             allowNull: true
         },
+       referral_code : {
+        type: DataTypes.STRING,
+            allowNull: true
+       }
        
     }, { timestamps: true },)
 

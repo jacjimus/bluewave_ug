@@ -74,16 +74,16 @@ async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
  *         application/json:
  *           schema:
  *             type: object
- *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170, "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
+ *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100", "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
  *     responses:
  *       200:
  *         description: Information fetched succussfully
  *       400:
  *         description: Invalid request
  */
-const signup = async (req: any, res: any) => {
+const signup = async (req, res) => {
   try {
-    const {
+    let {
       first_name,
       middle_name,
       last_name,
@@ -99,42 +99,64 @@ const signup = async (req: any, res: any) => {
       nationality,
       title,
       pinzip,
-      weight,
-      height,
       driver_licence,
       voter_id,
+      role,
     } = req.body;
 
     // Validate required fields
-    const requiredFields = [first_name, last_name, email, password, phone_number, partner_id];
+    const requiredFields = [first_name, last_name, password, phone_number, partner_id];
     if (requiredFields.some((field) => !field)) {
       return res.status(400).json({ code: 400, message: "Please provide all required fields" });
     }
 
+    // Remove leading '0' from phone number
+    phone_number = phone_number.replace(/^0/, '');
+
+    // Set default role if not provided
+    role = role || "user";
+
     // Validate email format
-    if (!isValidEmail(email)) {
+    if (email && !isValidEmail(email)) {
       return res.status(400).json({ code: 400, message: "Please enter a valid email" });
     }
 
+    // Check if email already exists
+    if (email) {
+      const emailExists = await User.findOne({ where: { email } });
+      if (emailExists) {
+        return res.status(409).json({ status: "FAILED", code: 409, message: "Email already exists" });
+      }
+    }
+
+    if(phone_number){
+      const phoneExists = await User.findOne({ where: { phone_number } });
+      if (phoneExists) {
+        return res.status(409).json({ status: "FAILED", code: 409, message: "Phone number already exists" });
+      }
+    }
+
+    // Generate membership ID
+    const membership_id = Math.floor(100000 + Math.random() * 900000);
+
     // Create user data object
     const userData = {
-      membership_id: Math.floor(100000 + Math.random() * 900000),
+      membership_id,
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,
+      middle_name,
       email,
       phone_number,
       national_id,
       password: await bcrypt.hash(password, 10),
       pin: Math.floor(1000 + Math.random() * 9000),
-      role: "user",
+      role,
       dob,
       gender,
       marital_status,
       addressline,
       pinzip,
-      weight,
-      height,
       nationality,
       title,
       partner_id,
@@ -144,28 +166,17 @@ const signup = async (req: any, res: any) => {
       updatedAt: new Date(),
     };
 
-    // Check if phone number or email already exists
-    const phoneNumberExists = await User.findOne({ where: { phone_number } });
-    const emailExists = await User.findOne({ where: { email } });
-
-    if (phoneNumberExists) {
-      return res.status(409).json({ status: "FAILED", code: 409, message: "Phone number already exists" });
-    }
-
-    if (emailExists) {
-      return res.status(409).json({ status: "FAILED", code: 409, message: "Email already exists" });
-    }
-
     // Create a new user
     const newUser = await User.create(userData);
 
     if (newUser) {
-      // Generate and set JWT token
+      // Generate JWT token
       const token = jwt.sign({ user_id: newUser.user_id, role: newUser.role }, process.env.JWT_SECRET || "apple123", {
         expiresIn: 1 * 24 * 60 * 60 * 1000,
       });
 
-      res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
+      // Set JWT token as a cookie
+      res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
 
       return res.status(201).json({
         result: {
@@ -180,10 +191,13 @@ const signup = async (req: any, res: any) => {
     console.error("ERROR", error);
     return res.status(500).json({
       code: 500,
-      status: "FAILED", message: "Internal server error", error: error.message
+      status: "FAILED",
+      message: "Internal server error",
+      error: error.message
     });
   }
 };
+
 
 //partnerRegistration
 
@@ -332,7 +346,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     if (phone_number) {
       whereClause.phone_number = phone_number.replace(/^0/, '')
     }
-
+     console.log(whereClause)
     // Find user by email or phone number
     const user = await User.findOne({ where: whereClause });
     // Check if user exists
@@ -641,7 +655,7 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
  *         application/json:
  *           schema:
  *             type: object
- *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100","weight": 70,"height": 170,  "driver_licence": "DRC123456789", "voter_id": "5322344"}
+ *             example: { "first_name":"John", "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"25475454656","national_id":278858583,  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100", "driver_licence": "DRC123456789", "voter_id": "5322344"}
  *     responses:
  *       200:
  *         description: Information fetched succussfully
@@ -666,8 +680,6 @@ const updateUser = async (req: any, res: any) => {
       nationality,
       title,
       pinzip,
-      weight,
-      height,
       driver_licence,
       voter_id,
     } = req.body;
@@ -697,8 +709,6 @@ const updateUser = async (req: any, res: any) => {
       nationality,
       title,
       pinzip,
-      weight,
-      height,
       partner_id: req.query.partner_id,
       driver_licence,
       voter_id,
@@ -1003,8 +1013,6 @@ const bulkUserRegistration = async (req: any, res: any) => {
         nationality,
         title,
         pinzip,
-        weight,
-        height,
         driver_licence,
         voter_id,
       } = lowerCaseUserData;
@@ -1030,8 +1038,6 @@ const bulkUserRegistration = async (req: any, res: any) => {
         nationality,
         title,
         pinzip,
-        weight,
-        height,
         partner_id: partner_id,
         driver_licence,
         voter_id,

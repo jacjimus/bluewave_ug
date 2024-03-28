@@ -65,7 +65,6 @@ export const findTransactionById = async (transactionId) => {
 };
 
 
-
 const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => {
   try {
     amount = parseInt(amount);
@@ -78,7 +77,7 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
     await policy.save();
 
     console.log("Policy details updated successfully");
-
+    
     return policy;
   } catch (error) {
     console.error("Error updating policy details:", error);
@@ -86,58 +85,12 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
   }
 };
 
+
 const updateInstallmentLogic = async (policy, amount) => {
   try {
-      let date = new Date();
-      let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
+    const date = new Date();
+    let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
 
-      // Handle negative dates by rolling back to the previous month's end
-      if (installment_alert_date.getDate() < 1) {
-          installment_alert_date.setDate(0);
-      }
-
-      policy.policy_paid_date = new Date();
-
-      if (policy.installment_type === 2) {
-          policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-          policy.installment_order = policy.policy_paid_amount === amount ? 1 : parseInt(policy.installment_order) + 1;
-          policy.installment_alert_date = installment_alert_date;
-
-          // Adjust policy amounts
-          if (parseInt(policy.policy_paid_amount) !== parseInt(policy.premium)) {
-
-              policy.policy_paid_amount  = parseInt(policy.installment_order) * parseInt(policy.premium);
-              policy.policy_pending_premium -= parseInt(amount);
-
-              console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
-          }
-
-          if (parseInt(policy.policy_pending_premium) + parseInt(policy.policy_paid_amount) === parseInt(policy.yearly_premium)) {
-              policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
-          }
-
-          console.log("Updated policy:", policy);
-      } else {
-        policy.policy_paid_amount = parseInt(amount);
-          policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
-
-          if (policy.installment_order === 12) {
-              policy.is_expired = true;
-          }
-
-          console.log("Updated policy:", policy);
-      }
-
-      await policy.save();
-  } catch (error) {
-      console.error("Error updating installment logic:", error);
-      throw error;
-  }
-};
-
-
-const updateUserInformation = async (policy) => {
-  try {
     const policyPaidCountOfUser = await db.policies.count({
       where: { user_id: policy.user_id, policy_status: "paid" }
     });
@@ -146,11 +99,43 @@ const updateUserInformation = async (policy) => {
       where: { user_id: policy.user_id }
     });
 
+    // Handle negative dates by rolling back to the previous month's end
+    if (installment_alert_date.getDate() < 1) {
+      installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 0);
+    }
 
-    console.log("User information updated successfully");
+    policy.policy_paid_date = new Date();
 
+    console.log("PAID AMOUNT VD PREMIUM", parseInt(policy.policy_paid_amount), parseInt(amount),  parseInt(policy.policy_paid_amount) === parseInt(amount))
+
+    if (policy.installment_type === 2) {
+      policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
+      policy.installment_order = parseInt(policy.policy_paid_amount) !== parseInt(amount) ? 1 : parseInt(policy.installment_order) + 1;
+      policy.installment_alert_date = installment_alert_date;
+
+      // Adjust policy amounts
+      policy.policy_paid_amount = parseInt(policy.installment_order) * parseInt(policy.premium);
+      policy.policy_pending_premium -= parseInt(amount);
+
+      console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
+
+      if (parseInt(policy.policy_pending_premium) + parseInt(policy.policy_paid_amount) === parseInt(policy.yearly_premium)) {
+        policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
+      }
+    } else {
+      policy.policy_paid_amount = parseInt(amount);
+      policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+
+      if (policy.installment_order === 12) {
+        policy.is_expired = true;
+      }
+    }
+
+    console.log("Updated policy:", policy);
+
+    await policy.save();
   } catch (error) {
-    console.error("Error updating user information:", error);
+    console.error("Error updating installment logic:", error);
     throw error;
   }
 };
@@ -162,7 +147,7 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
   try {
     await updatePolicyDetails(policy, amount, payment, airtel_money_id);
     await updateInstallmentLogic(policy, amount);
-    await updateUserInformation(policy);
+  
 
     console.log("===========POLICY PAID =======", policy);
 

@@ -484,6 +484,8 @@ async function reconcilationCallback(transaction) {
 
   const { id, status_code, message, airtel_money_id, payment_date } = transaction;
 
+  console.log("TRANSACTION", transaction)
+
   const transactionData = await findTransactionById(id);
 
   if (!transactionData) {
