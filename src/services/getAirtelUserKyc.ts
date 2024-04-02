@@ -58,15 +58,15 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
   try {
     const token = await authTokenByPartner(partnerId);
 
-    let countryCode = partnerId === 1 ? "KE" : "UG";
-    let currencyCode = partnerId === 1 ? "KES" : "UGX";
+    const countryCode = partnerId === 1 ? "KE" : "UG";
+    const currencyCode = partnerId === 1 ? "KES" : "UGX";
 
     const headers = {
       Accept: "*/*",
       "X-Country": countryCode,
       "X-Currency": currencyCode,
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${await authTokenByPartner(partnerId)}`,
     };
 
     phoneNumber = phoneNumber.replace("+", "").substring(3);
@@ -74,14 +74,37 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     const baseUrl = partnerId === 1 ? process.env.KEN_AIRTEL_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
-    const { data } = await axios.get(GET_USER_URL, { headers });
-    console.log(`RESPONSE KYC - ${countryCode}:`, data.data);
-    return data?.data;
+    const response = await axios.get(GET_USER_URL, { headers });
+    console.log(`RESPONSE KYC - ${countryCode}:`, response.data);
+    
+    await createUserIfNotExists(response.data, phoneNumber, partnerId);
+    return response.data;
   } catch (error) {
     console.error(error);
   }
 }
 
+async function createUserIfNotExists(userResponce: any, phone_number: string, partner_id: number) {
+  let membershipId = Math.floor(100000 + Math.random() * 900000);
+  let fullPhone = !phone_number?.startsWith('+') ? `+${phone_number}` : phone_number;
+
+ const existingUser = await db.users.create({
+      user_id: uuidv4(),
+      phone_number: phone_number,
+      membership_id: membershipId,
+      pin: Math.floor(1000 + Math.random() * 9000),
+      first_name: userResponce.first_name,
+      last_name: userResponce.last_name,
+      name: `${userResponce.first_name} ${userResponce.last_name}`,
+      total_member_number: "M",
+      partner_id: 2,
+      role: "user",
+      nationality: "UGANDA",
+  });
+
+  const message = `Dear ${existingUser?.first_name || 'Customer'}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+  await SMSMessenger.sendSMS(2, fullPhone, message);
+}
 
 function generateMembershipId() {
 
