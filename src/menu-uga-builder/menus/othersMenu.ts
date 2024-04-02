@@ -412,8 +412,6 @@ const othersMenu = async (args, db) => {
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
-    let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-
     otherUserPhone = allSteps[4].substring(1)
 
     existingOther = await db.users.findOne({

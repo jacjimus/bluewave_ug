@@ -23,6 +23,7 @@ const router = express.Router();
 const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
+router.get('/daily/policy/sales/stat', reportController.getDailySalesReport)
 router.get('/policy/summary',isSuperAdmin, reportController.getPolicySummary)
 router.get('/policy/summary/snapshot',isSuperAdmin, reportController.getPolicySummarySnapshot)
 router.get('/claims/summary',isSuperAdmin, reportController.getClaimSummary)

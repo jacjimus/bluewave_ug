@@ -591,6 +591,34 @@ const getSalesReportByPeriod = async (req: any, periodType: string) => {
   }
 };
 
+/*
+ help function  for daily tracker
+
+ 1. Daily successful payment 
+2. ⁠daily failed payment 
+3. ⁠daily wrong pin failed payment 
+4. ⁠daily insufficient funds failed payment 
+5. ⁠daily number of policies paid 
+6. ⁠daily number of product type sold “biggie, s mini, mini”
+This should come in an array of objects, each object representing day of the month let’s say 1,2 to 31
+each day has the above data for that day
+
+sample of response
+ { “data”:
+ "1": { 
+ "Successful_payment": 100303, 
+ "Failed_payment": "2", 
+ "Wrong_pin_failed_payment": "2", 
+ "insufficinet_funds_failed_payament": 2069, 
+ "Total_paid_policies": "16" ,
+“Product_types_sold”: products:{
+“biggie”:”13”,
+“Mini”:”10”,
+“S Mini”:”12”
+ } 
+}
+*/
+
 const getDailyPolicySalesReport = async (req: any, res: any) => {
   try {
     // Fetch sales reports for different periods
@@ -2125,130 +2153,107 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 
 
 
+/**
+ * @swagger
+ * /api/v1/reports/daily/policy/sales/stat:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Daily policy sales stat
+ *     operationId: DailyPolicySalesStat
+ *     summary: Daily policy sales stat
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: filterMonth
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched successfully
+ *       400:
+ *         description: Invalid request
+ */
+async function getDailySalesReport(req, res) {
 
-// async function getPolicySummarySnapshot(req: any, res: any) {
-//   try {
-//     let { partner_id, start_date , end_date} = req.query;
+  try {
+// let filterMonth = moment().format('MM');
+// CHECK RANGE OF MONTH
+if(req.query.filterMonth < 1 || req.query.filterMonth > 12){
+  return res.status(400).json({ message: 'Invalid or missing month filter' });
+}
+let filterMonth =  req.query.filterMonth.toString()  || moment().format('MM');
 
-//     let freePolicies = await db.policies.findAndCountAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'pending',
-//         policy_start_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//       limit:1
-      
-//     });
+    const query = `
+    SELECT
+      EXTRACT(DAY FROM policy_paid_date) AS day,
+      COUNT(CASE WHEN policies.policy_status = 'paid' THEN 1 END) AS total_paid_policies,
+      COUNT(CASE WHEN policies.policy_status = 'failed' THEN 1 END) AS failed_payment,
+      COUNT(CASE WHEN policies.policy_status = 'failed' AND payments.payment_metadata->>'error' = 'wrong pin' THEN 1 END) AS wrong_pin_failed_payment,
+      COUNT(CASE WHEN policies.policy_status = 'failed' AND payments.payment_metadata->>'error' = 'insufficient funds' THEN 1 END) AS insufficient_funds_failed_payment,
+      COUNT(CASE WHEN payments.payment_status = 'paid' THEN 1 END) AS successful_payment,
+      COUNT(CASE WHEN  policies.policy_status = 'paid'  AND policies.policy_type = 'BIGGIE' THEN 1 END) AS biggie,
+      COUNT(CASE WHEN  policies.policy_status = 'paid'  AND policies.policy_type = 'MIDI' THEN 1 END) AS midi,
+      COUNT(CASE WHEN  policies.policy_status = 'paid'  AND policies.policy_type = 'MINI' THEN 1 END) AS mini,
+      COUNT(CASE WHEN  policies.policy_status = 'paid'  AND policies.policy_type = 'S MINI' THEN 1 END) AS s_mini
+    FROM
+      public.policies
+      join public.payments on policies.policy_id = payments.policy_id
+    WHERE
+      EXTRACT(MONTH FROM policies.policy_paid_date) = :filterMonth
+      AND policies.partner_id = :partner_id
+    GROUP BY
+      EXTRACT(DAY FROM policies.policy_paid_date)
+    ORDER BY
+      day;
+  `;
 
-//     let policyRenewals = await db.policies.findAndCountAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'paid',
-//         installment_order: {
-//           [Op.gt]: 1
-//         },
-//         policy_start_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//     });
+    const results = await db.sequelize.query(query, {
+      replacements: { partner_id: req.query.partner_id, filterMonth: filterMonth },
+      type: QueryTypes.SELECT,
+    });
 
-//     let freePoliciesExpirations = await db.policies.findAndCountAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'pending',
-//         policy_end_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//     });
+    console.log("RESULT => ",results);
 
-//     let policyExpirations = await db.policies.findAndCountAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'expired',
-//         policy_end_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//     });
+    const labels = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 
-//     let totalPremium = await db.policies.findAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'paid',
-//         policy_paid_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//       attributes: [
-//         [Sequelize.fn('sum', Sequelize.col('policy_paid_amount')), 'total_premium']
-//       ],
-//     });
+    const datasets = results.map((item) => {
+      return {
+        day: item.day,
+        successful_payment: item.successful_payment,
+        failed_payment: item.failed_payment,
+        wrong_pin_failed_payment: item.wrong_pin_failed_payment,
+        insufficient_funds_failed_payment: item.insufficient_funds_failed_payment,
+        total_paid_policies: item.total_paid_policies,
+        products: {
+          biggie: item.biggie,
+          midi: item.midi,
+          mini: item.mini,
+          s_mini: item.s_mini,
+        },
+      };
+    });
 
-//     console.log("totalPremium", totalPremium[0].dataValues.total_premium)
+    const data = {
+      labels: labels,
+      datasets: datasets,
+    };
 
-//     let firstTimePolicies = await db.policies.findAndCountAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'paid',
-//         installment_order: 1,
-//         policy_start_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//       attributes: [
-//         [Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']
-//       ],
-//     });
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 
-//     let activePolicies = await db.policies.findAndCountAll({
-//       where: {
-//         partner_id: partner_id,
-//         policy_status: 'paid',
-//         policy_start_date: {
-//           [Op.gte]: new Date(start_date),
-//           [Op.lt]: new Date(moment(end_date).add(1, 'days').format("YYYY-MM-DD"))
-//         }
-//       },
-//       attributes: [
-//         [Sequelize.fn('count', Sequelize.col('policy_id')), 'active_policies']
-//       ],
-//     });
-
-//     // Calculate retention rate
-//     let retentionRate = ((policyRenewals.count / (activePolicies.count + policyExpirations.count)) * 100).toFixed(0);
-
-//     // Calculate conversion rate
-//     let conversionRate =((firstTimePolicies.count / freePolicies.count) * 100).toFixed(0);
-
-//     let policySnapshot = {
-//       free_policies: freePolicies.count,
-//       active_policies: activePolicies.count,
-//       first_time_policies: firstTimePolicies.count,
-//       renewals: policyRenewals.count,
-//       free_policy_expiration: freePoliciesExpirations.count, // Is this correct?
-//       paid_policy_expiration: policyExpirations.count,
-//       retention_rate: parseInt(retentionRate),
-//       conversion_rate: parseInt(conversionRate),
-//       total_premium: parseInt(totalPremium[0].dataValues.total_premium)
-//     }
-
-//     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", policySnapshot });
-//   }
-//   catch (error) {
-//     console.log(error)
-//     res.status(500).json({ status: "FAILED", message: "Internal server error" });
-//   }
-// }
+}
+  
 
 
 
@@ -2260,6 +2265,7 @@ module.exports = {
   getPolicySummary,
   getClaimSummary,
   getAllReportSummary,
+  getDailySalesReport,
   getDailyPolicySalesReport,
   getPolicyExcelReportDownload,
   getAggregatedDailyPolicySalesReport,
