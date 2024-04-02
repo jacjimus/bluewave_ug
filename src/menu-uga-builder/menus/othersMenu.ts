@@ -425,24 +425,7 @@ const othersMenu = async (args, db) => {
 
     if (!existingOther) {
 
-      let user = await getAirtelUser(otherUserPhone, 2);
-      let membershipId = Math.floor(100000 + Math.random() * 900000);
-
-      existingOther = await db.users.create({
-        user_id: uuidv4(),
-        phone_number: otherUserPhone,
-        membership_id: membershipId,
-        pin: Math.floor(1000 + Math.random() * 9000),
-        first_name: user?.first_name || allSteps[3]?.split(" ")[0]?.toUpperCase(),
-        last_name: user?.last_name || allSteps[3]?.split(" ")[1]?.toUpperCase(),
-        name: `${user?.first_name}` || allSteps[3]?.split(" ")[0]?.toUpperCase() + `${user?.last_name}` || allSteps[3]?.split(" ")[1]?.toUpperCase(),
-        total_member_number: selectedPolicyType.code_name,
-        partner_id: 2,
-        role: "user",
-        nationality: "UGANDA"
-      });
-      const message = `Dear ${user?.first_name || 'Customer'}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(2, `+256${otherUserPhone}`, message);
+      existingUser = await getAirtelUser(phoneNumber, 2);
 
     }
 

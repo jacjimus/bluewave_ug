@@ -829,22 +829,7 @@ const familyMenu = async (args, db) => {
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY");
-      let user = await getAirtelUser(phoneNumber, 2);
-      let membershierId = Math.floor(100000 + Math.random() * 900000);
-      existingUser = await db.users.create({
-        user_id: uuidv4(),
-        phone_number: phone,
-        membership_id: membershierId,
-        pin: Math.floor(1000 + Math.random() * 9000),
-        first_name: user.first_name,
-        last_name: user.last_name,
-        name: `${user.first_name} ${user.last_name}`,
-        total_member_number: selectedPolicyType.code_name,
-        partner_id: 2,
-        nationality: "UGANDA"
-      });
-      const message = `Dear ${existingUser.first_name || "Customer"}, welcome to Ddwaliro Care. Membership ID: ${membershierId} Dial *185*7*6# to access your account.`;
-      await SMSMessenger.sendSMS(2, fullPhone, message);
+      existingUser = await getAirtelUser(phoneNumber, 2);
 
     }
 
