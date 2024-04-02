@@ -28,61 +28,63 @@ const createTransaction = async (user_id, partner_id, policy_id, transactionId, 
   }
 };
 
-async function airtelMoney(user_id, partner_id, policy_id, phoneNumber, amount, reference, country, currency) {
+async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransactionId) {
+
+
   const status = {
-      code: 200,
-      result: '',
-      message: 'Payment successfully initiated',
+    code: 200,
+    message: 'Payment successfully initiated',
   };
 
   try {
-      // Get authentication token
-      const token = await authTokenByPartner(partner_id);
+    // Get authentication token
+    const token = await authTokenByPartner(2);
 
-      // Prepare payment data
-      const paymentData = {
-          reference,
-          subscriber: {
-              country,
-              currency,
-              msisdn: phoneNumber,
-          },
-          transaction: {
-              amount,
-              country,
-              currency,
-              id: uuidv4(),
-          },
-      };
+    // Prepare payment data
+    const paymentData = {
+      reference,
+      subscriber: {
+        country: 'UG',
+        currency: 'UGX',
+        msisdn: phoneNumber,
+      },
+      transaction: {
+        amount,
+        country: 'UG',
+        currency: 'UGX',
+        id: preGeneratedTransactionId,
+      },
+    };
 
-      // Set request headers
-      const headers = {
-          'Content-Type': 'application/json',
-          Accept: '/',
-          'X-Country': country,
-          'X-Currency': currency,
-          Authorization: `Bearer ${token}`,
-      };
+    // Set request headers
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: '/',
+      'X-Country': 'UG',
+      'X-Currency': 'UGX',
+      Authorization: `Bearer ${token}`,
+    };
 
-      const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
-      console.log("PAYMENT DATA", paymentData, "HEADERS", headers, "TOKEN", token, "AIRTEL_PAYMENT_URL", AIRTEL_PAYMENT_URL)
+    const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
-      // Make payment request
-      const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
+    // Make payment request
+    const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
 
-      // Update status
-      status.result = paymentResponse.data.status;
+    // Update status only if necessary
+    if (paymentResponse.data.status !== 'SUCCESS') {
+      status.message = 'Payment failed'; // Update message only on failure
+    }
 
-      // Create transaction
-     await createTransaction(user_id, partner_id, policy_id, paymentData.transaction.id, amount);
 
-      return status;
+
+    return status;
   } catch (error) {
-      handlePaymentError(error, status);
+    handlePaymentError(error, status);
 
-      return status;
+    return status;
   }
 }
+
 
 function handlePaymentError(error, status) {
   if (error.response) {
@@ -630,18 +632,18 @@ async function sendCongratulatoryMessage(policy, user) {
 
 async function processPayment(policyObject, phone, existingOther) {
   try {
+  const  preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
     let policy = await db.policies.create(policyObject);
 
     const airtelMoneyPromise = await airtelMoney(
-      existingOther.user_id,
-      2,
-      policy.policy_id,
       phone,
       policy.policy_deduction_amount,
       existingOther.membership_id,
-      "UG",
-      "UGX"
+      preGeneratedTransactionId
+  
     );
+
+ 
 
     console.log("============== START TIME ================ ", new Date());
 

@@ -1,7 +1,7 @@
 import SMSMessenger from "../../services/sendSMS";
 import { registerDependant, fetchMemberStatusData, updatePremium, updateMember } from "../../services/aarServices";
 import { v4 as uuidv4 } from 'uuid';
-import { airtelMoney } from "../../services/payment";
+import { airtelMoney, createTransaction } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
 import moment from "moment";
@@ -243,15 +243,19 @@ const accountMenu = async (args: any, db: any) => {
 
             let choosenPolicy = paidPolicies[allSteps[2] - 1];
 
+           
+           
+            let preGeneratedTransactionId = uuidv4();
+
+            await createTransaction(existingUser.user_id, existingUser.partner_id, choosenPolicy.policy_id, preGeneratedTransactionId, choosenPolicy.premium);
+
             const airtelMoneyPromise = await airtelMoney(
-                existingUser.user_id,
-                2,
-                choosenPolicy.policy_id,
+            
                 phoneNumber.replace("+", "").substring(3),
                 choosenPolicy.premium,
                 existingUser.membership_id,
-                "UG",
-                "UGX"
+                preGeneratedTransactionId
+               
             );
 
             const timeout = 1000;

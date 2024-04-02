@@ -4,9 +4,8 @@ const Policy = db.policies;
 const User = db.users;
 const Claim = db.claims;
 const Log = db.logs;
-import { v4 as uuid_v4 } from "uuid";
-import { airtelMoney, airtelMoneyKenya } from "../services/payment";
-uuid_v4()
+import { v4 as uuidv4 } from "uuid";
+import { airtelMoney, airtelMoneyKenya, createTransaction } from "../services/payment";
 const { Op, Sequelize } = require("sequelize");
 import moment from "moment";
 
@@ -432,15 +431,19 @@ const createPayment = async (req, res) => {
                 existingUser.partner_id
             );
         } else if (partner_id === 2) {
+        
+              
+            let preGeneratedTransactionId = uuidv4();
+
+            await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
+
             airtelMoneyPromise = airtelMoney(
-                existingUser.user_id,
-                2,
-                policy.policy_id,
+            
                 existingUser.phone_number,
                 policy.premium,
                 existingUser.membership_id,
-                "UG",
-                "UGX"
+                preGeneratedTransactionId
+               
             );
         } else if (partner_id === 3) {
             // vodacom - cooming soon

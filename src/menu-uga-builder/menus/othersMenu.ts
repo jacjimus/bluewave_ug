@@ -502,6 +502,7 @@ const othersMenu = async (args, db) => {
         first_name: existingOther?.first_name,
         last_name: existingOther?.last_name,
         policy_number: policyNumber
+        
       }
 
       await processPayment(policyObject, phone, existingOther)

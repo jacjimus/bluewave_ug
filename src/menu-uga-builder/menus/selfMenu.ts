@@ -1,4 +1,4 @@
-import { airtelMoney } from '../../services/payment';
+import { airtelMoney, createTransaction } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
@@ -205,17 +205,19 @@ const selfMenu = async (args, db) => {
 
             console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
 
-            const airtelMoneyPromise = airtelMoney(
-                existingUser.user_id,
-                2,
-                policy.policy_id,
-                phone,
-                ultimatePremium.premium,
-                existingUser.membership_id,
-                "UG",
-                "UGX"
-            );
+            
+            let preGeneratedTransactionId = uuidv4();
 
+            await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
+
+            const airtelMoneyPromise = await airtelMoney(
+            
+                phoneNumber.replace("+", "").substring(3),
+                policy.premium,
+                existingUser.membership_id,
+                preGeneratedTransactionId
+               
+            );
 
             const timeout = 1000;
 
