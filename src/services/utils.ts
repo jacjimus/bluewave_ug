@@ -262,17 +262,17 @@ export const calculateProrationPercentage = (installments: number) => {
   }
 }
 
-export const formatPhoneNumber = (phoneNumber) => {
-  if (phoneNumber.startsWith("7")) {
-    return `+256${phoneNumber}`;
-  } else if (phoneNumber.startsWith("0")) {
-    return `+256${phoneNumber.substring(1)}`;
-  } else if (phoneNumber.startsWith("+")) {
-    return phoneNumber;
-  } else {
-    return `+256${phoneNumber}`;
-  }
-};
+// export const formatPhoneNumber = (phoneNumber) => {
+//   if (phoneNumber.startsWith("7")) {
+//     return `+256${phoneNumber}`;
+//   } else if (phoneNumber.startsWith("0")) {
+//     return `+256${phoneNumber.substring(1)}`;
+//   } else if (phoneNumber.startsWith("+")) {
+//     return phoneNumber;
+//   } else {
+//     return `+256${phoneNumber}`;
+//   }
+// };
 
 // fileFilter.js
 export const excelFilter = (req: any, file, cb) => {
@@ -529,3 +529,27 @@ export function calculatePremium(
 
 
 
+export async function formatPhoneNumber(number, partner) {
+  // Check if number is a string
+  if (typeof number === 'string') {
+    // Check for 9-digit format
+    if (number.length === 9 && /^\d+$/.test(number)) {
+      if (partner === 1) {
+        return "+254" + number;
+      } else if (partner === 2) {
+        return "+256" + number;
+      }
+    }
+    // Check for 10-digit format with leading zero
+    if (number.length === 10 && number.startsWith("0")) {
+      const numberWithoutLeadingZero = number.slice(1);
+      if (partner === 1) {
+        return "+254" + numberWithoutLeadingZero;
+      } else if (partner === 2) {
+        return "+256" + numberWithoutLeadingZero;
+      }
+    }
+  }
+  // Return the original number if conditions are not met
+  return number;
+}

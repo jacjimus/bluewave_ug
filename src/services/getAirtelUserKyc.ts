@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "./sendSMS";
 import dotenv from "dotenv";
 import authTokenByPartner from "./authorization";
+import { formatPhoneNumber } from "./utils";
+
 dotenv.config();
 
 const User = db.users;
@@ -56,8 +58,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
 async function getAirtelUser(phoneNumber: string, partnerId: number) {
   try {
-    const token = await authTokenByPartner(partnerId);
-
+   
     const countryCode = partnerId === 1 ? "KE" : "UG";
     const currencyCode = partnerId === 1 ? "KES" : "UGX";
 
@@ -77,8 +78,8 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     const response = await axios.get(GET_USER_URL, { headers });
     console.log(`RESPONSE KYC - ${countryCode}:`, response.data);
     
-    await createUserIfNotExists(response.data, phoneNumber, partnerId);
-    return response.data;
+   let user = await createUserIfNotExists(response.data, phoneNumber, partnerId);
+    return user
   } catch (error) {
     console.error(error);
   }
@@ -86,24 +87,28 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 
 async function createUserIfNotExists(userResponce: any, phone_number: string, partner_id: number) {
   let membershipId = Math.floor(100000 + Math.random() * 900000);
-  let fullPhone = !phone_number?.startsWith('+') ? `+${phone_number}` : phone_number;
-
+  
+  let fullPhone = await formatPhoneNumber(phone_number,2);
+console.log("userResponce", userResponce.data);
+const { first_name, last_name } = userResponce.data;
+let full_name =`${first_name || userResponce.first_name} ${last_name || userResponce.last_name}`;
  const existingUser = await db.users.create({
       user_id: uuidv4(),
       phone_number: phone_number,
       membership_id: membershipId,
       pin: Math.floor(1000 + Math.random() * 9000),
-      first_name: userResponce.first_name,
-      last_name: userResponce.last_name,
-      name: `${userResponce.first_name} ${userResponce.last_name}`,
+      first_name: first_name || userResponce.first_name,
+      last_name: last_name || userResponce.last_name,
+      name: full_name,
       total_member_number: "M",
       partner_id: 2,
       role: "user",
       nationality: "UGANDA",
   });
 
-  const message = `Dear ${existingUser?.first_name || 'Customer'}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+  const message = `Dear ${full_name || 'Customer'}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
   await SMSMessenger.sendSMS(2, fullPhone, message);
+  return existingUser;
 }
 
 function generateMembershipId() {

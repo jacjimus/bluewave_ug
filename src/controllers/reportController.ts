@@ -774,6 +774,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
 
     // Get the base URL from environment variable or use a default
     const BASE_URL = process.env.ENVIROMENT == 'PROD' ? process.env.BASE_URL : "http://localhost:4000";
+    console.log("BASE_URL:", BASE_URL, process.env.ENVIROMENT);
 
     // Generate a unique download token
     const downloadToken = Date.now();
@@ -781,6 +782,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
     // Create a URL for the download endpoint including the token
     // the file is located at src/uploads/policy_report.xlsx
     const downloadURL = `${BASE_URL}/api/v1/reports/policy/excel/download?token=${downloadToken}`;
+    console.log("Download URL:", downloadURL);
 
     // Return the download URL to the user
     return res.status(200).json({ downloadURL });
@@ -791,20 +793,6 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
 };
 
 // Download endpoint handler
-const handleUsersDownload = (req: any, res: any) => {
-  const filePath = path.join(__dirname, "uploads", "users_report.xlsx");
-  // Stream the file for download
-  res.setHeader(
-    "Content-Type",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  );
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=users_report.xlsx"
-  );
-
-  fs.createReadStream(filePath).pipe(res);
-};
 const handlePolicyDownload = (req: any, res: any) => {
   const filePath = path.join(__dirname, "uploads", "policy_report.xlsx");
   // Stream the file for download
@@ -815,6 +803,20 @@ const handlePolicyDownload = (req: any, res: any) => {
   res.setHeader(
     "Content-Disposition",
     "attachment; filename=policy_report.xlsx"
+  );
+
+  fs.createReadStream(filePath).pipe(res);
+};
+const handleUsersDownload = (req: any, res: any) => {
+  const filePath = path.join(__dirname, "uploads", "users_report.xlsx");
+  // Stream the file for download
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=users_report.xlsx"
   );
 
   fs.createReadStream(filePath).pipe(res);

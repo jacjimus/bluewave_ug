@@ -66,12 +66,13 @@ async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransact
     };
 
     const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
-
+  
     // Make payment request
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-
+    console.log("PAYMENT RESPONSE", paymentResponse.data, paymentData)
     // Update status only if necessary
-    if (paymentResponse.data.status !== 'SUCCESS') {
+    if (paymentResponse.data.status.success !== true) {
+      status.code = 500;
       status.message = 'Payment failed'; // Update message only on failure
     }
 

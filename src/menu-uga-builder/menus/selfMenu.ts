@@ -127,6 +127,7 @@ const selfMenu = async (args, db) => {
             if (!existingUser) {
                 console.log("USER DOES NOT EXIST SELF");
                 existingUser = await getAirtelUser(phoneNumber, 2);
+                console.log("USER CREATED SELF", existingUser);
 
             }
 

@@ -195,7 +195,7 @@ router.all("/callback", async (req, res) => {
 
         policy.airtel_money_id = airtel_money_id;
 
-        const to = formatPhoneNumber(user.phone_number);
+        const to = await formatPhoneNumber(policy.phone_number,2);
         //const period = policy.installment_type === 1 ? "yearly" : "monthly";
 
         const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);
