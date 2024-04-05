@@ -75,9 +75,6 @@ async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransact
       status.code = 500;
       status.message = 'Payment failed'; // Update message only on failure
     }
-
-
-
     return status;
   } catch (error) {
     handlePaymentError(error, status);
