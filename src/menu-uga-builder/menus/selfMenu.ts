@@ -192,49 +192,37 @@ const selfMenu = async (args, db) => {
 
             await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
-        
-
-            try {
-                const airtelMoneyPromise = await airtelMoney(
+            const airtelMoneyPromise = await airtelMoney(
             
-                    phoneNumber.replace("+", "").substring(3),
-                    policy.premium,
-                    existingUser.membership_id,
-                    preGeneratedTransactionId
-                   
-                );
-                console.log("=========== PUSH TO AIRTEL MONEY ===========", phoneNumber, new Date());
+                phoneNumber.replace("+", "").substring(3),
+                policy.premium,
+                existingUser.membership_id,
+                preGeneratedTransactionId
+               
+            );
+
+            const timeout = 2000;
+
+            Promise.race([
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, timeout);
+                })
+            ]).then((result) => {
+                // Airtel Money operation completed successfully
+                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
                 response = 'END Payment successful';
-                    console.log(" SELF RESPONSE WAS CALLED", airtelMoneyPromise);
-                    return response;
-            }
-            catch (error) {
-                response = 'END Payment failed';
-                console.log("SELF RESPONSE WAS CALLED ELSE ", error);
+                console.log(" SELF RESPONSE WAS CALLED", result);
                 return response;
-            }
-          //  const timeout = 1000;
+            }).catch((error) => {
+                response = 'END Payment failed';
+                console.log("SELF RESPONSE WAS CALLED", error);
+                return response;
+            });
 
-            // Promise.race([
-            //     airtelMoneyPromise,
-            //     new Promise((resolve, reject) => {
-            //         setTimeout(() => {
-            //             reject(new Error('Airtel Money operation timed out'));
-            //         }, timeout);
-            //     })
-            // ]).then((result) => {
-            //     // Airtel Money operation completed successfully
-            //     console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
-            //     response = 'END Payment successful';
-            //     console.log(" SELF RESPONSE WAS CALLED", result);
-            //     return response;
-            // }).catch((error) => {
-            //     response = 'END Payment failed';
-            //     console.log("SELF RESPONSE WAS CALLED", error);
-            //     return response;
-            // });
-
-         //   console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
 
         } else {
             response = "END Thank you for using Ddwaliro Care"
