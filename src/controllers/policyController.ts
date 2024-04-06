@@ -2,7 +2,7 @@
 import { db } from "../models/db";
 import { sendEmail } from "../services/emailService";
 import { airtelMoney } from "../services/payment";
-
+import moment from 'moment'
 import { calculatePremium } from "../services/utils";
 const Policy = db.policies;
 const User = db.users;
@@ -90,20 +90,20 @@ interface Policy {
 const getPolicies = async (req: any, res) => {
   try {
 
-    const partner_id = req.query.partner_id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const filter = req.query?.filter?.toString().toLowerCase() || "";
-    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
-
-    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+    let {start_date, end_date,  partner_id, filter, page, limit}  = req.query;
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    filter = filter?.toString().toLowerCase() || "";
+    
+    console.log("SATRT__DATE POLICIES",start_date)
+ console.log("END_DATE POLICIES",end_date)
 
     const dateFilters: any = {};
     if (start_date) {
       dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
     }
     if (end_date) {
-      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date( end_date )};
     }
 
     if (start_date && end_date) {

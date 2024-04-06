@@ -201,7 +201,7 @@ const selfMenu = async (args, db) => {
                
             );
 
-            const timeout = 2000;
+            const timeout = 1000;
 
             Promise.race([
                 airtelMoneyPromise,

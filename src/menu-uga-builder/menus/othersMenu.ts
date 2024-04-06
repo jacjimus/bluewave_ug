@@ -423,7 +423,7 @@ const othersMenu = async (args, db) => {
 
     if (!existingOther) {
 
-      existingUser = await getAirtelUser(phoneNumber, 2);
+      existingUser = await getAirtelUser(otherUserPhone, 2);
       console.log("USER CREATED SELF", existingUser);
 
     }
