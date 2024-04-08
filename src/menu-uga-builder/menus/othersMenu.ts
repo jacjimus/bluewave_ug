@@ -2,7 +2,7 @@ import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
-import { airtelMoney, processPayment } from "../../services/payment";
+import { airtelMoney, createTransaction, processPayment } from "../../services/payment";
 
 
 const othersMenu = async (args, db) => {
@@ -487,7 +487,46 @@ const othersMenu = async (args, db) => {
         
       }
 
-      await processPayment(policyObject, phone, existingOther)
+     // await processPayment(policyObject, phone, existingOther)
+     const  preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
+     let policy = await db.policies.create(policyObject);
+     await createTransaction(existingOther.user_id, existingOther.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
+
+      setTimeout(async () => {
+
+
+        const airtelMoneyPromise = await airtelMoney(
+            phoneNumber.replace("+", "").substring(3),
+            policy.premium,
+            existingOther.membership_id,
+            preGeneratedTransactionId
+        );
+
+        const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 3000;
+
+        Promise.race([
+            airtelMoneyPromise,
+            new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(new Error('Airtel Money operation timed out'));
+                }, timeout);
+            })
+        ]).then((result) => {
+            // Airtel Money operation completed successfully
+            console.log("============== END TIME - FAMILY ================ ", phoneNumber, new Date());
+            //response = 'END Payment successful';
+            console.log("SELF RESPONSE WAS CALLED", result);
+            return response;
+        }).catch((error) => {
+            // Airtel Money operation failed
+            //response = 'END Payment failed';
+            console.log("SELF RESPONSE WAS CALLED", error);
+            return response;
+        });
+
+        console.log("============== AFTER CATCH TIME - FAMILY ================ ", phoneNumber, new Date());
+    }, 500);
+
 
       console.log("============== AFTER CATCH  TIME - OTHER ================ ", new Date());
 
