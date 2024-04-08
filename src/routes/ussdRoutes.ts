@@ -315,11 +315,7 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
       await createDependant(user, policy);
-    } else {
-      console.log("AAR NUMBER- member found", user.phone_number, user.name, user.arr_member_number);
-      const updatePremiumData = await updatePremium(user, policy);
-      console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
-    }
+    } 
   }
 }
 

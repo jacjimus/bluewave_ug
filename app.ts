@@ -100,7 +100,12 @@ cron.schedule("0 8 * * *", () => {
   sendPolicyRenewalReminder();
 });
 
-playground();
+cron.schedule("*/30 * * * *", () => {
+  console.log("Running a task every 30 minutes");
+  playground();
+});
+
+
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));
