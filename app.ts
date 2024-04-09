@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { sendPolicyRenewalReminder } from "./src/services/cronJobs";
+import { getArrMemberNumberData, sendPolicyRenewalReminder } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";
@@ -102,9 +102,8 @@ cron.schedule("0 8 * * *", () => {
 
 cron.schedule("*/30 * * * *", () => {
   console.log("Running a task every 30 minutes");
-  playground();
+  getArrMemberNumberData();
 });
-
 
 
 const port = process.env.PORT || 4000;

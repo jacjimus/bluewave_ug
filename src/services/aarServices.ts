@@ -106,7 +106,7 @@ async function registerPrincipal(user: any, policy: any) {
     const userData: PrincipalRegistration = {
       surname: user.last_name || `256${user.phone_number}`,
       first_name: user.first_name || `256${user.phone_number}`,
-      other_names: "",
+      other_names: user.middle_name || `256${user.phone_number}`,
       gender: 1,
       dob: "1900-01-01",
       pri_dep: "24",
@@ -130,7 +130,6 @@ async function registerPrincipal(user: any, policy: any) {
 
     }
 
-    // console.log("USER DATA", userData);
 
     try {
       const config = {
@@ -243,7 +242,7 @@ async function createDependant(existingUser: any, myPolicy: any) {
               );
               let updatePremiumData = await updatePremium(dependant, myPolicy);
               if (updatePremiumData == 200) {
-                console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                console.log("=AAR UPDATE PREMIUM=", updatePremiumData);
                 resolve(true)
               }
               resolve(true)
@@ -301,6 +300,7 @@ async function updatePremium(user: any, policy: any) {
         money_transaction_id: policy.airtel_money_id || "123456789",
       };
 
+      console.log("UPDATE PREMIUM REQUEST DATA", requestData)
 
       const config = {
         method: 'post',
