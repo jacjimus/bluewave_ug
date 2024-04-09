@@ -33,6 +33,7 @@ Workflow 3:
 
 export const sendPolicyRenewalReminder = async () => {
     try {
+        console.log(" =======  SEND POLICY RENEWAL REMINDER =========")
         const today = moment().format('DD'); //11
         const threeDaysBefore = moment().subtract(3, 'days').format('DD'); //8
         const threeDaysAfter = moment().add(3, 'days').format('DD');//14
@@ -115,6 +116,8 @@ export const sendPolicyRenewalReminder = async () => {
 
 export const  getArrMemberNumberData = async () => {
     try {
+
+        console.log(" =======  GET ARR MEMBER NUMBER DATA =========")
       const policies = await db.policies.findAll({
         // Policy type is 'S MINI'
         where: {
