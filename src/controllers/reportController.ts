@@ -726,6 +726,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
         { policy_status: { [Op.iLike]: `%${filter}%` } },
         { currency_code: { [Op.iLike]: `%${filter}%` } },
         { country_code: { [Op.iLike]: `%${filter}%` } },
+        {arr_member_number: { [Op.iLike]: `%${filter}%` } }
 
       ];
     }
@@ -853,20 +854,31 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Policy Category", key: "beneficiary", width: 20 },
     { header: "Policy Type", key: "policy_type", width: 20 },
     { header: "Family Size", key: "total_member_number", width: 20 },
+    { header: "Total Lives Covered", key: "total_lives_covered", width: 20 },
     { header: "Policy Status", key: "policy_status", width: 20 },
     { header: "Installment Type", key: "installment_type", width: 20 },
+    { header: "Installment Order", key: "installment_order", width: 20 },
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_start_date", width: 20 },
     { header: "Premium", key: "policy_paid_amount", width: 20 },
     { header: "Sum Insured", key: "sum_insured", width: 20 },
     { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
-    { header: "Installment Order", key: "installment_order", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
 
 
   ];
 
+  function calculateTotalLivesCovered(memberNumberString : string) {
+    const memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
+    if (isNaN(memberNumber) || memberNumber < 1) {
+      throw new Error("Invalid member number format: " + memberNumberString);
+    }
+    return memberNumber + 1;
+  }
+ 
   policies.forEach(async (policy) => {
+  
+
     worksheet.addRow({
       policy_id: policy.policy_id,
       airtel_money_id: policy.airtel_money_id,
@@ -876,6 +888,7 @@ const generatePolicyExcelReport = async (policies) => {
       policy_type: policy.policy_type,
       beneficiary: policy.beneficiary,
       total_member_number: policy.total_member_number,
+      total_lives_covered:  calculateTotalLivesCovered(policy.total_member_number),
       policy_status: policy.policy_status,
       policy_start_date: moment(policy.policy_start_date).format("YYYY-MM-DD"),
       policy_end_date: moment(policy.policy_end_date).format("YYYY-MM-DD"),

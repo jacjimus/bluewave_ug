@@ -119,7 +119,8 @@ const getPolicies = async (req: any, res) => {
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
         { first_name: { [Op.iLike]: `%${filter}%` } },
-        { last_name: { [Op.iLike]: `%${filter}%` } }
+        { last_name: { [Op.iLike]: `%${filter}%` } },
+        {arr_member_number: { [Op.iLike]: `%${filter}%` } },
 
       ];
     }
@@ -232,7 +233,29 @@ const getPolicy = async (req: any, res: any) => {
       where: {
         policy_id: policy_id,
         partner_id: partner_id,
-        policy_status: 'paid'
+        policy_status: 'paid',
+        include: [
+          {
+            model: User,
+            as: "user",
+            include: [
+              {
+                model: Beneficiary,
+                as: "beneficiaries"
+              },
+              {
+                model : db.payments,
+                as : "payments"
+              },
+              {
+                model : db.claims,
+                as : "claims"
+              }
+            ]
+          },
+  
+        ],
+        
       }
     });
 
@@ -341,6 +364,27 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
         policy_status: 'paid',
         partner_id: partner_id,
         ...dateFilters,
+        include: [
+          {
+            model: User,
+            as: "user",
+            include: [
+              {
+                model: Beneficiary,
+                as: "beneficiaries"
+              },
+              {
+                model : db.payments,
+                as : "payments"
+              },
+              {
+                model : db.claims,
+                as : "claims"
+              }
+            ]
+          },
+  
+        ],
 
       },
       limit: 100,
