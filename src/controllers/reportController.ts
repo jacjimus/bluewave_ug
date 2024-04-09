@@ -2,7 +2,7 @@ import { all } from "axios";
 import { db } from "../models/db";
 import { reconcilationCallback } from "../services/payment";
 
-const { Op, QueryTypes , Sequelize} = require("sequelize");
+const { Op, QueryTypes, Sequelize } = require("sequelize");
 const moment = require("moment");
 const excelJS = require("exceljs");
 const fs = require("fs");
@@ -89,7 +89,7 @@ const getPolicySummary = async (req: any, res: any) => {
       endDate = new Date();
     }
 
-   endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
+    endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
 
     let policyQuery = {
       where: {
@@ -157,7 +157,7 @@ const getPolicySummary = async (req: any, res: any) => {
           [Op.lt]: endDate
         }
       },
-      limit:1
+      limit: 1
     });
 
     let summary = {
@@ -726,7 +726,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
         { policy_status: { [Op.iLike]: `%${filter}%` } },
         { currency_code: { [Op.iLike]: `%${filter}%` } },
         { country_code: { [Op.iLike]: `%${filter}%` } },
-        {arr_member_number: { [Op.iLike]: `%${filter}%` } }
+        { arr_member_number: { [Op.iLike]: `%${filter}%` } }
 
       ];
     }
@@ -868,16 +868,16 @@ const generatePolicyExcelReport = async (policies) => {
 
   ];
 
-  function calculateTotalLivesCovered(memberNumberString : string) {
+  function calculateTotalLivesCovered(memberNumberString: string) {
     const memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
     if (isNaN(memberNumber) || memberNumber < 1) {
       throw new Error("Invalid member number format: " + memberNumberString);
     }
     return memberNumber + 1;
   }
- 
+
   policies.forEach(async (policy) => {
-  
+
 
     worksheet.addRow({
       policy_id: policy.policy_id,
@@ -888,7 +888,7 @@ const generatePolicyExcelReport = async (policies) => {
       policy_type: policy.policy_type,
       beneficiary: policy.beneficiary,
       total_member_number: policy.total_member_number,
-      total_lives_covered:  calculateTotalLivesCovered(policy.total_member_number),
+      total_lives_covered: calculateTotalLivesCovered(policy.total_member_number),
       policy_status: policy.policy_status,
       policy_start_date: moment(policy.policy_start_date).format("YYYY-MM-DD"),
       policy_end_date: moment(policy.policy_end_date).format("YYYY-MM-DD"),
@@ -1903,9 +1903,8 @@ async function policyReconciliation(req: any, res: any) {
 
 async function getPolicySummarySnapshot(req, res) {
   try {
-    let { partner_id, start_date, end_date,category,policy_type, policy_duration } = req.query;
+    let { partner_id, start_date, end_date, category, policy_type, policy_duration } = req.query;
 
-    // if date is not provided, use the this year
     if (!start_date) {
       start_date = moment().startOf('year').format("YYYY-MM-DD");
     }
@@ -1914,8 +1913,7 @@ async function getPolicySummarySnapshot(req, res) {
       end_date = moment().endOf('year').format("YYYY-MM-DD");
     }
 
-     // Ensure start date is before or equal to end date
-     if (start_date > end_date) {
+    if (start_date > end_date) {
       return res.status(400).json({
         code: 400,
         status: "FAILED",
@@ -1923,246 +1921,236 @@ async function getPolicySummarySnapshot(req, res) {
       });
     }
 
+    const startDate = moment(start_date).startOf('quarter');
+    const endDate = moment(end_date).endOf('quarter');
+    const quarterRanges = [];
 
-   
-
-    // Initialize quarterData array to hold data for each quarter
-    const quarterData = [];
-
-    // Split the date range into quarters
-    const quarterStartDate = moment(start_date).startOf('quarter');
-    const quarterEndDate = moment(end_date).endOf('quarter');
-
-    // Loop through each quarter
-    for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+    for (let quarterStart = moment(startDate); quarterStart.isBefore(endDate); quarterStart.add(3, 'months')) {
       const quarterEnd = moment(quarterStart).endOf('quarter');
+      quarterRanges.push({ start: quarterStart.clone(), end: quarterEnd.clone() });
+    }
 
-      // Initialize months array to hold data for each month within the quarter
+    const fetchPromises = quarterRanges.map(async (quarter) => {
       const months = [];
-
-      // Loop through each month within the quarter
-      for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
-        const monthEnd = moment(monthStart).endOf('month');
-
-        // Fetch data for each month
-        const monthData = await fetchMonthData(partner_id, monthStart, monthEnd,  category, policy_type, policy_duration)
-
+      for (let monthStart = quarter.start.clone(); monthStart.isBefore(quarter.end); monthStart.add(1, 'month')) {
+        const monthEnd = monthStart.clone().endOf('month');
+        const monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
         months.push(monthData);
       }
 
+      const accumulated_report = months.reduce((acc, month) => {
+        acc.free_policies += month.free_policies;
+        acc.active_policies += month.active_policies;
+        acc.first_time_policies += month.first_time_policies;
+        acc.renewals += month.renewals;
+        acc.free_policy_expiration += month.free_policy_expiration;
+        acc.paid_policy_expiration += month.paid_policy_expiration;
+        acc.cancelled_policies += month.cancelled_policies;
+        acc.retention_rate += parseFloat(month.retention_rate);
+        acc.conversion_rate += parseFloat(month.conversion_rate);
+        acc.total_premium += month.total_premium;
+        return acc;
+      }, {
+        free_policies: 0,
+        active_policies: 0,
+        first_time_policies: 0,
+        renewals: 0,
+        free_policy_expiration: 0,
+        paid_policy_expiration: 0,
+        cancelled_policies: 0,
+        retention_rate: 0,
+        conversion_rate: 0,
+        total_premium: 0
+      });
 
-      // Construct data object for the quarter
-      const quarterDataObject = {
-        quarter: quarterStart.format('Q YYYY'),
-        accumulated_report : {
-          free_policies:  months.reduce((acc, month) => acc + month.free_policies, 0),
-          active_policies: months.reduce((acc, month) => acc + month.active_policies, 0),
-          first_time_policies: months.reduce((acc, month) => acc + month.first_time_policies, 0),
-          renewals: months.reduce((acc, month) => acc + month.renewals, 0),
-          free_policy_expiration: months.reduce((acc, month) => acc + month.free_policy_expiration, 0),
-          paid_policy_expiration: months.reduce((acc, month) => acc + month.paid_policy_expiration, 0),
-          cancelled_policies: months.reduce((acc, month) => acc + month.cancelled_policies, 0),
-          retention_rate: (months.reduce((acc, month) => acc + month.retention_rate, 0) / months.length).toFixed(2),
-          conversion_rate: (months.reduce((acc, month) => acc + month.conversion_rate, 0) / months.length).toFixed(2),
-          total_premium: months.reduce((acc, month) => acc + month.total_premium, 0),
-        },
-        months: months
+      accumulated_report.retention_rate = (accumulated_report.retention_rate / months.length).toFixed(2);
+      accumulated_report.conversion_rate = (accumulated_report.conversion_rate / months.length).toFixed(2);
 
+      return {
+        quarter: quarter.start.format('Q YYYY'),
+        accumulated_report,
+        months
       };
+    });
 
+    const quarterData = await Promise.all(fetchPromises);
 
-      // Push the quarter data object to quarterData array
-      quarterData.push(quarterDataObject);
-    }
-
-
-     // Construct annual report
-     const annualReport = {
-      accumulated_report: {
-        free_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.free_policies, 0),
-        active_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.active_policies, 0),
-        first_time_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.first_time_policies, 0),
-        renewals: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.renewals, 0),
-        free_policy_expiration: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.free_policy_expiration, 0),
-        paid_policy_expiration: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.paid_policy_expiration, 0),
-        cancelled_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.cancelled_policies, 0),
-        retention_rate: (quarterData.reduce((acc, quarter) => acc + parseFloat(quarter.accumulated_report.retention_rate), 0) / quarterData.length).toFixed(2),
-        conversion_rate: (quarterData.reduce((acc, quarter) => acc + parseFloat(quarter.accumulated_report.conversion_rate), 0) / quarterData.length).toFixed(2),
-        total_premium: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.total_premium, 0),
+    const annualReport = quarterData.reduce((acc, quarter) => {
+      for (const key in acc) {
+        if (Object.prototype.hasOwnProperty.call(acc, key)) {
+          acc[key] += quarter.accumulated_report[key];
+        }
       }
-    };
+      return acc;
+    }, {
+      free_policies: 0,
+      active_policies: 0,
+      first_time_policies: 0,
+      renewals: 0,
+      free_policy_expiration: 0,
+      paid_policy_expiration: 0,
+      cancelled_policies: 0,
+      retention_rate: 0,
+      conversion_rate: 0,
+      total_premium: 0
+    });
 
+    annualReport.retention_rate = Number((annualReport.retention_rate / quarterData.length).toFixed(2))
+    annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
 
-    // Return the quarterData in the response
-    return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully",annualReport, quarterData });
+    return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", annualReport, quarterData });
   }
   catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ status: "FAILED", message: "Internal server error" });
   }
 }
 
-// Function to fetch data for a specific month
+// async function getPolicySummarySnapshot(req, res) {
+//   try {
+//     let { partner_id, start_date, end_date, category, policy_type, policy_duration } = req.query;
+
+//     // if date is not provided, use the this year
+//     // Set default start and end dates if not provided
+//     if (!start_date) {
+//       start_date = moment().startOf('year').format("YYYY-MM-DD");
+//     }
+
+//     if (!end_date) {
+//       end_date = moment().endOf('year').format("YYYY-MM-DD");
+//     }
+
+//     // Validate start date and end date
+//     if (start_date > end_date) {
+//       return res.status(400).json({
+//         code: 400,
+//         status: "FAILED",
+//         message: "Start date cannot be after end date",
+//       });
+//     }
+
+
+//     // Initialize quarterData array to hold data for each quarter
+//     const quarterData = [];
+
+//     // Split the date range into quarters
+//     const quarterStartDate = moment(start_date).startOf('quarter');
+//     const quarterEndDate = moment(end_date).endOf('quarter');
+
+//     // Loop through each quarter
+//     for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+//       const quarterEnd = moment(quarterStart).endOf('quarter');
+
+//       // Initialize months array to hold data for each month within the quarter
+//       const months = [];
+
+//       // Loop through each month within the quarter
+//       for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
+//         const monthEnd = moment(monthStart).endOf('month');
+
+//         // Fetch data for each month
+//         const monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration)
+
+//         months.push(monthData);
+//       }
+
+
+//       // Construct data object for the quarter
+//       const quarterDataObject = {
+//         quarter: quarterStart.format('Q YYYY'),
+//         accumulated_report: {
+//           free_policies: months.reduce((acc, month) => acc + month.free_policies, 0),
+//           active_policies: months.reduce((acc, month) => acc + month.active_policies, 0),
+//           first_time_policies: months.reduce((acc, month) => acc + month.first_time_policies, 0),
+//           renewals: months.reduce((acc, month) => acc + month.renewals, 0),
+//           free_policy_expiration: months.reduce((acc, month) => acc + month.free_policy_expiration, 0),
+//           paid_policy_expiration: months.reduce((acc, month) => acc + month.paid_policy_expiration, 0),
+//           cancelled_policies: months.reduce((acc, month) => acc + month.cancelled_policies, 0),
+//           retention_rate: (months.reduce((acc, month) => acc + month.retention_rate, 0) / months.length).toFixed(2),
+//           conversion_rate: (months.reduce((acc, month) => acc + month.conversion_rate, 0) / months.length).toFixed(2),
+//           total_premium: months.reduce((acc, month) => acc + month.total_premium, 0),
+//         },
+//         months: months
+
+//       };
+
+
+//       // Push the quarter data object to quarterData array
+//       quarterData.push(quarterDataObject);
+//     }
+
+
+//     // Construct annual report
+//     const annualReport = {
+//       accumulated_report: {
+//         free_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.free_policies, 0),
+//         active_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.active_policies, 0),
+//         first_time_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.first_time_policies, 0),
+//         renewals: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.renewals, 0),
+//         free_policy_expiration: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.free_policy_expiration, 0),
+//         paid_policy_expiration: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.paid_policy_expiration, 0),
+//         cancelled_policies: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.cancelled_policies, 0),
+//         retention_rate: (quarterData.reduce((acc, quarter) => acc + parseFloat(quarter.accumulated_report.retention_rate), 0) / quarterData.length).toFixed(2),
+//         conversion_rate: (quarterData.reduce((acc, quarter) => acc + parseFloat(quarter.accumulated_report.conversion_rate), 0) / quarterData.length).toFixed(2),
+//         total_premium: quarterData.reduce((acc, quarter) => acc + quarter.accumulated_report.total_premium, 0),
+//       }
+//     };
+
+
+//     // Return the quarterData in the response
+//     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", annualReport, quarterData });
+//   }
+//   catch (error) {
+//     console.log(error)
+//     res.status(500).json({ status: "FAILED", message: "Internal server error" });
+//   }
+// }
+
 async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
-  let beneficiary = category
-  let installment_type = policy_duration
-  const freePolicies = await db.policies.findAndCountAll({
-    where: {
-      partner_id: partner_id,
-      policy_status: 'pending',
-      policy_start_date: {
-        [Op.gte]: monthStart.toDate(),
-        [Op.lt]: monthEnd.toDate()
-      },
-      ...(beneficiary && { beneficiary }),
-      ...(policy_type && { policy_type }),
-      ...(installment_type && { installment_type }),
+  const startDate = new Date(monthStart);
+  const endDate = new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"));
 
-    },
-    limit:1
-  });
+  const whereConditions = {
+    partner_id: partner_id,
+    policy_start_date: { [Op.gte]: startDate, [Op.lt]: endDate },
+    ...(category && { beneficiary: category }),
+    ...(policy_type && { policy_type }),
+    ...(policy_duration && { installment_type: policy_duration })
+  };
 
-  // Fetch other required data similarly for each month
-      let policyRenewals = await db.policies.findAndCountAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'paid',
-        installment_order: {
-          [Op.gt]: 1
-        },
-        policy_start_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-    });
+  const [freePolicies, policyRenewals, freePoliciesExpirations, policyExpirations, totalPremium, firstTimePolicies, activePolicies, cancelledPolicies] = await Promise.all([
+    db.policies.findAndCountAll({ where: { ...whereConditions, policy_status: 'pending' } }),
+    db.policies.findAndCountAll({ where: { ...whereConditions, policy_status: 'paid', installment_order: { [Op.gt]: 1 } } }),
+    db.policies.findAndCountAll({ where: { ...whereConditions, policy_status: 'pending', policy_end_date: { [Op.gte]: startDate, [Op.lt]: endDate } } }),
+    db.policies.findAndCountAll({ where: { ...whereConditions, policy_status: 'expired', policy_end_date: { [Op.gte]: startDate, [Op.lt]: endDate } } }),
+    db.policies.findAll({
+      where: { ...whereConditions, policy_status: 'paid', policy_paid_date: { [Op.gte]: startDate, [Op.lt]: endDate } },
+      attributes: [[Sequelize.fn('sum', Sequelize.col('policy_paid_amount')), 'total_premium']]
+    }),
+    db.policies.findAndCountAll({
+      where: { ...whereConditions, policy_status: 'paid', installment_order: 1 },
+      attributes: [[Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']]
+    }),
+    db.policies.findAndCountAll({ where: { ...whereConditions, policy_status: 'paid' }, attributes: [[Sequelize.fn('count', Sequelize.col('policy_id')), 'active_policies']] }),
+    db.policies.findAndCountAll({ where: { ...whereConditions, policy_status: 'cancelled' }, attributes: [[Sequelize.fn('count', Sequelize.col('policy_id')), 'cancelled_policies']] })
+  ]);
 
-    let freePoliciesExpirations = await db.policies.findAndCountAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'pending',
-        policy_end_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-    });
+  const retentionRate = ((policyRenewals.count / (activePolicies.count + policyExpirations.count)) * 100).toFixed(2);
+  const conversionRate = ((firstTimePolicies.count / freePolicies.count) * 100).toFixed(2);
 
-
-
-    let policyExpirations = await db.policies.findAndCountAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'expired',
-        policy_end_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-    });
-
-    let totalPremium = await db.policies.findAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'paid',
-        policy_paid_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-      attributes: [
-        [Sequelize.fn('sum', Sequelize.col('policy_paid_amount')), 'total_premium']
-      ],
-    });
-
-    let firstTimePolicies = await db.policies.findAndCountAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'paid',
-        installment_order: 1,
-        policy_start_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-      attributes: [
-        [Sequelize.fn('count', Sequelize.col('policy_id')), 'first_time_policies']
-      ],
-    });
-
-
-    let activePolicies = await db.policies.findAndCountAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'paid',
-        policy_start_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-      attributes: [
-        [Sequelize.fn('count', Sequelize.col('policy_id')), 'active_policies']
-      ],
-    });
-
-    //cancelled policies
-
- let cancelledPolicies = await db.policies.findAndCountAll({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'cancelled',
-        policy_start_date: {
-          [Op.gte]: new Date(monthStart),
-          [Op.lt]: new Date(moment(monthEnd).add(1, 'days').format("YYYY-MM-DD"))
-        },
-        ...(beneficiary && { beneficiary }),
-        ...(policy_type && { policy_type }),
-        ...(installment_type && { installment_type }),
-      },
-      attributes: [
-        [Sequelize.fn('count', Sequelize.col('policy_id')), 'cancelled_policies']
-      ],
-    });
-
-    // Calculate retention rate
-    let retentionRate = ((policyRenewals.count / (activePolicies.count + policyExpirations.count)) * 100).toFixed(2);
-
-    // Calculate conversion rate
-    let conversionRate =((firstTimePolicies.count / freePolicies.count) * 100).toFixed(2);
-
-
-  // Construct and return data object for the month
   return {
     month: monthStart.format('MMMM YYYY'),
+    month_number: Number(monthStart.format('MM')),
     free_policies: freePolicies.count,
     active_policies: activePolicies.count,
     first_time_policies: firstTimePolicies.count,
     renewals: policyRenewals.count,
-    free_policy_expiration: freePoliciesExpirations.count, // Is this correct?
+    free_policy_expiration: freePoliciesExpirations.count,
     paid_policy_expiration: policyExpirations.count,
     cancelled_policies: cancelledPolicies.count,
     retention_rate: parseInt(retentionRate) || 0,
     conversion_rate: parseInt(conversionRate) || 0,
     total_premium: parseInt(totalPremium[0].dataValues.total_premium) || 0
-
   };
 }
 
@@ -2199,12 +2187,12 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 async function getDailySalesReport(req, res) {
 
   try {
-// let filterMonth = moment().format('MM');
-// CHECK RANGE OF MONTH
-if(req.query.filterMonth < 1 || req.query.filterMonth > 12){
-  return res.status(400).json({ message: 'Invalid or missing month filter' });
-}
-let filterMonth =  req.query.filterMonth.toString()  || moment().format('MM');
+    // let filterMonth = moment().format('MM');
+    // CHECK RANGE OF MONTH
+    if (req.query.filterMonth < 1 || req.query.filterMonth > 12) {
+      return res.status(400).json({ message: 'Invalid or missing month filter' });
+    }
+    let filterMonth = req.query.filterMonth.toString() || moment().format('MM');
 
     const query = `
     SELECT
@@ -2235,7 +2223,7 @@ let filterMonth =  req.query.filterMonth.toString()  || moment().format('MM');
       type: QueryTypes.SELECT,
     });
 
-    console.log("RESULT => ",results);
+    console.log("RESULT => ", results);
 
     const labels = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 
@@ -2268,7 +2256,7 @@ let filterMonth =  req.query.filterMonth.toString()  || moment().format('MM');
   }
 
 }
-  
+
 
 
 
