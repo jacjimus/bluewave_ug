@@ -104,7 +104,7 @@ cron.schedule("*/30 * * * *", () => {
   console.log("Running a task every 30 minutes");
   getArrMemberNumberData();
 });
-
+playground()
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

@@ -8,6 +8,9 @@ import Queue from 'bull';
 import { createTransaction, reconcilationCallback, sendCongratulatoryMessage } from './payment';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
+import axios from "axios";
+import authTokenByPartner from './authorization';
+import { createUserIfNotExists } from './getAirtelUserKyc';
 // import { google } from 'googleapis';
 
 // const serviceAccountKeyFile = "./aitel-payment-reconciliation-abe90c6ab59e.json"
@@ -212,6 +215,8 @@ if(policy){
 //   }
 // }
 
+
+
 export const playground = async () => {
 
   //getNewPolicies(2, '2023-01-01', '2024-02-7')
@@ -228,7 +233,7 @@ export const playground = async () => {
 // policyReconciliation()
 //getArrMemberNumberData()
 
-  //console.log("TESTING GROUND")
+ // await getAirtelUser('2567041036460', 2)
 }
 
 
