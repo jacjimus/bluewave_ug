@@ -57,19 +57,19 @@ export const sendPolicyRenewalReminder = async () => {
 
         if (policies.length > 0) {
            const threeDaysBeforePolicies = policies.filter((policy) => {
-                const policyStartDate = moment(policy.policy_start_date).format('DD');
+                const policyStartDate = moment(policy.policy_paid_date).format('DD');
 
                 return policyStartDate === threeDaysBefore;
             });
 
             const todayPolicies = policies.filter((policy) => {
-                const policyStartDate = moment(policy.policy_start_date).format('DD');
+                const policyStartDate = moment(policy.policy_paid_date).format('DD');
 
                 return policyStartDate === today;
             });
 
             const threeDaysAfterPolicies = policies.filter((policy) => {
-                const policyStartDate = moment(policy.policy_start_date).format('DD');
+                const policyStartDate = moment(policy.policy_paid_date).format('DD');
 
                 return policyStartDate === threeDaysAfter;
             });
@@ -81,7 +81,7 @@ export const sendPolicyRenewalReminder = async () => {
                     if(policy.first_name && policy.last_name){
                         fullName = `${policy.first_name} ${policy.last_name}`
                     }
-                    const message =   `Dear ${fullName}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE 3-days. Dial *185*7*6*3# to renew.`
+                    const message =   `Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE 3-days. Dial *185*7*6*3# to renew.`
                     SMSMessenger.sendSMS(2,policy.phone_number, message );
                 });
             }
@@ -91,7 +91,7 @@ export const sendPolicyRenewalReminder = async () => {
                     if(policy.first_name && policy.last_name){
                         fullName = `${policy.first_name} ${policy.last_name}`
                     }
-                    const message =`Dear ${fullName}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE today. Dial *185*7*6*3# to renew.`
+                    const message =`Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE today. Dial *185*7*6*3# to renew.`
                     SMSMessenger.sendSMS(2,policy.phone_number, message );
                 });
             }
@@ -101,7 +101,7 @@ export const sendPolicyRenewalReminder = async () => {
                     if(policy.first_name && policy.last_name){
                         fullName = `${policy.first_name} ${policy.last_name}`
                     }
-                    const message =  `Dear ${fullName}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days. Dial *185*7*6*3# to renew.`
+                    const message =  `Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days. Dial *185*7*6*3# to renew.`
                     SMSMessenger.sendSMS(2,policy.phone_number, message );
                 });
             }

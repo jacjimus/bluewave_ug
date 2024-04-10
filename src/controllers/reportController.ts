@@ -878,7 +878,6 @@ const generatePolicyExcelReport = async (policies) => {
 
   policies.forEach(async (policy) => {
 
-
     worksheet.addRow({
       policy_id: policy.policy_id,
       airtel_money_id: policy.airtel_money_id,
@@ -1992,11 +1991,14 @@ async function getPolicySummarySnapshot(req, res) {
       cancelled_policies: 0,
       retention_rate: 0,
       conversion_rate: 0,
-      total_premium: 0
+      total_premium: 0,
+      
     });
-
+    
+console.log("annualReport.retention_rate",annualReport.retention_rate)
     annualReport.retention_rate = Number((annualReport.retention_rate / quarterData.length).toFixed(2))
     annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
+
 
     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", annualReport, quarterData });
   }
