@@ -99,7 +99,7 @@ let full_name =`${first_name || userResponce.first_name} ${last_name || userResp
       pin: Math.floor(1000 + Math.random() * 9000),
       first_name: first_name || userResponce.first_name || "Customer" + phone_number,
       last_name: last_name || userResponce.last_name || "Customer" + phone_number,
-      name: full_name,
+      name: full_name || "Customer" + phone_number,
       total_member_number: "M",
       partner_id: 2,
       role: "user",

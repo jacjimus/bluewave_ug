@@ -170,47 +170,47 @@ if(policy){
   }
 }
 
-async function getArrMemberNumberData() {
-  try {
-    const policies = await db.policies.findAll({
-      // Policy type is 'S MINI'
-      where: {
-        policy_status: 'paid',
-        //policy_type: { [db.Sequelize.Op.eq]: 'S MINI' },
-        partner_id: 2,
-        // policy_start_date: {
-        //   [Op.between]: ['2023-10-01', '2024-03-31']
-        // },
+// async function getArrMemberNumberData() {
+//   try {
+//     const policies = await db.policies.findAll({
+//       // Policy type is 'S MINI'
+//       where: {
+//         policy_status: 'paid',
+//         //policy_type: { [db.Sequelize.Op.eq]: 'S MINI' },
+//         partner_id: 2,
+//         // policy_start_date: {
+//         //   [Op.between]: ['2023-10-01', '2024-03-31']
+//         // },
 
-      },
-      include: [{
-        model: db.users,
-        where: {
-         arr_member_number: null,
-          partner_id: 2
-        }
-      }]
+//       },
+//       include: [{
+//         model: db.users,
+//         where: {
+//          arr_member_number: null,
+//           partner_id: 2
+//         }
+//       }]
 
-    });
+//     });
 
-    for (let i = 0; i < policies.length; i++) {
-      const policy = policies[i];
-      const customer = policy.user
-      console.log(customer.name, policy.phone_number);
+//     for (let i = 0; i < policies.length; i++) {
+//       const policy = policies[i];
+//       const customer = policy.user
+//       console.log(customer.name, policy.phone_number);
    
-      let result = await registerPrincipal(customer, policy);
-      console.log(result);
-      if (result.code == 608) {
-        await getMemberNumberData(customer.phone_number);
-      }
-      // Introduce a delay of 1 second between each iteration
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
+//       let result = await registerPrincipal(customer, policy);
+//       console.log(result);
+//       if (result.code == 608) {
+//         await getMemberNumberData(customer.phone_number);
+//       }
+//       // Introduce a delay of 1 second between each iteration
+//       await new Promise(resolve => setTimeout(resolve, 2000));
+//     }
 
-  } catch (error) {
-    console.log(error);
-  }
-}
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
 
 export const playground = async () => {
 
