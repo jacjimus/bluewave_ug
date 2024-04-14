@@ -93,57 +93,95 @@ const getPolicySummary = async (req: any, res: any) => {
     endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
 
 
-    const renewalsCount = await db.policies.count({
+    //   const renewalsCount = await db.policies.count({
+    //     where: {
+    //         policy_status: "paid",
+    //         installment_order: {
+    //             [Op.gt]: 1,
+    //         },
+    //         partner_id: partner_id,
+    //     },
+    // });
+
+    const freePolicies = await db.policies.count({
       where: {
-          policy_status: "paid",
-          installment_order: {
-              [Op.gt]: 1,
-          },
-          partner_id: partner_id,
-      },
-  });
-  
-  const freePolicies = await db.policies.count({
-    where: {
         partner_id: partner_id,
         policy_status: 'pending',
         policy_start_date: {
-            [Op.gte]: startDate,
-            [Op.lt]: endDate
+          [Op.gte]: startDate,
+          [Op.lt]: endDate
         }
-    },
-});
+      },
+    });
 
 
-const total_policies_data = await db.policies.findAll({
-  attributes: [
-      [db.sequelize.fn('sum', db.sequelize.col('policy_paid_amount')), 'total_premium'],
-      [db.sequelize.fn('count', db.sequelize.col('*')), 'total_renewals']
-  ],
-  where: {
-      partner_id,
-      policy_status: "paid",
-      [Op.or]: [
+    const total_policies_renewal = await db.policies.findAll({
+      attributes: [
+        [db.sequelize.fn('count', db.sequelize.col('*')), 'total_renewals'],
+        [db.sequelize.fn('sum', db.sequelize.col('policy_paid_amount')), 'total_renewals_premium']
+
+
+      ],
+      where: {
+        partner_id,
+        policy_status: "paid",
+        [Op.or]: [
           { installment_order: { [Op.gt]: 1 } },
           {
-              policy_status: 'pending',
-              policy_start_date: { [Op.between]: [startDate, endDate] }
+            policy_status: 'paid',
+            policy_start_date: { [Op.between]: [startDate, endDate] }
           }
-      ]
-  }
-});
+        ]
+      }
+    });
 
 
-  const total_policy_premium_paid = total_policies_data[0].total_premium;
-  const total_policies_renewed_premium = total_policies_data[0].total_renewals;
+    const total_policies_renewed_count = total_policies_renewal[0].dataValues.total_renewals;
+    const total_policies_renewed_premium = total_policies_renewal[0].dataValues.total_renewals_premium;
+
+
+    const [total_users_count, total_policies_paid_count, total_policy_premium_paid, total_paid_payments_count] = await Promise.all([
+      db.users.count({
+        where: {
+          partner_id,
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          }
+        }
+      }),
+      db.policies.count({
+        where: {
+          partner_id,
+          policy_status: "paid",
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          }
+        }
+
+
+      }),
+      db.policies.sum('policy_paid_amount', {
+        where: {
+          partner_id,
+          policy_status: "paid",
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          }
+        }
+      }),
+      db.payments.count({ where: { payment_status: "paid", partner_id } }),
+    ]);
+
+
+
 
     let summary = {
-      total_users: await db.users.count({ where: { partner_id } }),
-      total_policies_paid: await db.policies.count({ where: { policy_status: "paid", partner_id } }),
+      total_users: total_users_count,
+      total_policies_paid: total_policies_paid_count,
       total_policies_premium_paid: total_policy_premium_paid,
       total_preimum_amount: total_policy_premium_paid,
-      total_paid_payment_amount: await db.payments.count({ where: { payment_status: "paid", partner_id } }),
-      total_policies_renewed: renewalsCount.count,
+      total_paid_payment_amount: total_paid_payments_count,
+      total_policies_renewed: total_policies_renewed_count,
       total_policies_renewed_premium: total_policies_renewed_premium,
       total_free_policies: freePolicies.count,
     };
@@ -306,14 +344,14 @@ const getClaimSummary = async (req: any, res: any) => {
         "dispute_resolved"
       ),
     };
-   
+
 
     return res.status(200).json({
       result: {
         code: 200,
         status: "OK",
         countryCode: partner_id === 1 ? "KE" : "UG",
-        currencyCode:  partner_id === 1 ? "KES" : "UGX",
+        currencyCode: partner_id === 1 ? "KES" : "UGX",
         items: summary,
       },
     });
@@ -411,7 +449,7 @@ const getAllReportSummary = async (req: any, res: any) => {
       endDate = new Date(); // Current date
     }
 
-   
+
 
 
     const summary = {
@@ -1961,10 +1999,10 @@ async function getPolicySummarySnapshot(req, res) {
       retention_rate: 0,
       conversion_rate: 0,
       total_premium: 0,
-      
+
     });
-    
-console.log("annualReport.retention_rate",annualReport.retention_rate)
+
+    console.log("annualReport.retention_rate", annualReport.retention_rate)
     annualReport.retention_rate = Number((annualReport.retention_rate / quarterData.length).toFixed(2))
     annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
 
