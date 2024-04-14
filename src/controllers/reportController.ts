@@ -92,60 +92,50 @@ const getPolicySummary = async (req: any, res: any) => {
 
     endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
 
-    let policyQuery = {
+
+    const renewalsCount = await db.policies.count({
       where: {
-        createdAt: {
-          [Op.between]: [startDate, endDate],
-        },
-        ...(partner_id != 4 && { partner_id }),
+          policy_status: "paid",
+          installment_order: {
+              [Op.gt]: 1,
+          },
+          partner_id: partner_id,
       },
-    };
-
-    let policy = await Policy.findAll(policyQuery);
-
-
-    if (!policy || policy.length === 0) {
-      return res.status(404).json({ message: "No policies found" });
-    }
-
-
-    let total_policy_premium_paid = await db.policies.sum("policy_paid_amount", {
-      where: {
-        policy_status: "paid",
-        partner_id,
-      },
-    });
-    const renewalsCount = await db.policies.findAndCountAll({
-      where: {
-        policy_status: "paid",
-        installment_order: {
-          [Op.gt]: 1,
-        },
-        partner_id: partner_id,
-      },
-    });
-
-    let total_policies_renewed_premium = await db.policies.sum("policy_paid_amount", {
-      where: {
-        policy_status: "paid",
-        installment_order: {
-          [Op.gt]: 1,
-        },
-        partner_id,
-      },
-    });
-
-    const freePolicies = await db.policies.findAndCountAll({
-      where: {
+  });
+  
+  const freePolicies = await db.policies.count({
+    where: {
         partner_id: partner_id,
         policy_status: 'pending',
         policy_start_date: {
-          [Op.gte]: startDate,
-          [Op.lt]: endDate
+            [Op.gte]: startDate,
+            [Op.lt]: endDate
         }
-      },
-      limit: 1
-    });
+    },
+});
+
+
+const total_policies_data = await db.policies.findAll({
+  attributes: [
+      [db.sequelize.fn('sum', db.sequelize.col('policy_paid_amount')), 'total_premium'],
+      [db.sequelize.fn('count', db.sequelize.col('*')), 'total_renewals']
+  ],
+  where: {
+      partner_id,
+      policy_status: "paid",
+      [Op.or]: [
+          { installment_order: { [Op.gt]: 1 } },
+          {
+              policy_status: 'pending',
+              policy_start_date: { [Op.between]: [startDate, endDate] }
+          }
+      ]
+  }
+});
+
+
+  const total_policy_premium_paid = total_policies_data[0].total_premium;
+  const total_policies_renewed_premium = total_policies_data[0].total_renewals;
 
     let summary = {
       total_users: await db.users.count({ where: { partner_id } }),
@@ -316,18 +306,14 @@ const getClaimSummary = async (req: any, res: any) => {
         "dispute_resolved"
       ),
     };
-    const partnerCountry = await Partner.findOne({
-      where: {
-        partner_id: partner_id,
-      },
-    });
+   
 
     return res.status(200).json({
       result: {
         code: 200,
         status: "OK",
-        countryCode: partnerCountry.country_code,
-        currencyCode: partnerCountry.currency_code,
+        countryCode: partner_id === 1 ? "KE" : "UG",
+        currencyCode:  partner_id === 1 ? "KES" : "UGX",
         items: summary,
       },
     });
@@ -425,16 +411,12 @@ const getAllReportSummary = async (req: any, res: any) => {
       endDate = new Date(); // Current date
     }
 
-    const partnerCountry = await Partner.findOne({
-      where: {
-        partner_id: partner_id,
-      },
-    });
+   
 
 
     const summary = {
-      countryCode: partnerCountry.country_code,
-      currencyCode: partnerCountry.currency_code,
+      countryCode: partner_id === 1 ? "KE" : "UG",
+      currencyCode: partner_id === 1 ? "KES" : "UGX",
       user: {
         total_users: 0,
         total_users_with_policy: 0,
