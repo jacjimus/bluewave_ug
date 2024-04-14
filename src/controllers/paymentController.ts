@@ -833,7 +833,7 @@ function getQuarterBoundaries(quarter) {
 //         insufficientFundsFailures
 //     ] = await Promise.all([
 //         getPaymentAttempts(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
-//         getSuccessfulPayments(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
+//         getSuccessfulPayments({ partner_id, payment_status: "paid" },, monthStart, monthEnd, category, policy_type, policy_duration),
 //         getQwpPaid(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
 //         getWrongPinFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
 //         getInsufficientFundsFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration)
@@ -882,7 +882,7 @@ async function getPaymentAttempts(partner_id, monthStart, monthEnd, category, po
 }
 
 
-async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
+async function getSuccessfulPayments(whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
     const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
     if (category) {
         queryFilter.beneficiary = category;
@@ -898,8 +898,7 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
 
     const successfulPayments = await Payment.count({
         where: {
-            partner_id,
-            payment_status: "paid",
+            ...whereClause,
             createdAt: {
                 [Op.gte]: monthStart.toDate(),
                 [Op.lt]: monthEnd.toDate()
@@ -912,6 +911,63 @@ async function getSuccessfulPayments(partner_id, monthStart, monthEnd, category,
     return successfulPayments;
 }
 
+
+
+function getFailuresPayments(whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
+    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
+    if (category) {
+        queryFilter.beneficiary = category;
+    }
+    if (policy_type) {
+        queryFilter.policy_type = policy_type;
+    }
+    if (policy_duration) {
+        queryFilter.installment_type = policy_duration;
+    }
+
+    console.log('getFailuresPayments', monthStart.toDate(), monthEnd.toDate());
+    return Payment.count({
+        where: {
+            ...whereClause,
+            createdAt: {
+                [Op.gte]: monthStart.toDate(),
+                [Op.lt]: monthEnd.toDate()
+            },
+        },
+        include: [{ model: Policy, as: "policy", where: queryFilter }],
+
+    });
+}
+
+
+async function getWrongPinFailures(partner_id, startMonth, endMonth, category, policy_type, policy_duration) {
+    // Create a reusable function to filter by date range
+
+    // Filter for wrong PIN failures using description or a more specific pattern (if applicable)
+    const wrongPinFailures = await getFailuresPayments({
+        partner_id,
+        payment_status: "failed",
+        payment_description: { [Op.like]: "%invalid PIN length%" }, // Replace with specific string or pattern if needed
+    },
+        startMonth, endMonth,
+        category, policy_type, policy_duration);
+
+    return wrongPinFailures;
+}
+
+async function getInsufficientFundsFailures(partner_id, startMonth, endMonth, category, policy_type, policy_duration) {
+    // Reuse the getFailuresPayments function
+    const insufficientFundsFailures = await getFailuresPayments({
+        partner_id,
+        payment_status: "failed",
+        payment_description: { [Op.like]: "%insufficient money%" }, // Replace with specific string or pattern if needed
+    },
+        startMonth, endMonth,
+        category, policy_type, policy_duration
+    );
+
+    return insufficientFundsFailures;
+}
 
 async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_type, policy_duration) {
 
@@ -942,63 +998,6 @@ async function getQwpPaid(partner_id, monthStart, monthEnd, category, policy_typ
     });
     return total_amount.reduce((acc, item) => acc + item.payment_amount, 0);
 }
-
-function getFailuresByDateRange(whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
-    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
-    if (category) {
-        queryFilter.beneficiary = category;
-    }
-    if (policy_type) {
-        queryFilter.policy_type = policy_type;
-    }
-    if (policy_duration) {
-        queryFilter.installment_type = policy_duration;
-    }
-
-    console.log('getFailuresByDateRange', monthStart.toDate(), monthEnd.toDate());
-    return Payment.count({
-        where: {
-            ...whereClause,
-            createdAt: {
-                [Op.gte]: monthStart.toDate(),
-                [Op.lt]: monthEnd.toDate()
-            },
-        },
-        include: [{ model: Policy, as: "policy", where: queryFilter }],
-
-    });
-}
-
-
-async function getWrongPinFailures(partner_id, startMonth, endMonth, category, policy_type, policy_duration) {
-    // Create a reusable function to filter by date range
-
-    // Filter for wrong PIN failures using description or a more specific pattern (if applicable)
-    const wrongPinFailures = await getFailuresByDateRange({
-        partner_id,
-        payment_status: "failed",
-        payment_description: { [Op.like]: "%invalid PIN length%" }, // Replace with specific string or pattern if needed
-    },
-        startMonth, endMonth,
-        category, policy_type, policy_duration);
-
-    return wrongPinFailures;
-}
-
-async function getInsufficientFundsFailures(partner_id, startMonth, endMonth, category, policy_type, policy_duration) {
-    // Reuse the getFailuresByDateRange function
-    const insufficientFundsFailures = await getFailuresByDateRange({
-        partner_id,
-        payment_status: "failed",
-        payment_description: { [Op.like]: "%insufficient money%" }, // Replace with specific string or pattern if needed
-    },
-        startMonth, endMonth,
-        category, policy_type, policy_duration
-    );
-
-    return insufficientFundsFailures;
-}
-
 
 
 /**
@@ -1168,8 +1167,8 @@ async function getPaymentOutcomesTrends(req, res) {
             const monthStart = moment(`${year}-${i + 1}-01`).startOf('month');
             const monthEnd = moment(`${year}-${i + 1}-01`).endOf('month');
 
-            const successfulPayments = await getSuccessfulPayments(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresByDateRange({
+            const successfulPayments = await getSuccessfulPayments({ partner_id, payment_status: "paid" }, monthStart, monthEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresPayments({
                 partner_id,
                 payment_status: "failed",
             },
@@ -1251,8 +1250,8 @@ async function getPaymentAttemptOutcomesByDayOfWeek(req, res) {
             console.log('dayStart', dayStart, dayStart.toDate());
             console.log('dayEnd', dayEnd, dayEnd.toDate());
 
-            const successfulPayments = await getSuccessfulPayments(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresByDateRange({
+            const successfulPayments = await getSuccessfulPayments({ partner_id, payment_status: "paid" }, dayStart, dayEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresPayments({
                 partner_id,
                 payment_status: "failed",
             },
@@ -1323,51 +1322,51 @@ async function getPaymentAttemptOutcomesByDayOfWeek(req, res) {
  *       500:
  *         description: Internal server error
  */
-
 async function getPaymentAttemptOutcomesByDayOfMonth(req, res) {
     const { partner_id, category, policy_type, policy_duration } = req.query;
     const daysInMonth = moment().daysInMonth(); // Get the number of days in the current month
     try {
-        const trends = [];
-        for (let i = 1; i <= daysInMonth; i++) { // Iterate through each day of the month
-            const dayStart = moment().startOf('month').add(i - 1, 'days'); // Subtract 1 from i to get the correct index
-            const dayEnd = moment().startOf('month').add(i, 'days'); // Increment i for the end of the day
+        const trends = await Promise.all(Array.from({ length: daysInMonth }, async (_, i) => {
+            const dayStart = moment().startOf('month').add(i, 'days');
+            const dayEnd = moment().startOf('month').add(i + 1, 'days');
+            try {
+                const [successfulPayments, failedPayments, wrongPinFailures, insufficientFundsFailures] = await Promise.all([
+                    getSuccessfulPayments({ partner_id, payment_status: "paid" }, dayStart, dayEnd, category, policy_type, policy_duration),
+                    getFailuresPayments({ partner_id, payment_status: "failed" }, dayStart, dayEnd, category, policy_type, policy_duration),
+                    getWrongPinFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration),
+                    getInsufficientFundsFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration)
+                ]);
+                
+                const totalPayments = successfulPayments + failedPayments;
+                
+                // Check for division by zero
+                const successfulPaymentsPercentage = totalPayments !== 0 ? (successfulPayments / totalPayments) * 100 : 0;
+                const failedPaymentsPercentage = totalPayments !== 0 ? (failedPayments / totalPayments) * 100 : 0;
+                const wrongPinFailuresPercentage = totalPayments !== 0 ? (wrongPinFailures / totalPayments) * 100 : 0;
+                const insufficientFundsFailuresPercentage = totalPayments !== 0 ? (insufficientFundsFailures / totalPayments) * 100 : 0;
 
-            const successfulPayments = await getSuccessfulPayments(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresByDateRange({
-                partner_id,
-                payment_status: "failed",
-            },
-                dayStart, dayEnd,
-                category, policy_type, policy_duration);
-
-            const totalPayments = successfulPayments + failedPayments;
-            const wrongPinFailures = await getWrongPinFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
-            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
-
-
-            const dayData = {
-                day: i,
-                successfulPayments,
-                failedPayments,
-                wrongPinFailures: wrongPinFailures,
-                insufficientFundsFailures: insufficientFundsFailures,
-                totalPayments,
-                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
-                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
-                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
-                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
-            };
-
-            trends.push(dayData);
-        }
+                return {
+                    day: i + 1,
+                    successfulPayments,
+                    failedPayments,
+                    wrongPinFailures,
+                    insufficientFundsFailures,
+                    totalPayments,
+                    successfulPaymentsPercentage,
+                    failedPaymentsPercentage,
+                    wrongPinFailuresPercentage,
+                    insufficientFundsFailuresPercentage
+                };
+            } catch (error) {
+                throw new Error(`Error processing data for day ${i + 1}: ${error.message}`);
+            }
+        }));
 
         return res.status(200).json({
             code: 200,
             status: "OK",
             data: trends,
         });
-
     } catch (error) {
         return res.status(500).json({
             code: 500,
@@ -1415,8 +1414,8 @@ async function getPaymentAttemptOutcomesByTimeOfDay(req, res) {
             const hourStart = moment().startOf('day').add(i, 'hours');
             const hourEnd = moment().startOf('day').add(i + 1, 'hours'); // Increment hour for end time
 
-            const successfulPayments = await getSuccessfulPayments(partner_id, hourStart, hourEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresByDateRange({
+            const successfulPayments = await getSuccessfulPayments({ partner_id, payment_status: "paid" }, hourStart, hourEnd, category, policy_type, policy_duration);
+            const failedPayments = await getFailuresPayments({
                 partner_id,
                 payment_status: "failed",
             },
@@ -1460,6 +1459,32 @@ async function getPaymentAttemptOutcomesByTimeOfDay(req, res) {
 }
 
 
+async function getPaymentsByStatus(status, whereClause, monthStart, monthEnd, category, policy_type, policy_duration) {
+    const queryFilter: { beneficiary?: string, policy_type?: string, installment_type?: string } = {};
+    if (category) {
+        queryFilter.beneficiary = category;
+    }
+    if (policy_type) {
+        queryFilter.policy_type = policy_type;
+    }
+    if (policy_duration) {
+        queryFilter.installment_type = policy_duration;
+    }
+
+    console.log(`get${status}Payments`, monthStart.toDate(), monthEnd.toDate());
+
+    return Payment.count({
+        where: {
+            ...whereClause,
+            createdAt: {
+                [Op.gte]: monthStart.toDate(),
+                [Op.lt]: monthEnd.toDate()
+            },
+            payment_status: status === 'successful' ? 'success' : 'failed' // Dynamically set payment status condition
+        },
+        include: [{ model: Policy, as: "policy", where: queryFilter }],
+    });
+}
 
 
 
