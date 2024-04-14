@@ -1031,92 +1031,76 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
     const lastMonthEnd = moment().subtract(1, 'month').endOf('month');
 
     try {
-
-
-        const wrongPinFailersSuccessfulPayments = await Payment.count({
-            where: {
-                partner_id,
-                payment_status: "paid",
-                payment_description: { [Op.like]: "%invalid PIN length%" },
-                createdAt: {
-                    [Op.gte]: lastMonthStart.toDate(),
-                    [Op.lt]: lastMonthEnd.toDate()
-                },
+        // Define queries to count successful and failed payments for wrong PIN failures and insufficient funds failures
+        const queries = [
+            {
+                status: "paid",
+                description: "%invalid PIN length%",
+                successKey: "wrongPinFailersSuccessfulPayments",
+                failureKey: "wrongPinFailersFailedPayments"
             },
-
-        });
-
-        const wrongPinFailersFialedPayments = await Payment.count({
-            where: {
-                partner_id,
-                payment_status: "failed",
-                payment_description: { [Op.like]: "%invalid PIN length%" },
-                createdAt: {
-                    [Op.gte]: lastMonthStart.toDate(),
-                    [Op.lt]: lastMonthEnd.toDate()
-                },
+            {
+                status: "failed",
+                description: "%invalid PIN length%",
+                successKey: "wrongPinFailersSuccessfulPayments",
+                failureKey: "wrongPinFailersFailedPayments"
             },
-
-        });
-
-
-        const insifficientFundsFailersSuccessfulPayments = await Payment.count({
-            where: {
-                partner_id,
-                payment_status: "paid",
-                payment_description: { [Op.like]: "%insufficient money%" },
-                createdAt: {
-                    [Op.gte]: lastMonthStart.toDate(),
-                    [Op.lt]: lastMonthEnd.toDate()
-                },
+            {
+                status: "paid",
+                description: "%insufficient money%",
+                successKey: "insufficientFundsFailersSuccessfulPayments",
+                failureKey: "insufficientFundsFailersFailedPayments"
             },
+            {
+                status: "failed",
+                description: "%insufficient money%",
+                successKey: "insufficientFundsFailersSuccessfulPayments",
+                failureKey: "insufficientFundsFailersFailedPayments"
+            }
+        ];
 
-        });
-
-        const insifficientFundsFailersFailedPayments = await Payment.count({
-            where: {
-                partner_id,
-                payment_status: "failed",
-                payment_description: { [Op.like]: "%insufficient money%" },
-                createdAt: {
-                    [Op.gte]: lastMonthStart.toDate(),
-                    [Op.lt]: lastMonthEnd.toDate()
+        // Execute queries concurrently using Promise.all
+        const results = await Promise.all(queries.map(async (query) => {
+            const count = await Payment.count({
+                where: {
+                    partner_id,
+                    payment_status: query.status,
+                    payment_description: { [Op.like]: query.description },
+                    createdAt: {
+                        [Op.gte]: lastMonthStart.toDate(),
+                        [Op.lt]: lastMonthEnd.toDate()
+                    },
                 },
-            },
+            });
+            return {
+                [query.successKey]: query.status === "paid" ? count : 0,
+                [query.failureKey]: query.status === "failed" ? count : 0
+            };
+        }));
 
-        });
+        // Calculate total payments and percentages
+        const totalWrongPinPayments = results[0].wrongPinFailersSuccessfulPayments + results[1].wrongPinFailersFailedPayments;
+        const totalInsufficientFundsPayments = results[2].insufficientFundsFailersSuccessfulPayments + results[3].insufficientFundsFailersFailedPayments;
 
+        const wrongPinFailuresPercentage = ((results[1].wrongPinFailersFailedPayments / totalWrongPinPayments) * 100).toFixed(2);
+        const insufficientFundsFailuresPercentage = ((results[3].insufficientFundsFailersFailedPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
 
-        // calculate percentage of failures and outcomes
-        const totalWrongPinPayments = wrongPinFailersSuccessfulPayments + wrongPinFailersFialedPayments;
-        const totalInsufficientFundsPayments = insifficientFundsFailersSuccessfulPayments + insifficientFundsFailersFailedPayments;
-
-        const wrongPinFailuresPercentage = ((wrongPinFailersFialedPayments / totalWrongPinPayments) * 100).toFixed(2);
-        const insufficientFundsFailuresPercentage = ((insifficientFundsFailersFailedPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
-
-        const wrongPinFailersSuccessfulPaymentsPercentage = ((wrongPinFailersSuccessfulPayments / totalWrongPinPayments) * 100).toFixed(2);
-
-        const insifficientFundsFailersSuccessfulPaymentsPercentage = ((insifficientFundsFailersSuccessfulPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
-
+        const wrongPinFailersSuccessfulPaymentsPercentage = ((results[0].wrongPinFailersSuccessfulPayments / totalWrongPinPayments) * 100).toFixed(2);
+        const insufficientFundsFailersSuccessfulPaymentsPercentage = ((results[2].insufficientFundsFailersSuccessfulPayments / totalInsufficientFundsPayments) * 100).toFixed(2);
 
         return res.status(200).json({
             code: 200,
             status: "OK",
             data: {
-                // wrongPinFailures,
-                // insufficientFundsFailures,
-                wrongPinFailersSuccessfulPayments,
-                wrongPinFailersFialedPayments,
+                wrongPinFailersSuccessfulPayments: results[0].wrongPinFailersSuccessfulPayments,
+                wrongPinFailersFailedPayments: results[1].wrongPinFailersFailedPayments,
                 wrongPinFailuresPercentage,
                 wrongPinFailersSuccessfulPaymentsPercentage,
-
-
-                insifficientFundsFailersSuccessfulPayments,
-                insifficientFundsFailersFailedPayments,
+                insufficientFundsFailersSuccessfulPayments: results[2].insufficientFundsFailersSuccessfulPayments,
+                insufficientFundsFailersFailedPayments: results[3].insufficientFundsFailersFailedPayments,
                 insufficientFundsFailuresPercentage,
-                insifficientFundsFailersSuccessfulPaymentsPercentage
+                insufficientFundsFailersSuccessfulPaymentsPercentage
             }
-
         });
 
     } catch (error) {
@@ -1127,7 +1111,6 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
             error: error.message
         });
     }
-
 }
 
 
@@ -1156,45 +1139,37 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
  *       500:
  *         description: Internal server error
  */
-
 async function getPaymentOutcomesTrends(req, res) {
     const { partner_id, category, policy_type, policy_duration } = req.query;
     const year = moment().year();
     const months = moment.months();
     try {
-        const trends = [];
-        for (let i = 0; i < months.length; i++) {
-            const monthStart = moment(`${year}-${i + 1}-01`).startOf('month');
-            const monthEnd = moment(`${year}-${i + 1}-01`).endOf('month');
+        const trends = await Promise.all(months.map(async (monthName, index) => {
+            const monthStart = moment(`${year}-${index + 1}-01`).startOf('month');
+            const monthEnd = moment(`${year}-${index + 1}-01`).endOf('month');
 
-            const successfulPayments = await getSuccessfulPayments({ partner_id, payment_status: "paid" }, monthStart, monthEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresPayments({
-                partner_id,
-                payment_status: "failed",
-            },
-                monthStart, monthEnd,
-                category, policy_type, policy_duration);
+            const [successfulPayments, failedPayments, wrongPinFailures, insufficientFundsFailures] = await Promise.all([
+                getSuccessfulPayments({ partner_id, payment_status: "paid" }, monthStart, monthEnd, category, policy_type, policy_duration),
+                getFailuresPayments({ partner_id, payment_status: "failed" }, monthStart, monthEnd, category, policy_type, policy_duration),
+                getWrongPinFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration),
+                getInsufficientFundsFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration)
+            ]);
 
             const totalPayments = successfulPayments + failedPayments;
-            const wrongPinFailures = await getWrongPinFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
-            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
 
-
-            const monthData = {
-                month: months[i],
+            return {
+                month: monthName,
                 successfulPayments,
                 failedPayments,
-                wrongPinFailures: wrongPinFailures,
-                insufficientFundsFailures: insufficientFundsFailures,
+                wrongPinFailures,
+                insufficientFundsFailures,
                 totalPayments,
-                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
-                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
-                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
-                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
+                successfulPaymentsPercentage: totalPayments !== 0 ? ((successfulPayments / totalPayments) * 100).toFixed(2) : 0,
+                failedPaymentsPercentage: totalPayments !== 0 ? ((failedPayments / totalPayments) * 100).toFixed(2) : 0,
+                wrongPinFailuresPercentage: totalPayments !== 0 ? ((wrongPinFailures / totalPayments) * 100).toFixed(2) : 0,
+                insufficientFundsFailuresPercentage: totalPayments !== 0 ? ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) : 0,
             };
-
-            trends.push(monthData);
-        }
+        }));
 
         return res.status(200).json({
             code: 200,
@@ -1237,47 +1212,36 @@ async function getPaymentOutcomesTrends(req, res) {
  *       500:
  *         description: Internal server error
  */
-
 async function getPaymentAttemptOutcomesByDayOfWeek(req, res) {
     const { partner_id, category, policy_type, policy_duration } = req.query;
     const days = Array.from({ length: 7 }, (_, i) => i); // Create an array of 0 to 6 representing days of the week
     try {
-        const trends = [];
-        for (let i = 0; i < days.length; i++) {
-            const dayStart = moment().startOf('week').add(i, 'days');
-            const dayEnd = moment().endOf('week').add(i, 'days');
+        const trends = await Promise.all(days.map(async (dayIndex) => {
+            const dayStart = moment().startOf('week').add(dayIndex, 'days');
+            const dayEnd = moment().endOf('week').add(dayIndex, 'days');
 
-            console.log('dayStart', dayStart, dayStart.toDate());
-            console.log('dayEnd', dayEnd, dayEnd.toDate());
-
-            const successfulPayments = await getSuccessfulPayments({ partner_id, payment_status: "paid" }, dayStart, dayEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresPayments({
-                partner_id,
-                payment_status: "failed",
-            },
-                dayStart, dayEnd,
-                category, policy_type, policy_duration);
+            const [successfulPayments, failedPayments, wrongPinFailures, insufficientFundsFailures] = await Promise.all([
+                getSuccessfulPayments({ partner_id, payment_status: "paid" }, dayStart, dayEnd, category, policy_type, policy_duration),
+                getFailuresPayments({ partner_id, payment_status: "failed" }, dayStart, dayEnd, category, policy_type, policy_duration),
+                getWrongPinFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration),
+                getInsufficientFundsFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration)
+            ]);
 
             const totalPayments = successfulPayments + failedPayments;
-            const wrongPinFailures = await getWrongPinFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
-            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, dayStart, dayEnd, category, policy_type, policy_duration);
 
-
-            const dayData = {
-                day: i, // Use index as day of the week
+            return {
+                day: dayIndex, // Use index as day of the week
                 successfulPayments,
                 failedPayments,
-                wrongPinFailures: wrongPinFailures,
-                insufficientFundsFailures: insufficientFundsFailures,
+                wrongPinFailures,
+                insufficientFundsFailures,
                 totalPayments,
-                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
-                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
-                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
-                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
+                successfulPaymentsPercentage: totalPayments !== 0 ? ((successfulPayments / totalPayments) * 100).toFixed(2) : 0,
+                failedPaymentsPercentage: totalPayments !== 0 ? ((failedPayments / totalPayments) * 100).toFixed(2) : 0,
+                wrongPinFailuresPercentage: totalPayments !== 0 ? ((wrongPinFailures / totalPayments) * 100).toFixed(2) : 0,
+                insufficientFundsFailuresPercentage: totalPayments !== 0 ? ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) : 0,
             };
-
-            trends.push(dayData);
-        }
+        }));
 
         return res.status(200).json({
             code: 200,
@@ -1404,44 +1368,36 @@ async function getPaymentAttemptOutcomesByDayOfMonth(req, res) {
  *       500:
  *         description: Internal server error
  */
-
 async function getPaymentAttemptOutcomesByTimeOfDay(req, res) {
     const { partner_id, category, policy_type, policy_duration } = req.query;
     const hours = Array.from({ length: 24 }, (_, i) => i); // Create an array of 24 hours
     try {
-        const trends = [];
-        for (let i = 0; i < hours.length; i++) {
-            const hourStart = moment().startOf('day').add(i, 'hours');
-            const hourEnd = moment().startOf('day').add(i + 1, 'hours'); // Increment hour for end time
+        const trends = await Promise.all(hours.map(async (hour) => {
+            const hourStart = moment().startOf('day').hour(hour);
+            const hourEnd = moment(hourStart).add(1, 'hour');
 
-            const successfulPayments = await getSuccessfulPayments({ partner_id, payment_status: "paid" }, hourStart, hourEnd, category, policy_type, policy_duration);
-            const failedPayments = await getFailuresPayments({
-                partner_id,
-                payment_status: "failed",
-            },
-                hourStart, hourEnd,
-                category, policy_type, policy_duration);
+            const [successfulPayments, failedPayments, wrongPinFailures, insufficientFundsFailures] = await Promise.all([
+                getSuccessfulPayments({ partner_id, payment_status: "paid" }, hourStart, hourEnd, category, policy_type, policy_duration),
+                getFailuresPayments({ partner_id, payment_status: "failed" }, hourStart, hourEnd, category, policy_type, policy_duration),
+                getWrongPinFailures(partner_id, hourStart, hourEnd, category, policy_type, policy_duration),
+                getInsufficientFundsFailures(partner_id, hourStart, hourEnd, category, policy_type, policy_duration)
+            ]);
 
             const totalPayments = successfulPayments + failedPayments;
-            const wrongPinFailures = await getWrongPinFailures(partner_id, hourStart, hourEnd, category, policy_type, policy_duration);
-            const insufficientFundsFailures = await getInsufficientFundsFailures(partner_id, hourStart, hourEnd, category, policy_type, policy_duration);
 
-
-            const hourData = {
-                hour: i, // Use index as hour
+            return {
+                hour,
                 successfulPayments,
                 failedPayments,
-                wrongPinFailures: wrongPinFailures,
-                insufficientFundsFailures: insufficientFundsFailures,
+                wrongPinFailures,
+                insufficientFundsFailures,
                 totalPayments,
-                successfulPaymentsPercentage: ((successfulPayments / totalPayments) * 100).toFixed(2) || 0,
-                failedPaymentsPercentage: ((failedPayments / totalPayments) * 100).toFixed(2) || 0,
-                wrongPinFailuresPercentage: ((wrongPinFailures / totalPayments) * 100).toFixed(2) || 0,
-                insufficientFundsFailuresPercentage: ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) || 0,
+                successfulPaymentsPercentage: totalPayments !== 0 ? ((successfulPayments / totalPayments) * 100).toFixed(2) : 0,
+                failedPaymentsPercentage: totalPayments !== 0 ? ((failedPayments / totalPayments) * 100).toFixed(2) : 0,
+                wrongPinFailuresPercentage: totalPayments !== 0 ? ((wrongPinFailures / totalPayments) * 100).toFixed(2) : 0,
+                insufficientFundsFailuresPercentage: totalPayments !== 0 ? ((insufficientFundsFailures / totalPayments) * 100).toFixed(2) : 0,
             };
-
-            trends.push(hourData);
-        }
+        }));
 
         return res.status(200).json({
             code: 200,
