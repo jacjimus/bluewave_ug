@@ -54,6 +54,7 @@ const Partner = db.partners;
  *       400:
  *         description: Invalid request
  */
+
 const getPolicySummary = async (req: any, res: any) => {
 
   try {
@@ -98,7 +99,6 @@ const getPolicySummary = async (req: any, res: any) => {
         },
         ...(partner_id != 4 && { partner_id }),
       },
-      limit: 100,
     };
 
     let policy = await Policy.findAll(policyQuery);
@@ -108,19 +108,6 @@ const getPolicySummary = async (req: any, res: any) => {
       return res.status(404).json({ message: "No policies found" });
     }
 
-    let total_payment_premium = await db.payments.sum("payment_amount", {
-      where: {
-        payment_status: "paid",
-        partner_id,
-      },
-    });
-
-    // await db.payments.sum("payment_amount", {
-    //   where: {
-    //     payment_status: "paid",
-    //     partner_id,
-    //   },
-    // });
 
     let total_policy_premium_paid = await db.policies.sum("policy_paid_amount", {
       where: {

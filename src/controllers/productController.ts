@@ -35,6 +35,11 @@ interface Product {
     *     security:
     *       - ApiKeyAuth: []
     *     parameters:
+    *       - name: partner_id
+    *         in: query
+    *         required: true
+    *         schema:
+    *           type: number
     *       - name: page
     *         in: query
     *         required: false
@@ -82,6 +87,9 @@ const getProducts = async (req: any, res: any) => {
       filter = filter?.trim().toLowerCase();
       product = await Product.findAll({
         order: [["createdAt", "DESC"]],
+        where: {
+          partner_id: req.query.partner_id
+        }
       });
     } else {
       product = await Product.findAll({
@@ -93,6 +101,7 @@ const getProducts = async (req: any, res: any) => {
             { product_category: { [Op.iLike]: `%${filter}%` } },
             { product_premium: { [Op.iLike]: `%${filter}%` } },
           ],
+          partner_id: req.query.partner_id
         },
         order: [["createdAt", "DESC"]],
       });
@@ -183,6 +192,11 @@ const getProducts = async (req: any, res: any) => {
   *         required: true
   *         schema:
   *           type: string
+  *       - name: partner_id
+  *         in: query
+  *         required: true
+  *         schema:
+  *           type: number
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
@@ -201,7 +215,8 @@ const getProduct = async (req: any, res: any) => {
 
     const product = await Product.findOne({
       where: {
-        product_id: product_id
+        product_id: product_id,
+        partner_id: parseInt(req.query.partner_id)
       }
     })
     if (!product || product.length === 0) {

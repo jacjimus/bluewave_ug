@@ -24,7 +24,7 @@ import moment from "moment";
     *     parameters:
     *       - name: partner_id
     *         in: query
-    *         required: false
+    *         required: true
     *         schema:
     *           type: number
     *       - name: page
@@ -97,7 +97,7 @@ const getPayments = async (req: any, res: any) => {
             offset: (page - 1) * limit,
             limit: limit,
             order: [["payment_id", "DESC"]],
-            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
+            include: [{ model: Policy, as: "policy" }],
         });
 
         if (!payments || payments.length === 0) {
@@ -141,7 +141,7 @@ const getPayments = async (req: any, res: any) => {
     *     parameters:
     *       - name: partner_id
     *         in: query
-    *         required: false
+    *         required: true
     *         schema:
     *           type: number
     *       - name: payment_id
@@ -207,12 +207,12 @@ const getPayment = async (req: any, res: any) => {
     *     parameters:
     *       - name: partner_id
     *         in: query
-    *         required: false
+    *         required: true
     *         schema:
     *           type: number
     *       - name: policy_id
-    *         in: path
-    *         required: false
+    *         in: query
+    *         required: true
     *         schema:
     *           type: string
     *       - name: page
@@ -235,16 +235,17 @@ const getPolicyPayments = async (req: any, res: any) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const partner_id = req.query.partner_id;
+    const policy_id = req.query.policy_id
+    console.log("POLICY ID", policy_id)
 
     try {
-        const policy_id = parseInt(req.params.policy_id);
         const payments = await Payment.findAll({
             where: {
                 policy_id: policy_id,
                 partner_id: partner_id
             },
-            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }, { model: Claim, as: "claim" }],
-            limit: 100,
+            include: [{ model: User, as: "user" }, { model: Policy, as: "policy" }],
+            limit
         });
 
         if (payments.length > 0) {
@@ -287,7 +288,7 @@ const getPolicyPayments = async (req: any, res: any) => {
     *     parameters:
     *       - name: partner_id
     *         in: query
-    *         required: false
+    *         required: true
     *         schema:
     *           type: number
     *       - name: user_id
@@ -368,7 +369,7 @@ const findUserByPhoneNumberPayments = async (req: any, res: any) => {
   *     parameters:
   *       - name: partner_id
   *         in: query
-  *         required: false
+  *         required: true
   *         schema:
   *           type: number
   *     requestBody:
@@ -431,19 +432,19 @@ const createPayment = async (req, res) => {
                 existingUser.partner_id
             );
         } else if (partner_id === 2) {
-        
-              
+
+
             let preGeneratedTransactionId = uuidv4();
 
             await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
             airtelMoneyPromise = airtelMoney(
-            
+
                 existingUser.phone_number,
                 policy.premium,
                 existingUser.membership_id,
                 preGeneratedTransactionId
-               
+
             );
         } else if (partner_id === 3) {
             // vodacom - cooming soon
@@ -510,7 +511,7 @@ const createPayment = async (req, res) => {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *       - name: start_date
@@ -628,30 +629,30 @@ async function customerPaymentAttempts(req, res) {
         });
     }
 }
-        // // Split the date range into quarters
-        // const quarterStartDate = moment(startDate).startOf('quarter');
-        // const quarterEndDate = moment(endDate).endOf('quarter');
+// // Split the date range into quarters
+// const quarterStartDate = moment(startDate).startOf('quarter');
+// const quarterEndDate = moment(endDate).endOf('quarter');
 
 
 
-        // // Loop through each quarter
-        // for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
-        //     const quarterEnd = moment(quarterStart).endOf('quarter');
+// // Loop through each quarter
+// for (let quarterStart = moment(quarterStartDate); quarterStart.isBefore(quarterEndDate); quarterStart.add(1, 'quarter')) {
+//     const quarterEnd = moment(quarterStart).endOf('quarter');
 
 
-        //     // Initialize months array to hold data for each month within the quarter
-        //     const months = [];
+//     // Initialize months array to hold data for each month within the quarter
+//     const months = [];
 
-        //     // Loop through each month within the quarter
-        //     for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
-        //         const monthEnd = moment(monthStart).endOf('month');
+//     // Loop through each month within the quarter
+//     for (let monthStart = moment(quarterStart); monthStart.isBefore(quarterEnd); monthStart.add(1, 'month')) {
+//         const monthEnd = moment(monthStart).endOf('month');
 
-        //         // Fetch data for each month
-        //         let monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
+//         // Fetch data for each month
+//         let monthData = await fetchMonthData(partner_id, monthStart, monthEnd, category, policy_type, policy_duration);
 
 
-        //         months.push(monthData);
-        //     }
+//         months.push(monthData);
+//     }
 
 
 
@@ -1014,7 +1015,7 @@ async function getInsufficientFundsFailures(partner_id, startMonth, endMonth, ca
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *     responses:
@@ -1145,7 +1146,7 @@ async function getFailuresAndOutcomesLastMonth(req, res) {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *     responses:
@@ -1226,7 +1227,7 @@ async function getPaymentOutcomesTrends(req, res) {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *     responses:
@@ -1311,7 +1312,7 @@ async function getPaymentAttemptOutcomesByDayOfWeek(req, res) {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *     responses:
@@ -1393,7 +1394,7 @@ async function getPaymentAttemptOutcomesByDayOfMonth(req, res) {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *     responses:

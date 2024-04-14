@@ -17,7 +17,6 @@ const XLSX = require("xlsx");
 import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "../services/sendSMS";
 
-// Assigning users to the variable User
 const User = db.users;
 const Partner = db.partners;
 const Policy = db.policies;
@@ -26,7 +25,7 @@ const Beneficiary = db.beneficiaries;
 const Payments = db.payments;
 
 
-async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
+async function findUserByUserId(user_id: string, partner_id: number) {
   let user = await User.findOne({
     where: {
       user_id: user_id,
@@ -129,7 +128,7 @@ const signup = async (req, res) => {
       }
     }
 
-    if(phone_number){
+    if (phone_number) {
       const phoneExists = await User.findOne({ where: { phone_number } });
       if (phoneExists) {
         return res.status(409).json({ status: "FAILED", code: 409, message: "Phone number already exists" });
@@ -346,7 +345,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     if (phone_number) {
       whereClause.phone_number = phone_number.replace(/^0/, '')
     }
-     console.log(whereClause)
+    console.log(whereClause)
     // Find user by email or phone number
     const user = await User.findOne({ where: whereClause });
     // Check if user exists
@@ -518,8 +517,6 @@ const findAllUsers = async (req: any, res) => {
           { name: { [Op.like]: `%${filter}%` } },
           { first_name: { [Op.like]: `%${filter}%` } },
           { last_name: { [Op.like]: `%${filter}%` } },
-
-          // Add more fields as needed
         ],
       };
     }
@@ -536,8 +533,8 @@ const findAllUsers = async (req: any, res) => {
       include: [
         {
           model: Policy,
-          attributes: ["beneficiary", "policy_type", "policy_type", "policy_status", "premium","policy_paid_amount","installment_type","installment_order", "policy_start_date",  "createdAt"],
-          where : {
+          attributes: ["beneficiary", "policy_type", "policy_type", "policy_status", "premium", "policy_paid_amount", "installment_type", "installment_order", "policy_start_date", "createdAt"],
+          where: {
             partner_id: partner_id,
             policy_status: "paid"
           }
@@ -574,7 +571,7 @@ const findAllUsers = async (req: any, res) => {
  *     tags:
  *       - Users
  *     description: Get User
- *     operationId: findUserByPhoneNumber
+ *     operationId: findUserByUserId
  *     summary: Get User
  *     security:
  *       - ApiKeyAuth: []
@@ -595,12 +592,12 @@ const findAllUsers = async (req: any, res) => {
  *       400:
  *         description: Invalid request
  */
-const findUserByPhoneNumber = async (req: any, res: any) => {
+const findUser = async (req: any, res: any) => {
   try {
     let user_id = req.params.user_id;
     let partner_id = req.query.partner_id;
 
-    let user: any = await findUserByPhoneNumberFunc(user_id, partner_id);
+    let user: any = await findUserByUserId(user_id, partner_id);
 
     if (!user || user.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
@@ -684,7 +681,7 @@ const updateUser = async (req: any, res: any) => {
       voter_id,
     } = req.body;
 
-    let user: any = findUserByPhoneNumberFunc(req.params.user_id, req.query.partner_id);
+    let user: any = findUserByUserId(req.params.user_id, req.query.partner_id);
 
     //check if user exists
     if (!user || user.length === 0) {
@@ -1240,7 +1237,7 @@ async function findUserVehicle(req: any, res: any) {
   try {
     const { partner_id } = req.query
     const { user_id } = req.params
-  
+
 
     const userVehicle = await db.vehicles.findAll({
       where: {
@@ -1493,13 +1490,11 @@ async function forgotPassword(req: any, res: any) {
  */
 async function changePassword(req: any, res: any) {
   try {
-    // 1. Validate Input
     const { email, token, newPassword } = req.query
     if (!email || !token || !newPassword) {
       return res.status(400).json({ error: 'Email, token, and new password are required.' });
     }
 
-    // 2. Verify Token
     const user = await db.users.findOne({ where: { email } });
     if (user.reset_token !== token) {
       return res.status(400).json({ status: "FAILED", error: 'Invalid reset token.' });
@@ -1510,8 +1505,6 @@ async function changePassword(req: any, res: any) {
     if ((Date.now() - tokenTimestamp) > 24 * 60 * 60 * 1000) {
       return res.status(400).json({ status: "FAILED", error: 'Expired reset token.' });
     }
-
-    // 3. Update Password
 
     await db.users.update({ password: await bcrypt.hash(newPassword, 10) }, { where: { email } });
 
@@ -1529,7 +1522,7 @@ module.exports = {
   signup,
   login,
   findAllUsers,
-  findUserByPhoneNumber,
+  findUser,
   getPartner,
   updateUser,
   deleteUser,
