@@ -3,10 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 
 const hospitalMenu = async (args: any, db: any) => {
-    let { phoneNumber, response, currentStep, userText, allSteps } = args;
+    let { msisdn, response, currentStep, userText, allSteps } = args;
 
-    const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
-    const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
+    const trimmedPhoneNumber = msisdn.replace("+", "").substring(3);
+    const smsPhone = msisdn.startsWith("+") ? msisdn : `+${msisdn}`;
 
     const user = await db.users.findOne({
         where: {

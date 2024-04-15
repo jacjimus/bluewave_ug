@@ -269,7 +269,7 @@ async function updatePremium(user: any, policy: any) {
       console.log("POLICY NOT FOR USER", user.name, policy.policy_type, user.total_member_number);
     } else {
 
-      console.log('UPDATE PREMIUM', user.name, policy.policy_type, user.total_member_number)
+      console.log('UPDATE PREMIUM', user.name, policy.policy_type, policy.total_member_number)
       const main_benefit_limit = policy.sum_insured
       const last_expense_limit = policy.last_expense_insured
 
@@ -293,7 +293,7 @@ async function updatePremium(user: any, policy: any) {
         health_option: "64",
         premium: ultimatePremium,
         premium_type: policy.installment_type,
-        premium_installment: policy.installment_order || 1,
+        premium_installment: policy.installment_order,
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],

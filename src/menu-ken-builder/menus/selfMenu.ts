@@ -6,8 +6,8 @@ import { getAirtelUser } from "../../services//getAirtelUserKyc";
 import { Op } from "sequelize";
 
 const selfMenu = async (args, db) => {
-  let { phoneNumber, response, currentStep, userText, allSteps } = args;
-  let phone = phoneNumber?.replace('+', "")?.substring(3);
+  let { msisdn, response, currentStep, userText, allSteps } = args;
+  //let phone = msisdn?.replace('+', "")?.substring(3);
 
 
   const coverTypes = [{
@@ -54,7 +54,7 @@ const selfMenu = async (args, db) => {
   }];
 
 
-
+console.log(currentStep == 1, currentStep == '1', userText)
   if (currentStep === 1) {
     switch (userText) {
       case "1":
@@ -78,7 +78,7 @@ const selfMenu = async (args, db) => {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
     }
-    //let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
+    //let usermsisdn = msisdn?.replace('+', "")?.substring(3);
 
     response = `CON You get KShs 4,500 per night of hospitalisation up to a Maximum of 30 days a year ` +
       "\nPAY " +
@@ -100,9 +100,9 @@ const selfMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for Airtel Money PIN prompt to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", phoneNumber, new Date());
+      console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", msisdn, new Date());
 
-      await handleAirtelMoneyPayment(allSteps, phoneNumber, coverTypes, db)
+      await handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db)
 
 
     } else {
@@ -115,53 +115,53 @@ const selfMenu = async (args, db) => {
 
 
 
-async function handleAirtelMoneyPayment(allSteps, phoneNumber, coverTypes, db) {
+async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-  let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
-  let existingUser = await findExistingUser(phoneNumber, 2, db);
+  let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
+  let existingUser = await findExistingUser(msisdn, 2, db);
 
   if (!existingUser) {
     console.log("USER DOES NOT EXIST SELF KENYA ");
-    let user = await getAirtelUser(phoneNumber, 1);
+    let user = await getAirtelUser(msisdn, 1);
 
     let membershipId = Math.floor(100000 + Math.random() * 900000);
     if (user?.first_name && user?.last_name) {
-      existingUser = await createNewUser(phoneNumber, user, membershipId, db);
+      existingUser = await createNewUser(msisdn, user, membershipId, db);
       const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
       await SMSMessenger.sendSMS(3, fullPhone, message);
     }
   }
 
-  let policyObject = createPolicyObject(selectedPolicyType, allSteps, existingUser, phoneNumber);
+  let policyObject = createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn);
   let policy = await createPolicy(policyObject, db);
 
-  console.log("============== START TIME - SELFKENYA   ================ ", phoneNumber, new Date());
+  console.log("============== START TIME - SELFKENYA   ================ ", msisdn, new Date());
 
   const airtelMoneyPromise = airtelMoneyKenya(
     existingUser.user_id,
     policy.policy_id,
-    phoneNumber,
+    msisdn,
     policy.policy_deduction_amount,
     existingUser.membership_id,
     existingUser.partner_id
   );
 
-  await handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber);
+  await handleAirtelMoneyPromise(airtelMoneyPromise, msisdn);
 }
 
-async function findExistingUser(phoneNumber, partner_id, db) {
+async function findExistingUser(msisdn, partner_id, db) {
   return await db.users.findOne({
     where: {
-      phone_number: phoneNumber,
+      phone_number: msisdn,
       partner_id,
     },
   });
 }
 
-async function createNewUser(phoneNumber, user, membershipId, db) {
+async function createNewUser(msisdn, user, membershipId, db) {
   return await db.users.create({
     user_id: uuidv4(),
-    phone_number: phoneNumber,
+    phone_number: msisdn,
     membership_id: membershipId,
     first_name: user?.first_name,
     last_name: user?.last_name,
@@ -173,7 +173,7 @@ async function createNewUser(phoneNumber, user, membershipId, db) {
   });
 }
 
-function createPolicyObject(selectedPolicyType, allSteps, existingUser, phoneNumber) {
+function createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn) {
   let policy_type = selectedPolicyType.name;
   let installment_type = parseInt(allSteps[2]);
   let ultimatePremium = calculatePaymentOptionsKenya(policy_type, installment_type);
@@ -203,14 +203,14 @@ function createPolicyObject(selectedPolicyType, allSteps, existingUser, phoneNum
     currency_code: "KES",
     product_id: "e18424e6-5316-4f12-9826-302c866b380d",
     user_id: existingUser.user_id,
-    phone_number: phoneNumber,
+    phone_number: msisdn,
     first_name: existingUser?.first_name,
     last_name: existingUser?.last_name,
     inpatient_cover: selectedPolicyType.inPatient,
     outpatient_cover: selectedPolicyType.outPatient,
     maternity_cover: selectedPolicyType.maternity,
     hospital_cash: selectedPolicyType.hospitalCash,
-    policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+    policy_number: "BW" + msisdn?.replace('+', "")?.substring(3)
   }
 
   return policyObject;
@@ -220,7 +220,7 @@ async function createPolicy(policyObject, db) {
   return await db.policies.create(policyObject);
 }
 
-async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
+async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
   const timeout = 3000;
 
   try {
@@ -232,14 +232,14 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
         }, timeout);
       })
     ]);
-    console.log("============== END TIME - SELF KENYA  ================ ", phoneNumber, new Date());
+    console.log("============== END TIME - SELF KENYA  ================ ", msisdn, new Date());
     console.log("SELF RESPONSE WAS CALLED KENYA ",);
     return 'END P- ayment successful';
   } catch (error) {
     console.log("SELF - RESPONSE WAS CALLED KENYA ", error);
     return 'END Payment failed';
   } finally {
-    console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", phoneNumber, new Date());
+    console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", msisdn, new Date());
   }
 }
 

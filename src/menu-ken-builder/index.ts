@@ -1,4 +1,4 @@
-import { RequestBody } from "./typings/global";
+import { KenRequestBody, RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-menu-builder";
@@ -42,16 +42,16 @@ menu.sessionConfig({
 
 
 
-export default function (args: RequestBody, db: any) {
+export default function (args: KenRequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
 
-      let { phoneNumber, text, sessionId, serviceCode } = args;
-      // check if the userText is '0' and remove 2 responses from the menu starting from the '0'.
+      let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password } = args;
+      // check if the userinput is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
-      // check also if the userText is '00' set the text to empty string
+      // check also if the userinput is '00' set the input to empty string
       let response = "";
-      let allSteps = text.split("*");
+      let allSteps = input.split("*");
       //*384*14773#
 
       // if the allsteps array includes '284' and '14773'  remove them from the array and retain the rest
@@ -60,14 +60,14 @@ export default function (args: RequestBody, db: any) {
         console.log("KEN allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
-        text = allSteps.join("*").replace("*384*14773#", "");
-        console.log("text", text);
+        input = allSteps.join("*").replace("*384*14773#", "");
+        console.log("input", input);
       }
 
 
       if (allSteps[allSteps.length - 1] == "00") {
         allSteps = [];
-        text = "";
+        input = "";
       }
 
       const handleBack = (arr: any) => {
@@ -78,7 +78,7 @@ export default function (args: RequestBody, db: any) {
           console.log("KEN allSteps", allSteps);
 
           allSteps.splice(index - 1, 2)
-          text = allSteps.join("*");
+          input = allSteps.join("*");
 
           return handleBack(allSteps);
         }
@@ -98,20 +98,25 @@ export default function (args: RequestBody, db: any) {
       let userText = allSteps[allSteps.length - 1];
 
       console.log("KEN allStepsAfter", allSteps);
+      console.log("KEN firstStep", firstStep);
+      console.log("KEN currentStep", currentStep);
+      console.log("KEN previousStep", previousStep);
+      console.log("KEN userinput", userText);
 
       const params = {
-        phoneNumber,
-        text,
+        msisdn,
+        input,
         response,
         currentStep,
         previousStep,
         userText,
         allSteps,
       };
+      console.log("KEN params", params);
 
       // let existingPolicy = await db.policies.findAndCountAll({
       //   where: {
-      //       phone_number: phoneNumber,
+      //       phone_number: msisdn,
       //       partner_id: 3,
       //       policy_status: "paid",
       //      [Op.or]: [
@@ -123,7 +128,7 @@ export default function (args: RequestBody, db: any) {
 
      
 
-      if (text == "") {
+      if (input == "") {
         response = "CON " +
           "\n1. Buy for self" +
           "\n2. Buy for family" +

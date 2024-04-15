@@ -6,16 +6,23 @@ import { getAirtelUser } from "../../services/getAirtelUserKyc";
 
 
 const familyMenu = async (args, db) => {
-  let { phoneNumber, text, response,
+  let { msisdn, text, response,
     currentStep, previousStep, userText, allSteps
   } = args;
+  console.log(" FAMILY ARGS", args)
 
   const Policy = db.policies;
   const Beneficiary = db.beneficiaries;
   const User = db.users;
   console.log("CURRENT STEP", currentStep)
-  let phone = phoneNumber?.replace('+', "")?.substring(3);
-  let existingUser
+  let phone = msisdn?.replace('+', "")?.substring(3);
+  let existingUser = await db.users.findOne({
+    where: {
+      phone_number: phone,
+      partner_id: 1,
+    },
+    limit: 1,
+  });
 
   // family_cover_data for family
   const family_cover_data = [
@@ -486,9 +493,9 @@ const familyMenu = async (args, db) => {
 
     const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    let userPhoneNumber = phoneNumber?.replace('+', "")?.substring(3);
+    let usermsisdn = msisdn?.replace('+', "")?.substring(3);
 
-    let coverText = `CON Inpatient cover for 0${userPhoneNumber}, ${selectedPackage.inpatient_cover} a year` +
+    let coverText = `CON Inpatient cover for 0${usermsisdn}, ${selectedPackage.inpatient_cover} a year` +
       "\nPAY " +
       `\n1. Kshs ${selectedPackage?.payment_options[0].premium} monthly` +
       `\n2. Kshs ${selectedPackage?.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
@@ -501,7 +508,7 @@ const familyMenu = async (args, db) => {
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
     let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
-    let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+    let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
 
     let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
 
@@ -515,24 +522,19 @@ const familyMenu = async (args, db) => {
       last_name: spouse?.split(" ")[2]?.toUpperCase() || spouse.split(" ")[1]?.toUpperCase(),
       relationship: "SPOUSE",
       member_number: selectedPolicyType.code_name,
-      principal_phone_number: phoneNumber,
+      principal_phone_number: msisdn,
       //user_id: existingUser.user_id,
     };
     // console.log("BENEFICIARY", beneficiary);
 
     await Beneficiary.create(beneficiary);
-    existingUser = await db.users.findOne({
-      where: {
-        phone_number: phone,
-        partner_id: 1,
-      },
-      limit: 1,
-    });
+
+   
     console.log("EXISTING USER", existingUser?.name)
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
-      let user = await getAirtelUser(phoneNumber, 2);
+      let user = await getAirtelUser(msisdn, 2);
       let membershierId = Math.floor(100000 + Math.random() * 900000);
       existingUser = await db.users.create({
         user_id: uuidv4(),
@@ -553,11 +555,13 @@ const familyMenu = async (args, db) => {
 
 
     response = `CON Kshs ${premium} payable ${period}` +
-      `\nTerms&Conditions - Terms&Conditions - www.airtel.com` +
+      `\nTerms&Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay \n Age 0 - 65 Years` + "\n1. Confirm \n0. Back" + "\n00. Main Menu";
   } else if (currentStep == 7) {
+
     console.log("existingUser", existingUser)
-    await processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser, db)
+    response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
+    await processUserText(userText, allSteps, msisdn, family_cover_data, existingUser, db)
   }
 
   return response;
@@ -565,36 +569,34 @@ const familyMenu = async (args, db) => {
 
 
 
-async function processUserText1(allSteps, phoneNumber, family_cover_data, existingUser, db) {
-  let response = '';
-  response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
+async function processUserText1(allSteps, msisdn, family_cover_data, existingUser, db) {
   console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", new Date());
 
   let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
   let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
   let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
 
-  let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, phoneNumber, ultimatePremium);
+  let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, msisdn, ultimatePremium);
   let policy = await createAndSavePolicy(policyObject, db);
 
-  console.log("============== START TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
+  console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, new Date());
 
   const airtelMoneyPromise = airtelMoneyKenya(
     existingUser.user_id,
     policy.policy_id,
-    phoneNumber,
+    msisdn,
     ultimatePremium,
     existingUser.membership_id,
     existingUser.partner_id
   );
 
-  response = await handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber);
-  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", phoneNumber, new Date());
+  let  response = await handleAirtelMoneyPromise(airtelMoneyPromise, msisdn);
+  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, new Date());
 
   return response;
 }
 
-function createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, phoneNumber, ultimatePremium) {
+function createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, msisdn, ultimatePremium) {
   let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
   return {
     policy_id: uuidv4(),
@@ -614,7 +616,7 @@ function createPolicyObject(selectedPackage, allSteps, family_cover_data, existi
     currency_code: "KES",
     product_id: "e18424e6-5316-4f12-9826-302c866b380d",
     user_id: existingUser.user_id,
-    phone_number: phoneNumber,
+    phone_number: msisdn,
     total_member_number: selectedPolicyType.code_name,
     first_name: existingUser?.first_name,
     last_name: existingUser?.last_name,
@@ -622,7 +624,7 @@ function createPolicyObject(selectedPackage, allSteps, family_cover_data, existi
     outpatient_cover: selectedPackage.outpatient_cover,
     maternity_cover: selectedPackage.maternity,
     hospital_cash: selectedPackage.hospital_cash,
-    policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+    policy_number: "BW" + msisdn?.replace('+', "")?.substring(3)
   };
 }
 
@@ -631,7 +633,7 @@ async function createAndSavePolicy(policyObject, db) {
   return policy;
 }
 
-async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
+async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
   const timeout = 3000;
 
   try {
@@ -644,10 +646,10 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, phoneNumber) {
       }),
     ]);
 
-    console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
     return 'END Payment successful';
   } catch (error) {
-    console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
     return 'END Payment failed';
   }
 }
@@ -656,9 +658,9 @@ async function processUserText2() {
   return 'END Thank you for using AfyaShua Care';
 }
 
-async function processUserText(userText, allSteps, phoneNumber, family_cover_data, existingUser, db) {
+async function processUserText(userText, allSteps, msisdn, family_cover_data, existingUser, db) {
   if (userText == "1") {
-    return processUserText1(allSteps, phoneNumber, family_cover_data, existingUser, db);
+    return processUserText1(allSteps, msisdn, family_cover_data, existingUser, db);
   } else {
     return processUserText2();
   }
