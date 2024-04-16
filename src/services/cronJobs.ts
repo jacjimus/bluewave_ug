@@ -2,6 +2,7 @@ import moment from 'moment';
 import { Op } from 'sequelize';
 import SMSMessenger from './sendSMS';
 import { db } from '../models/db';
+import { getMemberNumberData, registerPrincipal } from './aarServices';
 
 
 
@@ -32,6 +33,7 @@ Workflow 3:
 
 export const sendPolicyRenewalReminder = async () => {
     try {
+        console.log(" =======  SEND POLICY RENEWAL REMINDER =========")
         const today = moment().format('DD'); //11
         const threeDaysBefore = moment().subtract(3, 'days').format('DD'); //8
         const threeDaysAfter = moment().add(3, 'days').format('DD');//14
@@ -55,51 +57,51 @@ export const sendPolicyRenewalReminder = async () => {
 
         if (policies.length > 0) {
            const threeDaysBeforePolicies = policies.filter((policy) => {
-                const policyStartDate = moment(policy.policy_start_date).format('DD');
+                const policyStartDate = moment(policy.policy_paid_date).format('DD');
 
                 return policyStartDate === threeDaysBefore;
             });
 
             const todayPolicies = policies.filter((policy) => {
-                const policyStartDate = moment(policy.policy_start_date).format('DD');
+                const policyStartDate = moment(policy.policy_paid_date).format('DD');
 
                 return policyStartDate === today;
             });
 
             const threeDaysAfterPolicies = policies.filter((policy) => {
-                const policyStartDate = moment(policy.policy_start_date).format('DD');
+                const policyStartDate = moment(policy.policy_paid_date).format('DD');
 
                 return policyStartDate === threeDaysAfter;
             });
 
-            let fullName = 'Customer'
+          //  let fullName = 'Customer'
     
             if (threeDaysBeforePolicies.length > 0) {
                 threeDaysBeforePolicies.forEach((policy) => {
-                    if(policy.first_name && policy.last_name){
-                        fullName = `${policy.first_name} ${policy.last_name}`
-                    }
-                    const message =   `Dear ${fullName}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE 3-days. Dial *185*7*6*3# to renew.`
+                    // if(policy.first_name && policy.last_name){
+                    //     fullName = `${policy.first_name} ${policy.last_name}`
+                    // }
+                    const message =   `Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE 3-days. Dial *185*7*6*3# to renew.`
                     SMSMessenger.sendSMS(2,policy.phone_number, message );
                 });
             }
 
             if (todayPolicies.length > 0) {
                 todayPolicies.forEach((policy) => {
-                    if(policy.first_name && policy.last_name){
-                        fullName = `${policy.first_name} ${policy.last_name}`
-                    }
-                    const message =`Dear ${fullName}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE today. Dial *185*7*6*3# to renew.`
+                    // if(policy.first_name && policy.last_name){
+                    //     fullName = `${policy.first_name} ${policy.last_name}`
+                    // }
+                    const message =`Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE today. Dial *185*7*6*3# to renew.`
                     SMSMessenger.sendSMS(2,policy.phone_number, message );
                 });
             }
 
             if (threeDaysAfterPolicies.length > 0) {
                 threeDaysAfterPolicies.forEach((policy) => {
-                    if(policy.first_name && policy.last_name){
-                        fullName = `${policy.first_name} ${policy.last_name}`
-                    }
-                    const message =  `Dear ${fullName}, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days. Dial *185*7*6*3# to renew.`
+                    // if(policy.first_name && policy.last_name){
+                    //     fullName = `${policy.first_name} ${policy.last_name}`
+                    // }
+                    const message =  `Dear Customer, your monthly premium payment for ${policy.beneficiary} ${policy.policy_type} Medical cover of UGX ${policy.premium} is DUE past 3-days. Dial *185*7*6*3# to renew.`
                     SMSMessenger.sendSMS(2,policy.phone_number, message );
                 });
             }
@@ -112,3 +114,46 @@ export const sendPolicyRenewalReminder = async () => {
 
 
 
+export const  getArrMemberNumberData = async () => {
+    try {
+
+        console.log(" =======  GET ARR MEMBER NUMBER DATA =========")
+      const policies = await db.policies.findAll({
+        // Policy type is 'S MINI'
+        where: {
+          policy_status: 'paid',
+          //policy_type: { [db.Sequelize.Op.eq]: 'S MINI' },
+          partner_id: 2,
+          // policy_start_date: {
+          //   [Op.between]: ['2023-10-01', '2024-03-31']
+          // },
+  
+        },
+        include: [{
+          model: db.users,
+          where: {
+           arr_member_number: null,
+            partner_id: 2
+          }
+        }]
+  
+      });
+  
+      for (let i = 0; i < policies.length; i++) {
+        const policy = policies[i];
+        const customer = policy.user
+        console.log(customer.name, policy.phone_number);
+     
+        let result = await registerPrincipal(customer, policy);
+        console.log(result);
+        if (result.code == 608) {
+          await getMemberNumberData(customer.phone_number);
+        }
+        // Introduce a delay of 1 second between each iteration
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+  
+    } catch (error) {
+      console.log(error);
+    }
+  }

@@ -106,7 +106,7 @@ async function registerPrincipal(user: any, policy: any) {
     const userData: PrincipalRegistration = {
       surname: user.last_name || `256${user.phone_number}`,
       first_name: user.first_name || `256${user.phone_number}`,
-      other_names: "",
+      other_names: user.middle_name || `256${user.phone_number}`,
       gender: 1,
       dob: "1900-01-01",
       pri_dep: "24",
@@ -130,7 +130,6 @@ async function registerPrincipal(user: any, policy: any) {
 
     }
 
-    // console.log("USER DATA", userData);
 
     try {
       const config = {
@@ -156,6 +155,8 @@ async function registerPrincipal(user: any, policy: any) {
         principal_member.save();
         const message = `Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *185*7*6*3# and check on My Policy.`
         await SMSMessenger.sendSMS(2, `+256${principal_member.phone_number}`, message);
+        user.arr_member_number = response.data.member_no;
+        await updatePremium(user, policy);
         return { ...response.data, ...userData }
       }
 
@@ -241,7 +242,7 @@ async function createDependant(existingUser: any, myPolicy: any) {
               );
               let updatePremiumData = await updatePremium(dependant, myPolicy);
               if (updatePremiumData == 200) {
-                console.log("AAR UPDATE PREMIUM", updatePremiumData);
+                console.log("=AAR UPDATE PREMIUM=", updatePremiumData);
                 resolve(true)
               }
               resolve(true)
@@ -268,10 +269,10 @@ async function updatePremium(user: any, policy: any) {
       console.log("POLICY NOT FOR USER", user.name, policy.policy_type, user.total_member_number);
     } else {
 
-      console.log('UPDATE PREMIUM', user.name, policy.policy_type, user.total_member_number)
-      const main_benefit_limit = policy.sum_insured
-      const last_expense_limit = policy.last_expense_insured
-
+      console.log('UPDATE PREMIUM', user.name, policy.policy_type, policy.total_member_number)
+      
+      let main_benefit_limit = policy.sum_insured 
+      let last_expense_limit = policy.last_expense_insured
       let ultimatePremium = policy.premium
 
 
@@ -280,9 +281,13 @@ async function updatePremium(user: any, policy: any) {
         console.log("UPDATE AAR  premium - Number of dependants:", number_of_dependants);
 
         const policyPremium = policy.premium
+        console.log("POLICY PREMIUM", policyPremium)  
         const memberSize = (policy.total_member_number).split("")[2]
         console.log(policyPremium, memberSize)
         ultimatePremium = policyPremium / (parseInt(memberSize) + 1)
+        console.log("ULTIMATE PREMIUM", ultimatePremium)
+        // main_benefit_limit = policy.sum_insured  / (parseInt(memberSize) + 1)
+        // last_expense_limit = policy.last_expense_insured  / (parseInt(memberSize) + 1)
       }
 
       const requestData: requestPremiumData = {
@@ -291,14 +296,15 @@ async function updatePremium(user: any, policy: any) {
         health_plan: "AIRTEL_" + policy.policy_type,
         health_option: "64",
         premium: ultimatePremium,
-        premium_type: policy.installment_type,
-        premium_installment: policy.installment_order || 1,
+        premium_type: policy.installment_type.toString(),
+        premium_installment: policy.installment_order.toString(),
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
         money_transaction_id: policy.airtel_money_id || "123456789",
       };
 
+      console.log("UPDATE PREMIUM REQUEST DATA", requestData)
 
       const config = {
         method: 'post',
@@ -310,10 +316,9 @@ async function updatePremium(user: any, policy: any) {
         },
         data: JSON.stringify(requestData),
       };
-      console.log("UPDATE PREMIUM ARR CONFIG", config);
 
       const response = await axios.request(config);
-      console.log(JSON.stringify(response.data));
+      console.log('UPDATE PREMIUM response',JSON.stringify(response.data));
       if (response.data.code == 200) {
         await db.policies.update({ arr_policy_number: response.data.policy_no }, { where: { policy_id: policy.policy_id } });
       }

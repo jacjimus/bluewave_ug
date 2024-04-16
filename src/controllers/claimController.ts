@@ -92,7 +92,7 @@ const getAllClaims = async (req: any, res) => {
         });
     } catch (error) {
         console.error("Error fetching claims:", error);
-        return res.status(error.code || 500).json({ status: 'FAILED',code: error.code || 500, message: error.message });
+        return res.status(error.code || 500).json({ status: 'FAILED', code: error.code || 500, message: error.message });
     }
 }
 
@@ -178,7 +178,7 @@ const getUserClaims = async (req: any, res) => {
         });
     } catch (error) {
         console.error("Error fetching claims:", error);
-        return res.status(error.code || 500).json({ status: 'FAILED',code: error.code || 500, message: error.message });
+        return res.status(error.code || 500).json({ status: 'FAILED', code: error.code || 500, message: error.message });
     }
 };
 
@@ -357,7 +357,7 @@ const getPolicyClaims = async (req: any, res) => {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: string
  *       - name: policy_id
@@ -439,7 +439,7 @@ const createClaim = async (req: any, res) => {
  *     parameters:
  *       - name: partner_id
  *         in: query
- *         required: false
+ *         required: true
  *         schema:
  *           type: number
  *       - name: claim_id

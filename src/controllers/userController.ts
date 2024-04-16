@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { db } from "../models/db";
 import { reconciliation, registerDependant, registerPrincipal, updatePremium } from "../services/aarServices";
 import welcomeTemplate from "../services/emailTemplates/welcome";
-import { sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
+import { sendEmail, sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
 import jwt from 'jsonwebtoken'
 const dotenv = require("dotenv").config();
 import {
@@ -17,7 +17,6 @@ const XLSX = require("xlsx");
 import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "../services/sendSMS";
 
-// Assigning users to the variable User
 const User = db.users;
 const Partner = db.partners;
 const Policy = db.policies;
@@ -26,7 +25,7 @@ const Beneficiary = db.beneficiaries;
 const Payments = db.payments;
 
 
-async function findUserByPhoneNumberFunc(user_id: string, partner_id: number) {
+async function findUserByUserId(user_id: string, partner_id: number) {
   let user = await User.findOne({
     where: {
       user_id: user_id,
@@ -129,7 +128,7 @@ const signup = async (req, res) => {
       }
     }
 
-    if(phone_number){
+    if (phone_number) {
       const phoneExists = await User.findOne({ where: { phone_number } });
       if (phoneExists) {
         return res.status(409).json({ status: "FAILED", code: 409, message: "Phone number already exists" });
@@ -346,7 +345,7 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     if (phone_number) {
       whereClause.phone_number = phone_number.replace(/^0/, '')
     }
-     console.log(whereClause)
+    console.log(whereClause)
     // Find user by email or phone number
     const user = await User.findOne({ where: whereClause });
     // Check if user exists
@@ -518,8 +517,6 @@ const findAllUsers = async (req: any, res) => {
           { name: { [Op.like]: `%${filter}%` } },
           { first_name: { [Op.like]: `%${filter}%` } },
           { last_name: { [Op.like]: `%${filter}%` } },
-
-          // Add more fields as needed
         ],
       };
     }
@@ -536,8 +533,8 @@ const findAllUsers = async (req: any, res) => {
       include: [
         {
           model: Policy,
-          attributes: ["beneficiary", "policy_type", "policy_type", "policy_status", "premium","policy_paid_amount","installment_type","installment_order", "policy_start_date",  "createdAt"],
-          where : {
+          attributes: ["beneficiary", "policy_type", "policy_type", "policy_status", "premium", "policy_paid_amount", "installment_type", "installment_order", "policy_start_date", "createdAt"],
+          where: {
             partner_id: partner_id,
             policy_status: "paid"
           }
@@ -574,7 +571,7 @@ const findAllUsers = async (req: any, res) => {
  *     tags:
  *       - Users
  *     description: Get User
- *     operationId: findUserByPhoneNumber
+ *     operationId: findUserByUserId
  *     summary: Get User
  *     security:
  *       - ApiKeyAuth: []
@@ -595,12 +592,12 @@ const findAllUsers = async (req: any, res) => {
  *       400:
  *         description: Invalid request
  */
-const findUserByPhoneNumber = async (req: any, res: any) => {
+const findUser = async (req: any, res: any) => {
   try {
     let user_id = req.params.user_id;
     let partner_id = req.query.partner_id;
 
-    let user: any = await findUserByPhoneNumberFunc(user_id, partner_id);
+    let user: any = await findUserByUserId(user_id, partner_id);
 
     if (!user || user.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
@@ -630,6 +627,87 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
       .json({ status: "FAILED", message: "Internal server error", error: error });
   }
 };
+
+
+/**
+ * @swagger
+ * /api/v1/users/{phone_number}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     description: Get User by phone number
+ *     operationId: findUserByPhoneNumber
+ *     summary: Get User by phone number
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: phoneNumber
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+const findUserByPhoneNumber = async (req: any, res: any) => {
+  try {
+    let partner_id = req.query.partner_id;
+    let phone_number = req.params.phone_number;
+
+
+    let user: any = await findUserByPhoneNumberFunc(phone_number, partner_id);
+
+    if (!user || user.length === 0) {
+      return res.status(404).json({ item: 0, message: "No user found" });
+    }
+
+    return res
+      .status(200)
+      .json({
+        result: {
+          code: 200,
+          status: "OK", message: "Customer fetched successfully", item: user
+        }
+      });
+  } catch (error) {
+    console.log("ERROR", error);
+    return res
+      .status(500)
+      .json({ status: "FAILED", message: "Internal server error", error: error });
+  }
+};
+
+
+
+async function findUserByPhoneNumberFunc(phone_number: string, partner_id: number) {
+  let user
+  if (phone_number) {
+    
+    user = await User.findOne({
+      where: {
+        phone_number: phone_number,
+        partner_id: partner_id,
+      },
+    });
+  } else {
+    return { status: "FAILED", message: "Please provide a phone number" }
+  }
+  //remove password from the response
+  if (user) {
+    delete user.dataValues.password;
+    delete user.dataValues.pin;
+  }
+
+  return user;
+}
 
 /** @swagger
  * /api/v1/users/{user_id}:
@@ -684,7 +762,7 @@ const updateUser = async (req: any, res: any) => {
       voter_id,
     } = req.body;
 
-    let user: any = findUserByPhoneNumberFunc(req.params.user_id, req.query.partner_id);
+    let user: any = findUserByUserId(req.params.user_id, req.query.partner_id);
 
     //check if user exists
     if (!user || user.length === 0) {
@@ -1240,7 +1318,7 @@ async function findUserVehicle(req: any, res: any) {
   try {
     const { partner_id } = req.query
     const { user_id } = req.params
-  
+
 
     const userVehicle = await db.vehicles.findAll({
       where: {
@@ -1356,20 +1434,51 @@ async function updateUserVehicle(req: any, res: any) {
 
 
 
-async function sendResetEmail(email, token) {
+async function sendOTPEmail(subject, email, token) {
   try {
-
     const user = await db.users.findOne({ where: { email } });
-    const subject = 'Password Reset';
-    const message = `Use this token to reset your password: ${token}`;
+    if (subject == 'forgot_password') {
 
-    sendForgotPasswordEmail(user, subject, message)
+      const subject = 'Password Reset';
+      const message = `Use this token to reset your password: ${token}`;
+
+      sendForgotPasswordEmail(user, subject, message)
+    } else if (subject == 'send_otp') {
+      const subject = 'OTP';
+      const message = `Use this token to verify your account: ${token}`;
+
+      sendOTPEmailFunc(user, subject, message)
+    }
 
   } catch (error) {
     console.error('Error sending reset email:', error);
     throw new Error('Failed to send reset email.');
   }
 }
+
+async function sendOTPEmailFunc(user, subject, message) {
+  try {
+    const email = user.email;
+    const emailHtml = `
+    <h1> OTP </h1>
+    <h3> Dear ${user.name} </h3>
+
+    <p>${message}</p>
+    <p> This token will expire in 5 minutes.</p>
+
+    <p>Regards,</p>
+    <p>Bluewave Team</p>
+
+
+    `;
+    await sendEmail(email, subject, emailHtml)
+  }
+  catch (error) {
+    console.error('Error sending OTP email:', error);
+    throw new Error('Failed to send OTP email.');
+  }
+}
+
 
 
 // Placeholder for generating a unique token
@@ -1389,18 +1498,83 @@ async function storeTokenInDatabase(email: string, token: number) {
   return user;
 }
 
-async function sendResetOTP(phone_number, token) {
+async function sendOTPPhone(subject, phone_number, token) {
   try {
-    const user = await db.users.findOne({ where: { phone_number } });
-    const message = `Use this
+    if (subject == 'send_otp') {
+
+      const message = `Use this token to verify your account: ${token}`;
+
+      SMSMessenger.sendSMS(3, phone_number, message)
+    } else if (subject == 'forgot_password') {
+      const user = await db.users.findOne({ where: { phone_number } });
+      const message = `Use this
     token to reset your password: ${token}`;
-    SMSMessenger.sendSMS(3, user.phone_number, message)
+      SMSMessenger.sendSMS(3, user.phone_number, message)
+    }
   }
   catch (error) {
     console.error('Error sending reset OTP:', error);
     throw new Error('Failed to send reset OTP.');
   }
 }
+
+
+/**
+* @swagger
+* /api/v1/users/send_otp:
+*   post:
+*     tags:
+*       - Users
+*     description: Send OTP
+*     summary: Send OTP
+*     security:
+*       - ApiKeyAuth: []
+*     parameters:
+*       - name: email
+*         in: query
+*         required: false
+*         schema:
+*           type: string
+*       - name: phone_number
+*         in: query
+*         required: false
+*         schema:
+*           type: string
+*     responses:
+*       200:
+*         description: Information fetched succussfuly
+*       400:
+*         description: Invalid request
+*/
+async function sendOTP(req: any, res: any) {
+  try {
+
+    const { email, phone_number } = req.query
+    if (!email) {
+      return res.status(400).json({ status: "FAILED", error: 'Email is required for sending OTP.' });
+    }
+    const otp = generateUniqueToken();
+
+    await storeTokenInDatabase(email, otp);
+
+    let subject = 'send_otp';
+
+    if (email) {
+      await sendOTPEmail(subject, email, otp);
+    } else if (phone_number) {
+
+      await sendOTPPhone(subject, phone_number, otp);
+    } else {
+      return res.status(400).json({ status: "FAILED", error: 'Email or phone number is required for password reset.' });
+    }
+
+    return res.status(200).json({ status: "OK", message: 'Password reset instructions sent to your email.' });
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    return res.status(500).json({ status: "FAILED", error: 'Internal server error.' });
+  }
+}
+
 
 
 /**
@@ -1444,10 +1618,10 @@ async function forgotPassword(req: any, res: any) {
 
     if (email) {
 
-      await sendResetEmail(email, resetToken);
+      await sendOTPEmail('forgot_password', email, resetToken);
     } else if (phone_number) {
 
-      await sendResetOTP(phone_number, resetToken);
+      await sendOTPPhone('forgot_password', phone_number, resetToken);
     } else {
       return res.status(400).json({ status: "FAILED", error: 'Email or phone number is required for password reset.' });
     }
@@ -1493,13 +1667,11 @@ async function forgotPassword(req: any, res: any) {
  */
 async function changePassword(req: any, res: any) {
   try {
-    // 1. Validate Input
     const { email, token, newPassword } = req.query
     if (!email || !token || !newPassword) {
       return res.status(400).json({ error: 'Email, token, and new password are required.' });
     }
 
-    // 2. Verify Token
     const user = await db.users.findOne({ where: { email } });
     if (user.reset_token !== token) {
       return res.status(400).json({ status: "FAILED", error: 'Invalid reset token.' });
@@ -1510,8 +1682,6 @@ async function changePassword(req: any, res: any) {
     if ((Date.now() - tokenTimestamp) > 24 * 60 * 60 * 1000) {
       return res.status(400).json({ status: "FAILED", error: 'Expired reset token.' });
     }
-
-    // 3. Update Password
 
     await db.users.update({ password: await bcrypt.hash(newPassword, 10) }, { where: { email } });
 
@@ -1529,7 +1699,7 @@ module.exports = {
   signup,
   login,
   findAllUsers,
-  findUserByPhoneNumber,
+  findUser,
   getPartner,
   updateUser,
   deleteUser,
@@ -1541,5 +1711,7 @@ module.exports = {
   findUserVehicle,
   updateUserVehicle,
   forgotPassword,
-  changePassword
+  changePassword,
+  findUserByPhoneNumber,
+  sendOTP
 };

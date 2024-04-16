@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { sendPolicyRenewalReminder } from "./src/services/cronJobs";
+import { getArrMemberNumberData, sendPolicyRenewalReminder } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";
@@ -100,7 +100,11 @@ cron.schedule("0 8 * * *", () => {
   sendPolicyRenewalReminder();
 });
 
-playground();
+cron.schedule("*/30 * * * *", () => {
+  console.log("Running a task every 30 minutes");
+  getArrMemberNumberData();
+});
+playground()
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server listening at port ${port}`));

@@ -6,9 +6,9 @@ import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { all } from "axios";
 
 const othersMenu = async (args, db) => {
-  let { phoneNumber, response, currentStep, userText, allSteps } = args;
+  let { msisdn, response, currentStep, userText, allSteps } = args;
 
-  let phone = phoneNumber?.replace('+', "")?.substring(3);
+  let phone = msisdn?.replace('+', "")?.substring(3);
   // console.log("SELECTED POLICY TYPE", selectedPolicyType);
   let existingUser = await db.users.findOne({
     where: {
@@ -320,7 +320,7 @@ const othersMenu = async (args, db) => {
     response = "CON Enter atleast Name of Other or 1 child\n"
   }
   else if (currentStep == 4) {
-    response = "CON Enter Phone number for Other\n"
+    response = "CON Enter Phone number for Other e.g 0712345678\n"
   }
   else if (currentStep == 5) {
     let otherName = allSteps[3];
@@ -358,11 +358,11 @@ const othersMenu = async (args, db) => {
     //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
 
-    let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+    let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
 
     if (!existingUser) {
 
-      let user = await getAirtelUser(phoneNumber, 1)
+      let user = await getAirtelUser(msisdn, 1)
       let membershipId = Math.floor(100000 + Math.random() * 900000);
 
       existingUser = await db.users.create({
@@ -397,7 +397,7 @@ const othersMenu = async (args, db) => {
       //console.log("otherUser", otherUser);
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-      let fullPhone = !phoneNumber?.startsWith('+') ? `+${phoneNumber}` : phoneNumber;
+      let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
 
       let paymentOption = parseInt(allSteps[5]);
@@ -453,7 +453,7 @@ const othersMenu = async (args, db) => {
         currency_code: "KES",
         product_id: "e18424e6-5316-4f12-9826-302c866b380d",
         user_id: existingUser.user_id,
-        phone_number: phoneNumber,
+        phone_number: msisdn,
         total_member_number: selectedPolicyType.code_name,
         bought_for: otherUser.user_id,
         first_name: existingUser?.first_name,
@@ -462,7 +462,7 @@ const othersMenu = async (args, db) => {
         outpatient_cover: policyType.outpatient_cover,
         maternity_cover: policyType.maternity,
         hospital_cash: policyType.hospital_cash,
-        policy_number: "BW" + phoneNumber?.replace('+', "")?.substring(3)
+        policy_number: "BW" + msisdn?.replace('+', "")?.substring(3)
       }
 
       try {
@@ -488,7 +488,7 @@ const othersMenu = async (args, db) => {
             }, timeout);
           }),
         ]).then((result) => {
-          console.log("============== END TIME - FAMIY KENYA  ================ ", phoneNumber, new Date());
+          console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
           response = 'END Payment successful';
           console.log("OTHER - RESPONSE WAS CALLED", result);
           return response;
@@ -499,7 +499,7 @@ const othersMenu = async (args, db) => {
             return response;
           })
 
-        console.log("============== AFTER CATCH  TIME - FAMILY KENYA  ================ ", phoneNumber, new Date());
+        console.log("============== AFTER CATCH  TIME - FAMILY KENYA  ================ ", msisdn, new Date());
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
         console.log("OTHER - RESPONSE WAS CALLED EER", error);

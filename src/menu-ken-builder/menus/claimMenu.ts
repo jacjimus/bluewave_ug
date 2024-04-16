@@ -23,7 +23,7 @@ const claimMenu = async (args, db) => {
                 let claim_type = "Inpatient Claim";
                 user = await db.users.findOne({
                     where: {
-                        phone_number: args.phoneNumber.replace('+', "")?.substring(3),
+                        phone_number: args.msisdn.replace('+', "")?.substring(3),
                     },
                     limit: 1,
                 });

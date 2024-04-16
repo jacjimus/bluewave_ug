@@ -226,20 +226,11 @@ module.exports = (sequelize, DataTypes) => {
     },
 
         { timestamps: true },)
-
-    Policy.belongsTo(User, {
-        as: "user",
-        foreignKey: "user_id",
-    });
-    User.hasMany(Policy, {
-        as: "policy",
-        foreignKey: "user_id",
-    });
-
-    // Policy.hasMany(Beneficiary, {
-    //     as: "beneficiary",
-    //     foreignKey: "user_id",
-    // });
+        Policy.associate = (models:any) => {
+            Policy.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+            Policy.hasMany(models.Payment, { foreignKey: 'policy_id', as: 'payments' });
+        };
+    
 
     return Policy
 }

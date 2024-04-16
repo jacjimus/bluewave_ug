@@ -60,18 +60,7 @@ module.exports = (sequelize, DataTypes) => {
         },
 
     })
-    Claim.belongsTo(sequelize.models.policy, {
-        foreignKey: "policy_id",
-    });
-    sequelize.models.policy.hasMany(Claim, {
-        foreignKey: "policy_id",
-    });
-    Claim.belongsTo(sequelize.models.user, {
-        foreignKey: "user_id",
-    });
-    sequelize.models.user.hasMany(Claim, {
-        foreignKey: "user_id",
-    });
+   
 
 
     return Claim

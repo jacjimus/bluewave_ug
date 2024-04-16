@@ -147,10 +147,10 @@ module.exports = (sequelize: any, DataTypes: any) => {
        
     }, { timestamps: true },)
 
-    // associations with beneficiary
-
-
-
+    User.associate = (models:any) => {
+        User.hasMany(models.Policy, { foreignKey: 'user_id', as: 'policies'});
+        User.hasMany(models.Payment, { foreignKey: 'user_id', as: 'payments'});
+    };
 
 
     return User

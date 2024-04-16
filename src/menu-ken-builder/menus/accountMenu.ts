@@ -7,15 +7,15 @@ import { calculateProrationPercentage, formatAmount } from "../../services/utils
 
 
 const accountMenu = async (args: any, db: any) => {
-    let { phoneNumber, response, currentStep, userText, allSteps } = args;
+    let { msisdn, response, currentStep, userText, allSteps } = args;
 
-    const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
-    const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
+    const trimmedmsisdn = msisdn.replace("+", "").substring(3);
+    const smsPhone = msisdn.startsWith("+") ? msisdn : `+${msisdn}`;
     console.log("============== PHONE ================ ", smsPhone)
 
     const currentUser = await db.users.findOne({
         where: {
-            [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+            [Op.or]: [{ phone_number: msisdn }, { phone_number: trimmedmsisdn }]
         },
         limit: 1,
     });
@@ -58,7 +58,7 @@ const accountMenu = async (args: any, db: any) => {
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END You have no paid policy"
                 break;
             case "2":
-                console.log("phoneNumber", smsPhone);
+                console.log("msisdn", smsPhone);
                 paidPolicies = await db.policies.findAll({
                     where: {
                         user_id: currentUser.user_id,
@@ -178,7 +178,7 @@ const accountMenu = async (args: any, db: any) => {
                 // last 6 unpaid policies
                 const existingUser = await db.users.findOne({
                     where: {
-                        phone_number: phoneNumber.replace("+", "").substring(3),
+                        phone_number: msisdn.replace("+", "").substring(3),
                     },
                     limit: 1,
                 });
@@ -193,7 +193,7 @@ const accountMenu = async (args: any, db: any) => {
                 const airtelMoneyPromise = airtelMoneyKenya(
                     existingUser.user_id,
                     choosenPolicy.policy_id,
-                    phoneNumber.replace("+", "").substring(3),
+                    msisdn.replace("+", "").substring(3),
                     choosenPolicy.premium,
                     existingUser.membership_id,
                     existingUser.partner_id
@@ -211,7 +211,7 @@ const accountMenu = async (args: any, db: any) => {
                         }, timeout);
                     }),
                 ]).then((result) => {
-                    console.log("============== END TIME - FAMIY ================ ", phoneNumber, new Date());
+                    console.log("============== END TIME - FAMIY ================ ", msisdn, new Date());
                     response = 'END Payment successful';
                     console.log("RESPONSE WAS CALLED", result);
                     return response;
@@ -222,7 +222,7 @@ const accountMenu = async (args: any, db: any) => {
                         return response;
                     })
 
-                console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, new Date());
+                console.log("============== AFTER CATCH  TIME - FAMILY ================ ", msisdn, new Date());
 
 
                 break;
@@ -231,7 +231,7 @@ const accountMenu = async (args: any, db: any) => {
                 if (userText == "1") {
                     const user = await db.users.findOne({
                         where: {
-                            phone_number: phoneNumber
+                            phone_number: msisdn
                         },
                         limit: 1,
                     });
@@ -262,7 +262,7 @@ const accountMenu = async (args: any, db: any) => {
             case "4":
                 const existingUser = await db.users.findOne({
                     where: {
-                        [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+                        [Op.or]: [{ phone_number: msisdn }, { phone_number: trimmedmsisdn }]
                     },
                     limit: 1,
                 });
@@ -308,7 +308,7 @@ const accountMenu = async (args: any, db: any) => {
         // update gender and dob
         const existingUser = await db.users.findOne({
             where: {
-                [Op.or]: [{ phone_number: phoneNumber }, { phone_number: trimmedPhoneNumber }]
+                [Op.or]: [{ phone_number: msisdn }, { phone_number: trimmedmsisdn }]
             },
             limit: 1,
         });

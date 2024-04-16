@@ -1,5 +1,6 @@
 
 import { db } from "../models/db";
+import { formatPhoneNumber } from "../services/utils";
 const LogModel = db.logs;
 
 /**
@@ -53,7 +54,7 @@ const getLogs = async (req: any, res: any) => {
     const offset = (page - 1) * limit;
     const { logs, totalLogsCount } = await fetchLogsFromDatabase(partner_id, user_id, offset, limit);
 
-   return res.status(200).json({
+    return res.status(200).json({
       message: 'Information fetched successfully',
       logs: logs,
       pagination: {
@@ -143,7 +144,20 @@ const getSessions = async (req: any, res: any) => {
   try {
     const partner_id = parseInt(req.query.partner_id)
     const user_id = req.query.user_id;
-    const phone_number = req.query.phone_number;
+    let phone_number = await formatPhoneNumber(req.query.phone_number.trim(), partner_id);
+
+    console.log("PHONE NUMBER ", phone_number)
+
+    if (user_id || phone_number === undefined) {
+      const user = await db.policies.findOne({
+        where: {
+          user_id: user_id
+        }
+      });
+      phone_number = user.phone_number;
+    }
+
+
 
     // Retrieve page and limit from query parameters
     const page = parseInt(req.query.page) || 1;
@@ -153,7 +167,7 @@ const getSessions = async (req: any, res: any) => {
     const offset = (page - 1) * limit;
 
     // Fetch sessions from the database with pagination
-    const { sessions, totalSessionsCount } = await fetchSessionsFromDatabase(partner_id, user_id, phone_number, offset, limit);
+    const { sessions, totalSessionsCount } = await fetchSessionsFromDatabase(partner_id, phone_number, offset, limit);
 
 
     // Return pagination information along with sessions
@@ -176,28 +190,17 @@ const getSessions = async (req: any, res: any) => {
   }
 };
 
-const fetchSessionsFromDatabase = async (partner_id: any, user_id: string, phone_number: any, offset: number, limit: number) => {
+const fetchSessionsFromDatabase = async (partner_id: any, phone_number: any, offset: number, limit: number) => {
   // Your database fetching logic with offset and limit goes here
   let whereCondition: any = {
     partner_id: partner_id
   };
 
-  if (user_id && !phone_number) {
-    whereCondition.user_id = user_id;
-  }
 
-  if (phone_number && !user_id) {
+  if (phone_number) {
     whereCondition.phonenumber = phone_number;
   }
 
-
-  if (phone_number && user_id) {
-    whereCondition = {
-      partner_id: partner_id,
-      user_id: user_id,
-      phonenumber: phone_number
-    };
-  }
 
   // Example query using Sequelize
   let sessions = await db.sessions.findAll({

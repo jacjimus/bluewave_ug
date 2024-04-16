@@ -2,12 +2,8 @@
 import { db } from "../models/db";
 import { sendEmail } from "../services/emailService";
 import { airtelMoney } from "../services/payment";
-
+import moment from 'moment'
 import { calculatePremium } from "../services/utils";
-const Policy = db.policies;
-const User = db.users;
-const Partner = db.partners;
-const Beneficiary = db.beneficiaries;
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
 
@@ -50,7 +46,7 @@ interface Policy {
     *     parameters:
     *       - name: partner_id
     *         in: query
-    *         required: false
+    *         required: true
     *         schema:
     *           type: number
     *       - name: page
@@ -90,13 +86,13 @@ interface Policy {
 const getPolicies = async (req: any, res) => {
   try {
 
-    const partner_id = req.query.partner_id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const filter = req.query?.filter?.toString().toLowerCase() || "";
-    const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
+    let { start_date, end_date, partner_id, filter, page, limit } = req.query;
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    filter = filter?.toString().toLowerCase() || "";
 
-    const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+    console.log("SATRT__DATE POLICIES", start_date)
+    console.log("END_DATE POLICIES", end_date)
 
     const dateFilters: any = {};
     if (start_date) {
@@ -119,7 +115,8 @@ const getPolicies = async (req: any, res) => {
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
         { first_name: { [Op.iLike]: `%${filter}%` } },
-        { last_name: { [Op.iLike]: `%${filter}%` } }
+        { last_name: { [Op.iLike]: `%${filter}%` } },
+        { arr_member_number: { [Op.iLike]: `%${filter}%` } },
 
       ];
     }
@@ -136,30 +133,21 @@ const getPolicies = async (req: any, res) => {
     const offset = (page - 1) * limit;
 
     // Find query
-    const policies = await Policy.findAndCountAll({
+    const policies = await db.policies.findAndCountAll({
       where: whereCondition,
       order: [["policy_start_date", "DESC"]],
-      include: [
-        {
-          model: User,
-          as: "user",
-          include: [
-            {
-              model: Beneficiary,
-              as: "beneficiaries"
-            },
-            {
-              model : db.payments,
-              as : "payments"
-            },
-            {
-              model : db.claims,
-              as : "claims"
-            }
-          ]
-        },
-
-      ],
+      include: [{
+        model: db.payments,
+        as: 'payments',
+      },
+      {
+        model: db.claims,
+        as: 'claims',
+      },
+      {
+        model: db.users,
+        as: 'user',
+      }],
       offset,
       limit,
 
@@ -232,8 +220,20 @@ const getPolicy = async (req: any, res: any) => {
       where: {
         policy_id: policy_id,
         partner_id: partner_id,
-        policy_status: 'paid'
-      }
+        policy_status: 'paid',
+      },
+      include: [{
+        model: db.payments,
+        as: 'payments',
+      },
+      {
+        model: db.claims,
+        as: 'claims',
+      },
+      {
+        model: db.users,
+        as: 'user',
+      }],
     });
 
     if (!policy) {
@@ -243,19 +243,9 @@ const getPolicy = async (req: any, res: any) => {
       });
     }
 
-    // Calculate paid and pending premiums
-    const total_premium = policy.premium;
-    const paid_premium = policy.policy_deduction_amount;
-    const pending_premium = total_premium - paid_premium;
-
     const result = {
       item: {
         ...policy.dataValues,
-        total_premium,
-        paid_premium,
-        pending_premium,
-        count: total_premium,
-        items: policy
       },
     };
     return res.status(200).json({
@@ -268,10 +258,12 @@ const getPolicy = async (req: any, res: any) => {
     return res.status(500).json({
       code: 500,
       status: "FAILED",
-      message: "Internal server error", error: error.message
+      message: "Internal server error",
+      error: error.message
     });
   }
 };
+
 
 
 /**
@@ -308,13 +300,20 @@ const getPolicy = async (req: any, res: any) => {
   *         schema:
   *           type: string
   *           format: date
+  *       - name: limit
+  *         in: query
+  *         required: false
+  *         schema:
+  *           type: string
+  *           format: date
+  * 
   *     responses:
   *       200:
   *         description: Information fetched succussfuly
   *       400:
   *         description: Invalid request
   */
-const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
+const findPolicyByUserId = async (req: any, res: any) => {
   let status = {
     code: 200,
     status: "OK",
@@ -326,6 +325,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
     const partner_id = parseInt(req.query.partner_id);
     const start_date = req.query.start_date; // Start date as string, e.g., "2023-07-01"
     const end_date = req.query.end_date; // End date as string, e.g., "2023-07-31"
+    const limit = req.query.limit || 10;
 
     const dateFilters: any = {};
     if (start_date) {
@@ -335,7 +335,7 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
       dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
     }
 
-    let policy = await Policy.findAll({
+    let policy = await db.policies.findAll({
       where: {
         user_id: user_id,
         policy_status: 'paid',
@@ -343,21 +343,11 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
         ...dateFilters,
 
       },
-      limit: 100,
+      limit: limit,
     })
 
-    // policy.total_premium = policy.premium
-    policy.policy_paid_premium = policy.policy_deduction_amount
-    policy.policy_pending_premium = policy.yearly_premium - policy.premium
 
-    //for every policy, add paid premium and pending premium
-
-    for (let i = 0; i < policy.length; i++) {
-      policy[i].total_premium = policy[i].premium
-      policy[i].policy_paid_premium = policy[i].policy_deduction_amount
-      policy[i].policy_pending_premium = policy[i].premium - policy[i].policy_deduction_amount
-    }
-
+  
     if (!policy || policy.length === 0) {
       status.code = 404;
       status.result = { message: "No policy found" };
@@ -365,17 +355,14 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
     }
     let count = policy.length;
 
-
-    status.result = {
-      count,
-      items: policy
-    };
+  
     return res.status(status.code).json({
       result: {
         code: 200,
         status: "OK",
         message: "Policies fetched successfully",
-        item: status.result
+        count:count,
+        items : policy
       }
     });
   } catch (error) {
@@ -413,13 +400,13 @@ const findUserByPhoneNumberPolicies = async (req: any, res: any) => {
 const createPolicy = async (req: any, res: any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
-    let partner = await Partner.findOne({ where: { partner_id } })
+    let partner = await db.partners.findOne({ where: { partner_id } })
     const policy: Policy = req.body;
 
     policy.currency_code = partner.currency_code
     policy.country_code = partner.country_code
 
-    const newPolicy = await Policy.create(policy);
+    const newPolicy = await db.policies.create(policy);
     if (!newPolicy) {
       return res.status(500).json({ message: "Error creating policy" });
     }
@@ -497,14 +484,14 @@ const updatePolicy = async (req: any, res: any) => {
       policy_documents
     } = req.body;
 
-    let policy = await Policy.findAll({
+    let policy = await db.users.findAll({
       where: {
         policy_id: req.params.policy_id
       },
       limit: 100,
     })
     if (!policy) {
-      return res.status(404).json({status: "FAILED", message: "No policy found" });
+      return res.status(404).json({ status: "FAILED", message: "No policy found" });
     }
 
     const data: Policy = {
@@ -529,7 +516,7 @@ const updatePolicy = async (req: any, res: any) => {
       policy_documents
     };
 
-    await Policy.update(data, {
+    await db.users.update(data, {
       where: {
         policy_id: req.params.policy_id,
       },
@@ -576,7 +563,7 @@ const updatePolicy = async (req: any, res: any) => {
   */
 const deletePolicy = async (req: any, res: any) => {
   try {
-    await Policy.destroy({
+    await db.policies.destroy({
       where: {
         policy_id: req.params.policy_id,
       },
@@ -799,7 +786,7 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
       vehicle_number_of_passengers,
       is_fleet)
 
-      return res.status(200).json({
+    return res.status(200).json({
       code: 200,
       status: "OK",
       message: premium.message,
@@ -853,7 +840,7 @@ async function calculatePremiumBasedOnVehicleDetails(req: any, res) {
 const createHealthPolicy = async (req: any, res: any) => {
   try {
     let partner_id = (req.body.partner_id).toString()
-    let partner = await Partner.findOne({ where: { partner_id } })
+    let partner = await db.partners.findOne({ where: { partner_id } })
 
 
     let { company_name, company_address, company_phone_number, company_email, contact_person_name, number_of_staff, medical_cover_type, admin_email } = req.body
@@ -915,7 +902,7 @@ const submitSelfCover = async (req, res) => {
   try {
     const { membership_type, number_of_family_members, medical_cover_type, user_id, partner_id } = req.body
 
-    const user = await User.findOne({ where: { user_id: user_id, partner_id: partner_id } })
+    const user = await db.users.findOne({ where: { user_id: user_id, partner_id: partner_id } })
     if (!user) {
       return res.status(404).json({
         code: 404,
@@ -1011,11 +998,11 @@ const getCategoryNotPaidLastmonth = async (req, res) => {
           'biggieCategory_count'
         ],
       ],
-      
+
       raw: true, // Return raw object with calculated values
     });
-    
-    
+
+
 
     if (!categoryData || categoryData.length === 0) {
       return res.status(200).json({
@@ -1066,7 +1053,7 @@ const getCategoryNotPaidLastmonth = async (req, res) => {
 module.exports = {
   getPolicies,
   getPolicy,
-  findUserByPhoneNumberPolicies,
+  findPolicyByUserId,
   createPolicy,
   updatePolicy,
   deletePolicy,

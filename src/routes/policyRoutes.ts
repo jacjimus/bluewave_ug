@@ -25,7 +25,7 @@ router.post('/vehicle/registration', policyController.vehicleRegistration)
 router.post('/calculate/premium', policyController.calculatePremiumBasedOnVehicleDetails)
 router.post('/health', policyController.createHealthPolicy)
 router.post('/self-cover', policyController.submitSelfCover)
-router.get('/user/:user_id', isSuperAdmin, policyController.findUserByPhoneNumberPolicies)
+router.get('/user/:user_id', isSuperAdmin, policyController.findPolicyByUserId)
 router.put('/:policy_id', isSuperAdmin, policyController.updatePolicy)
 router.delete('/:policy_id', isSuperAdmin, policyController.deletePolicy)
 
