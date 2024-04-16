@@ -270,9 +270,9 @@ async function updatePremium(user: any, policy: any) {
     } else {
 
       console.log('UPDATE PREMIUM', user.name, policy.policy_type, policy.total_member_number)
-      const main_benefit_limit = policy.sum_insured
-      const last_expense_limit = policy.last_expense_insured
-
+      
+      let main_benefit_limit = policy.sum_insured 
+      let last_expense_limit = policy.last_expense_insured
       let ultimatePremium = policy.premium
 
 
@@ -281,9 +281,13 @@ async function updatePremium(user: any, policy: any) {
         console.log("UPDATE AAR  premium - Number of dependants:", number_of_dependants);
 
         const policyPremium = policy.premium
+        console.log("POLICY PREMIUM", policyPremium)  
         const memberSize = (policy.total_member_number).split("")[2]
         console.log(policyPremium, memberSize)
         ultimatePremium = policyPremium / (parseInt(memberSize) + 1)
+        console.log("ULTIMATE PREMIUM", ultimatePremium)
+        // main_benefit_limit = policy.sum_insured  / (parseInt(memberSize) + 1)
+        // last_expense_limit = policy.last_expense_insured  / (parseInt(memberSize) + 1)
       }
 
       const requestData: requestPremiumData = {
@@ -292,8 +296,8 @@ async function updatePremium(user: any, policy: any) {
         health_plan: "AIRTEL_" + policy.policy_type,
         health_option: "64",
         premium: ultimatePremium,
-        premium_type: policy.installment_type,
-        premium_installment: policy.installment_order,
+        premium_type: policy.installment_type.toString(),
+        premium_installment: policy.installment_order.toString(),
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
@@ -314,7 +318,7 @@ async function updatePremium(user: any, policy: any) {
       };
 
       const response = await axios.request(config);
-      console.log(JSON.stringify(response.data));
+      console.log('UPDATE PREMIUM response',JSON.stringify(response.data));
       if (response.data.code == 200) {
         await db.policies.update({ arr_policy_number: response.data.policy_no }, { where: { policy_id: policy.policy_id } });
       }

@@ -898,6 +898,7 @@ const familyMenu = async (args, db) => {
 
       await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
+      const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
    
       setTimeout(async () => {
 
@@ -909,14 +910,14 @@ const familyMenu = async (args, db) => {
             preGeneratedTransactionId
         );
 
-        const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 3000;
+        const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
 
         Promise.race([
             airtelMoneyPromise,
             new Promise((resolve, reject) => {
                 setTimeout(() => {
                     reject(new Error('Airtel Money operation timed out'));
-                }, timeout);
+                }, race_timeout);
             })
         ]).then((result) => {
             // Airtel Money operation completed successfully
@@ -932,7 +933,7 @@ const familyMenu = async (args, db) => {
         });
 
         console.log("============== AFTER CATCH TIME - FAMILY ================ ", phoneNumber, new Date());
-    }, 500);
+    }, timeout);
 
       console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, new Date());
 
