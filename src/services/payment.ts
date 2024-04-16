@@ -6,6 +6,7 @@ import { findTransactionById, updateUserPolicyStatus } from '../routes/ussdRoute
 import SMSMessenger from './sendSMS';
 import { fetchMemberStatusData, processPolicy } from './aarServices';
 import authTokenByPartner from './authorization';
+import { Op } from "sequelize";
 dotenv.config();
 
 const Transaction = db.transactions;
@@ -498,12 +499,14 @@ async function reconcilationCallback(transaction) {
       throw new Error("User not found");
     }
     let policy = await db.policies.findOne({
-      where:
-      {
-        policy_id,
-        user_id,
+      where: {
+        [Op.or]: [
+          { policy_id: policy_id },
+          { user_id: user_id }
+        ]
       }
     });
+    
 
     if (!policy) {
       console.log("================ POLICY NOT FOUND ================", policy_id, user_id)
@@ -518,6 +521,7 @@ async function reconcilationCallback(transaction) {
     const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
     const policyType = policy.policy_type.toUpperCase();
     const period = policy.installment_type == 1 ? "yearly" : "monthly";
+    policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`
 
 
     const payment = await db.payments.create({
