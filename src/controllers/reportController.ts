@@ -880,7 +880,7 @@ const generatePolicyExcelReport = async (policies) => {
   function calculateTotalLivesCovered(memberNumberString: string) {
 
     let memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
-    memberNumber =  isNaN(memberNumber) ? 1 : memberNumber;
+    memberNumber =  isNaN(memberNumber) ? 0 : memberNumber;
     if ( memberNumber < 1) {
       console.log("Member Number String:", memberNumber);
       throw new Error("Invalid member number format: " + memberNumberString);
