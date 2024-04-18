@@ -869,7 +869,7 @@ export const playground = async () => {
   //updateAirtelMoneyId(array_of_phone_numbers);
   // check_if_phone_number_has_paid_poicy(array_of_phone_numbers_to_check_paid_policies)
   //findDuplicatePhoneNumbers(array_of_phone_numbers_to_check_paid_policies)
-policyReconciliation(array_of_phone_numbers)
+//policyReconciliation(array_of_phone_numbers)
 //getArrMemberNumberData()
 
  // await getAirtelUser('2567041036460', 2)

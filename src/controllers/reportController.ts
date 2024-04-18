@@ -713,7 +713,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
   let {
     partner_id,
     page = 1,
-    limit = 1000,
+    limit = 10000,
     filter,
     start_date,
     end_date,
@@ -766,7 +766,6 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
           attributes: ["product_name"],
         },
       ],
-      limit: 5000,
     };
 
     let policies = await Policy.findAll(options);
@@ -876,8 +875,11 @@ const generatePolicyExcelReport = async (policies) => {
   ];
 
   function calculateTotalLivesCovered(memberNumberString: string) {
-    const memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
-    if (isNaN(memberNumber) || memberNumber < 1) {
+
+    let memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
+    memberNumber =  isNaN(memberNumber) ? 1 : memberNumber;
+    if ( memberNumber < 1) {
+      console.log("Member Number String:", memberNumber);
       throw new Error("Invalid member number format: " + memberNumberString);
     }
     return memberNumber + 1;
