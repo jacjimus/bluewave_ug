@@ -866,7 +866,7 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Installment Order", key: "installment_order", width: 20 },
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_start_date", width: 20 },
-    { header: "Premium", key: "policy_paid_amount", width: 20 },
+    { header: "Premium", key: "premium", width: 20 },
     { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
     { header: "Policy Pending Amount", key: "policy_pending_premium", width: 20 },
     { header: "Airtel Money ID", key: "airtel_money_id", width: 20 },
