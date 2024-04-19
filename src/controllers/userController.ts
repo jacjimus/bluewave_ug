@@ -646,7 +646,7 @@ const findUser = async (req: any, res: any) => {
  *         required: true
  *         schema:
  *           type: number
- *       - name: phoneNumber
+ *       - name: phone_number
  *         in: path
  *         required: true
  *         schema:

@@ -264,6 +264,10 @@ async function createDependant(existingUser: any, myPolicy: any) {
 async function updatePremium(user: any, policy: any) {
 
   try {
+    if(user.arr_member_number == null){
+      console.log("NO AAR MEMBER NUMBER")
+      return
+    }
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if (user.user_id !== policy.user_id) {
       console.log("POLICY NOT FOR USER", user.name, policy.policy_type, user.total_member_number);

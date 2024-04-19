@@ -713,7 +713,7 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
   let {
     partner_id,
     page = 1,
-    limit = 1000,
+    limit = 10000,
     filter,
     start_date,
     end_date,
@@ -766,7 +766,6 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
           attributes: ["product_name"],
         },
       ],
-      limit: 5000,
     };
 
     let policies = await Policy.findAll(options);
@@ -854,7 +853,7 @@ const generatePolicyExcelReport = async (policies) => {
 
   // Define columns for data in Excel. Key must match data key
   worksheet.columns = [
-    { header: "Policy Number", key: "policy_number", width: 20 },
+    //{ header: "Policy Number", key: "policy_number", width: 20 },
     { header: "Full Name", key: "full_name", width: 20 },
     { header: "Phone Number", key: "phone_number", width: 20 },
     { header: "AAR Member Number", key: "arr_member_number", width: 20 },
@@ -867,7 +866,10 @@ const generatePolicyExcelReport = async (policies) => {
     { header: "Installment Order", key: "installment_order", width: 20 },
     { header: "Policy End Date", key: "policy_end_date", width: 20 },
     { header: "Policy Paid Date", key: "policy_start_date", width: 20 },
-    { header: "Premium", key: "policy_paid_amount", width: 20 },
+    { header: "Premium", key: "premium", width: 20 },
+    { header: "Policy Paid Amount", key: "policy_paid_amount", width: 20 },
+    { header: "Policy Pending Amount", key: "policy_pending_premium", width: 20 },
+    { header: "Airtel Money ID", key: "airtel_money_id", width: 20 },
     { header: "Sum Insured", key: "sum_insured", width: 20 },
     { header: "Last Expense Insured", key: "last_expense_insured", width: 20 },
     { header: "Created At", key: "createdAt", width: 20 },
@@ -876,11 +878,11 @@ const generatePolicyExcelReport = async (policies) => {
   ];
 
   function calculateTotalLivesCovered(memberNumberString: string) {
-    const memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
-    if (isNaN(memberNumber) || memberNumber < 1) {
-      throw new Error("Invalid member number format: " + memberNumberString);
-    }
-    return memberNumber + 1;
+
+    let memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
+    memberNumber =  isNaN(memberNumber) ? 1 : memberNumber + 1
+   
+    return memberNumber 
   }
 
   policies.forEach(async (policy) => {
@@ -910,12 +912,13 @@ const generatePolicyExcelReport = async (policies) => {
         "YYYY-MM-DD"
       ),
       premium: policy.premium,
+      policy_paid_amount: policy.policy_paid_amount,
+      policy_pending_premium: policy.policy_pending_premium,
       sum_insured: policy.sum_insured,
       last_expense_insured: policy.last_expense_insured,
       hospital_details: policy.hospital_details,
       policy_documents: policy.policy_documents,
       policy_paid_date: moment(policy.policy_paid_date).format("YYYY-MM-DD"),
-      policy_paid_amount: policy.policy_paid_amount,
       currency_code: policy.currency_code,
       country_code: policy.country_code,
       product_id: policy.product_id,

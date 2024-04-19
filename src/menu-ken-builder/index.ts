@@ -55,12 +55,12 @@ export default function (args: KenRequestBody, db: any) {
       //*384*14773#
 
       // if the allsteps array includes '284' and '14773'  remove them from the array and retain the rest
-      if (allSteps.includes("384") && allSteps.includes("14773")) {
-        allSteps = allSteps.filter((step) => step !== "384" && step !== "14773");
+      if (allSteps.includes("810")) {
+        allSteps = allSteps.filter((step) => step !== "810" );
         console.log("KEN allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
-        input = allSteps.join("*").replace("*384*14773#", "");
+        input = allSteps.join("*").replace("810", "");
         console.log("input", input);
       }
 

@@ -246,6 +246,93 @@ router.all("/callback", async (req, res) => {
 });
 
 
+router.all("/uat/callback", async (req, res) => {
+  try {
+    if (req.method === "POST" || req.method === "GET") {
+      const { transaction } = req.body;
+      console.log("AIRTEL CALLBACK", transaction)
+      const { id, status_code, message, airtel_money_id } = transaction;
+
+      const transactionData = await findTransactionById(id);
+
+      if (!transactionData) {
+        console.log("Transaction not found");
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+
+      const { policy_id, user_id, amount, partner_id } = transactionData;
+
+      if (status_code === "TS") {
+        await transactionData.update({ status: "paid" });
+
+        const user = await Users.findOne({ where: { user_id } });
+
+        let policy = await db.policies.findOne({
+          where: {
+            policy_id,
+            user_id,
+          }
+        });
+
+        console.log("POLICY", policy);
+
+        if (!policy) {
+          return res.status(404).json({ message: "Policy not found" });
+        }
+
+        policy.airtel_money_id = airtel_money_id;
+
+        const to = await formatPhoneNumber(policy.phone_number,2);
+        //const period = policy.installment_type === 1 ? "yearly" : "monthly";
+
+        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);
+        console.log("Payment record created successfully");
+
+        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id);
+        console.log("=== PAYMENT ===", payment);
+        console.log("=== UPDATED POLICY ===", updatedPolicy);
+
+        const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
+        console.log("MEMBERS", members, policy.total_member_number);
+
+
+        const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+
+
+        let sum_insured = policy.sum_insured;
+        let last_expense_insured = policy.last_expense_insured;
+
+        policy.policy_status = "paid";
+        policy.save();
+
+        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
+         await sendSMSNotification(to, congratText);
+
+        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+        await processPolicy(user, policy, memberStatus);
+
+        return res.status(200).json({
+          code: 200,
+          status: "OK", message: "Payment record created successfully"
+        });
+      } else {
+        await handleFailedPaymentRecord(amount, user_id, policy_id, message, req.body, partner_id);
+        console.log("Payment record for failed transaction created");
+        return res.status(200).json({
+          code: 200,
+          status: "OK", message: "POST/GET request handled successfully"
+        });
+      }
+    } else {
+      return res.status(405).send("Method Not Allowed");
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+});
+
+
 
 const createPaymentRecord = async (policy, amount, user_id, policy_id, description, metadata, partner_id) => {
   return await Payment.create({
@@ -296,8 +383,6 @@ const handleFailedPaymentRecord = async (amount, user_id, policy_id, description
     partner_id,
   });
 };
-
-
 
 
 export async function processPolicy(user: any, policy: any, memberStatus: any) {
@@ -446,6 +531,130 @@ router.all("/callback/kenya", async (req, res) => {
   }
 });
 
+router.all("/uat/callback/kenya", async (req, res) => {
+  try {
+    if (req.method === "POST" || req.method === "GET") {
+      const { transaction } = req.body;
+      console.log("AIRTEL CALLBACK", transaction)
+      const { id, status_code, message, airtel_money_id } = transaction;
+
+      const transactionData = await findTransactionById(id);
+
+      if (!transactionData) {
+        console.log("Transaction not found");
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+
+      const { policy_id, user_id, amount, partner_id } = transactionData;
+
+      const user = await db.users.findOne({ where: { user_id } });
+      let policy = await db.policies.findOne({ where: { policy_id } });
+      policy.airtel_money_id = airtel_money_id;
+
+      if (!user || !policy) {
+        return res.status(404).json({ message: "user or policy not found" });
+      }
+
+
+      const period = policy.installment_type == 1 ? "yearly" : "monthly";
+
+      if (status_code == "TS") {
+
+        await transactionData.update({
+          status: "paid",
+        });
+
+        const payment = await Payment.create({
+          payment_amount: amount,
+          payment_type: `Airtel Money Kenya Stk Push for ${policy.beneficiary.toUpperCase()} ${policy.policy_type.toUpperCase()} ${policy.installment_type === 1 ? "yearly" : "monthly"} payment`,
+          user_id,
+          policy_id,
+          payment_status: "paid",
+          payment_description: message,
+          payment_date: new Date(),
+          payment_metadata: req.body,
+          partner_id,
+        });
+
+        console.log("Payment record created successfully");
+
+
+        let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+
+        console.log("=== PAYMENT ===", payment)
+        console.log("=== TRANSACTION === ", transactionData)
+        console.log("=== UPDATED POLICY ===", updatedPolicy)
+
+
+        const members = policy.total_member_number?.match(/\d+(\.\d+)?/g)
+        console.log("MEMBERS", members, policy.total_member_number);
+
+
+        const inPatientCover = formatAmount(policy.inpatient_cover);
+        const outPatientCover = formatAmount(policy.outpatient_cover);
+        const maternityCover = formatAmount(policy.maternity_cover);
+
+        const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+
+
+        let congratText = "";
+        const to = `+256${user.phone_number}`;
+
+        if (policy.beneficiary == "FAMILY") {
+          congratText = `Congratulations! You and ${members} dependent are each covered for Inpatient benefit of  Kshs ${inPatientCover}  and Maternity benefit of  Kshs ${maternityCover} . Cover valid till ${thisDayThisMonth.toDateString()}`
+        } else if (policy.beneficiary == "SELF") {
+          if (policy.policy_type.toUpperCase() == "BAMBA") {
+            congratText = `Congratulations! You are bought AfyaShua Mamba cover for Kshs 4,500/night  of hospitalisation up to a Maximum of 30 days.  Pay KShs ${policy.premium} every ${policy.policy_deduction_day} to stay covered `;
+
+          } else if (policy.policy_type.toUpperCase() == "ZIDI") {
+            congratText = ` Congratulations! You bought AfyaShua Zidi cover for Inpatient KShs ${inPatientCover} and Maternity for KShs ${maternityCover} Pay KShs ${policy.premium} every ${policy.policy_deduction_day} to stay covered`
+          } else {
+            congratText = `Congratulations! You bought AfyaShua Smarta cover for Inpatient ${inPatientCover} Outpatient for ${outPatientCover} and Maternity for Kshs ${maternityCover}. Pay KShs ${policy.premium} every ${policy.policy_deduction_day} to stay covered`
+          }
+        } else if (policy.beneficiary == "OTHER") {
+          if (policy.policy_type.toUpperCase() == "BAMBA") {
+            congratText = `${user.first_name} has bought for you AfyaShua cover for Kshs 4,500 per night up to a Maximum of 30 days after one day of being hospitalized.
+               Dial *334*7*3# on Airtel  to enter next of kin & view more details`
+          } else if (policy.policy_type.toUpperCase() == "ZIDI") {
+            congratText = `${user.first_name} has bought for you AfyaShua cover for Inpatient ${inPatientCover} and Maternity benefit of ${maternityCover}. Dial *185*7*6# on Airtel to enter next of kin & view more details`
+
+          }
+        }
+
+        await SMSMessenger.sendSMS(2, to, congratText);
+
+        return res.status(200).json({
+          code: 200,
+          status: "OK",
+          message: "Payment record created successfully"
+        });
+      } else {
+        await Payment.create({
+          payment_amount: amount,
+          payment_type: "airtel money payment kenya",
+          user_id,
+          policy_id,
+          payment_status: "failed",
+          payment_description: message,
+          payment_date: new Date(),
+          payment_metadata: req.body,
+          partner_id: partner_id,
+        });
+
+        console.log("Payment  for failed record created");
+        return res.status(200).json({
+          code: 200,
+          status: "OK", message: "POST/GET request handled successfully"
+        });
+      }
+    } else {
+      return res.status(405).send("Method Not Allowed");
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+});
 
 
 
