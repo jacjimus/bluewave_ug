@@ -5,6 +5,7 @@ import { airtelMoney, createTransaction } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
 import moment from "moment";
+import { sendEmail } from "../../services/emailService";
 
 
 
@@ -30,6 +31,13 @@ const accountMenu = async (args: any, db: any) => {
             phone_number: phoneNumber,
             policy_status: "paid"
         },
+        include: [
+            {
+                model: db.users,
+                as: "user",
+                attributes: ['arr_member_number']
+            }
+        ],
         limit: 6
     });
 
@@ -79,7 +87,8 @@ const accountMenu = async (args: any, db: any) => {
             "\n4. Add and Update Next of Kin" +
             "\n5. Update Gender and Date of Birth" +
             "\n6. Dependants" +
-            "\n7. View Details";
+            "\n7. View Details" +
+            "\n8. Check Policy Number";
     } else if (currentStep == 2) {
        
         switch (userText) {
@@ -176,6 +185,29 @@ const accountMenu = async (args: any, db: any) => {
                 const details_message = `Dear ${currentUser.first_name}, your Date of birth is ${currentUser.dob}, Gender ${currentUser.gender}, and dependents are ${dependants_name}. Please dial *185*7*6*3# to add any additional dependant.`
                 SMSMessenger.sendSMS(2, smsPhone, details_message)
 
+                break;
+            case "8":
+                if(!paidPolicies || paidPolicies.length == 0 ) {
+                    response = "END You have no active policy"
+                    return response
+                }
+                if(paidPolicies[0].user.arr_member_number == null) {
+                    //send email to admin
+                    const email = "admin@bluewave.insure"
+                    const subject = "Policy Number Generation"
+                    const emailHtml = `<p>Dear Admin,</p>
+                    <p>AAR Policy number generation request for ${phoneNumber}</p>
+                    <p>Kindly generate the policy number for the user</p>
+                    <p>Thank you</p>`
+
+                    await sendEmail(email, subject, emailHtml)
+                    response = "END Your policy number is not yet generated. Please wait for a few minutes and try again"
+                    return response
+                }
+        
+                const policy_number_message = `Your policy number is ${paidPolicies[0].user.arr_member_number}. Please use this number when visiting the hospital`
+                SMSMessenger.sendSMS(2, smsPhone, policy_number_message)
+                response = `END Your policy number is ${paidPolicies[0].user.arr_member_number}. Please use this number when visiting the hospital`
                 break;
             default:
                 response = "END Invalid option selected"
@@ -508,7 +540,7 @@ const accountMenu = async (args: any, db: any) => {
 
 
         }
-    }
+    } 
     return response
 }
 

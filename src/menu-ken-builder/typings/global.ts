@@ -28,6 +28,7 @@ export interface KenRequestBody{
     region: string,
     user: string,
     password: string,
+    servicecode: string
 
     
 }

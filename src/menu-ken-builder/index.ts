@@ -46,7 +46,8 @@ export default function (args: KenRequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
 
-      let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password } = args;
+      let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password , servicecode} = args;
+      console.log("KEN args", args);
       // check if the userinput is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userinput is '00' set the input to empty string
@@ -55,12 +56,12 @@ export default function (args: KenRequestBody, db: any) {
       //*384*14773#
 
       // if the allsteps array includes '284' and '14773'  remove them from the array and retain the rest
-      if (allSteps.includes("810")) {
-        allSteps = allSteps.filter((step) => step !== "810" );
+      if (allSteps.includes(servicecode)) {
+        allSteps = allSteps.filter((step) => step !== servicecode);
         console.log("KEN allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
-        input = allSteps.join("*").replace("810", "");
+        input = allSteps.join("*").replace(servicecode, "");
         console.log("input", input);
       }
 
