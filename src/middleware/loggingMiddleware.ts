@@ -1,7 +1,8 @@
 
 import jwt from 'jsonwebtoken';
+import winston from "winston";
 
-export const loggingMiddleware = async (req: any, res: any, next: any) => {
+ const loggingMiddleware = async (req: any, res: any, next: any) => {
   try {
     const operationType = `${req.method} ${req.originalUrl}`;
     const details = {
@@ -27,9 +28,28 @@ export const loggingMiddleware = async (req: any, res: any, next: any) => {
     );
     next();
   } catch (error) {
-    console.error('Logging error:', error);
+   logger.error(`Error: ${error.message}`);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+
+const { combine, timestamp, json } = winston.format;
+
+const logger = winston.createLogger({
+  level: 'http',
+  format: combine(
+    timestamp({
+      format: 'YYYY-MM-DD hh:mm:ss.SSS A',
+    }),
+    json()
+  ),
+  transports: [new winston.transports.Console()],
+});
+
+
+
+export { loggingMiddleware, logger };
 
 

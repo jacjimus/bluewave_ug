@@ -85,6 +85,21 @@ export function generateClaimId() {
 
   return claimId;
 }
+
+
+export function generateReferralCode(length) {
+  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let referralCode = "";
+  for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      referralCode += charset[randomIndex];
+  }
+  return referralCode.toUpperCase();
+}
+
+
+
+
 export function calculatePaymentOptions(policyType: string, paymentOption: number) {
   let period, installmentType, sumInsured, premium;
 

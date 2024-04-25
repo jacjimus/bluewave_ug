@@ -12,8 +12,11 @@ import compression from "compression";
 import router from "./src/routes/index"
 import helmet from "helmet";
 import { RateLimiterMemory } from "rate-limiter-flexible";
-import { loggingMiddleware } from "./src/middleware/loggingMiddleware";
+import { loggingMiddleware, logger } from "./src/middleware/loggingMiddleware";
 import bodyParser from "body-parser";
+import { pingAirtel } from "./src/services/payment";
+
+
 
 dotenv.config();
 
@@ -34,7 +37,21 @@ app.use(
     },
   })
 );
- 
+
+
+
+const morganMiddleware = morgan(
+  ':method :url :status :res[content-length] - :response-time ms',
+  {
+    stream: {
+      // Configure Morgan to use our custom logger with the http severity
+      write: (message) => logger.http(message.trim()),
+    },
+  }
+);
+
+app.use(morganMiddleware);
+
 const rateLimiter = new RateLimiterMemory({
   points: 100, // 100 requests
   duration: 1, // per 1 second by IP
@@ -104,6 +121,18 @@ cron.schedule("*/30 * * * *", () => {
   console.log("Running a task every 30 minutes");
   getArrMemberNumberData();
 });
+
+/* BACKGROUND JOB 
+WILL CALL AIRTEL URL TO WAKE IT UP EVERY 2 MINUTES
+
+ */
+
+// cron.schedule("*/2 * * * *", async () => {
+//   console.log("Running a task every 2 minutes");
+//   pingAirtel();
+// }
+// );
+
 playground()
 
 const port = process.env.PORT || 4000;

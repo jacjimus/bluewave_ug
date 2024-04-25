@@ -7,6 +7,8 @@ import SMSMessenger from './sendSMS';
 import { fetchMemberStatusData, processPolicy } from './aarServices';
 import authTokenByPartner from './authorization';
 import { Op } from "sequelize";
+import { logger } from '../middleware/loggingMiddleware';
+import { log } from 'handlebars';
 dotenv.config();
 
 const Transaction = db.transactions;
@@ -25,12 +27,12 @@ const createTransaction = async (user_id, partner_id, policy_id, transactionId, 
     });
     return transaction;
   } catch (error) {
+    logger.error('Failed to create a transaction:', error.message);
     throw new Error(`Failed to create a transaction: ${error.message}`);
   }
 };
 
-async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransactionId) {
-
+async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransactionId) {
 
   const status = {
     code: 200,
@@ -64,7 +66,7 @@ async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransact
     };
 
     const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
-  
+
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
     console.log("PAYMENT RESPONSE", paymentResponse.data, paymentData)
     if (paymentResponse.data.status.success !== true) {
@@ -73,6 +75,7 @@ async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransact
     }
     return status;
   } catch (error) {
+    logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
 
     return status;
@@ -82,17 +85,17 @@ async function airtelMoney( phoneNumber, amount, reference, preGeneratedTransact
 
 function handlePaymentError(error, status) {
   if (error.response) {
-      const responseData = error.response.data;
+    const responseData = error.response.data;
 
-      if (responseData && responseData.message) {
-          status.code = 500;
-          status.result = responseData.message;
-          status.message = 'Sorry, Transaction failed';
-      } else {
-          console.log("Error message not found in response data.");
-      }
+    if (responseData && responseData.message) {
+      status.code = 500;
+      status.result = responseData.message;
+      status.message = 'Sorry, Transaction failed';
+    } else {
+      logger.error('No message found in the error response.');
+    }
   } else {
-      console.log("No response object found in the error.");
+    logger.error('No response found in the error.');
   }
 }
 
@@ -100,51 +103,58 @@ function handlePaymentError(error, status) {
 
 async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, reference, partner_id) {
   const status = {
-      code: 200,
-      status: "OK",
-      result: "",
-      message: 'Payment successfully initiated'
+    code: 200,
+    status: "OK",
+    result: "",
+    message: 'Payment successfully initiated'
   };
 
   try {
-      const token = await authTokenByPartner(partner_id);
+    const token = await authTokenByPartner(partner_id);
 
-      const paymentData = {
-          reference,
-          subscriber: {
-              country: "KE",
-              currency: "KES",
-              msisdn: phoneNumber,
-          },
-          transaction: {
-              amount,
-              country: "KE",
-              currency: "KES",
-              id: policy_id
-          },
-      };
+    const paymentData = {
+      reference,
+      subscriber: {
+        country: "KE",
+        currency: "KES",
+        msisdn: phoneNumber,
+      },
+      transaction: {
+        amount,
+        country: "KE",
+        currency: "KES",
+        id: policy_id
+      },
+    };
 
-      const headers = {
-          'Content-Type': 'application/json',
-          Accept: '/',
-          'X-Country': "KE",
-          'X-Currency': "KES",
-          Authorization: `${token}`,
-      };
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: '/',
+      'X-Country': "KE",
+      'X-Currency': "KES",
+      Authorization: `${token}`,
+    };
 
-      const KENYA_AIRTEL_PAYMENT_URL = 'https://openapiuat.airtel.africa/merchant/v1/payments/';
+    console.log("PAYMENT DATA KEN", paymentData, process.env.UAT_KEN_AIRTEL_PAYMENT_URL, headers)
 
-      const paymentResponse = await axios.post(KENYA_AIRTEL_PAYMENT_URL, paymentData, { headers });
+    const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
 
-      status.result = paymentResponse.data.status;
+    console.log("PAYMENT RESPONSE KEN", paymentResponse);
 
-      createTransaction(user_id, 1, policy_id, paymentData.transaction.id, amount);
+    if (paymentResponse.data.status.success !== true) {
+      status.code = 500;
+      status.message = 'Payment failed'; // Update message only on failure
+    }
 
-      return status;
+    status.result = paymentResponse.data.status;
+
+    await createTransaction(user_id, 1, policy_id, paymentData.transaction.id, amount);
+
+    return status;
   } catch (error) {
-      // Handle payment error
-      handlePaymentError(error, status);
-      return status;
+    logger.error('Failed to initiate payment:', error.message);
+    handlePaymentError(error, status);
+    return status;
   }
 }
 
@@ -506,7 +516,7 @@ async function reconcilationCallback(transaction) {
         ]
       }
     });
-    
+
 
     if (!policy) {
       console.log("================ POLICY NOT FOUND ================", policy_id, user_id)
@@ -617,61 +627,70 @@ async function sendCongratulatoryMessage(policy, user) {
     await SMSMessenger.sendSMS(2, to, congratText);
 
   } catch (error) {
-    console.log(error);
+    logger.error('Failed to send congratulatory message:', error.message);
   }
 }
 
 async function processPayment(policyObject, phoneNumber, existingOther) {
   try {
-  const  preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
+    const preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
     let policy = await db.policies.create(policyObject);
-let response
-  
+    let response
+
     setTimeout(async () => {
 
 
       const airtelMoneyPromise = await airtelMoney(
-          phoneNumber.replace("+", "").substring(3),
-          policy.premium,
-          existingOther.membership_id,
-          preGeneratedTransactionId
+        phoneNumber.replace("+", "").substring(3),
+        policy.premium,
+        existingOther.membership_id,
+        preGeneratedTransactionId
       );
 
       const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 2000;
 
       Promise.race([
-          airtelMoneyPromise,
-          new Promise((resolve, reject) => {
-              setTimeout(() => {
-                  reject(new Error('Airtel Money operation timed out'));
-              }, timeout);
-          })
+        airtelMoneyPromise,
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error('Airtel Money operation timed out'));
+          }, timeout);
+        })
       ]).then((result) => {
-          // Airtel Money operation completed successfully
-          console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
-          //response = 'END Payment successful';
-          console.log("SELF RESPONSE WAS CALLED", result);
-          return response;
+        // Airtel Money operation completed successfully
+        console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+        //response = 'END Payment successful';
+        console.log("SELF RESPONSE WAS CALLED", result);
+        return response;
       }).catch((error) => {
-          // Airtel Money operation failed
-          //response = 'END Payment failed';
-          console.log("SELF RESPONSE WAS CALLED", error);
-          return response;
+        // Airtel Money operation failed
+        //response = 'END Payment failed';
+        console.log("SELF RESPONSE WAS CALLED", error);
+        return response;
       });
 
       console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
-  }, 500);
+    }, 500);
     // Airtel Money operation completed successfully
     console.log("PAYMENT - RESPONSE WAS CALLED", response);
     return response
   } catch (error) {
-    console.log("An error occurred:", error);
-   // return 'END Payment failed';
+    logger.error('Failed to process payment:', error.message);
+
+    // return 'END Payment failed';
   }
 }
 
 
-
+async function pingAirtel() {
+  try {
+    const response = await axios.get('https://openapi.airtel.africa');
+    console.log('PING RESPONSE', response.data);
+  } catch (error) {
+    logger.error('PING ERROR', error.message);
+    console.error('PING ERROR', error.message);
+  }
+}
 
 export {
   airtelMoney,
@@ -689,5 +708,6 @@ export {
   reconcilationCallback,
   sendCongratulatoryMessage,
   createTransaction,
-  processPayment
+  processPayment,
+  pingAirtel
 };
