@@ -116,7 +116,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         },
         number_of_policies:{
             type: DataTypes.INTEGER,
-            defaultValue: 1
+            defaultValue: 0,
 
         },
         arr_member_number: {

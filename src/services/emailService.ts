@@ -78,6 +78,7 @@ const sendWelcomeEmail= async(user: any, subject: string, message: any) =>{
             name: name,
             email: email,
             login_url: process.env.DASHBOARD_LOGIN,
+            message: message,
             // ... other dynamic values
         };
 
@@ -113,6 +114,9 @@ const sendForgotPasswordEmail= async(user: any, subject: string, message: any) =
             console.log(err)
         }
     }
+
+
+    
 
 
 

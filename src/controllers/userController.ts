@@ -9,13 +9,15 @@ const dotenv = require("dotenv").config();
 import {
   getRandomInt,
   isValidEmail,
-  globalSearch
+  globalSearch,
+  generateReferralCode
 
 } from "../services/utils";
 const { Op } = require("sequelize");
 const XLSX = require("xlsx");
 import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "../services/sendSMS";
+import { logger } from '../middleware/loggingMiddleware';
 
 const User = db.users;
 const Partner = db.partners;
@@ -73,7 +75,7 @@ async function findUserByUserId(user_id: string, partner_id: number) {
  *         application/json:
  *           schema:
  *             type: object
- *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100", "driver_licence": "DRC123456789", "voter_id": "5322344", "partner_id": "1"}
+ *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100", referral_code: "12345"}
  *     responses:
  *       200:
  *         description: Information fetched succussfully
@@ -89,7 +91,6 @@ const signup = async (req, res) => {
       email,
       password,
       phone_number,
-      partner_id,
       national_id,
       dob,
       gender,
@@ -98,13 +99,13 @@ const signup = async (req, res) => {
       nationality,
       title,
       pinzip,
-      driver_licence,
-      voter_id,
-      role,
+      referral_code,
     } = req.body;
 
+    const partner_id = req.query.partner_id;
+
     // Validate required fields
-    const requiredFields = [first_name, last_name, password, phone_number, partner_id];
+    const requiredFields = [first_name, last_name, password, phone_number];
     if (requiredFields.some((field) => !field)) {
       return res.status(400).json({ code: 400, message: "Please provide all required fields" });
     }
@@ -112,9 +113,7 @@ const signup = async (req, res) => {
     // Remove leading '0' from phone number
     phone_number = phone_number.replace(/^0/, '');
 
-    // Set default role if not provided
-    role = role || "user";
-
+  
     // Validate email format
     if (email && !isValidEmail(email)) {
       return res.status(400).json({ code: 400, message: "Please enter a valid email" });
@@ -150,7 +149,7 @@ const signup = async (req, res) => {
       national_id,
       password: await bcrypt.hash(password, 10),
       pin: Math.floor(1000 + Math.random() * 9000),
-      role,
+      role: "user",
       dob,
       gender,
       marital_status,
@@ -159,8 +158,7 @@ const signup = async (req, res) => {
       nationality,
       title,
       partner_id,
-      driver_licence,
-      voter_id,
+      referral_code,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -198,7 +196,6 @@ const signup = async (req, res) => {
 };
 
 
-//partnerRegistration
 
 /** @swagger
  * /api/v1/users/partner/register:
@@ -1693,6 +1690,235 @@ async function changePassword(req: any, res: any) {
 }
 
 
+/** @swagger
+ * /api/v1/users/agent/signup:
+ *   post:
+ *     tags:
+ *       - Agent
+ *     description: Register Agent
+ *     operationId: registerAgent
+ *     summary: Register Agent
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan"}
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfully
+ *       400:
+ *         description: Invalid request
+ */
+const agentSignup = async (req, res) => {
+  try {
+    let {
+      first_name,
+      middle_name,
+      last_name,
+      email,
+      password,
+      phone_number,
+      national_id,
+      dob,
+      gender,
+      marital_status,
+      addressline,
+      nationality,
+      pinzip,
+      role
+    } = req.body;
+
+    const partner_id = req.query.partner_id;
+
+    // Validate required fields
+    const requiredFields = [first_name, last_name, password, phone_number, email, national_id];
+    if (requiredFields.some((field) => !field)) {
+      return res.status(400).json({ code: 400, message: "Please provide all required fields" });
+    }
+
+    // Remove leading '0' from phone number
+    phone_number = phone_number.replace(/^0/, '');
+
+    // Validate email format
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ code: 400, message: "Please enter a valid email" });
+    }
+
+    // Check if email already exists
+    if (email) {
+      const emailExists = await User.findOne({ where: { email } });
+      if (emailExists) {
+        return res.status(409).json({ status: "FAILED", code: 409, message: "Email already exists" });
+      }
+    }
+
+    if (phone_number) {
+      const phoneExists = await User.findOne({ where: { phone_number } });
+      if (phoneExists) {
+        return res.status(409).json({ status: "FAILED", code: 409, message: "Phone number already exists" });
+      }
+    }
+
+    if(national_id){
+      const nationalIdExists = await User.findOne({ where: { national_id } });
+      if (nationalIdExists) {
+        return res.status(409).json({ status: "FAILED", code: 409, message: "National ID already exists" });
+      }
+    }
+
+    // Generate membership ID
+    const membership_id = Math.floor(100000 + Math.random() * 900000);
+    const referral_code = generateReferralCode(5)
+
+    // Create user data object
+    const userData = {
+      membership_id,
+      name: `${first_name} ${last_name}`,
+      first_name,
+      last_name,
+      middle_name,
+      email,
+      phone_number,
+      national_id,
+      password: await bcrypt.hash(password, 10),
+      pin: Math.floor(1000 + Math.random() * 9000),
+      role: "agent",
+      dob,
+      gender,
+      marital_status,
+      addressline,
+      pinzip,
+      nationality,
+      referral_code:  referral_code,
+      partner_id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Create a new user
+    const newAgent = await User.create(userData);
+
+    if (newAgent) {
+      // Generate JWT token
+      const token = jwt.sign({ user_id: newAgent.user_id, role: newAgent.role }, process.env.JWT_SECRET || "apple123", {
+        expiresIn: 1 * 24 * 60 * 60 * 1000,
+      });
+
+      // Set JWT token as a cookie
+      res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
+
+
+      const welcomeTemplate = `
+      <h1> Welcome to Bluewave </h1>
+      <h3> Dear ${newAgent.name} </h3>
+      <p> You have successfully registered as an agent with Bluewave. </p>
+      <p> Your referral code is ${referral_code}. </p>
+      <p> Share this code with customers to earn commission. </p>
+      <p> For more details visit our website or contact us at  <a href="mailto: admin@bluewave.insure"> admin@bluewave.insure </a> </p>
+
+      <p> Regards, </p>
+      <p> Bluewave Team </p>
+      `;
+
+      // send welcome email
+       await sendEmail(email, "Welcome to Bluewave", welcomeTemplate)
+
+      return res.status(201).json({
+        result: {
+          code: 200,
+          status: "OK",
+          message: "Agent registered successfully",
+          token,
+        },
+      });
+    }
+  } catch (error) {
+    logger.error("ERROR", error);
+    return res.status(500).json({
+      code: 500,
+      status: "FAILED",
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+
+/**
+ * @swagger
+ * /api/v1/users/agent/{referral_code}:
+ *   get:
+ *     tags:
+ *       - Agent
+ *     description: Get Users by referral code
+ *     operationId: findUsersByReferralCode
+ *     summary: Get Users by referral code
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: referral_code
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+const findUsersByReferralCode = async (req: any, res: any) => {
+  try {
+    let partner_id = req.query.partner_id;
+    let referral_code = req.params.referral_code;
+
+
+    let user: any = await db.users.findAll({
+      where: {
+        partner_id: partner_id,
+        referral_code: referral_code,
+        role: 'user'
+      },
+      include: [
+        {
+          model: db.policies,
+          as: 'policies'
+        }
+      ]
+    });
+
+    if (!user || user.length === 0) {
+      return res.status(404).json({ item: 0, message: "No user found" });
+    }
+
+    return res
+      .status(200)
+      .json({
+        result: {
+          code: 200,
+          status: "OK", message: "Customers fetched successfully", item: user
+        }
+      });
+  } catch (error) {
+    logger.error("ERROR", error);
+    return res
+      .status(500)
+      .json({ status: "FAILED", message: "Internal server error", error: error });
+  }
+};
+
 
 module.exports = {
   adminSignup,
@@ -1713,5 +1939,7 @@ module.exports = {
   forgotPassword,
   changePassword,
   findUserByPhoneNumber,
-  sendOTP
+  sendOTP,
+  findUsersByReferralCode,
+  agentSignup
 };

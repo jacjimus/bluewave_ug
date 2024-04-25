@@ -2,8 +2,10 @@ import { airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptionsKenya, parseAmount } from "../../services/utils";
-import { getAirtelUser } from "../../services//getAirtelUserKyc";
+import { getAirtelUser, getAirtelUserKenya } from "../../services//getAirtelUserKyc";
 import { Op } from "sequelize";
+
+import { logger } from "../../middleware/loggingMiddleware";
 
 const selfMenu = async (args, db) => {
   let { msisdn, response, currentStep, userText, allSteps } = args;
@@ -117,12 +119,17 @@ console.log(currentStep == 1, currentStep == '1', userText)
 
 async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
+  console.log("msisdn", msisdn)
   let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
-  let existingUser = await findExistingUser(msisdn, 2, db);
+  const trimmedMsisdn = msisdn?.replace('+', "")?.substring(3);
+  let existingUser = await findExistingUser(trimmedMsisdn, 1, db);
+  // console.log("msisdn", msisdn)
+  // console.log("fullPhone", fullPhone)
+  // console.log("existingUser KE", existingUser)
 
   if (!existingUser) {
     console.log("USER DOES NOT EXIST SELF KENYA ");
-    let user = await getAirtelUser(msisdn, 1);
+    let user = await getAirtelUserKenya(trimmedMsisdn);
 
     let membershipId = Math.floor(100000 + Math.random() * 900000);
     if (user?.first_name && user?.last_name) {
@@ -140,28 +147,28 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   const airtelMoneyPromise = airtelMoneyKenya(
     existingUser.user_id,
     policy.policy_id,
-    msisdn,
+    trimmedMsisdn,
     policy.policy_deduction_amount,
     existingUser.membership_id,
     existingUser.partner_id
   );
 
-  await handleAirtelMoneyPromise(airtelMoneyPromise, msisdn);
+  await handleAirtelMoneyPromise(airtelMoneyPromise, trimmedMsisdn);
 }
 
-async function findExistingUser(msisdn, partner_id, db) {
+async function findExistingUser(trimmedMsisdn, partner_id, db) {
   return await db.users.findOne({
     where: {
-      phone_number: msisdn,
+      phone_number: trimmedMsisdn,
       partner_id,
     },
   });
 }
 
-async function createNewUser(msisdn, user, membershipId, db) {
+async function createNewUser(trimmedMsisdn, user, membershipId, db) {
   return await db.users.create({
     user_id: uuidv4(),
-    phone_number: msisdn,
+    phone_number: trimmedMsisdn,
     membership_id: membershipId,
     first_name: user?.first_name,
     last_name: user?.last_name,
@@ -236,6 +243,7 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
     console.log("SELF RESPONSE WAS CALLED KENYA ",);
     return 'END P- ayment successful';
   } catch (error) {
+    logger.error(`Airtel Money Kenya operation failed: ${error.message}`);
     console.log("SELF - RESPONSE WAS CALLED KENYA ", error);
     return 'END Payment failed';
   } finally {
