@@ -75,7 +75,7 @@ async function findUserByUserId(user_id: string, partner_id: number) {
  *         application/json:
  *           schema:
  *             type: object
- *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100"}
+ *             example: { "first_name":"John", "middle_name":"White",  "last_name":"Doe", "email":"test@gmail.com", "password": "test123", "phone_number":"0754546568","national_id":"27885858",  "dob": "1990-12-12", "gender": "M","marital_status": "single","addressline": "Nairobi", "nationality": "Kenyan","title": "Mr","pinzip": "00100", referral_code: "12345"}
  *     responses:
  *       200:
  *         description: Information fetched succussfully
@@ -99,6 +99,7 @@ const signup = async (req, res) => {
       nationality,
       title,
       pinzip,
+      referral_code,
     } = req.body;
 
     const partner_id = req.query.partner_id;
@@ -157,6 +158,7 @@ const signup = async (req, res) => {
       nationality,
       title,
       partner_id,
+      referral_code,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
