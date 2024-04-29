@@ -137,7 +137,8 @@ async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, referen
 
     const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
 
-        logger.info("PAYMENT RESPONSE", paymentResponse.data, paymentData)
+      console.log("PAYMENT RESPONSE", paymentResponse.data, paymentData)
+      
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
       await createTransaction(user_id, 1, policy_id, paymentData.transaction.id, amount);
