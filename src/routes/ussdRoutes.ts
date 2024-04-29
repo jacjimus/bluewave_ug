@@ -73,6 +73,7 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
     policy.bluewave_transaction_id = payment.payment_id;
     policy.airtel_transaction_id = airtel_money_id;
     policy.policy_deduction_amount = amount;
+    policy.policy_paid_date = moment().format();
 
     await policy.save();
 
@@ -216,6 +217,7 @@ router.all("/callback", async (req, res) => {
         let last_expense_insured = policy.last_expense_insured;
 
         policy.policy_status = "paid";
+        policy.policy_paid_date=moment().format();
         policy.save();
 
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
