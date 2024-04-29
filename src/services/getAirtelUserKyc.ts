@@ -52,7 +52,8 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
     return userData;
   } catch (error) {
-    console.error(error);
+   logger.error("Error in getUserByPhoneNumber:", error.message);
+    throw new Error("Failed to get user. Please try again later.");
   }
 }
 
@@ -101,7 +102,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     return user;
 
   } catch (error) {
-    console.error("Error in getAirtelUser:", error.message);
+    logger.error("Error in getAirtelUser:", error.message);
     throw new Error("Failed to get Airtel user. Please try again later.");
   }
 }
@@ -141,7 +142,6 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   });
 
   const message = `Dear ${full_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
-  console.log("MESSAGE", message);
   await SMSMessenger.sendSMS(2, fullPhone, message);
   return existingUser;
 }
@@ -197,7 +197,7 @@ async function getAirtelUserKenya(msisdn: string): Promise<UserData> {
 
     return userData;
   } catch (error) {
-    console.error('Error in getAirtelUserKenya:', error.message);
+    logger.error('Error in getAirtelUserKenya:', error.message);
     throw new Error('Failed to get Airtel user. Please try again later.');
   }
 }

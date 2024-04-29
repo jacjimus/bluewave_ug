@@ -11,6 +11,7 @@ import { initiateConsent } from "../services/payment"
 import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aarServices"
 import { calculateProrationPercentage, formatAmount, formatPhoneNumber } from "../services/utils";
 import { Op } from 'sequelize';
+import { logger } from "../middleware/loggingMiddleware";
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -73,14 +74,17 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
     policy.bluewave_transaction_id = payment.payment_id;
     policy.airtel_transaction_id = airtel_money_id;
     policy.policy_deduction_amount = amount;
-
+    policy.policy_paid_date = moment().format();
+    policy.installment_alert_date = policy.installment_type = 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, policy.policy_deduction_day - 3) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), policy.policy_deduction_day - 3);
+    policy.is_expired = false;
+  
     await policy.save();
 
     console.log("Policy details updated successfully");
     
     return policy;
   } catch (error) {
-    console.error("Error updating policy details:", error);
+    logger.error("Error updating policy details:", error);
     throw error;
   }
 };
@@ -135,7 +139,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
     await policy.save();
   } catch (error) {
-    console.error("Error updating installment logic:", error);
+    logger.error("Error updating installment logic:", error);
     throw error;
   }
 };
@@ -148,12 +152,11 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
     await updatePolicyDetails(policy, amount, payment, airtel_money_id);
     await updateInstallmentLogic(policy, amount);
   
-
     console.log("===========POLICY PAID =======", policy);
 
     return policy;
   } catch (error) {
-    console.error("Error updating policy status:", error);
+    logger.error("Error updating policy status:", error);
     throw error;
   }
 };
@@ -215,8 +218,7 @@ router.all("/callback", async (req, res) => {
         let sum_insured = policy.sum_insured;
         let last_expense_insured = policy.last_expense_insured;
 
-        policy.policy_status = "paid";
-        policy.save();
+       
 
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
          await sendSMSNotification(to, congratText);
@@ -240,7 +242,7 @@ router.all("/callback", async (req, res) => {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-    console.error(error);
+    logger.error("Error handling UG callback:", error)
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
@@ -285,10 +287,10 @@ router.all("/uat/callback", async (req, res) => {
         const to = await formatPhoneNumber(policy.phone_number,2);
         //const period = policy.installment_type === 1 ? "yearly" : "monthly";
 
-        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);
+        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);// 1
         console.log("Payment record created successfully");
 
-        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id);
+        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id); //2
         console.log("=== PAYMENT ===", payment);
         console.log("=== UPDATED POLICY ===", updatedPolicy);
 
@@ -305,11 +307,11 @@ router.all("/uat/callback", async (req, res) => {
         policy.policy_status = "paid";
         policy.save();
 
-        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
+        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth); // 3
          await sendSMSNotification(to, congratText);
 
-        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-        await processPolicy(user, policy, memberStatus);
+        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" }); //4
+        await processPolicy(user, policy, memberStatus); //5
 
         return res.status(200).json({
           code: 200,
@@ -327,7 +329,7 @@ router.all("/uat/callback", async (req, res) => {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-    console.error(error);
+    logger.error("Error handling UAT UG callback:", error)
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
@@ -397,9 +399,10 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
 
   } else {
     const registerAARUser = await registerPrincipal(user, policy);
+    //getMemberNumberData
     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
-      await createDependant(user, policy);
+      await createDependant(user, policy, number_of_dependants);
     } 
   }
 }
@@ -526,7 +529,7 @@ router.all("/callback/kenya", async (req, res) => {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-    console.error(error);
+    logger.error("Error handling KE callback:", error)
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
@@ -651,7 +654,7 @@ router.all("/uat/callback/kenya", async (req, res) => {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-    console.error(error);
+    logger.error("Error handling UAT KE callback:", error)
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });

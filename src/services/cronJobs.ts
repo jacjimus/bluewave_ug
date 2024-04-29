@@ -39,17 +39,25 @@ export const sendPolicyRenewalReminder = async () => {
         const threeDaysAfter = moment().add(3, 'days').format('DD');//14
 
 
-        const policies = await db.policies.findAll({
-            where: {
-                policy_status: 'paid',
-                installment_type: 2,
-                partner_id: 2,
-                // policy_start_date: {
-                //     [Op.gt]: moment().add(4, 'days').toDate()
-                // }
+        // dont send reminder for policies that are paid this month, check policy_paid_date
 
-            }
-        });
+
+        const policies = await db.policies.findAll({
+          where: {
+              policy_status: 'paid',
+              installment_type: 2,
+              partner_id: 2,
+              policy_paid_date: {
+                  // Exclude policies paid within the current month
+                  [Op.lt]: moment().startOf('month').toDate(),  // Use startOf('month') for clarity
+              },
+              // Optional: Include policies with start date after a specific threshold (if needed)
+              // policy_start_date: {
+              //     [Op.gt]: moment().add(4, 'days').toDate()
+              // }
+          }
+      });
+      
         console.log(policies.length);
         console.log(threeDaysBefore);
         console.log(today);

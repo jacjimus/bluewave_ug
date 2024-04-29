@@ -12,6 +12,7 @@ import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 import { Op } from "sequelize";
 import {db } from '../models/db'
+import {logger} from '../middleware/loggingMiddleware'
 
 
 require("dotenv").config();
@@ -47,7 +48,7 @@ export default function (args: KenRequestBody, db: any) {
     try {
 
       let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password , servicecode} = args;
-      console.log("KEN args", args);
+      logger.info("KEN args", args);
       // check if the userinput is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userinput is '00' set the input to empty string
