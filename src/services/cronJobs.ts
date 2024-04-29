@@ -3,6 +3,11 @@ import { Op } from 'sequelize';
 import SMSMessenger from './sendSMS';
 import { db } from '../models/db';
 import { getMemberNumberData, registerPrincipal } from './aarServices';
+const cron = require('node-cron');
+const { exec } = require('child_process');
+import dotenv from 'dotenv';  
+dotenv.config();
+
 
 
 
@@ -165,3 +170,26 @@ export const  getArrMemberNumberData = async () => {
       console.log(error);
     }
   }
+
+
+// Define the command to ping the endpoint
+const pingCommand = process.env.AIRTEL_PING_COMMAND || 'ping 41.223.58.252';
+
+// Define the cron schedule (every 5 minutes)
+const cronSchedule = '*/2 * * * *';
+
+// Define the cron job
+export const job = cron.schedule(cronSchedule, () => {
+    // Execute the ping command
+    exec(pingCommand, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing ping command: ${error}`);
+            return;
+        }
+        console.log(`Ping result: ${stdout}`);
+    });
+}, {
+    scheduled: false // Start the job manually
+});
+
+

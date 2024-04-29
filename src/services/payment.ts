@@ -554,7 +554,7 @@ async function reconcilationCallback(transaction) {
 
 
     // send congratulatory message
-    await sendCongratulatoryMessage(updatedPolicy, user);
+    //await sendCongratulatoryMessage(updatedPolicy, user);
 
     const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 

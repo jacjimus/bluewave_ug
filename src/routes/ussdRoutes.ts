@@ -74,9 +74,11 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
     policy.bluewave_transaction_id = payment.payment_id;
     policy.airtel_transaction_id = airtel_money_id;
     policy.policy_deduction_amount = amount;
-    policy.policy_paid_date = moment().format();
-    policy.installment_alert_date = policy.installment_type = 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, policy.policy_deduction_day - 3) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), policy.policy_deduction_day - 3);
+    policy.policy_paid_date = new Date();
+    policy.policy_paid_amount = amount;
     policy.is_expired = false;
+
+    console.log("Policy", policy);
   
     await policy.save();
 
