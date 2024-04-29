@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { getArrMemberNumberData, sendPolicyRenewalReminder } from "./src/services/cronJobs";
+import { getArrMemberNumberData, job, sendPolicyRenewalReminder } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";
@@ -125,18 +125,10 @@ async function initializeExpressServer() {
     getArrMemberNumberData();
   });
 
-  /* BACKGROUND JOB 
-  WILL CALL AIRTEL URL TO WAKE IT UP EVERY 2 MINUTES
-  
-   */
+  // Start the cron job
+   job.start();
 
-  // cron.schedule("*/2 * * * *", async () => {
-  //   console.log("Running a task every 2 minutes");
-  //   pingAirtel();
-  // }
-  // );
 
-  playground()
 
   const port = process.env.PORT || 4000;
   app.listen(port, () => console.log(`Server listening at port ${port}`));

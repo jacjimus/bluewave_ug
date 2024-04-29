@@ -144,7 +144,7 @@ async function registerPrincipal(user: any, policy: any) {
         },
         data: userData,
       };
-      //console.log("CONFIG", config);
+      console.log("User Data", userData)
       const response = await axios.request(config);
       console.log("ARR REG MEMBER RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number, policy.phone_number);
 
@@ -304,6 +304,14 @@ async function updatePremium(user: any, policy: any) {
         money_transaction_id: policy.airtel_money_id + "",
       };
 
+  //     {
+  //       "member_no": "",
+  //       "unique_profile_id": "",
+  //       "premium": ,
+  //       "premium_type": "",
+  //       "premium_installment": "",
+  //       "money_transaction_id": ""
+  //  }
 
 
       const config = {
