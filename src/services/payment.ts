@@ -138,7 +138,7 @@ async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, referen
     const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
 
       console.log("PAYMENT RESPONSE", paymentResponse.data, paymentData)
-      
+
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
       await createTransaction(user_id, 1, policy_id, paymentData.transaction.id, amount);
@@ -149,7 +149,7 @@ async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, referen
     status.message = 'Payment failed'; // Update message only on failure
     return status;
   } catch (error) {
-    console.log("ERROR", error.message)
+
     logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
     
