@@ -186,16 +186,12 @@ interface requestPremiumData {
 
 
 // // Define a function to create the dependent
-async function createDependant(existingUser: any, myPolicy: any) {
+async function createDependant(existingUser: any, myPolicy: any, number_of_dependants: number) {
   try {
 
 
     let arr_member: any, dependant: any;
-    console.log('myPolicy', myPolicy)
-    let number_of_dependants = parseFloat(myPolicy.total_member_number.split("")[2])
-    console.log("number_of_dependants ", number_of_dependants)
 
-    if (myPolicy.dependant_member_numbers.length == 0) {
       for (let i = 1; i <= number_of_dependants; i++) {
         let dependant_first_name = `${i}firstname${existingUser.membership_id}`;
         let dependant_other_names = `${i}othernames${existingUser.membership_id}`;
@@ -251,10 +247,7 @@ async function createDependant(existingUser: any, myPolicy: any) {
         });
 
       }
-    } else {
-
-      console.log("DEPENDANT ALREADY CREATED")
-    }
+   
   } catch (error) {
     console.error('Error:', error.message);
   }
@@ -295,8 +288,8 @@ async function updatePremium(user: any, policy: any) {
       }
 
       const requestData: requestPremiumData = {
-        member_no: user?.arr_member_number,
-        unique_profile_id: user?.membership_id + "",
+        member_no: user.arr_member_number,
+        unique_profile_id: user.membership_id + "",
         health_plan: "AIRTEL_" + policy.policy_type,
         health_option: "64",
         premium: ultimatePremium,
@@ -305,7 +298,7 @@ async function updatePremium(user: any, policy: any) {
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
-        money_transaction_id: policy.airtel_money_id || "123456789",
+        money_transaction_id: policy.airtel_money_id + "",
       };
 
       console.log("UPDATE PREMIUM REQUEST DATA", requestData)
@@ -504,6 +497,32 @@ async function fetchMemberStatusData({ member_no, unique_profile_id }) {
   }
 }
 
+// updateArrTransactionId
+async function updateAirtelMoneyId(member_no: string, unique_profile_id: string, airtel_money_id: string) {
+  try {
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/update_transaction_id',
+      headers: {
+        'Authorization': 'Bearer ' + await arr_uganda_login(),
+      },
+      data: {
+        member_no,
+        unique_profile_id,
+        money_transaction_id :airtel_money_id
+      }
+    };
+    const response = await axios.request(config);
+
+    console.log(JSON.stringify(response.data));
+  } catch (error) {
+    console.error(error);
+  }
+
+}
+
+
 async function processPolicy(user: any, policy: any, memberStatus: any) {
   console.log(policy?.total_member_number)
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
@@ -511,11 +530,13 @@ async function processPolicy(user: any, policy: any, memberStatus: any) {
 
   if (memberStatus?.code === 200) {
     await db.policies.update({ arr_policy_number: memberStatus.policy_no }, { where: { policy_id: policy.policy_id } });
+    const updatePremiumData = await updatePremium(user, policy);
+    console.log("AAR UPDATE PREMIUM - member found", updatePremiumData);
   } else {
     const registerAARUser = await registerPrincipal(user, policy);
     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
-      await createDependant(user, policy);
+      await createDependant(user, policy, number_of_dependants);
     } else {
       console.log("AAR NUMBER- member found", user.phone_number, user.name, user.arr_member_number);
       const updatePremiumData = await updatePremium(user, policy);
@@ -761,4 +782,4 @@ async function getMemberNumberData(mobileNumber) {
 }
 
 
-export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation, getMemberNumberData };
+export { registerPrincipal, registerDependant, renewMember, updateMember, fetchMemberStatusData, updatePremium, createDependant, processPolicy, reconciliation, getMemberNumberData, updateAirtelMoneyId };

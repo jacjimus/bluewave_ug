@@ -285,10 +285,10 @@ router.all("/uat/callback", async (req, res) => {
         const to = await formatPhoneNumber(policy.phone_number,2);
         //const period = policy.installment_type === 1 ? "yearly" : "monthly";
 
-        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);
+        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);// 1
         console.log("Payment record created successfully");
 
-        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id);
+        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id); //2
         console.log("=== PAYMENT ===", payment);
         console.log("=== UPDATED POLICY ===", updatedPolicy);
 
@@ -305,11 +305,11 @@ router.all("/uat/callback", async (req, res) => {
         policy.policy_status = "paid";
         policy.save();
 
-        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
+        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth); // 3
          await sendSMSNotification(to, congratText);
 
-        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-        await processPolicy(user, policy, memberStatus);
+        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" }); //4
+        await processPolicy(user, policy, memberStatus); //5
 
         return res.status(200).json({
           code: 200,
@@ -397,9 +397,10 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
 
   } else {
     const registerAARUser = await registerPrincipal(user, policy);
+    //getMemberNumberData
     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
-      await createDependant(user, policy);
+      await createDependant(user, policy, number_of_dependants);
     } 
   }
 }
