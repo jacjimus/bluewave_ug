@@ -4,8 +4,8 @@
   "description": "BLUEWAVE INSURANCE API",
   "main": "index.js",
   "scripts": {
-    "live": "nodemon --config nodemon.json app.ts",
-    "dev": " npx ts-node --require ./instrumentation.ts app.ts",
+    "dev": "nodemon --config nodemon.json app.ts",
+    "live": " npx ts-node --require ./instrumentation.ts app.ts",
     "build": "tsc --project ./",
     "offline": "npm run build && nodemon build/app.js",
     "start": "npm run build && node build/app.js"
