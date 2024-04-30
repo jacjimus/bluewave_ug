@@ -297,7 +297,7 @@ async function updatePremium(user: any, policy: any) {
         health_option: "64",
         premium: ultimatePremium,
         premium_type: policy.installment_type.toString(),
-        premium_installment: policy.installment_order.toString(),
+        premium_installment: 1 ,//policy.installment_order.toString(),
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
@@ -324,6 +324,8 @@ async function updatePremium(user: any, policy: any) {
         },
         data: JSON.stringify(requestData),
       };
+
+      
 
       const response = await axios.request(config);
       logger.info("AAR UPDATE PREMIUM RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number);

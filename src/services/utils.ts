@@ -544,7 +544,7 @@ export function calculatePremium(
 
 
 
-export async function formatPhoneNumber(number, partner) {
+export function formatPhoneNumber(number, partner) {
   // Check if number is a string
   if (typeof number === 'string') {
     // Check for 9-digit format

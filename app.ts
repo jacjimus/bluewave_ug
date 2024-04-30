@@ -136,6 +136,8 @@ cron.schedule('* * * * *', pingEndpoint);
   app.listen(port, () => console.log(`Server listening at port ${port}`));
 }
 
+playground()
+
 
 initializeExpressServer()
   .then()

@@ -1894,7 +1894,8 @@ const findUsersByReferralCode = async (req: any, res: any) => {
       include: [
         {
           model: db.policies,
-          as: 'policies'
+          as: 'policies',
+          where: { policy_status: 'paid' }
         }
       ]
     });
@@ -1920,6 +1921,154 @@ const findUsersByReferralCode = async (req: any, res: any) => {
 };
 
 
+
+/**
+ * @swagger
+ * /api/v1/users/agent/summary:
+ *   get:
+ *     tags:
+ *       - Agent
+ *     description: Get Agent Summary Analytics
+ *     operationId: getAgentSummaryAnalytics
+ *     summary: Get Agent Summary Analytics
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+async function agentSummaryAnalytics(req: any, res: any) {
+  const { user_id, partner_id} = req.query; // Assuming agent ID comes from query parameter
+
+  if (!user_id) {
+    return res.status(400).send('Missing required parameter: agentId');
+  }
+
+  try {
+
+    // get the agent details
+    const agent = await db.users.findOne({
+      where: {  
+        role : 'agent',
+        user_id,
+        partner_id
+       },
+
+      
+    });
+
+    const agent_referral_code = agent.referral_code;
+  
+    // 1. Total number of customers
+    const totalCustomers = await db.users.count({
+      where: {  referral_code : agent_referral_code}
+    });
+
+    // 2. Total number of policies sold
+    const totalPoliciesSold = await db.policies.count({
+      where: {  referral_code : agent_referral_code}
+    });
+
+    // 3. Total premium earned
+    const totalPremiumEarned = await db.policies.sum('policy_paid_amount', {
+      where: {  referral_code : agent_referral_code}
+    });
+
+    // 4. Total commission earned (assuming commission is 10 percent of premium)
+   const totalCommissionEarned =  0;
+
+
+    // 5. Total number of policies expired
+    const totalPoliciesExpired = await db.policies.count({
+     where: {  referral_code : agent_referral_code,  policy_status: 'expired',  policy_end_date: { [Op.lt]: new Date() } } // Filter for expired policies
+    });
+
+    // 6. Total number of policies active
+    const totalPoliciesActive = await db.policies.count({
+      where: { policy_status: 'paid', referral_code : agent_referral_code, policy_end_date: { [Op.gt]: new Date() } } // Filter for active policies (not expired)
+    });
+
+
+    // 8. Total number of policies cancelled (assuming status field exists)
+    const totalPoliciesCancelled = await db.policies.count({
+      where: {  referral_code : agent_referral_code,  is_expired: true } // Filter for cancelled policies
+    });
+
+  
+    const summaryData = {
+      totalCustomers,
+      totalPoliciesSold,
+      totalPremiumEarned,
+      totalCommissionEarned,
+      totalPoliciesExpired,
+      totalPoliciesActive,
+      totalPoliciesCancelled,
+
+    };
+
+    res.status(200).json({ status: "OK", message: "Agent summary analytics fetched successfully", data: summaryData });
+  } catch (error) {
+    logger.error('Error fetching agent summary analytics:', error);
+  return res.status(500).json({ status: "FAILED", message: "Internal server error" });
+}
+}
+
+/**
+ * @swagger
+ * /api/v1/users/agent/all:
+ *   get:
+ *     tags:
+ *       - Agent
+ *     description: Get All Agents
+ *     operationId: findAllAgents
+ *     summary: Get All Agents
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+
+async function findAllAgents(req: any, res: any) {
+  try {
+    const partner_id = req.query.partner_id;
+    const agents = await db.users.findAll({
+      where: { role: 'agent', partner_id }
+    });
+
+    if (!agents || agents.length === 0) {
+      return res.status(404).json({ status: "FAILED", message: "Sorry, No agents found" });
+    }
+
+    return res.status(200).json({ status: "OK", message: "Agents fetched successfully", items: agents });
+  } catch (error) {
+    logger.error('Error fetching agents:', error);
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
+  }
+}
+
+
 module.exports = {
   adminSignup,
   signup,
@@ -1941,5 +2090,7 @@ module.exports = {
   findUserByPhoneNumber,
   sendOTP,
   findUsersByReferralCode,
-  agentSignup
+  agentSignup,
+  agentSummaryAnalytics,
+  findAllAgents
 };

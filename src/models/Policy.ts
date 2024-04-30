@@ -183,6 +183,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        airtel_transaction_ids: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true,
+            default: []
+        },
 
         dependant_member_numbers: {
             type: DataTypes.ARRAY(DataTypes.STRING),
@@ -222,6 +227,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: true,
             defaultValue: false
+        },
+        referral_code: {
+            type: DataTypes.STRING,
+            allowNull: true
         },
     },
 

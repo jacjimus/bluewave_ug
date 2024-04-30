@@ -16,7 +16,6 @@ import { logger } from "../middleware/loggingMiddleware";
 const Transaction = db.transactions;
 const Payment = db.payments;
 const Policy = db.policies;
-const Users = db.users;
 const Beneficiary = db.beneficiaries;
 const PolicySchedule = db.policy_schedules;
 
@@ -59,7 +58,7 @@ export const findTransactionById = async (transactionId) => {
         { transaction_id: transactionId },
         { transaction_reference: transactionId },
       ],
-     // status: ["pending", "failed"],
+      // status: ["pending", "failed"],
 
     },
   });
@@ -72,18 +71,18 @@ const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => 
 
     policy.policy_status = "paid";
     policy.bluewave_transaction_id = payment.payment_id;
-    policy.airtel_transaction_id = airtel_money_id;
+    policy.airtel_money_id = airtel_money_id;
+    policy.airtel_transaction_ids = policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, payment.payment_id] : [payment.payment_id];
     policy.policy_deduction_amount = amount;
     policy.policy_paid_date = new Date();
-    policy.policy_paid_amount = amount;
     policy.is_expired = false;
 
     console.log("Policy", policy);
-  
+
     await policy.save();
 
     console.log("Policy details updated successfully");
-    
+
     return policy;
   } catch (error) {
     logger.error("Error updating policy details:", error);
@@ -110,10 +109,6 @@ const updateInstallmentLogic = async (policy, amount) => {
       installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 0);
     }
 
-    policy.policy_paid_date = new Date();
-
-    console.log("PAID AMOUNT VD PREMIUM", parseInt(policy.policy_paid_amount), parseInt(amount),  parseInt(policy.policy_paid_amount) === parseInt(amount))
-
     if (policy.installment_type === 2) {
       policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
       policy.installment_order = parseInt(policy.policy_paid_amount) !== parseInt(amount) ? 1 : parseInt(policy.installment_order) + 1;
@@ -137,9 +132,10 @@ const updateInstallmentLogic = async (policy, amount) => {
       }
     }
 
-    console.log("Updated policy:", policy);
+    console.log("Policy installment logic updated successfully");
 
     await policy.save();
+
   } catch (error) {
     logger.error("Error updating installment logic:", error);
     throw error;
@@ -148,13 +144,9 @@ const updateInstallmentLogic = async (policy, amount) => {
 
 
 export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
-  console.log("UPDATE STATUS WAS CALLED");
-
   try {
     await updatePolicyDetails(policy, amount, payment, airtel_money_id);
     await updateInstallmentLogic(policy, amount);
-  
-    console.log("===========POLICY PAID =======", policy);
 
     return policy;
   } catch (error) {
@@ -183,47 +175,41 @@ router.all("/callback", async (req, res) => {
       if (status_code === "TS") {
         await transactionData.update({ status: "paid" });
 
-        const user = await Users.findOne({ where: { user_id } });
-
         let policy = await db.policies.findOne({
           where: {
             policy_id,
             user_id,
+            partner_id: partner_id,
+            premium: amount,
+            include: [
+              {
+                model: db.users,
+                as: "user",
+
+              }
+            ]
           }
         });
 
-        console.log("POLICY", policy);
-
         if (!policy) {
+          logger.error("Policy not found");
           return res.status(404).json({ message: "Policy not found" });
         }
 
-        policy.airtel_money_id = airtel_money_id;
+        let user = policy.user;
 
-        const to = await formatPhoneNumber(policy.phone_number,2);
-        //const period = policy.installment_type === 1 ? "yearly" : "monthly";
+        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id, airtel_money_id);
 
-        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);
-        console.log("Payment record created successfully");
-
-        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id);
-        console.log("=== PAYMENT ===", payment);
-        console.log("=== UPDATED POLICY ===", updatedPolicy);
+        await updateUserPolicyStatus(policy, amount, payment, airtel_money_id);
 
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
-        console.log("MEMBERS", members, policy.total_member_number);
-
 
         const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
 
-
-        let sum_insured = policy.sum_insured;
-        let last_expense_insured = policy.last_expense_insured;
-
-       
+        let { sum_insured, last_expense_insured } = policy
 
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
-         await sendSMSNotification(to, congratText);
+        await sendSMSNotification(formatPhoneNumber(policy.phone_number, 2), congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
         await processPolicy(user, policy, memberStatus);
@@ -269,7 +255,7 @@ router.all("/uat/callback", async (req, res) => {
       if (status_code === "TS") {
         await transactionData.update({ status: "paid" });
 
-        const user = await Users.findOne({ where: { user_id } });
+        const user = await db.users.findOne({ where: { user_id } });
 
         let policy = await db.policies.findOne({
           where: {
@@ -286,10 +272,10 @@ router.all("/uat/callback", async (req, res) => {
 
         policy.airtel_money_id = airtel_money_id;
 
-        const to = await formatPhoneNumber(policy.phone_number,2);
+        const to = await formatPhoneNumber(policy.phone_number, 2);
         //const period = policy.installment_type === 1 ? "yearly" : "monthly";
 
-        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id);// 1
+        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id, airtel_money_id);// 1
         console.log("Payment record created successfully");
 
         let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id); //2
@@ -310,7 +296,7 @@ router.all("/uat/callback", async (req, res) => {
         policy.save();
 
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth); // 3
-         await sendSMSNotification(to, congratText);
+        await sendSMSNotification(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" }); //4
         await processPolicy(user, policy, memberStatus); //5
@@ -338,7 +324,7 @@ router.all("/uat/callback", async (req, res) => {
 
 
 
-const createPaymentRecord = async (policy, amount, user_id, policy_id, description, metadata, partner_id) => {
+const createPaymentRecord = async (policy, amount, user_id, policy_id, description, metadata, partner_id, airtel_money_id) => {
   return await Payment.create({
     payment_amount: amount,
     payment_type: `Airtel Money Uganda STK Push for ${policy.beneficiary.toUpperCase()} ${policy.policy_type.toUpperCase()} ${policy.installment_type === 1 ? "yearly" : "monthly"} payment`,
@@ -348,6 +334,7 @@ const createPaymentRecord = async (policy, amount, user_id, policy_id, descripti
     payment_description: description,
     payment_date: new Date(),
     payment_metadata: metadata,
+    airtel_transaction_id: airtel_money_id,
     partner_id,
   });
 };
@@ -392,12 +379,9 @@ const handleFailedPaymentRecord = async (amount, user_id, policy_id, description
 export async function processPolicy(user: any, policy: any, memberStatus: any) {
 
   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-  console.log("Number of dependants:", number_of_dependants);
 
   if (memberStatus?.code === 200) {
     await db.policies.update({ arr_policy_number: memberStatus.policy_no }, { where: { policy_id: policy.policy_id } });
-
-    console.log("AAR POLICY NUMBER UPDATED", user.phone_number, user.name, memberStatus.policy_no);
 
   } else {
     const registerAARUser = await registerPrincipal(user, policy);
@@ -405,7 +389,7 @@ export async function processPolicy(user: any, policy: any, memberStatus: any) {
     user.arr_member_number = registerAARUser?.member_no;
     if (number_of_dependants > 0) {
       await createDependant(user, policy, number_of_dependants);
-    } 
+    }
   }
 }
 

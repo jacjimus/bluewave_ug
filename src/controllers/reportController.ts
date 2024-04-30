@@ -1719,10 +1719,10 @@ const paymentReconciliation = async (req, res) => {
       });
 
       // Update policy if it's paid and airtel money details are missing
-      if (policy && (policy.airtel_money_id === null || policy.airtel_transaction_id === null)) {
+      if (policy && (policy.airtel_money_id === null)) {
         await db.policies.update({
           airtel_money_id: data.airtel_money_id,
-          airtel_transaction_id: data.airtel_money_id
+
         }, {
           where: {
             policy_id: policy.policy_id,

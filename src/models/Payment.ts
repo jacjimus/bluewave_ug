@@ -46,6 +46,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        airtel_transaction_id: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         
         
     })
