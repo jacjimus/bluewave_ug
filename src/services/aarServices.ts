@@ -170,8 +170,6 @@ async function registerPrincipal(user: any, policy: any) {
   }
 }
 
-
-
 interface requestPremiumData {
   member_no: string;
   unique_profile_id: string;
@@ -186,11 +184,8 @@ interface requestPremiumData {
   money_transaction_id: string;
 }
 
-
-// // Define a function to create the dependent
 async function createDependant(existingUser: any, myPolicy: any, number_of_dependants: number) {
   try {
-
 
     let arr_member: any, dependant: any;
 
@@ -258,7 +253,6 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
 
 
 async function updatePremium(user: any, policy: any) {
-
   try {
     if (user.arr_member_number == null) {
       console.log("NO AAR MEMBER NUMBER")
@@ -279,7 +273,6 @@ async function updatePremium(user: any, policy: any) {
       if (policy.total_member_number !== "M" && policy.total_member_number !== null) {
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
 
-
         const policyPremium = policy.premium
 
         const memberSize = (policy.total_member_number).split("")[2]
@@ -297,21 +290,13 @@ async function updatePremium(user: any, policy: any) {
         health_option: "64",
         premium: ultimatePremium,
         premium_type: policy.installment_type.toString(),
-        premium_installment: 1 ,//policy.installment_order.toString(),
+        premium_installment: policy.installment_order.toString(),
         main_benefit_limit: main_benefit_limit,
         last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
         money_transaction_id: policy.airtel_money_id + "",
       };
 
-  //     {
-  //       "member_no": "",
-  //       "unique_profile_id": "",
-  //       "premium": ,
-  //       "premium_type": "",
-  //       "premium_installment": "",
-  //       "money_transaction_id": ""
-  //  }
 
 
       const config = {
@@ -324,8 +309,6 @@ async function updatePremium(user: any, policy: any) {
         },
         data: JSON.stringify(requestData),
       };
-
-      
 
       const response = await axios.request(config);
       logger.info("AAR UPDATE PREMIUM RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number);
