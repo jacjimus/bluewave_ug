@@ -116,7 +116,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
       // Adjust policy amounts
       policy.policy_paid_amount = parseInt(policy.installment_order) * parseInt(policy.premium);
-      policy.policy_pending_premium -= parseInt(amount);
+      policy.policy_pending_premium =parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
 
       console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
 
@@ -126,6 +126,7 @@ const updateInstallmentLogic = async (policy, amount) => {
     } else {
       policy.policy_paid_amount = parseInt(amount);
       policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+      policy.policy_pending_premium = 0;
 
       if (policy.installment_order === 12) {
         policy.is_expired = true;
