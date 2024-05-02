@@ -385,7 +385,6 @@ let arr_members = [
   // 'UG156152-03','UG156178-00','UG156178-01','UG156179-01','UG156180-01',
   // 'UG156180-02','UG156180-03','UG156180-04','UG156180-05','UG156188-01',
   // 'UG156188-02','UG156190-01','UG156224-01','UG156225-01','UG156225-02',
-
   // 'UG156225-03','UG156225-04','UG156225-05','UG156225-06','UG156232-01',
   // 'UG156645-01','UG156645-02','UG156704-00','UG156780-00','UG156954-00',
   // 'UG156957-00','UG156965-00','UG156982-00','UG156992-00','UG157058-00',
@@ -396,7 +395,7 @@ let arr_members = [
   // 'UG157504-00','UG157505-00','UG157514-00','UG157519-01','UG157531-01',
   // 'UG157533-01','UG157533-02','UG157533-03','UG157601-00','UG157604-00',
   // 'UG158306-00','UG159809-00','UG159812-00','UG159813-00','UG162725-00',
-  // 'UG189098-00','UG189099-00'
+   'UG189098-00','UG189099-00'
 
 
 ]
@@ -418,7 +417,14 @@ async function updateAARpolicyNumber(arr_members) {
             partner_id: 2,
             arr_member_number: convertToStandardFormat(arr_member_number)
           }
-        }]
+        },
+        // {
+        //   model: db.payments,
+        //   where: {
+        //     payment_status: 'paid'
+        //   }
+        // }
+      ]
       });
       if (policy) {
         policy.user.arr_member_number = arr_member_number
@@ -477,17 +483,56 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let array_of_phone_numbers_to_update_trans_id = [
+async function createARRDependants() {
+  try {
+    // GET ALL POLICIES WHERE POLICY STATUS IS PAID AND BENEFACTOR IS FAMILY OR OTHER AND TOTAL MEMBER NUMBER IS NOT M
+// ADD DELAY TO AVOID RATE LIMITING
+    const policies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
+        [Op.or]: [{ beneficiary: 'FAMILY' }, { beneficiary: 'OTHER' }],
+        total_member_number: {
+          [Op.not]: 'M'
+        }
+      },
+      include: [{
+        model: db.users,
+        where: {
+          partner_id: 2,
+          arr_member_number: 'UG158261-00'//
+        }
+      }]
+    });
 
-]
+    for (let i = 0; i < policies.length; i++) {
+      const policy = policies[i];
+      const user = policy.user;
+      const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+
+      if (number_of_dependants > 0) {
+
+        await createDependant(user, policy, number_of_dependants);
+        delay(5000);
+      }
+    }
+ 
+  } catch (error) {
+    console.log(error)
+  }
+
+}
+
+
 
 export const playground = async () => {
 
   //policyReconciliation(array_of_phone_numbers)
 
-  //updateAARpolicyNumber(arr_members)
+  updateAARpolicyNumber(arr_members)
 
   //getDataFromSheet();
+  //createARRDependants()
 }
 
 

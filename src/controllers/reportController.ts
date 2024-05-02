@@ -114,6 +114,8 @@ const getPolicySummary = async (req: any, res: any) => {
       },
     });
 
+    const startOfMonth = moment().startOf('month').format('YYYY-MM-DD hh:mm');
+       const endOfMonth   = moment().endOf('month').format('YYYY-MM-DD hh:mm');
 
     const total_policies_renewal = await db.policies.findAll({
       attributes: [
@@ -129,7 +131,7 @@ const getPolicySummary = async (req: any, res: any) => {
           { installment_order: { [Op.gt]: 1 } },
           {
             policy_status: 'paid',
-            policy_start_date: { [Op.between]: [startDate, endDate] }
+            policy_paid_date: { [Op.between]: [ startOfMonth, endOfMonth ] }
           }
         ]
       }

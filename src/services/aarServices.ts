@@ -221,6 +221,8 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
             unique_profile_id: existingUser.membership_id + "",
           });
 
+          console.log("DEPENDANT", dependant)
+
           if (dependant?.code == 200) {
 
             console.log(`Dependant ${i} created:`, dependant);
@@ -239,6 +241,9 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
               resolve(true)
             }
             resolve(true)
+          }else{
+            logger.error("DEPENDANT NOT CREATED", dependant);
+            resolve(true)
           }
         }, 1000 * i); // Adjust the delay as needed
       });
@@ -246,14 +251,15 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
     }
 
   } catch (error) {
-    logger.error('Error:', error.message);
-    throw error;
+    console.error('Error:', error.message);
+    
   }
 }
 
 
 async function updatePremium(user: any, policy: any) {
   try {
+
     if (user.arr_member_number == null) {
       console.log("NO AAR MEMBER NUMBER")
       return
@@ -296,6 +302,8 @@ async function updatePremium(user: any, policy: any) {
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
         money_transaction_id: policy.airtel_money_id + "",
       };
+
+      console.log(requestData)
 
 
 
