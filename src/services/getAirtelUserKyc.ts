@@ -26,7 +26,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
     if (!userData) {
       const user = await User.create({
         user_id: uuidv4(),
-        membership_id: generateMembershipId(),
+        membership_id: generateMembershipId(phoneNumber),
         name: `${userData.first_name} ${userData.last_name}`,
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -52,7 +52,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
     return userData;
   } catch (error) {
-   logger.error("Error in getUserByPhoneNumber:", error.message);
+    logger.error("Error in getUserByPhoneNumber:", error.message);
     throw new Error("Failed to get user. Please try again later.");
   }
 }
@@ -108,7 +108,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 }
 
 async function createUserIfNotExists(userResponce: any, phone_number: string, partner_id: number) {
-  let membershipId = Math.floor(100000 + Math.random() * 900000);
+  let membershipId = generateMembershipId(phone_number);
 
   let fullPhone = await formatPhoneNumber(phone_number, 2);
 
@@ -141,28 +141,29 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
     nationality: "UGANDA",
   });
 
-  const message = `Dear ${full_name}, welcome to Ddwaliro Care. Membership ID: ${membershipId} Dial *185*7*6# to access your account.`;
+  const message = `Dear ${full_name}, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
   await SMSMessenger.sendSMS(2, fullPhone, message);
   return existingUser;
 }
 
-function generateMembershipId() {
+function generateMembershipId(phoneNumber) {
+  let membershipId = phoneNumber.substring(3);
 
-  while (true) {
-    const membershipId = Math.floor(100000 + Math.random() * 900000);
+  const user = User.findOne({ where: { membership_id: membershipId } });
 
-    const user = User.findOne({
-      where: {
-        membership_id: membershipId,
-      },
-    });
-
-    if (!user) {
-      return membershipId;
-    }
+  if (!user) {
+    membershipId = generateRandomId();
   }
 
+  return membershipId;
 }
+
+function generateRandomId() {
+  // Generate a random 6-digit number
+  return Math.floor(100000 + Math.random() * 900000);
+}
+
+
 
 function generatePIN() {
   return Math.floor(1000 + Math.random() * 9000);

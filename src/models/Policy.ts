@@ -2,11 +2,6 @@ import { Sequelize } from "sequelize";
 import { db } from "../models/db";
 import { uuid } from 'uuidv4';
 
-const User = db.users;
-const Payment = db.payments;
-const Policy = db.policies;
-const Beneficiary = db.beneficiaries;
-
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
         policy_id: {

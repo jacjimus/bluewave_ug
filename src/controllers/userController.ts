@@ -41,10 +41,6 @@ async function findUserByUserId(user_id: string, partner_id: number) {
         as: "beneficiaries",
       },
       {
-        model: Payments,
-        as: "payments",
-      },
-      {
         model: Policy,
         as: "policies",
       }
@@ -630,7 +626,7 @@ const findUser = async (req: any, res: any) => {
 
 /**
  * @swagger
- * /api/v1/users/{phone_number}:
+ * /api/v1/users/fetch_user_by_phone_number:
  *   get:
  *     tags:
  *       - Users
@@ -646,7 +642,7 @@ const findUser = async (req: any, res: any) => {
  *         schema:
  *           type: number
  *       - name: phone_number
- *         in: path
+ *         in: query
  *         required: true
  *         schema:
  *           type: string
@@ -658,8 +654,10 @@ const findUser = async (req: any, res: any) => {
  */
 const findUserByPhoneNumber = async (req: any, res: any) => {
   try {
+
+    console.log("REQ QUERY", req.query)
     let partner_id = req.query.partner_id;
-    let phone_number = req.params.phone_number;
+    let phone_number = req.query.phone_number;
 
 
     let user: any = await findUserByPhoneNumberFunc(phone_number, partner_id);
@@ -861,6 +859,7 @@ const deleteUser = async (req: any, res: any) => {
  */
 const getPartner = async (req: any, res: any) => {
   try {
+    console.log("++++++++++++++getPartner ++++++++++++++++++", req.query.partner_id);
     let partner_id = req.query.partner_id;
 
     let partner: any = await Partner.findOne({
@@ -910,8 +909,8 @@ const getPartner = async (req: any, res: any) => {
  */
 const listPartners = async (req: any, res: any) => {
   try {
-
-
+console.log("================req.partner_id.+====================",req.partner_id)
+     
     let partner: any = await Partner.findAll();
     if (parseInt(req.partner_id) == 4) {
 

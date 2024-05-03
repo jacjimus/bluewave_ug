@@ -24,12 +24,12 @@ const upload = multer({ storage: storage, fileFilter: excelFilter });
 
 
 router.get('/', isSuperAdmin, userController.findAllUsers)
-router.get('/:phone_number', userController.findUserByPhoneNumber)
-router.get('/partner', isSuperAdmin, userController.getPartner)
 router.get('/partners', isSuperAdmin,userController.listPartners)
-router.get('/:user_id', userController.findUser)
+router.get('/partner', isSuperAdmin, userController.getPartner)
 router.get('/agent/all', userController.findAllAgents)
 router.get('/agent/summary', userController.agentSummaryAnalytics)
+router.get('/:user_id', userController.findUser)
+router.get('/fetch_user_by_phone_number', userController.findUserByPhoneNumber)
 router.get('/agent/:referral_code', userController.findUsersByReferralCode)
 router.get('/vehicle/:user_id', userController.findUserVehicle)
 router.post('/partnerSwitch', isSuperAdmin, userController.partnerSwitch)

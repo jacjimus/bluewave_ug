@@ -428,7 +428,7 @@ const createPayment = async (req, res) => {
                 policy.policy_id,
                 existingUser.phone_number,
                 policy.premium,
-                existingUser.membership_id,
+                existingUser.phone_number.toString(),
                 existingUser.partner_id
             );
         } else if (partner_id === 2) {
@@ -442,7 +442,7 @@ const createPayment = async (req, res) => {
 
                 existingUser.phone_number,
                 policy.premium,
-                existingUser.membership_id,
+                existingUser.phone_number.toString(),
                 preGeneratedTransactionId
 
             );

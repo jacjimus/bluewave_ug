@@ -144,11 +144,11 @@ export async function getDataFromSheet() {
 
 
 //transacactions_id trasaction_date phone_number  premium 
-//102892505404	24-04-2024 01:05 PM	709300451	18,000
+//102391971655	13-04-2024 09:28 AM	740349353	5,000
 const array_of_phone_numbers = [
 
   // { transaction_id: 102325849438, transaction_date: '11-04-2024 6:18 PM', phone_number: 709225627, premium: 5000 },
-  { transaction_id: 102892505404, transaction_date: '24-04-2024 01:05 PM', phone_number: 709300451, premium: 18000 },
+  { transaction_id: 102391971655, transaction_date: '13-04-2024 09:28 AM', phone_number: 740349353, premium: 5000 },
 
 
 ];
@@ -327,28 +327,34 @@ function convertToStandardFormat(memberNumber) {
 // updating premium on aar 
 async function updatePremiumArr(policies) {
   try {
-    policies.forEach(async (arr_member_number) => {
-      console.log("arr_member_number", arr_member_number)
+   // policies.forEach(async (arr_member_number) => {
+     // console.log("arr_member_number", arr_member_number)
       const policies = await db.policies.findAll({
         where: {
           policy_status: 'paid',
           partner_id: 2,
+          installment_order: 6,
+          installment_type: 2,
+          policy_start_date: {
+            [Op.between]: ['2023-10-01', '2024-05-03']
+          }
 
         },
         include: [{
           model: db.users,
           where: {
             partner_id: 2,
-            arr_member_number: convertToStandardFormat(arr_member_number)
+            //arr_member_number: convertToStandardFormat(arr_member_number)
           }
-        }]
+        }],
+        order: [["createdAt", "DESC"]],
       });
 
       for (let i = 0; i < policies.length; i++) {
         const policy = policies[i];
         const customer = policy.user
         console.log(customer.name, policy.phone_number);
-        customer.arr_member_number = arr_member_number
+        //customer.arr_member_number = arr_member_number
         let result = await updatePremium(customer, policy);
         console.log(result);
         //   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
@@ -364,38 +370,37 @@ async function updatePremiumArr(policies) {
         //   await new Promise(resolve => setTimeout(resolve, 6000));
       }
 
-    })
+   // })
 
   } catch (error) {
     console.log(error);
   }
 }
+const membershipData = [
+  //{ membership_id: 612994, arr_member_number: 'UG155848-01' },
+ 
+];
+
+
+// Iterate over the membership data and update the corresponding records in the users table
+async function updateMembershipData() {
+for (const data of membershipData) {
+  await db.users.update(
+    { membership_id: data.membership_id },
+    { where: { arr_member_number: convertToStandardFormat(data.arr_member_number)} }
+  );
+}
+}
+
+console.log('Membership data updated successfully.');
 
 
 let arr_members = [
-  // 'UG155848-05','UG155848-06','UG155848-07','UG155848-08','UG155903-03',
-  // 'UG155903-04','UG156285-01','UG156286-01','UG156288-01','UG156288-02',
-  // 'UG156293-01','UG156293-02','UG155848-00','UG156006-00','UG155848-01',
-  // 'UG155848-02','UG155848-03','UG155848-04','UG155857-01','UG155863-01',
-  // 'UG155863-02','UG155872-01','UG155903-01','UG155903-02','UG155916-01',
-  // 'UG155916-02','UG155916-03','UG155919-01','UG155919-02','UG155919-03',
-  // 'UG155919-04','UG155919-05','UG155919-06','UG155955-01','UG156129-01',
-  // 'UG156129-02','UG156134-01','UG156149-01','UG156149-02','UG156150-01',
-  // 'UG156150-02','UG156151-01','UG156151-02','UG156152-01','UG156152-02',
-  // 'UG156152-03','UG156178-00','UG156178-01','UG156179-01','UG156180-01',
-  // 'UG156180-02','UG156180-03','UG156180-04','UG156180-05','UG156188-01',
-  // 'UG156188-02','UG156190-01','UG156224-01','UG156225-01','UG156225-02',
-  // 'UG156225-03','UG156225-04','UG156225-05','UG156225-06','UG156232-01',
-  // 'UG156645-01','UG156645-02','UG156704-00','UG156780-00','UG156954-00',
-  // 'UG156957-00','UG156965-00','UG156982-00','UG156992-00','UG157058-00',
-  // 'UG157160-00','UG157164-01','UG157200-00','UG157245-01','UG157245-02',
-  // 'UG157245-03','UG157245-04','UG157245-05','UG157245-06','UG157285-01',
-  // 'UG157290-01','UG157290-02','UG157290-03','UG157290-04','UG157290-05',
-  // 'UG157290-06','UG157344-01','UG157375-01','UG157375-02','UG157483-01',
-  // 'UG157504-00','UG157505-00','UG157514-00','UG157519-01','UG157531-01',
-  // 'UG157533-01','UG157533-02','UG157533-03','UG157601-00','UG157604-00',
-  // 'UG158306-00','UG159809-00','UG159812-00','UG159813-00','UG162725-00',
-   'UG189098-00','UG189099-00'
+  //"UG156006-00",
+ 
+
+
+
 
 
 ]
@@ -500,7 +505,7 @@ async function createARRDependants() {
         model: db.users,
         where: {
           partner_id: 2,
-          arr_member_number: 'UG158261-00'//
+          arr_member_number: ''//
         }
       }]
     });
@@ -529,10 +534,15 @@ export const playground = async () => {
 
   //policyReconciliation(array_of_phone_numbers)
 
-  updateAARpolicyNumber(arr_members)
+ 
+  //updateAARpolicyNumber(arr_members)
 
   //getDataFromSheet();
   //createARRDependants()
+
+  //updateMembershipData()
+
+ // updatePremiumArr(array_of_phone_numbers)
 }
 
 

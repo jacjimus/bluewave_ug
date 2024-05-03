@@ -149,7 +149,7 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
     policy.policy_id,
     trimmedMsisdn,
     policy.policy_deduction_amount,
-    existingUser.membership_id,
+    existingUser.phone_number.toString(),
     existingUser.partner_id
   );
 

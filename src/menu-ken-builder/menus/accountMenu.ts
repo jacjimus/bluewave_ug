@@ -195,7 +195,7 @@ const accountMenu = async (args: any, db: any) => {
                     choosenPolicy.policy_id,
                     msisdn.replace("+", "").substring(3),
                     choosenPolicy.premium,
-                    existingUser.membership_id,
+                    existingUser.phone_number.toString(),
                     existingUser.partner_id
                 );
 

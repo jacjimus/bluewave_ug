@@ -641,7 +641,7 @@ async function processPayment(policyObject, phoneNumber, existingOther) {
       const airtelMoneyPromise = await airtelMoney(
         phoneNumber.replace("+", "").substring(3),
         policy.premium,
-        existingOther.membership_id,
+        existingOther.phone_number.toString(),
         preGeneratedTransactionId
       );
 
