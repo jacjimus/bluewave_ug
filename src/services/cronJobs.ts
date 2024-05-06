@@ -173,10 +173,10 @@ export const  getArrMemberNumberData = async () => {
 
 
 // Define the command to ping the endpoint
-const pingCommand = process.env.AIRTEL_PING_COMMAND || 'ping 41.223.58.252';
+const pingCommand = process.env.AIRTEL_PING_COMMAND || 'traceroute -m 10 41.223.58.252';
 
 // Define the cron schedule (every 5 minutes)
-const cronSchedule = '*/2 * * * *';
+const cronSchedule = '*/5 * * * *';
 
 // Define the cron job
 export const job = cron.schedule(cronSchedule, () => {
@@ -213,4 +213,3 @@ export async function pingEndpoint() {
 
 // Optionally, start the cron job immediately (uncomment the following line)
 // pingEndpoint();
-
