@@ -469,37 +469,13 @@ const othersMenu = async (args, db) => {
 
         let policy = await db.policies.create(policyObject);
 
-        const airtelMoneyPromise = airtelMoneyKenya(
-          existingUser.user_id,
-          policy.policy_id,
-          phone,
-          parseAmount(ultimatePremium),
-          existingUser.membership_id,
-          existingUser.partner_id
+        const airtelMoneyResponse = airtelMoneyKenya(
+          existingUser,
+          policy
+         
         );
 
-        const timeout = 3000;
-
-        Promise.race([
-          airtelMoneyPromise,
-          new Promise((resolve, reject) => {
-            setTimeout(() => {
-              reject(new Error('Airtel Money kenya operation timed out'));
-            }, timeout);
-          }),
-        ]).then((result) => {
-          console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
-          response = 'END Payment successful';
-          console.log("OTHER - RESPONSE WAS CALLED", result);
-          return response;
-        })
-          .catch((error) => {
-            response = 'END Payment failed';
-            console.log("OTHER - RESPONSE WAS CALLED EER", error);
-            return response;
-          })
-
-        console.log("============== AFTER CATCH  TIME - FAMILY KENYA  ================ ", msisdn, new Date());
+        console.log("AIRTEL MONEY RESPONSE", airtelMoneyResponse);
       } catch (error) {
         //response = 'END Payment failed'; // Set an error response
         console.log("OTHER - RESPONSE WAS CALLED EER", error);

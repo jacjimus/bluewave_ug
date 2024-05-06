@@ -101,29 +101,32 @@ function handlePaymentError(error, status) {
 
 
 
-async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, reference, partner_id) {
+async function airtelMoneyKenya(existingUser, policy ) {
   const status = {
     code: 200,
     status: "OK",
     result: "",
     message: 'Payment successfully initiated'
   };
+  
+ 
+
 
   try {
-    const token = await authTokenByPartner(partner_id);
+    const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference,
+      reference:existingUser.phone_number.toString(),
       subscriber: {
         country: "KE",
         currency: "KES",
-        msisdn: phoneNumber,
+        msisdn: existingUser.phone_number,
       },
       transaction: {
-        amount,
+        amount: policy.premium,
         country: "KE",
         currency: "KES",
-        id: policy_id
+        id: policy.policy_id,
       },
     };
 
@@ -141,12 +144,12 @@ async function airtelMoneyKenya(user_id, policy_id, phoneNumber, amount, referen
 
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
-      await createTransaction(user_id, 1, policy_id, paymentData.transaction.id, amount);
+      await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id,policy.premium,);
       return status;
     }
 
     status.code = 500;
-    status.message = 'Payment failed'; // Update message only on failure
+    status.message = 'Payment failed'; 
     return status;
   } catch (error) {
 

@@ -191,17 +191,14 @@ const accountMenu = async (args: any, db: any) => {
 
 
                 const airtelMoneyPromise = airtelMoneyKenya(
-                    existingUser.user_id,
-                    choosenPolicy.policy_id,
-                    msisdn.replace("+", "").substring(3),
-                    choosenPolicy.premium,
-                    existingUser.phone_number.toString(),
-                    existingUser.partner_id
+                    existingUser,
+                    choosenPolicy
+                  
                 );
 
 
 
-                const timeout = 3000;
+                const timeout = 1000;
 
                 Promise.race([
                     airtelMoneyPromise,

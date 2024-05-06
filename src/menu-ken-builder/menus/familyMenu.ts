@@ -581,16 +581,15 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
 
   console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, new Date());
 
-  const airtelMoneyPromise = airtelMoneyKenya(
-    existingUser.user_id,
-    policy.policy_id,
-    msisdn,
-    ultimatePremium,
-    existingUser.membership_id,
-    existingUser.partner_id
+  const airtelMoneyResponse = airtelMoneyKenya(
+    existingUser,
+    policy
+   
   );
 
-  let  response = await handleAirtelMoneyPromise(airtelMoneyPromise, msisdn);
+  console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, new Date());
+
+  let  response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
   console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, new Date());
 
   return response;
@@ -634,7 +633,7 @@ async function createAndSavePolicy(policyObject, db) {
 }
 
 async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
-  const timeout = 3000;
+  const timeout = 1000;
 
   try {
     await Promise.race([
