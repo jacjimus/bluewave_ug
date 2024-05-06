@@ -1,6 +1,5 @@
-import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
-import { calculatePaymentOptions, parseAmount } from "../../services/utils";
+import {  parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, createTransaction, processPayment } from "../../services/payment";
 
@@ -500,7 +499,7 @@ const othersMenu = async (args, db) => {
         const airtelMoneyPromise = await airtelMoney(
             phoneNumber.replace("+", "").substring(3),
             policy.premium,
-            existingOther.membership_id,
+            existingOther.phone_number.toString(),
             preGeneratedTransactionId
         );
 

@@ -153,10 +153,12 @@ const accountMenu = async (args: any, db: any) => {
                     },
                     limit: 6
                 });
+                // const number_of_dependants = parseFloat(userPolicy?.total_member_number.split("")[2]) || 0;
+                // console.log("NUMBER OF DEPENDANTS", number_of_dependants, dependants.length)
                 if (userPolicy.total_member_number == 'M') {
                     response = "END You have no dependants for your policy type " + userPolicy.beneficiary + " " + userPolicy.policy_type
 
-                } else if (dependants.length > 5) {
+                } else if (dependants.length > 6) {
                     response = `END You have reached the maximum number of dependants for your policy type ${userPolicy.beneficiary} ${userPolicy.policy_type}. \n Press 1 to view dependants`
                 }
                 else {
@@ -285,7 +287,7 @@ const accountMenu = async (args: any, db: any) => {
             
                 phoneNumber.replace("+", "").substring(3),
                 choosenPolicy.premium,
-                existingUser.membership_id,
+                existingUser.phone_number.toString(),
                 preGeneratedTransactionId
                
             );

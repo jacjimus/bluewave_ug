@@ -1,5 +1,3 @@
-import SMSMessenger from "../../services/sendSMS";
-import { registerDependant, fetchMemberStatusData, updatePremium } from "../../services/aarServices";
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney, createTransaction } from "../../services/payment";
 import { Op } from "sequelize";
@@ -96,7 +94,7 @@ const renewMenu = async (args: any, db: any) => {
           const airtelMoneyPromise = await airtelMoney(
               phoneNumber.replace("+", "").substring(3),
               choosenPolicy.premium,
-              existingUser.membership_id,
+              existingUser.phone_number.toString(),
               preGeneratedTransactionId
           );
 

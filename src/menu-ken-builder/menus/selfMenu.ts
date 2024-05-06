@@ -142,18 +142,17 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   let policyObject = createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn);
   let policy = await createPolicy(policyObject, db);
 
-  console.log("============== START TIME - SELFKENYA   ================ ", msisdn, new Date());
+  console.log("============== START TIME - SELF KENYA   ================ ", msisdn, new Date());
 
-  const airtelMoneyPromise = airtelMoneyKenya(
-    existingUser.user_id,
-    policy.policy_id,
-    trimmedMsisdn,
-    policy.policy_deduction_amount,
-    existingUser.membership_id,
-    existingUser.partner_id
+  const airtelMoneyResponse = airtelMoneyKenya(
+    existingUser,
+    policy
+   
   );
 
-  await handleAirtelMoneyPromise(airtelMoneyPromise, trimmedMsisdn);
+  console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, new Date());
+
+  //await handleAirtelMoneyPromise(airtelMoneyPromise, trimmedMsisdn);
 }
 
 async function findExistingUser(trimmedMsisdn, partner_id, db) {

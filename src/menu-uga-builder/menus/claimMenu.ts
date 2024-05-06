@@ -16,7 +16,6 @@ let policy: any;
     else if (currentStep === 2) {
         switch (userText) {
             case "1":
-                // CREATE CLAIM
                 let claim_type = "Inpatient Claim";
                 let user = await db.users.findOne({
                     where: {

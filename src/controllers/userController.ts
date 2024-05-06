@@ -13,11 +13,13 @@ import {
   generateReferralCode
 
 } from "../services/utils";
-const { Op } = require("sequelize");
+
 const XLSX = require("xlsx");
 import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "../services/sendSMS";
 import { logger } from '../middleware/loggingMiddleware';
+const { Op, Sequelize, } = require("sequelize");
+import moment from 'moment';
 
 const User = db.users;
 const Partner = db.partners;
@@ -37,10 +39,6 @@ async function findUserByUserId(user_id: string, partner_id: number) {
       {
         model: Beneficiary,
         as: "beneficiaries",
-      },
-      {
-        model: Payments,
-        as: "payments",
       },
       {
         model: Policy,
@@ -113,7 +111,7 @@ const signup = async (req, res) => {
     // Remove leading '0' from phone number
     phone_number = phone_number.replace(/^0/, '');
 
-  
+
     // Validate email format
     if (email && !isValidEmail(email)) {
       return res.status(400).json({ code: 400, message: "Please enter a valid email" });
@@ -628,7 +626,7 @@ const findUser = async (req: any, res: any) => {
 
 /**
  * @swagger
- * /api/v1/users/{phone_number}:
+ * /api/v1/users/fetch_user_by_phone_number:
  *   get:
  *     tags:
  *       - Users
@@ -644,7 +642,7 @@ const findUser = async (req: any, res: any) => {
  *         schema:
  *           type: number
  *       - name: phone_number
- *         in: path
+ *         in: query
  *         required: true
  *         schema:
  *           type: string
@@ -656,8 +654,10 @@ const findUser = async (req: any, res: any) => {
  */
 const findUserByPhoneNumber = async (req: any, res: any) => {
   try {
+
+    console.log("REQ QUERY", req.query)
     let partner_id = req.query.partner_id;
-    let phone_number = req.params.phone_number;
+    let phone_number = req.query.phone_number;
 
 
     let user: any = await findUserByPhoneNumberFunc(phone_number, partner_id);
@@ -687,7 +687,7 @@ const findUserByPhoneNumber = async (req: any, res: any) => {
 async function findUserByPhoneNumberFunc(phone_number: string, partner_id: number) {
   let user
   if (phone_number) {
-    
+
     user = await User.findOne({
       where: {
         phone_number: phone_number,
@@ -859,6 +859,7 @@ const deleteUser = async (req: any, res: any) => {
  */
 const getPartner = async (req: any, res: any) => {
   try {
+    console.log("++++++++++++++getPartner ++++++++++++++++++", req.query.partner_id);
     let partner_id = req.query.partner_id;
 
     let partner: any = await Partner.findOne({
@@ -908,8 +909,8 @@ const getPartner = async (req: any, res: any) => {
  */
 const listPartners = async (req: any, res: any) => {
   try {
-
-
+console.log("================req.partner_id.+====================",req.partner_id)
+     
     let partner: any = await Partner.findAll();
     if (parseInt(req.partner_id) == 4) {
 
@@ -1766,7 +1767,7 @@ const agentSignup = async (req, res) => {
       }
     }
 
-    if(national_id){
+    if (national_id) {
       const nationalIdExists = await User.findOne({ where: { national_id } });
       if (nationalIdExists) {
         return res.status(409).json({ status: "FAILED", code: 409, message: "National ID already exists" });
@@ -1796,7 +1797,7 @@ const agentSignup = async (req, res) => {
       addressline,
       pinzip,
       nationality,
-      referral_code:  referral_code,
+      referral_code: referral_code,
       partner_id,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -1828,7 +1829,7 @@ const agentSignup = async (req, res) => {
       `;
 
       // send welcome email
-       await sendEmail(email, "Welcome to Bluewave", welcomeTemplate)
+      await sendEmail(email, "Welcome to Bluewave", welcomeTemplate)
 
       return res.status(201).json({
         result: {
@@ -1873,6 +1874,21 @@ const agentSignup = async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *       - name: filter
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: number
  *     responses:
  *       200:
  *         description: Information fetched succussfuly
@@ -1883,41 +1899,321 @@ const findUsersByReferralCode = async (req: any, res: any) => {
   try {
     let partner_id = req.query.partner_id;
     let referral_code = req.params.referral_code;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const filter = req.query.filter;
 
 
-    let user: any = await db.users.findAll({
+    const searchFilters: any = {};
+    if (filter) {
+
+      searchFilters[Op.or] =  [
+        {
+          first_name: { [Sequelize.Op.like]: `%${filter}%` }
+        },
+        {
+          last_name: { [Sequelize.Op.like]: `%${filter}%` }
+        },
+        {
+          arr_member_number: { [Sequelize.Op.like]: `%${filter}%` }
+        },
+        {
+          phone_number: { [Sequelize.Op.like]: `%${filter}%` }
+        },
+        {
+          name: { [Sequelize.Op.like]: `%${filter}%` }
+  
+        }
+  
+      ]
+    }
+  
+    const paginationOptions = {
+      offset: (page - 1) * limit, 
+      limit: limit, 
+    };
+
+    
+    let { rows: agents, count: totalCount } = await db.users.findAndCountAll({
       where: {
         partner_id: partner_id,
         referral_code: referral_code,
-        role: 'user'
+        role: 'user',
       },
       include: [
         {
           model: db.policies,
-          as: 'policies'
+          as: 'policies',
+          where: {
+            policy_status: 'paid',
+            referral_code: referral_code
+          }
         }
-      ]
+      ],
+      ...searchFilters,
+      ...paginationOptions,
+    
     });
 
-    if (!user || user.length === 0) {
+    if (!agents || agents.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
     }
+
+    
 
     return res
       .status(200)
       .json({
         result: {
           code: 200,
-          status: "OK", message: "Customers fetched successfully", item: user
+          status: "OK", message: "Agent fetched successfully", 
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          count: totalCount,
+          items: agents,
+         
         }
       });
   } catch (error) {
     logger.error("ERROR", error);
     return res
       .status(500)
-      .json({ status: "FAILED", message: "Internal server error", error: error });
+      .json({ status: "FAILED", message: "Internal server error" });
   }
 };
+
+
+
+/**
+ * @swagger
+ * /api/v1/users/agent/summary:
+ *   get:
+ *     tags:
+ *       - Agent
+ *     description: Get Agent Summary Analytics
+ *     operationId: getAgentSummaryAnalytics
+ *     summary: Get Agent Summary Analytics
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - name: user_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+async function agentSummaryAnalytics(req: any, res: any) {
+  const { user_id, partner_id } = req.query; // Assuming agent ID comes from query parameter
+
+  if (!user_id) {
+    return res.status(400).send('Missing required parameter: agentId');
+  }
+
+  try {
+
+    // get the agent details
+    const agent = await db.users.findOne({
+      where: {
+        role: 'agent',
+        user_id,
+        partner_id
+      },
+
+    });
+
+    // console.log('agent', agent);
+
+    const agent_referral_code = agent.referral_code;
+    console.log('agent_referral_code', agent_referral_code);
+
+    // 1. Total number of customers
+    const totalCustomers = await db.users.count({
+      where: { referral_code: agent_referral_code }
+    });
+
+    console.log('totalCustomers', totalCustomers);
+
+    // 2. Total number of policies sold
+    const totalPoliciesSold = await db.policies.count({
+      where: { referral_code: agent_referral_code }
+    });
+
+    // 3. Total premium earned
+    const totalPremiumEarned = await db.policies.sum('policy_paid_amount', {
+      where: { referral_code: agent_referral_code }
+    });
+
+    // 4. Total commission earned (assuming commission is 10 percent of premium)
+    const totalCommissionEarned = parseInt(totalPremiumEarned) * 0.1 || 0;
+
+
+    // 5. Total number of policies expired
+    const totalPoliciesExpired = await db.policies.count({
+      where: { referral_code: agent_referral_code, policy_status: 'expired', policy_end_date: { [Op.lt]: new Date() } } // Filter for expired policies
+    });
+
+    console.log('totalPoliciesExpired', totalPoliciesExpired);
+
+    // 6. Total number of policies active
+    const totalPoliciesActive = await db.policies.count({
+      where: { policy_status: 'paid', referral_code: agent_referral_code, policy_end_date: { [Op.gt]: new Date() } } // Filter for active policies (not expired)
+    });
+
+    console.log('totalPoliciesActive', totalPoliciesActive);
+
+    // 8. Total number of policies cancelled (assuming status field exists)
+    const totalPoliciesCancelled = await db.policies.count({
+      where: { referral_code: agent_referral_code, is_expired: true } // Filter for cancelled policies
+    });
+
+    console.log('totalPoliciesCancelled', totalPoliciesCancelled)
+
+    // percetage of different policies type and beneficiary
+
+    // policy_types are "S MINI", "MINI", "MIDI", "BIGGIE",
+    // while beneficiaries are "SELF", "FAMILY" "OTHER"
+
+    const policyType = await db.policies.findAll({
+      where: { referral_code: agent_referral_code },
+      attributes: ['policy_type', [Sequelize.fn('COUNT', 'policy_type'), 'policy_count']],
+      group: ['policy_type']
+    });
+
+    const policyBeneficiary = await db.policies.findAll({
+      where: { referral_code: agent_referral_code },
+      attributes: ['beneficiary', [Sequelize.fn('COUNT', 'beneficiary'), 'beneficiary_count']],
+      group: ['beneficiary']
+    });
+
+
+    // Calculate total count for each category
+    const totalPolicyCount = policyType.reduce((acc, curr) => acc + curr.dataValues.policy_count, 0);
+    const totalBeneficiaryCount = policyBeneficiary.reduce((acc, curr) => acc + curr.dataValues.beneficiary_count, 0);
+
+    // Calculate percentage for each category
+    const policyTypePercentage = policyType.map(type => ({
+      policy_type: type.dataValues.policy_type,
+      policy_count: type.dataValues.policy_count,
+      percentage: ((type.dataValues.policy_count / totalPolicyCount) * 100).toFixed(2)
+    }));
+
+    const policyBeneficiaryPercentage = policyBeneficiary.map(beneficiary => ({
+      beneficiary: beneficiary.dataValues.beneficiary,
+      beneficiary_count: beneficiary.dataValues.beneficiary_count,
+      percentage: ((beneficiary.dataValues.beneficiary_count / totalBeneficiaryCount) * 100).toFixed(2)
+    }));
+
+    // Monthy analytics 
+    const monthlyAnalytics = await db.policies.findAll({
+      where: {
+        referral_code: agent_referral_code,
+        createdAt: {
+          [Op.gte]: moment().subtract(30, 'days').toDate()
+        }
+      },
+      attributes: [
+        [Sequelize.literal('DATE_TRUNC(\'month\', "createdAt")'), 'month'],
+        [Sequelize.fn('COUNT', 'policy_id'), 'policy_count']
+      ],
+      group: [Sequelize.literal('DATE_TRUNC(\'month\', "createdAt")')]
+    });
+
+    // monthy vs yearly installment type using installment_type column, 1 is yearly and 2 is monthly
+    const installmentType = await db.policies.findAll({
+      where: { referral_code: agent_referral_code },
+      attributes: ['installment_type', [Sequelize.fn('COUNT', 'installment_type'), 'installment_count']],
+      group: ['installment_type']
+    });
+
+    // Calculate total count for each category
+    const totalInstallmentCount = installmentType.reduce((acc, curr) => acc + curr.dataValues.installment_count, 0);
+
+    // Calculate percentage for each category
+    const installmentTypePercentage = installmentType.map(type => ({
+      installment_type: type.dataValues.installment_type === 1 ? 'Yearly' : 'Monthly',
+      installment_count: type.dataValues.installment_count,
+      percentage: ((type.dataValues.installment_count / totalInstallmentCount) * 100).toFixed(2)
+    }));
+
+
+
+
+
+    const summaryData = {
+      totalCustomers,
+      totalPoliciesSold,
+      totalPremiumEarned,
+      totalCommissionEarned,
+      totalPoliciesExpired,
+      totalPoliciesActive,
+      totalPoliciesCancelled,
+      policyTypePercentage,
+      policyBeneficiaryPercentage,
+      monthlyAnalytics,
+      installmentTypePercentage
+
+
+    };
+
+    res.status(200).json({ status: "OK", message: "Agent summary analytics fetched successfully", data: summaryData });
+  } catch (error) {
+    logger.error('Error fetching agent summary analytics:', error);
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/users/agent/all:
+ *   get:
+ *     tags:
+ *       - Agent
+ *     description: Get All Agents
+ *     operationId: findAllAgents
+ *     summary: Get All Agents
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - name: partner_id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Information fetched succussfuly
+ *       400:
+ *         description: Invalid request
+ */
+
+async function findAllAgents(req: any, res: any) {
+  try {
+    const partner_id = req.query.partner_id;
+    const agents = await db.users.findAll({
+      where: { role: 'agent', partner_id }
+    });
+
+    if (!agents || agents.length === 0) {
+      return res.status(404).json({ status: "FAILED", message: "Sorry, No agents found" });
+    }
+
+    return res.status(200).json({ status: "OK", message: "Agents fetched successfully", items: agents });
+  } catch (error) {
+    logger.error('Error fetching agents:', error);
+    return res.status(500).json({ status: "FAILED", message: "Internal server error" });
+  }
+}
 
 
 module.exports = {
@@ -1941,5 +2237,7 @@ module.exports = {
   findUserByPhoneNumber,
   sendOTP,
   findUsersByReferralCode,
-  agentSignup
+  agentSignup,
+  agentSummaryAnalytics,
+  findAllAgents
 };

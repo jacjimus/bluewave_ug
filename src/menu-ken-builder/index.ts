@@ -99,11 +99,11 @@ export default function (args: KenRequestBody, db: any) {
       let previousStep = currentStep - 1;
       let userText = allSteps[allSteps.length - 1];
 
-      console.log("KEN allStepsAfter", allSteps);
-      console.log("KEN firstStep", firstStep);
-      console.log("KEN currentStep", currentStep);
-      console.log("KEN previousStep", previousStep);
-      console.log("KEN userinput", userText);
+      // console.log("KEN allStepsAfter", allSteps);
+      // console.log("KEN firstStep", firstStep);
+      // console.log("KEN currentStep", currentStep);
+      // console.log("KEN previousStep", previousStep);
+      // console.log("KEN userinput", userText);
 
       const params = {
         msisdn,

@@ -38,8 +38,8 @@ async function arr_uganda_login() {
 
     return response.data.token;
   } catch (error) {
-    logger.error(error.message)
-    throw error;
+  console.error(error.message)
+    throw new Error(error.message); 
   }
 }
 
@@ -170,8 +170,6 @@ async function registerPrincipal(user: any, policy: any) {
   }
 }
 
-
-
 interface requestPremiumData {
   member_no: string;
   unique_profile_id: string;
@@ -186,11 +184,8 @@ interface requestPremiumData {
   money_transaction_id: string;
 }
 
-
-// // Define a function to create the dependent
 async function createDependant(existingUser: any, myPolicy: any, number_of_dependants: number) {
   try {
-
 
     let arr_member: any, dependant: any;
 
@@ -226,6 +221,8 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
             unique_profile_id: existingUser.membership_id + "",
           });
 
+          console.log("DEPENDANT", dependant)
+
           if (dependant?.code == 200) {
 
             console.log(`Dependant ${i} created:`, dependant);
@@ -244,6 +241,9 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
               resolve(true)
             }
             resolve(true)
+          }else{
+            logger.error("DEPENDANT NOT CREATED", dependant);
+            resolve(true)
           }
         }, 1000 * i); // Adjust the delay as needed
       });
@@ -251,25 +251,33 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
     }
 
   } catch (error) {
-    logger.error('Error:', error.message);
-    throw error;
+    console.error('Error:', error.message);
+    
   }
 }
 
 
 async function updatePremium(user: any, policy: any) {
-
   try {
+
     if (user.arr_member_number == null) {
       console.log("NO AAR MEMBER NUMBER")
       return
     }
+    let unique_profile_id = user.membership_id + "";
+
+    // if(policy.beneficiary == "OTHER"){
+    //   console.log("OTHER BENEFICIARY", user.name, policy.beneficiary, policy.policy_type,policy.membership_id );
+    //   let principal = await db.users.findOne({ where: { membership_id : policy.membership_id } });
+    //   unique_profile_id = principal.membership_id + "";
+
+    // }
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if (user.user_id !== policy.user_id) {
       console.log("POLICY NOT FOR USER", user.name, policy.policy_type, user.total_member_number);
     } else {
 
-      console.log('UPDATE PREMIUM', user.name, policy.policy_type, policy.total_member_number)
+      console.log('UPDATE PREMIUM', user.name, policy.policy_type, policy.total_member_number, policy.airtel_transaction_ids)
 
       let main_benefit_limit = policy.sum_insured
       let last_expense_limit = policy.last_expense_insured
@@ -278,7 +286,6 @@ async function updatePremium(user: any, policy: any) {
 
       if (policy.total_member_number !== "M" && policy.total_member_number !== null) {
         const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-
 
         const policyPremium = policy.premium
 
@@ -292,7 +299,7 @@ async function updatePremium(user: any, policy: any) {
 
       const requestData: requestPremiumData = {
         member_no: user.arr_member_number,
-        unique_profile_id: user.membership_id + "",
+        unique_profile_id: unique_profile_id,
         health_plan: "AIRTEL_" + policy.policy_type,
         health_option: "64",
         premium: ultimatePremium,
@@ -304,14 +311,8 @@ async function updatePremium(user: any, policy: any) {
         money_transaction_id: policy.airtel_money_id + "",
       };
 
-  //     {
-  //       "member_no": "",
-  //       "unique_profile_id": "",
-  //       "premium": ,
-  //       "premium_type": "",
-  //       "premium_installment": "",
-  //       "money_transaction_id": ""
-  //  }
+      console.log(requestData)
+
 
 
       const config = {

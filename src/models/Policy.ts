@@ -2,11 +2,6 @@ import { Sequelize } from "sequelize";
 import { db } from "../models/db";
 import { uuid } from 'uuidv4';
 
-const User = db.users;
-const Payment = db.payments;
-const Policy = db.policies;
-const Beneficiary = db.beneficiaries;
-
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
         policy_id: {
@@ -183,6 +178,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        airtel_transaction_ids: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true,
+            default: []
+        },
 
         dependant_member_numbers: {
             type: DataTypes.ARRAY(DataTypes.STRING),
@@ -222,6 +222,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: true,
             defaultValue: false
+        },
+        referral_code: {
+            type: DataTypes.STRING,
+            allowNull: true
         },
     },
 

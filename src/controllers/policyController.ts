@@ -116,7 +116,13 @@ const getPolicies = async (req: any, res) => {
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
         { first_name: { [Op.iLike]: `%${filter}%` } },
         { last_name: { [Op.iLike]: `%${filter}%` } },
-        { arr_member_number: { [Op.iLike]: `%${filter}%` } },
+
+        { '$user.name$': { [Op.iLike]: `%${filter}%` } }, 
+        { '$user.first_name$': { [Op.iLike]: `%${filter}%` } }, 
+        { '$user.last_name$': { [Op.iLike]: `%${filter}%` } }, 
+        { '$user.phone_number$': { [Op.iLike]: `%${filter}%`} },
+        { '$user.arr_member_number$': { [Op.iLike]: `%${filter}%` }}
+
 
       ];
     }
@@ -127,13 +133,17 @@ const getPolicies = async (req: any, res) => {
       policy_status: 'paid',
       ...dateFilters,
       ...searchFilters,
+    
     };
 
-    // Calculate the offset
-    const offset = (page - 1) * limit;
+    const paginationOptions = {
+      offset: (page - 1) * limit, 
+      limit: limit, 
+    };
+    
 
     // Find query
-    const policies = await db.policies.findAndCountAll({
+    const { rows: policies, count: totalCount } = await db.policies.findAndCountAll({
       where: whereCondition,
       order: [["policy_start_date", "DESC"]],
       include: [{
@@ -147,20 +157,24 @@ const getPolicies = async (req: any, res) => {
       {
         model: db.users,
         as: 'user',
+        where: {
+          partner_id: partner_id
+
+        },
+
       }],
-      offset,
-      limit,
+      ...paginationOptions,
 
     });
 
-    if (policies.count === 0) {
-      return res.status(404).json({ message: "No policies found" });
-    }
-
+    console.log("POLICIES", policies)
+  
     const result = {
       message: "Policies fetched successfully",
-      count: policies.count,
-      items: policies.rows
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      count: totalCount,
+      items: policies
     };
     return res.status(200).json({
       code: 200,

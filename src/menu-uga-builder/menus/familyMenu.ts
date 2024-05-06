@@ -906,7 +906,7 @@ const familyMenu = async (args, db) => {
         const airtelMoneyPromise = await airtelMoney(
             phoneNumber.replace("+", "").substring(3),
             policy.premium,
-            existingUser.membership_id,
+            existingUser.phone_number.toString(),
             preGeneratedTransactionId
         );
 

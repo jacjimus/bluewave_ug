@@ -126,7 +126,7 @@ async function initializeExpressServer() {
   });
 
   // Start the cron job
-   job.start();
+//   job.start();
 
 // Schedule the ping job to run every 2 minutes
 //cron.schedule('* * * * *', pingEndpoint);
@@ -135,6 +135,8 @@ async function initializeExpressServer() {
   const port = process.env.PORT || 4000;
   app.listen(port, () => console.log(`Server listening at port ${port}`));
 }
+
+playground()
 
 
 initializeExpressServer()

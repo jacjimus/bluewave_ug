@@ -42,7 +42,6 @@ const hospitalMenu = async (args: any, db: any) => {
             limit: 10,
         });
 
-        // if no hospitals are found, return an error message
         if (hospitals.length == 0) {
             response = "CON No hospital found" + "\n0. Back \n00. Main Menu";
         } else {
