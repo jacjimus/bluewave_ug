@@ -194,24 +194,3 @@ export const job = cron.schedule(cronSchedule, () => {
     scheduled: false // Start the job manually
 });
 
-
-const axios = require('axios'); // Assuming you're using Axios for HTTP requests
-
-// Replace with the actual endpoint URL
-const endpointUrl = 'http://41.223.58.252';
-
-// Function to handle the ping request
-export async function pingEndpoint() {
-  try {
-    const response = await axios.get(endpointUrl);
-    console.log(`Ping successful at ${new Date().toISOString()}. Status code: ${response.status}`);
-  } catch (error) {
-    console.error(`Error pinging endpoint at ${new Date().toISOString()}: ${error.message}`);
-  }
-}
-
-
-
-
-// Optionally, start the cron job immediately (uncomment the following line)
-// pingEndpoint();

@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { getArrMemberNumberData, job, pingEndpoint, sendPolicyRenewalReminder } from "./src/services/cronJobs";
+import { getArrMemberNumberData, sendPolicyRenewalReminder } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";
@@ -125,11 +125,6 @@ async function initializeExpressServer() {
     getArrMemberNumberData();
   });
 
-  // Start the cron job
-//   job.start();
-
-// Schedule the ping job to run every 2 minutes
-//cron.schedule('* * * * *', pingEndpoint);
 
 
   const port = process.env.PORT || 4000;

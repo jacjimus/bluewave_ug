@@ -9,6 +9,7 @@ import authTokenByPartner from './authorization';
 import { Op } from "sequelize";
 import { logger } from '../middleware/loggingMiddleware';
 import { log } from 'handlebars';
+import { Console } from 'winston/lib/winston/transports';
 dotenv.config();
 
 const Transaction = db.transactions;
@@ -116,7 +117,7 @@ async function airtelMoneyKenya(existingUser, policy ) {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference:existingUser.phone_number.toString(),
+      reference: ` ${policy.beneficiary}, ${policy.policy_type} for ${existingUser.first_name} ${existingUser.last_name} `,
       subscriber: {
         country: "KE",
         currency: "KES",
@@ -138,9 +139,11 @@ async function airtelMoneyKenya(existingUser, policy ) {
       Authorization: `${token}`,
     };
 
+    console.log("PAYMENT DATA", paymentData, process.env.UAT_KEN_AIRTEL_PAYMENT_URL, "HEADERS", headers)
+
     const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
 
-      console.log("PAYMENT RESPONSE", paymentResponse.data, paymentData)
+      console.log("PAYMENT RESPONSE", paymentResponse, paymentResponse.data)
 
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
@@ -152,7 +155,7 @@ async function airtelMoneyKenya(existingUser, policy ) {
     status.message = 'Payment failed'; 
     return status;
   } catch (error) {
-
+    console.log("ERROR", error)
     logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
     
