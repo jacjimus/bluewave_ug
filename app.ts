@@ -114,16 +114,19 @@ async function initializeExpressServer() {
 
   app.use(errorHandler);
 
-
-  cron.schedule("0 8 * * *", () => {
-    console.log("Running a task every day at 8 AM");
-    sendPolicyRenewalReminder();
-  });
-
-  cron.schedule("*/30 * * * *", () => {
-    console.log("Running a task every 30 minutes");
-    getArrMemberNumberData();
-  });
+// run this if environment is Uganda
+  if (process.env.COUNTRY == "UG") {
+    cron.schedule("0 8 * * *", () => {
+      console.log("Running a task every day at 8 AM");
+      sendPolicyRenewalReminder();
+    });
+  
+    cron.schedule("*/30 * * * *", () => {
+      console.log("Running a task every 30 minutes");
+      getArrMemberNumberData();
+    });
+  }
+ 
 
 
 
