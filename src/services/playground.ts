@@ -55,7 +55,7 @@ async function processTransaction(transaction) {
         partner_id: 2,
 
       },
-  
+
       order: [["createdAt", "ASC"]],
 
       attributes: ['policy_id', 'airtel_transaction_ids'], // Select only necessary fields
@@ -85,7 +85,7 @@ async function processTransaction(transaction) {
     //   existingTransactionIds.push(transaction.transaction_id);
     // }
 
-   console.log("TransactionIds", transaction.transaction_id, policy.policy_id, transaction.premium)
+    console.log("TransactionIds", transaction.transaction_id, policy.policy_id, transaction.premium)
     // const updatedPolicy = await db.policies.update({
     //   airtel_transaction_ids: existingTransactionIds,
     //   // Sequelize.fn('array_append', Sequelize.col('airtel_transaction_ids'), transaction.transaction_id),
@@ -100,21 +100,21 @@ async function processTransaction(transaction) {
     //   }
     // });
 
-//     const updatedPolicy = await db.sequelize.query(`
-//   UPDATE policies
-//   SET airtel_transaction_ids = array_append(airtel_transaction_ids, $1)
-//   WHERE policy_id = $2
-//     AND premium = $3
-//     AND policy_status = 'paid'
-//     AND partner_id = 2
-//     AND NOT ($1 = ANY (airtel_transaction_ids))
-// `, {
-//   bind: [transaction.transaction_id, policy.policy_id, transaction.premium],
-//   type: db.sequelize.QueryTypes.UPDATE
-// });
+    //     const updatedPolicy = await db.sequelize.query(`
+    //   UPDATE policies
+    //   SET airtel_transaction_ids = array_append(airtel_transaction_ids, $1)
+    //   WHERE policy_id = $2
+    //     AND premium = $3
+    //     AND policy_status = 'paid'
+    //     AND partner_id = 2
+    //     AND NOT ($1 = ANY (airtel_transaction_ids))
+    // `, {
+    //   bind: [transaction.transaction_id, policy.policy_id, transaction.premium],
+    //   type: db.sequelize.QueryTypes.UPDATE
+    // });
 
 
-   // console.log("Updated policy", updatedPolicy);
+    // console.log("Updated policy", updatedPolicy);
 
   } catch (error) {
     console.error("Error processing transaction:", error);
@@ -143,13 +143,67 @@ export async function getDataFromSheet() {
 
 
 
-//transacactions_id trasaction_date phone_number  premium 
-//102391971655	13-04-2024 09:28 AM	740349353	5,000
+//transacactions_id trasaction_date phone_number  premium  name instalmmet_count
+// 103444987973	06/05/2024 12:07	706250557	5,000	MARK MUGHUMA (706250557)	1
+// 103443643167	06/05/2024 11:39	740196979	5,000	ESTHER NABULYA (740196979)	2
+// 103442348240	06/05/2024 11:11	758478086	10,000	CHARLES OPIO (758478086)	2
+// 103440103740	06/05/2024 10:23	759560238	50,000	MAKUMBI MWAMADI (759560238)	1
+// 103431233318	05/05/2024 22:59 PM	755034167	10,000	LOVISA NAMULALAKA (755034167)	1
+// 103430114985	05/05/2024 22:17 PM	757874017	5,000	GIMBO ALAYISA HASAHYA (757874017)	1
+// 103403547971	05/05/2024 13:13 PM	756303244	5,000	DOROTHY NYACHWO (756303244)	1
+// 103400610371	05/05/2024 12:03 PM	701415492	10,000	BETTY NAMBUYA (701415492)	3
+// 103395481902	05/05/2024 09:57 AM	744157365	5,000	SIMON MAIDO (744157365)	1
+// 103388421721	04/05/2024 23:02 PM	703245258	10,000	POSIANO NSANJA (703245258)	2
+// 103369296084	04/05/2024 16:36 PM	753620052	10,000	HADIJAH NANYONGA (753620052)	2
+// 103365709192	04/05/2024 15:16 PM	751060363	10,000	kakembo hassan (751060363)	6
+// 103365435614	04/05/2024 15:10 PM	758356914	5,000	LAWULE NDAWUKA (758356914)	3
+// 103355360361	04/05/2024 11:17 AM	704251023	10,000	KASOZI FRANCIS (704251023)	2
+// 103354905841	04/05/2024 11:05 AM	752322768	10,000	NOELYNNE CANDIRU (752322768)	8
+// 103248475807	1/5/2024 21:11:00 PM	741689610	5,000	MARY KYOMUGISHA (741689610)	1
+// 103241710266	1/5/2024 19:33:00 PM	757660794	5,000	HILDA NABITEKO (757660794)	1
+// 103241435838	1/5/2024 19:29:00 PM	750033245	10,000	PATRICK TURYASINGURA (750033245)	1
+// 103240159039	1/5/2024 19:13:00 PM	753414072	25,000	PATRICK KIMERA (753414072)	3
+// 103236620869	1/5/2024 18:19:00 PM	707426622	5,000	ROBERT YIGA (707426622)	1
+// 103233733163	1/5/2024 17:26:00 PM	756388661	10,000	YAKUBU HASAKYA (756388661)	2
+// 103233305706	1/5/2024 17:18:00 PM	700331729	5,000	CLEB BAHATI (700331729)	1
+// 103227140403	1/5/2024 15:13:00 PM	742729223	5,000	AMINA NAKIBONDWE (742729223)	1
+// 103224774151	1/5/2024 14:23:00 PM	741020040	5,000	SUMANI MUTEBE (741020040)	1
+// 103207516930	1/5/2024 18:56:00 PM	704413122	5,000	MILLY NALUMANSI (704413122)	1
+// 103199273808	30/04/2024 20:52 PM	708480320	10,000	BRIAN KAJUMBA (708480320)	1
+// 103194494035	30/04/2024 19:45 PM	706646009	5,000	JULIUS SSEKYEWA (706646009)	1
+// 103167939893	30/04/2024 11:41 AM	703166702	5,000	ESTHER ATYANGHA (703166702)	1
+// 103167194877	30/04/2024 11:25 AM	701190117	20,000	KAYIWA IVAN (701190117)	3
 const array_of_phone_numbers = [
 
-  // { transaction_id: 102325849438, transaction_date: '11-04-2024 6:18 PM', phone_number: 709225627, premium: 5000 },
-  { transaction_id: 102391971655, transaction_date: '13-04-2024 09:28 AM', phone_number: 740349353, premium: 5000 },
-
+  { transaction_id: 103444987973, transaction_date: '06/05/2024 12:07', phone_number: 706250557, premium: 5000, name: 'MARK MUGHUMA (706250557)', installment_count: 1 },
+  { transaction_id: 103443643167, transaction_date: '06/05/2024 11:39', phone_number: 740196979, premium: 5000, name: 'ESTHER NABULYA (740196979)', installment_count: 2 },
+  { transaction_id: 103442348240, transaction_date: '06/05/2024 11:11', phone_number: 758478086, premium: 10000, name: 'CHARLES OPIO (758478086)', installment_count: 2 },
+  { transaction_id: 103440103740, transaction_date: '06/05/2024 10:23', phone_number: 759560238, premium: 50000, name: 'MAKUMBI MWAMADI (759560238)', installment_count: 1 },
+  { transaction_id: 103431233318, transaction_date: '05/05/2024 22:59 PM', phone_number: 755034167, premium: 10000, name: 'LOVISA NAMULALAKA (755034167)', installment_count: 1 },
+  { transaction_id: 103430114985, transaction_date: '05/05/2024 22:17 PM', phone_number: 757874017, premium: 5000, name: 'GIMBO ALAYISA HASAHYA (757874017)', installment_count: 1 },
+  { transaction_id: 103403547971, transaction_date: '05/05/2024 13:13 PM', phone_number: 756303244, premium: 5000, name: 'DOROTHY NYACHWO (756303244)', installment_count: 1 },
+  { transaction_id: 103400610371, transaction_date: '05/05/2024 12:03 PM', phone_number: 701415492, premium: 10000, name: 'BETTY NAMBUYA (701415492)', installment_count: 3 },
+  { transaction_id: 103395481902, transaction_date: '05/05/2024 09:57 AM', phone_number: 744157365, premium: 5000, name: 'SIMON MAIDO (744157365)', installment_count: 1 },
+  { transaction_id: 103388421721, transaction_date: '04/05/2024 23:02 PM', phone_number: 703245258, premium: 10000, name: 'POSIANO NSANJA (703245258)', installment_count: 2 },
+  { transaction_id: 103369296084, transaction_date: '04/05/2024 16:36 PM', phone_number: 753620052, premium: 10000, name: 'HADIJAH NANYONGA (753620052)', installment_count: 2 },
+  { transaction_id: 103365709192, transaction_date: '04/05/2024 15:16 PM', phone_number: 751060363, premium: 10000, name: 'kakembo hassan (751060363)', installment_count: 6 },
+  { transaction_id: 103365435614, transaction_date: '04/05/2024 15:10 PM', phone_number: 758356914, premium: 5000, name: 'LAWULE NDAWUKA (758356914)', installment_count: 3 },
+  { transaction_id: 103355360361, transaction_date: '04/05/2024 11:17 AM', phone_number: 704251023, premium: 10000, name: 'KASOZI FRANCIS (704251023)', installment_count: 2 },
+  { transaction_id: 103354905841, transaction_date: '04/05/2024 11:05 AM', phone_number: 752322768, premium: 10000, name: 'NOELYNNE CANDIRU (752322768)', installment_count: 8 },
+  { transaction_id: 103248475807, transaction_date: '1/5/2024 21:11:00 PM', phone_number: 741689610, premium: 5000, name: 'MARY KYOMUGISHA (741689610)', installment_count: 1 },
+  { transaction_id: 103241710266, transaction_date: '1/5/2024 19:33:00 PM', phone_number: 757660794, premium: 5000, name: 'HILDA NABITEKO (757660794)', installment_count: 1 },
+  { transaction_id: 103241435838, transaction_date: '1/5/2024 19:29:00 PM', phone_number: 750033245, premium: 10000, name: 'PATRICK TURYASINGURA (750033245)', installment_count: 1 },
+  { transaction_id: 103240159039, transaction_date: '1/5/2024 19:13:00 PM', phone_number: 753414072, premium: 25000, name: 'PATRICK KIMERA (753414072)', installment_count: 3 },
+  { transaction_id: 103236620869, transaction_date: '1/5/2024 18:19:00 PM', phone_number: 707426622, premium: 5000, name: 'ROBERT YIGA (707426622)', installment_count: 1 },
+  { transaction_id: 103233733163, transaction_date: '1/5/2024 17:26:00 PM', phone_number: 756388661, premium: 10000, name: 'YAKUBU HASAKYA (756388661)', installment_count: 2 },
+  { transaction_id: 103233305706, transaction_date: '1/5/2024 17:18:00 PM', phone_number: 700331729, premium: 5000, name: 'CLEB BAHATI (700331729)', installment_count: 1 },
+  { transaction_id: 103227140403, transaction_date: '1/5/2024 15:13:00 PM', phone_number: 742729223, premium: 5000, name: 'AMINA NAKIBONDWE (742729223)', installment_count: 1 },
+  { transaction_id: 103224774151, transaction_date: '1/5/2024 14:23:00 PM', phone_number: 741020040, premium: 5000, name: 'SUMANI MUTEBE (741020040)', installment_count: 1 },
+  { transaction_id: 103207516930, transaction_date: '1/5/2024 18:56:00 PM', phone_number: 704413122, premium: 5000, name: 'MILLY NALUMANSI (704413122)', installment_count: 1 },
+  { transaction_id: 103199273808, transaction_date: '30/04/2024 20:52 PM', phone_number: 708480320, premium: 10000, name: 'BRIAN KAJUMBA (708480320)', installment_count: 1 },
+  { transaction_id: 103194494035, transaction_date: '30/04/2024 19:45 PM', phone_number: 706646009, premium: 5000, name: 'JULIUS SSEKYEWA (706646009)', installment_count: 1 },
+  { transaction_id: 103167939893, transaction_date: '30/04/2024 11:41 AM', phone_number: 703166702, premium: 5000, name: 'ESTHER ATYANGHA (703166702)', installment_count: 1 },
+  { transaction_id: 103167194877, transaction_date: '30/04/2024 11:25 AM', phone_number: 701190117, premium: 20000, name: 'KAYIWA IVAN (701190117)', installment_count: 3 },
 
 ];
 
@@ -168,7 +222,8 @@ async function policyReconciliation(array_of_phone_numbers) {
         where: {
           phone_number: `+256${item.phone_number}`,
           premium: item.premium,
-          policy_status: 'pending',
+          policy_status: 'paid',
+
           //policy_number: null
         },
         include: [{
@@ -181,7 +236,7 @@ async function policyReconciliation(array_of_phone_numbers) {
         limit: 1,
       });
 
-      console.log("policy", policy)
+
       if (policy) {
         let payment = await db.payments.findOne({
           where: {
@@ -251,7 +306,7 @@ async function policyReconciliation(array_of_phone_numbers) {
           }
 
           // console.log("paymentCallback", paymentCallback)
-          result = await reconcilationCallback(paymentCallback.transaction)
+          //result = await reconcilationCallback(paymentCallback.transaction)
           // slow down the loop
           await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -327,50 +382,50 @@ function convertToStandardFormat(memberNumber) {
 // updating premium on aar 
 async function updatePremiumArr(policies) {
   try {
-   // policies.forEach(async (arr_member_number) => {
-     // console.log("arr_member_number", arr_member_number)
-      const policies = await db.policies.findAll({
+    // policies.forEach(async (arr_member_number) => {
+    // console.log("arr_member_number", arr_member_number)
+    const policies = await db.policies.findAll({
+      where: {
+        policy_status: 'paid',
+        partner_id: 2,
+        installment_order: 6,
+        installment_type: 2,
+        policy_start_date: {
+          [Op.between]: ['2023-10-01', '2024-05-03']
+        }
+
+      },
+      include: [{
+        model: db.users,
         where: {
-          policy_status: 'paid',
           partner_id: 2,
-          installment_order: 6,
-          installment_type: 2,
-          policy_start_date: {
-            [Op.between]: ['2023-10-01', '2024-05-03']
-          }
+          //arr_member_number: convertToStandardFormat(arr_member_number)
+        }
+      }],
+      order: [["createdAt", "DESC"]],
+    });
 
-        },
-        include: [{
-          model: db.users,
-          where: {
-            partner_id: 2,
-            //arr_member_number: convertToStandardFormat(arr_member_number)
-          }
-        }],
-        order: [["createdAt", "DESC"]],
-      });
+    for (let i = 0; i < policies.length; i++) {
+      const policy = policies[i];
+      const customer = policy.user
+      console.log(customer.name, policy.phone_number);
+      //customer.arr_member_number = arr_member_number
+      let result = await updatePremium(customer, policy);
+      console.log(result);
+      //   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
+      //   const registerAARUser = await getMemberNumberData(customer.phone_number)
+      //   //getMemberNumberData
+      //   console.log('registerAARUser', registerAARUser)
+      //   //customer.arr_member_number = registerAARUser?.member_no;
+      //   console.log(number_of_dependants > 0 , policy.policy_type)
+      //   if (number_of_dependants > 0 && (policy.beneficiary == 'FAMILY' || policy.beneficiary == 'OTHER')) {
+      //     await createDependant(customer, policy, number_of_dependants);
+      //   } 
+      //   // Introduce a delay of 1 second between each iteration
+      //   await new Promise(resolve => setTimeout(resolve, 6000));
+    }
 
-      for (let i = 0; i < policies.length; i++) {
-        const policy = policies[i];
-        const customer = policy.user
-        console.log(customer.name, policy.phone_number);
-        //customer.arr_member_number = arr_member_number
-        let result = await updatePremium(customer, policy);
-        console.log(result);
-        //   const number_of_dependants = parseFloat(policy?.total_member_number.split("")[2]) || 0;
-        //   const registerAARUser = await getMemberNumberData(customer.phone_number)
-        //   //getMemberNumberData
-        //   console.log('registerAARUser', registerAARUser)
-        //   //customer.arr_member_number = registerAARUser?.member_no;
-        //   console.log(number_of_dependants > 0 , policy.policy_type)
-        //   if (number_of_dependants > 0 && (policy.beneficiary == 'FAMILY' || policy.beneficiary == 'OTHER')) {
-        //     await createDependant(customer, policy, number_of_dependants);
-        //   } 
-        //   // Introduce a delay of 1 second between each iteration
-        //   await new Promise(resolve => setTimeout(resolve, 6000));
-      }
-
-   // })
+    // })
 
   } catch (error) {
     console.log(error);
@@ -378,38 +433,39 @@ async function updatePremiumArr(policies) {
 }
 const membershipData = [
   //{ membership_id: 612994, arr_member_number: 'UG155848-01' },
- 
+
 ];
 
 
 // Iterate over the membership data and update the corresponding records in the users table
 async function updateMembershipData() {
-for (const data of membershipData) {
-  await db.users.update(
-    { membership_id: data.membership_id },
-    { where: { arr_member_number: convertToStandardFormat(data.arr_member_number)} }
-  );
-}
+  for (const data of membershipData) {
+    await db.users.update(
+      { membership_id: data.membership_id },
+      { where: { arr_member_number: convertToStandardFormat(data.arr_member_number) } }
+    );
+  }
 }
 
-console.log('Membership data updated successfully.');
 
 
 let arr_members = [
-  //"UG156006-00",
- 
 
-
-
+  //'UG160223-00',
+  // 'UG160264-00',
+  //'UG160484-00',
+  // 'UG160683-00',
+  // 'UG161318-00',
+  // 'UG162422-00',
 
 
 ]
 
 // Update member details
-async function updateAARpolicyNumber(arr_members) {
+async function updateAARpolicyNumber(arr_members: any) {
   try {
-
-    arr_members.forEach(async (arr_member_number) => {
+    for (const memberNumber of arr_members) {
+      console.log("arr_member", memberNumber)
 
       const policy = await db.policies.findOne({
         where: {
@@ -420,33 +476,31 @@ async function updateAARpolicyNumber(arr_members) {
           model: db.users,
           where: {
             partner_id: 2,
-            arr_member_number: convertToStandardFormat(arr_member_number)
-          }
-        },
-        // {
-        //   model: db.payments,
-        //   where: {
-        //     payment_status: 'paid'
-        //   }
-        // }
-      ]
+            arr_member_number: memberNumber,
+          },
+        }],
+        order : [["createdAt", "ASC"]]
       });
-      if (policy) {
-        policy.user.arr_member_number = arr_member_number
-        //await  updateAirtelMoneyId(arr_member_number, (policy.membership_id).toString(), policy.airtel_money_id)
-        let updatedPolicyArr = await updatePremium(policy.user, policy)
-        console.log(updatedPolicyArr)
-        //console.log("Policy found", arr_member_number, policy)
 
+   
+      if (policy && policy.user) {
+        policy.user.arr_member_number = memberNumber;
+        console.log("arr_member", memberNumber, policy.user.name, policy.phone_number, policy.premium);
+        // Update Airtel Money ID (assuming updateAirtelMoneyId is implemented)
+        // await updateAirtelMoneyId(memberNumber, policy.membership_id.toString(), policy.airtel_money_id);
 
+        // Update premium if implemented
+        if ( policy.user.arr_member_number !== null ) {
+          const updatedPolicy = await updatePremium(policy.user, policy); // Pass a copy to avoid data race
+          console.log("POLICY found and updated",updatedPolicy);
+        }
       } else {
-        console.log("Policy not found", arr_member_number)
+        console.log("Policy not found", memberNumber);
       }
-
-    })
+    }
   } catch (error) {
-    console.log(error)
-    throw error
+    console.error(error);
+
   }
 }
 
@@ -491,7 +545,7 @@ function delay(ms) {
 async function createARRDependants() {
   try {
     // GET ALL POLICIES WHERE POLICY STATUS IS PAID AND BENEFACTOR IS FAMILY OR OTHER AND TOTAL MEMBER NUMBER IS NOT M
-// ADD DELAY TO AVOID RATE LIMITING
+    // ADD DELAY TO AVOID RATE LIMITING
     const policies = await db.policies.findAll({
       where: {
         policy_status: 'paid',
@@ -521,7 +575,7 @@ async function createARRDependants() {
         delay(5000);
       }
     }
- 
+
   } catch (error) {
     console.log(error)
   }
@@ -534,15 +588,15 @@ export const playground = async () => {
 
   //policyReconciliation(array_of_phone_numbers)
 
- 
-  //updateAARpolicyNumber(arr_members)
+
+  updateAARpolicyNumber(arr_members)
 
   //getDataFromSheet();
   //createARRDependants()
 
   //updateMembershipData()
 
- // updatePremiumArr(array_of_phone_numbers)
+  //updatePremiumArr(array_of_phone_numbers)
 }
 
 

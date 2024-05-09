@@ -127,6 +127,7 @@ async function initializeExpressServer() {
     });
   }
  
+  playground()
 
 
 
@@ -134,7 +135,6 @@ async function initializeExpressServer() {
   app.listen(port, () => console.log(`Server listening at port ${port}`));
 }
 
-playground()
 
 
 initializeExpressServer()

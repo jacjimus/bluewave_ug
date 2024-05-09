@@ -291,7 +291,7 @@ async function updatePremium(user: any, policy: any) {
 
   try {
 
-  console.log('UPDATE PREMIUM',user.name, policy.policy_type, policy.total_member_number)
+  console.log('UPDATE PREMIUM',user.name, policy.policy_type, policy.premium)
     const main_benefit_limit =  policy.sum_insured 
     const last_expense_limit =  policy.last_expense_insured 
 
@@ -309,16 +309,16 @@ async function updatePremium(user: any, policy: any) {
       }
       
     const requestData: requestPremiumData = {
-      member_no: user?.arr_member_number || user?.member_no,
+      member_no: user?.arr_member_number,
       unique_profile_id: user?.membership_id + "" ||user?.unique_profile_id + "",
-      health_plan: "AIRTEL_" + policy.policy_type,
+      health_plan: "AIRTEL_" + policy.policy_type.trim(),
       health_option: "64",
       premium: ultimatePremium,
       premium_type: policy.installment_type,
       premium_installment: policy.renewal_order || 1,
       main_benefit_limit: main_benefit_limit,
       last_expense_limit: last_expense_limit,
-      money_transaction_id: policy.airtel_money_id || "123456789",
+      money_transaction_id: policy.airtel_money_id 
     };
    
     const config = {

@@ -2054,8 +2054,8 @@ async function agentSummaryAnalytics(req: any, res: any) {
       where: { referral_code: agent_referral_code }
     });
 
-    // 4. Total commission earned (assuming commission is 10 percent of premium)
-    const totalCommissionEarned = parseInt(totalPremiumEarned) * 0.1 || 0;
+    // 4. Total commission earned (assuming commission is 3% of total premium earned)
+    const totalCommissionEarned = parseInt(totalPremiumEarned) * 0.03 || 0;
 
 
     // 5. Total number of policies expired

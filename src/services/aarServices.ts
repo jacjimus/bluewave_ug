@@ -100,11 +100,6 @@ async function registerPrincipal(user: any, policy: any) {
     console.log("POLICY NOT FOR USER");
   }
 
-
-  if (policy && user) {
-
-    let policyType = policy.policy_type.toUpperCase() == "S MINI" ? "AIRTEL_SMINI" : "AIRTEL_" + policy.policy_type.toUpperCase();
-
     const userData: PrincipalRegistration = {
       surname: user.last_name || `256${user.phone_number}`,
       first_name: user.first_name || `256${user.phone_number}`,
@@ -123,7 +118,7 @@ async function registerPrincipal(user: any, policy: any) {
       },
       member_status: "1",
       health_option: "64",
-      health_plan: policyType,
+      health_plan:  "AIRTEL_" + policy.policy_type.replace(/\s/g, ''),
       corp_id: "758",
       policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
       policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
@@ -167,7 +162,7 @@ async function registerPrincipal(user: any, policy: any) {
       throw error;
       logger.error(error.message)
     }
-  }
+  
 }
 
 interface requestPremiumData {
@@ -178,8 +173,8 @@ interface requestPremiumData {
   premium: number;
   premium_type: number;
   premium_installment: number;
-  main_benefit_limit: number;
-  last_expense_limit: number;
+  // main_benefit_limit: number;
+  // last_expense_limit: number;
   transaction_date: string;
   money_transaction_id: string;
 }
@@ -215,7 +210,7 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
             },
             member_status: "1",
             health_option: "64",
-            health_plan: "AIRTEL_" + myPolicy?.policy_type,
+            health_plan: "AIRTEL_" + myPolicy?.policy_type.replace(/\s/g, ''),
             policy_start_date: moment(myPolicy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
             policy_end_date: moment(myPolicy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
             unique_profile_id: existingUser.membership_id + "",
@@ -274,13 +269,13 @@ async function updatePremium(user: any, policy: any) {
     // }
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if (user.user_id !== policy.user_id) {
-      console.log("POLICY NOT FOR USER", user.name, policy.policy_type, user.total_member_number);
+      console.log("POLICY NOT FOR USER", user.name,policy.phone_number, policy.airtel_money_id, policy.policy_type, user.total_member_number);
     } else {
 
-      console.log('UPDATE PREMIUM', user.name, policy.policy_type, policy.total_member_number, policy.airtel_transaction_ids)
+      console.log('UPDATE PREMIUM', user.name, policy.phone_number, policy.policy_type, policy.total_member_number, policy.airtel_money_id)
 
-      let main_benefit_limit = policy.sum_insured
-      let last_expense_limit = policy.last_expense_insured
+      // let main_benefit_limit = policy.sum_insured
+      // let last_expense_limit = policy.last_expense_insured
       let ultimatePremium = policy.premium
 
 
@@ -290,25 +285,24 @@ async function updatePremium(user: any, policy: any) {
         const policyPremium = policy.premium
 
         const memberSize = (policy.total_member_number).split("")[2]
-        console.log(policyPremium, memberSize)
+        console.log("memberSize", memberSize)
         ultimatePremium = policyPremium / (parseInt(memberSize) + 1)
 
         // main_benefit_limit = policy.sum_insured  / (parseInt(memberSize) + 1)
         // last_expense_limit = policy.last_expense_insured  / (parseInt(memberSize) + 1)
       }
-
       const requestData: requestPremiumData = {
         member_no: user.arr_member_number,
         unique_profile_id: unique_profile_id,
-        health_plan: "AIRTEL_" + policy.policy_type,
+        health_plan: "AIRTEL_" + policy.policy_type.replace(/\s/g, ''),
         health_option: "64",
         premium: ultimatePremium,
         premium_type: policy.installment_type.toString(),
         premium_installment: policy.installment_order.toString(),
-        main_benefit_limit: main_benefit_limit,
-        last_expense_limit: last_expense_limit,
+        // main_benefit_limit: main_benefit_limit,
+        // last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
-        money_transaction_id: policy.airtel_money_id + "",
+        money_transaction_id: policy.airtel_money_id.toString(),
       };
 
       console.log(requestData)

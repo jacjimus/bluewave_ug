@@ -96,16 +96,21 @@ const getPolicies = async (req: any, res) => {
 
     const dateFilters: any = {};
     if (start_date) {
-      dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+      dateFilters.policy_paid_date = { [Op.gte]: new Date(start_date) };
     }
     if (end_date) {
-      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
+      dateFilters.policy_paid_date  = { ...dateFilters.policy_paid_date , [Op.lte]: new Date(end_date) };
     }
+
+    if (start_date== end_date) {
+      dateFilters.policy_paid_date  = { [Op.eq]: new Date(start_date) };
+    }
+
 
     if (start_date && end_date) {
-      dateFilters.createdAt = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+      dateFilters.policy_paid_date  = { [Op.between]: [new Date(start_date), new Date(end_date)] };
     }
-
+   
     // Prepare the search filters based on the provided filter string
     const searchFilters: any = {};
     if (filter) {
