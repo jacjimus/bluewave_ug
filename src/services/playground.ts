@@ -141,69 +141,45 @@ export async function getDataFromSheet() {
 
 
 
-
-
-//transacactions_id trasaction_date phone_number  premium  name instalmmet_count
-// 103444987973	06/05/2024 12:07	706250557	5,000	MARK MUGHUMA (706250557)	1
-// 103443643167	06/05/2024 11:39	740196979	5,000	ESTHER NABULYA (740196979)	2
-// 103442348240	06/05/2024 11:11	758478086	10,000	CHARLES OPIO (758478086)	2
-// 103440103740	06/05/2024 10:23	759560238	50,000	MAKUMBI MWAMADI (759560238)	1
-// 103431233318	05/05/2024 22:59 PM	755034167	10,000	LOVISA NAMULALAKA (755034167)	1
-// 103430114985	05/05/2024 22:17 PM	757874017	5,000	GIMBO ALAYISA HASAHYA (757874017)	1
-// 103403547971	05/05/2024 13:13 PM	756303244	5,000	DOROTHY NYACHWO (756303244)	1
-// 103400610371	05/05/2024 12:03 PM	701415492	10,000	BETTY NAMBUYA (701415492)	3
-// 103395481902	05/05/2024 09:57 AM	744157365	5,000	SIMON MAIDO (744157365)	1
-// 103388421721	04/05/2024 23:02 PM	703245258	10,000	POSIANO NSANJA (703245258)	2
-// 103369296084	04/05/2024 16:36 PM	753620052	10,000	HADIJAH NANYONGA (753620052)	2
-// 103365709192	04/05/2024 15:16 PM	751060363	10,000	kakembo hassan (751060363)	6
-// 103365435614	04/05/2024 15:10 PM	758356914	5,000	LAWULE NDAWUKA (758356914)	3
-// 103355360361	04/05/2024 11:17 AM	704251023	10,000	KASOZI FRANCIS (704251023)	2
-// 103354905841	04/05/2024 11:05 AM	752322768	10,000	NOELYNNE CANDIRU (752322768)	8
-// 103248475807	1/5/2024 21:11:00 PM	741689610	5,000	MARY KYOMUGISHA (741689610)	1
-// 103241710266	1/5/2024 19:33:00 PM	757660794	5,000	HILDA NABITEKO (757660794)	1
-// 103241435838	1/5/2024 19:29:00 PM	750033245	10,000	PATRICK TURYASINGURA (750033245)	1
-// 103240159039	1/5/2024 19:13:00 PM	753414072	25,000	PATRICK KIMERA (753414072)	3
-// 103236620869	1/5/2024 18:19:00 PM	707426622	5,000	ROBERT YIGA (707426622)	1
-// 103233733163	1/5/2024 17:26:00 PM	756388661	10,000	YAKUBU HASAKYA (756388661)	2
-// 103233305706	1/5/2024 17:18:00 PM	700331729	5,000	CLEB BAHATI (700331729)	1
-// 103227140403	1/5/2024 15:13:00 PM	742729223	5,000	AMINA NAKIBONDWE (742729223)	1
-// 103224774151	1/5/2024 14:23:00 PM	741020040	5,000	SUMANI MUTEBE (741020040)	1
-// 103207516930	1/5/2024 18:56:00 PM	704413122	5,000	MILLY NALUMANSI (704413122)	1
-// 103199273808	30/04/2024 20:52 PM	708480320	10,000	BRIAN KAJUMBA (708480320)	1
-// 103194494035	30/04/2024 19:45 PM	706646009	5,000	JULIUS SSEKYEWA (706646009)	1
-// 103167939893	30/04/2024 11:41 AM	703166702	5,000	ESTHER ATYANGHA (703166702)	1
-// 103167194877	30/04/2024 11:25 AM	701190117	20,000	KAYIWA IVAN (701190117)	3
+// 103751932785	13/05/2024 08:15	754403188	5,000
+// 103751039401	13/05/2024 07:42	703280824	5,000
+// 103749093711	13/05/2024 00:33	709336289	10,000
+// 103748517289	12-05-2024 11:30 PM	758405473	10,000
+// 103717780396	12-05-2024 11:32 AM	708655691	5,000
+// 103714381526	12-05-2024 10:10 AM	758356914	5,000
+// 103706220612	11-05-2024 11:16 PM	751816886	5,000
+// 103706076028	11-05-2024 11:09 PM	751816886	5,000
+// 103704621049	11-05-2024 10:16 PM	758684283	5,000
+// 103703049759	11-05-2024 9:39 PM	700894457	5,000
+// 103693822957	11-05-2024 7:15 PM	705900037	30,000
+// 103677900834	11-05-2024 1:32 PM	759956278	14,000
+// 103663061536	11-05-2024 7:38 AM	706879885	5,000
+// 103662104881	11-05-2024 6:21 AM	744310013	10,000
+// 103655040032	10-05-2024 8:57 PM	702554860	5,000
+// 103624855939	10-05-2024 10:53 AM	753001715	5,000
+// 103616469009	10-05-2024 4:46 AM	757318788	18,000
+// 103612746829	09-05-2024 10:01 PM	709032828	5,000
+// 103611040336	09-05-2024 9:23 PM	706266888	5,000
+// 103609048496	09-05-2024 8:46 PM	705566031	5,000
+// 103607730371	09-05-2024 8:25 PM	707362958	5,000
+// 103604002676	09-05-2024 7:33 PM	705241566	10,000
+// 103603983451	09-05-2024 7:32 PM	757351174	35,000
+// 103593693160	09-05-2024 4:22 PM	752603065	5,000
+// 103593126804	09-05-2024 4:09 PM	706279282	18,000
+// 103592745082	09-05-2024 4:01 PM	750192578	10,000
+// 103588812736	09-05-2024 2:31 PM	742664905	5,000
+// 103588673656	09-05-2024 2:28 PM	757333078	5,000
+// 103583642535	09-05-2024 12:38 PM	757288608	5,000
+// 103576153221	09-05-2024 9:56 AM	752682142	5,000
+// 103571260347	09-05-2024 7:22 AM	753175157	5,000
+// 103545497752	08-05-2024 3:06 PM	757181061	5,000
+// 103531601959	08-05-2024 9:53 AM	750563312	10,000
+// 103512048413	07/05/2024 19:15	708125442	5,000
+// 103501449915	07/05/2024 15:42	708331142	10,000
+// 103479221344	07/05/2024 02:35	758992429	18,000
 const array_of_phone_numbers = [
 
-  { transaction_id: 103444987973, transaction_date: '06/05/2024 12:07', phone_number: 706250557, premium: 5000, name: 'MARK MUGHUMA (706250557)', installment_count: 1 },
-  { transaction_id: 103443643167, transaction_date: '06/05/2024 11:39', phone_number: 740196979, premium: 5000, name: 'ESTHER NABULYA (740196979)', installment_count: 2 },
-  { transaction_id: 103442348240, transaction_date: '06/05/2024 11:11', phone_number: 758478086, premium: 10000, name: 'CHARLES OPIO (758478086)', installment_count: 2 },
-  { transaction_id: 103440103740, transaction_date: '06/05/2024 10:23', phone_number: 759560238, premium: 50000, name: 'MAKUMBI MWAMADI (759560238)', installment_count: 1 },
-  { transaction_id: 103431233318, transaction_date: '05/05/2024 22:59 PM', phone_number: 755034167, premium: 10000, name: 'LOVISA NAMULALAKA (755034167)', installment_count: 1 },
-  { transaction_id: 103430114985, transaction_date: '05/05/2024 22:17 PM', phone_number: 757874017, premium: 5000, name: 'GIMBO ALAYISA HASAHYA (757874017)', installment_count: 1 },
-  { transaction_id: 103403547971, transaction_date: '05/05/2024 13:13 PM', phone_number: 756303244, premium: 5000, name: 'DOROTHY NYACHWO (756303244)', installment_count: 1 },
-  { transaction_id: 103400610371, transaction_date: '05/05/2024 12:03 PM', phone_number: 701415492, premium: 10000, name: 'BETTY NAMBUYA (701415492)', installment_count: 3 },
-  { transaction_id: 103395481902, transaction_date: '05/05/2024 09:57 AM', phone_number: 744157365, premium: 5000, name: 'SIMON MAIDO (744157365)', installment_count: 1 },
-  { transaction_id: 103388421721, transaction_date: '04/05/2024 23:02 PM', phone_number: 703245258, premium: 10000, name: 'POSIANO NSANJA (703245258)', installment_count: 2 },
-  { transaction_id: 103369296084, transaction_date: '04/05/2024 16:36 PM', phone_number: 753620052, premium: 10000, name: 'HADIJAH NANYONGA (753620052)', installment_count: 2 },
-  { transaction_id: 103365709192, transaction_date: '04/05/2024 15:16 PM', phone_number: 751060363, premium: 10000, name: 'kakembo hassan (751060363)', installment_count: 6 },
-  { transaction_id: 103365435614, transaction_date: '04/05/2024 15:10 PM', phone_number: 758356914, premium: 5000, name: 'LAWULE NDAWUKA (758356914)', installment_count: 3 },
-  { transaction_id: 103355360361, transaction_date: '04/05/2024 11:17 AM', phone_number: 704251023, premium: 10000, name: 'KASOZI FRANCIS (704251023)', installment_count: 2 },
-  { transaction_id: 103354905841, transaction_date: '04/05/2024 11:05 AM', phone_number: 752322768, premium: 10000, name: 'NOELYNNE CANDIRU (752322768)', installment_count: 8 },
-  { transaction_id: 103248475807, transaction_date: '1/5/2024 21:11:00 PM', phone_number: 741689610, premium: 5000, name: 'MARY KYOMUGISHA (741689610)', installment_count: 1 },
-  { transaction_id: 103241710266, transaction_date: '1/5/2024 19:33:00 PM', phone_number: 757660794, premium: 5000, name: 'HILDA NABITEKO (757660794)', installment_count: 1 },
-  { transaction_id: 103241435838, transaction_date: '1/5/2024 19:29:00 PM', phone_number: 750033245, premium: 10000, name: 'PATRICK TURYASINGURA (750033245)', installment_count: 1 },
-  { transaction_id: 103240159039, transaction_date: '1/5/2024 19:13:00 PM', phone_number: 753414072, premium: 25000, name: 'PATRICK KIMERA (753414072)', installment_count: 3 },
-  { transaction_id: 103236620869, transaction_date: '1/5/2024 18:19:00 PM', phone_number: 707426622, premium: 5000, name: 'ROBERT YIGA (707426622)', installment_count: 1 },
-  { transaction_id: 103233733163, transaction_date: '1/5/2024 17:26:00 PM', phone_number: 756388661, premium: 10000, name: 'YAKUBU HASAKYA (756388661)', installment_count: 2 },
-  { transaction_id: 103233305706, transaction_date: '1/5/2024 17:18:00 PM', phone_number: 700331729, premium: 5000, name: 'CLEB BAHATI (700331729)', installment_count: 1 },
-  { transaction_id: 103227140403, transaction_date: '1/5/2024 15:13:00 PM', phone_number: 742729223, premium: 5000, name: 'AMINA NAKIBONDWE (742729223)', installment_count: 1 },
-  { transaction_id: 103224774151, transaction_date: '1/5/2024 14:23:00 PM', phone_number: 741020040, premium: 5000, name: 'SUMANI MUTEBE (741020040)', installment_count: 1 },
-  { transaction_id: 103207516930, transaction_date: '1/5/2024 18:56:00 PM', phone_number: 704413122, premium: 5000, name: 'MILLY NALUMANSI (704413122)', installment_count: 1 },
-  { transaction_id: 103199273808, transaction_date: '30/04/2024 20:52 PM', phone_number: 708480320, premium: 10000, name: 'BRIAN KAJUMBA (708480320)', installment_count: 1 },
-  { transaction_id: 103194494035, transaction_date: '30/04/2024 19:45 PM', phone_number: 706646009, premium: 5000, name: 'JULIUS SSEKYEWA (706646009)', installment_count: 1 },
-  { transaction_id: 103167939893, transaction_date: '30/04/2024 11:41 AM', phone_number: 703166702, premium: 5000, name: 'ESTHER ATYANGHA (703166702)', installment_count: 1 },
-  { transaction_id: 103167194877, transaction_date: '30/04/2024 11:25 AM', phone_number: 701190117, premium: 20000, name: 'KAYIWA IVAN (701190117)', installment_count: 3 },
+  { transaction_id: 102225504260, transaction_date: '09-04-2024 5:45 PM', phone_number: '702116686', premium: 50000 },
 
 ];
 
@@ -306,7 +282,7 @@ async function policyReconciliation(array_of_phone_numbers) {
           }
 
           // console.log("paymentCallback", paymentCallback)
-          //result = await reconcilationCallback(paymentCallback.transaction)
+          result = await reconcilationCallback(paymentCallback.transaction)
           // slow down the loop
           await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -451,12 +427,13 @@ async function updateMembershipData() {
 
 let arr_members = [
 
-  //'UG160223-00',
-  // 'UG160264-00',
-  //'UG160484-00',
-  // 'UG160683-00',
-  // 'UG161318-00',
-  // 'UG162422-00',
+  "UG162422-00",
+  "UG160223-00",
+  "UG160264-00",
+  "UG160484-00",
+  "UG160683-00",
+  "UG161318-00",
+  "UG162727-00"
 
 
 ]
@@ -584,12 +561,50 @@ async function createARRDependants() {
 
 
 
+export const _sendPolicyRenewalReminder = async () => {
+  try {
+      //  has no arr_member_number and partner_id is 2 and policy_status is pending
+    const customers = await db.users.findAll({
+      where: {
+        partner_id: 2,
+        arr_member_number: null,
+        phone_number: {
+          [Op.not]: null
+        },
+        email: null
+      },
+      limit : 10000,
+      order : [["createdAt", "DESC"]]
+    });
+       
+    let message =`Dear Customer, May is here with us but getting health insurance has never been easier. Ddwaliro Care is just a few taps away. Dial *185*7*6*3# now to purchase and enjoy peace of mind. Act today, protect tomorrow!`
+
+    customers.forEach(async (customer) => {
+     // console.log("customer", customer)
+      let phone_number = `+256${customer.phone_number}`
+     console.log("phone_number", phone_number, customer.name)
+    //  Send SMS
+      await SMSMessenger.sendSMS(2, phone_number, message);
+    });
+    
+    return {
+      status: true,
+      message: "successfully resent reminder sms"
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+
 export const playground = async () => {
 
-  //policyReconciliation(array_of_phone_numbers)
+//policyReconciliation(array_of_phone_numbers)
+ // _sendPolicyRenewalReminder()
 
-
-  updateAARpolicyNumber(arr_members)
+ //updateAARpolicyNumber(arr_members)
 
   //getDataFromSheet();
   //createARRDependants()

@@ -69,7 +69,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
     const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-    console.log("PAYMENT RESPONSE", paymentResponse.data, paymentData)
+    
     if (paymentResponse.data.status.success !== true) {
       status.code = 500;
       status.message = 'Payment failed'; // Update message only on failure
@@ -117,7 +117,7 @@ async function airtelMoneyKenya(existingUser, policy ) {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference: ` ${policy.beneficiary}, ${policy.policy_type} for ${existingUser.first_name} ${existingUser.last_name} `,
+      reference: `${policy.beneficiary}-${policy.policy_type}-${policy.policy_id}`,
       subscriber: {
         country: "KE",
         currency: "KES",
@@ -143,7 +143,6 @@ async function airtelMoneyKenya(existingUser, policy ) {
 
     const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
 
-      console.log("PAYMENT RESPONSE", paymentResponse, paymentResponse.data)
 
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
@@ -547,6 +546,7 @@ async function reconcilationCallback(transaction) {
       payment_description: message,
       payment_date: payment_date,
       payment_metadata: transaction,
+      airtel_transaction_id: airtel_money_id,
       partner_id,
     });
 
@@ -560,7 +560,7 @@ async function reconcilationCallback(transaction) {
 
 
     // send congratulatory message
-    //await sendCongratulatoryMessage(updatedPolicy, user);
+    await sendCongratulatoryMessage(updatedPolicy, user);
 
     const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 

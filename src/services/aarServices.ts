@@ -291,6 +291,8 @@ async function updatePremium(user: any, policy: any) {
         // main_benefit_limit = policy.sum_insured  / (parseInt(memberSize) + 1)
         // last_expense_limit = policy.last_expense_insured  / (parseInt(memberSize) + 1)
       }
+           const payment = await db.payments.findOne({ where: { policy_id: policy.policy_id } });
+
       const requestData: requestPremiumData = {
         member_no: user.arr_member_number,
         unique_profile_id: unique_profile_id,
@@ -302,7 +304,7 @@ async function updatePremium(user: any, policy: any) {
         // main_benefit_limit: main_benefit_limit,
         // last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
-        money_transaction_id: policy.airtel_money_id.toString(),
+        money_transaction_id: payment.airtel_money_id.toString() || policy.airtel_money_id.toString(),
       };
 
       console.log(requestData)
