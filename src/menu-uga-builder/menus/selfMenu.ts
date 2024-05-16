@@ -128,6 +128,8 @@ const selfMenu = async (args, db) => {
                 existingUser = await getAirtelUser(phoneNumber, 2);
                 console.log("USER CREATED SELF", existingUser);
 
+                
+
             }
 
 
