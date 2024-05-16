@@ -1,34 +1,32 @@
-
-const { createClient } = require("redis");
+const Redis = require('ioredis');
 const dotenv = require("dotenv");
 dotenv.config();
 
-let redisClient = undefined
+let redisClient;
 
-async function initializeRedisClient() {
+const redisURL = process.env.REDIS_URI;
 
+if (redisURL) {
+  try {
+    // create the Redis client object
+    redisClient = new Redis(redisURL);
     
-    // read the Redis connection URL from the envs
-    let redisURL = process.env.REDIS_URI
-    console.log(redisURL)
-    // if (redisURL) {
-    //   // create the Redis client object
-    //   redisClient = await createClient().on("error", (e) => {
-    //     console.error(`Failed to create the Redis client with error:`);
-    //     console.error(e);
-    //   });
-  
-    //   try {
-    //     // connect to the Redis server
-    //     await redisClient.connect();
-    //     console.log(`Connected to Redis successfully!`);
-    //   } catch (e) {
-    //     console.error(`Connection to Redis failed with error:`);
-    //     console.error(e);
-    //   }
-    // }
-  }
+    // Handle successful connection
+    redisClient.on('connect', () => {
+      console.log(`Connected to Redis successfully!`);
+    });
 
-    module.exports = {
-        initializeRedisClient
-    };
+    // Handle connection errors
+    redisClient.on('error', (error) => {
+      console.error(`Connection to Redis failed with error:`);
+      console.error(error);
+    });
+  } catch (e) {
+    console.error(`Failed to create Redis client with error:`);
+    console.error(e);
+  }
+} else {
+  console.error('REDIS_URI is not defined in the environment variables.');
+}
+
+module.exports = redisClient;

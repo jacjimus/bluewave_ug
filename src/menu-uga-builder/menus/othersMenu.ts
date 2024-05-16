@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import {  parseAmount } from "../../services/utils";
-import { getAirtelUser } from "../../services/getAirtelUserKyc";
+import { createUserIfNotExists, getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, createTransaction, processPayment } from "../../services/payment";
 
 
@@ -422,8 +422,19 @@ const othersMenu = async (args, db) => {
 
     if (!existingOther) {
 
-      existingUser = await getAirtelUser(otherUserPhone, 2);
-      console.log("USER CREATED SELF", existingUser);
+      // existingUser = await getAirtelUser(otherUserPhone, 2);
+      // console.log("USER CREATED SELF", existingUser);
+
+  
+      // If user is not found, create a other user with phone number
+      const userData = {
+        first_name: "FN" + otherUserPhone,
+        last_name: "LN" + otherUserPhone,
+        msisdn: otherUserPhone
+      };
+      existingUser = await createUserIfNotExists(userData, otherUserPhone, 2);
+      console.log("User not found. Dummy user created:", existingUser);
+  
 
     }
 
@@ -479,7 +490,7 @@ const othersMenu = async (args, db) => {
         user_id: existingOther.user_id,
         phone_number: phoneNumber,
         total_member_number: selectedPolicyType.code_name,
-        bought_for: existingUser.user_id,
+        bought_for:  existingOther.user_id,
         first_name: existingOther?.first_name,
         last_name: existingOther?.last_name,
         policy_number: policyNumber

@@ -12,6 +12,7 @@ import axios from "axios";
 import authTokenByPartner from './authorization';
 import { createUserIfNotExists } from './getAirtelUserKyc';
 import { google } from 'googleapis';
+import fs from 'fs';
 
 const serviceAccountKeyFile = "./aitel-payment-reconciliation-abe90c6ab59e.json"
 const sheetId = '1UcDCCRGLWqZ4LQZPztJ50-YYxzbkuLa6U4RVvvgJ1tQ'//'1Q4IB0vzghTIIirbGdU49UY2FPfESViXaY77oGy44J3I'
@@ -51,41 +52,60 @@ async function processTransaction(transaction) {
       where: {
         phone_number: transaction.phone_number,
         premium: transaction.premium,
-        policy_status: 'paid',
         partner_id: 2,
 
       },
 
       order: [["createdAt", "ASC"]],
 
-      attributes: ['policy_id', 'airtel_transaction_ids'], // Select only necessary fields
+      attributes: ['policy_id', 'airtel_money_id', 'airtel_transaction_ids'], // Select only necessary fields
     });
 
-    if (!policy) {
-      console.log("Policy not found", transaction);
-      return;
+ 
+
+    if (policy.policy_status == 'pending' || policy.policy_status == 'failed') {
+      // compile pending policies and send to email
+
+      await singlePolicyReconciliation(transaction)
+
+
+    }
+    if (policy.airtel_money_id !== null && policy.policy_status === 'paid') {
+      //update airtel money id
+      const updatedPolicy = await db.policies.update({
+        airtel_money_id: transaction.transaction_id,
+      }, {
+        where: {
+          policy_id: policy.policy_id,
+          premium: transaction.premium,
+          policy_status: 'paid',
+          partner_id: 2,
+        }
+      });
+      console.log("Updated policy without airtel money id", updatedPolicy);
+      const updatedPayment = await db.payments.update({
+        payment_status: 'paid',
+        airtel_transaction_id: transaction.transaction_id,
+      }, {
+        where: {
+          policy_id: policy.policy_id,
+          payment_amount: transaction.premium,
+        }
+      });
+
+      console.log("Updated payment", updatedPayment);
+
     }
 
     console.log("POLICY FOUND", policy.policy_id, transaction);
 
-    const updatedPayment = await db.payments.update({
-      payment_status: 'paid',
-      airtel_transaction_id: transaction.transaction_id,
-    }, {
-      where: {
-        policy_id: policy.policy_id,
-        payment_amount: transaction.premium,
-      }
-    });
-
-    console.log("Updated payment", updatedPayment);
 
     // const existingTransactionIds = policy.airtel_transaction_ids || [];
     // if (!existingTransactionIds.includes(transaction.transaction_id)) {
     //   existingTransactionIds.push(transaction.transaction_id);
     // }
 
-    console.log("TransactionIds", transaction.transaction_id, policy.policy_id, transaction.premium)
+    //console.log("TransactionIds", transaction.transaction_id, policy.policy_id, transaction.premium)
     // const updatedPolicy = await db.policies.update({
     //   airtel_transaction_ids: existingTransactionIds,
     //   // Sequelize.fn('array_append', Sequelize.col('airtel_transaction_ids'), transaction.transaction_id),
@@ -116,6 +136,8 @@ async function processTransaction(transaction) {
 
     // console.log("Updated policy", updatedPolicy);
 
+    console.log("Recxonciliation processed successfully");
+
   } catch (error) {
     console.error("Error processing transaction:", error);
   }
@@ -125,6 +147,7 @@ export async function getDataFromSheet() {
   try {
     const data = await getSheetData();
     await Promise.all(data.map(async (row) => {
+      //console.log("Row", row)
       const transaction = {
         transaction_id: row[2],
         transaction_date: row[3],
@@ -139,47 +162,153 @@ export async function getDataFromSheet() {
   }
 }
 
+async function singlePolicyReconciliation (pending_policies) {
+  
+  const transaction_date = moment(pending_policies.transaction_date, "YYYY-MM-DD h:mm A");
+  try {
+   
+    let policy = await db.policies.findOne({
+      where: {
+        phone_number: pending_policies.phone_number,
+        premium: pending_policies.premium,
+        policy_status: 'paid',
+      },
+      include: [{
+        model: db.users,
+        where: {
+          partner_id: 2
+        }
+      }],
+      order: [["createdAt", "DESC"]],
+      limit: 1,
+    });
+
+    if (!policy) {
+      console.log("Policy not found", pending_policies.phone_number, pending_policies.premium)
+      return
+    }
+
+    let payment = await db.payments.findOne({
+      where: {
+        policy_id: policy.policy_id,
+        payment_amount: pending_policies.premium,
+      },
+      limit: 1,
+
+    });
+
+    if (!payment) {
+      console.log("Payment not found")
+      return
+    }
+
+   
+    let transaction = await db.transactions.findOne({
+      where: {
+        user_id: policy.user_id,
+        amount: pending_policies.premium,
+      },
+      limit: 1,
+
+    });
 
 
-// 103751932785	13/05/2024 08:15	754403188	5,000
-// 103751039401	13/05/2024 07:42	703280824	5,000
-// 103749093711	13/05/2024 00:33	709336289	10,000
-// 103748517289	12-05-2024 11:30 PM	758405473	10,000
-// 103717780396	12-05-2024 11:32 AM	708655691	5,000
-// 103714381526	12-05-2024 10:10 AM	758356914	5,000
-// 103706220612	11-05-2024 11:16 PM	751816886	5,000
-// 103706076028	11-05-2024 11:09 PM	751816886	5,000
-// 103704621049	11-05-2024 10:16 PM	758684283	5,000
-// 103703049759	11-05-2024 9:39 PM	700894457	5,000
-// 103693822957	11-05-2024 7:15 PM	705900037	30,000
-// 103677900834	11-05-2024 1:32 PM	759956278	14,000
-// 103663061536	11-05-2024 7:38 AM	706879885	5,000
-// 103662104881	11-05-2024 6:21 AM	744310013	10,000
-// 103655040032	10-05-2024 8:57 PM	702554860	5,000
-// 103624855939	10-05-2024 10:53 AM	753001715	5,000
-// 103616469009	10-05-2024 4:46 AM	757318788	18,000
-// 103612746829	09-05-2024 10:01 PM	709032828	5,000
-// 103611040336	09-05-2024 9:23 PM	706266888	5,000
-// 103609048496	09-05-2024 8:46 PM	705566031	5,000
-// 103607730371	09-05-2024 8:25 PM	707362958	5,000
-// 103604002676	09-05-2024 7:33 PM	705241566	10,000
-// 103603983451	09-05-2024 7:32 PM	757351174	35,000
-// 103593693160	09-05-2024 4:22 PM	752603065	5,000
-// 103593126804	09-05-2024 4:09 PM	706279282	18,000
-// 103592745082	09-05-2024 4:01 PM	750192578	10,000
-// 103588812736	09-05-2024 2:31 PM	742664905	5,000
-// 103588673656	09-05-2024 2:28 PM	757333078	5,000
-// 103583642535	09-05-2024 12:38 PM	757288608	5,000
-// 103576153221	09-05-2024 9:56 AM	752682142	5,000
-// 103571260347	09-05-2024 7:22 AM	753175157	5,000
-// 103545497752	08-05-2024 3:06 PM	757181061	5,000
-// 103531601959	08-05-2024 9:53 AM	750563312	10,000
-// 103512048413	07/05/2024 19:15	708125442	5,000
-// 103501449915	07/05/2024 15:42	708331142	10,000
-// 103479221344	07/05/2024 02:35	758992429	18,000
+
+    if (!transaction) {
+      console.log("Transaction not found")
+      return
+    }
+
+    console.log("===== TRANSACTION =====", transaction)
+
+      let paymentCallback = {
+        transaction: {
+          id: pending_policies.transaction_id,
+          message: `PAID UGX ${pending_policies.premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${transaction.premium}. TID: ${pending_policies.airtel_money_id}. Date: ${transaction_date}`,
+          status_code: "TS",
+          airtel_money_id: pending_policies.transaction_id,
+          payment_date: transaction.createdAt,
+
+        }
+      }
+
+      // console.log("paymentCallback", paymentCallback)
+     let result = await reconcilationCallback(paymentCallback.transaction)
+     console.log("RECONCILIATION RESULT ", result);
+      // slow down the loop
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+
+
+  }
+  catch (error) {
+    console.log(error);
+  }
+
+}
+
+
+
+
+// 103797306790	14/05/2024 08:19	708741968	5,000	ASTACIYO KADDU (708741968)	1
+// 103794636153	14/05/2024 01:50	708986795	5,000	SHADIAH NAKANWAGI (708986795)	1
+// 103791988248	13/05/2024 22:19	705535481	5,000	DINANSI WAAKI (705535481)	1
+// 103787668759	13/05/2024 20:48	753540686	10,000	FRANCIS BISAMUNYU (753540686)	1
+// 103775272962	13/05/2024 17:21	743773764	5,000	FATUMAH NELIMA (743773764)	1
+// 103770624297	13/05/2024 15:34	751233282	5,000	NOAH KAWANGUZI (751233282)	1
+// 103769559426	13/05/2024 15:08	750040947	5,000	EBWANGAT PAUL (750040947)	1
+// 103762241942	13/05/2024 12:22	755160191	5,000	SCORA KYOKUTAMBA (755160191)	1
+// 103759414110	13/05/2024 11:20	702484096	120,000	DOREEN LYAKA (702484096)	1
+// 103751039401	13/05/2024 07:42	703280824	5,000	HADIJAH NABUUFU (703280824)	1
+// 103749093711	13/05/2024 00:33	709336289	10,000	YUNUSU NABUDERE (709336289)	1
+// 103706220612	11-05-2024 11:16 PM	751816886	5,000	SAMALI BIRIKE (751816886)	2
+// 103706076028	11-05-2024 11:09 PM	751816886	5,000	SAMALI BIRIKE (751816886)	2
+// 103704621049	11-05-2024 10:16 PM	758684283	5,000	VINCENT ODONG (758684283)	1
+// 103703049759	11-05-2024 9:39 PM	700894457	5,000	HASIFAH NANKYA (700894457)	1
+// 103663061536	11-05-2024 7:38 AM	706879885	5,000	HENRY MUWAYA (706879885)	1
+// 103662104881	11-05-2024 6:21 AM	744310013	10,000	IDDI ADAM GALUGALI (744310013)	1
+// 103655040032	10-05-2024 8:57 PM	702554860	5,000	JUSTUS SEBUHINJA (702554860)	1
+// 103624855939	10-05-2024 10:53 AM	753001715	5,000	ABRAHAM OLAKI (753001715)	1
+// 103612746829	09-05-2024 10:01 PM	709032828	5,000	SAROME ONYERA (709032828)	1
+// 103611040336	09-05-2024 9:23 PM	706266888	5,000	SAID MUTYABA (706266888)	1
+// 103609048496	09-05-2024 8:46 PM	705566031	5,000	MAYI NAIGAGA (705566031)	1
+// 103607730371	09-05-2024 8:25 PM	707362958	5,000	MARY KABASITA (707362958)	1
+// 103604002676	09-05-2024 7:33 PM	705241566	10,000	GEORGE KIKONYOGO (705241566)	1
+// 103593693160	09-05-2024 4:22 PM	752603065	5,000	PAMELA NAKITYO (752603065)	1
+// 103593126804	09-05-2024 4:09 PM	706279282	18,000	GORETI KATWESIIME (706279282)	1
+// 103588812736	09-05-2024 2:31 PM	742664905	5,000	FAUSTA NAMAYANJA (742664905)	1
+// 103588673656	09-05-2024 2:28 PM	757333078	5,000	DAVID OMOLLO (757333078)	1
+// 103583642535	09-05-2024 12:38 PM	757288608	5,000	NGABIRANO LEVI (757288608)	1
+// 103576153221	09-05-2024 9:56 AM	752682142	5,000	JESCA NAMUKASA (752682142)	2
+// 103545497752	08-05-2024 3:06 PM	757181061	5,000	EMMANUEL LULE (757181061)	1
+// 103531601959	08-05-2024 9:53 AM	750563312	10,000	URBAN TAYEBWA (750563312)	1
+// 103512048413	07/05/2024 19:15	708125442	5,000	NOSIYATA MBABAZI (708125442)	1
+// 103479221344	07/05/2024 02:35	758992429	18,000	JANE NALULE (758992429)	1
+// 103455322867	06/05/2024 15:56	743011902	5,000	EDWIN THEMBO (743011902)	1
+// 103444987973	06/05/2024 12:07	706250557	5,000	MARK MUGHUMA (706250557)	1
+// 103440103740	06/05/2024 10:23	759560238	50,000	MAKUMBI MWAMADI (759560238)	1
+// 103431233318	05/05/2024 22:59 PM	755034167	10,000	LOVISA NAMULALAKA (755034167)	1
+// 103430114985	05/05/2024 22:17 PM	757874017	5,000	GIMBO ALAYISA HASAHYA (757874017)	1
+// 103403547971	05/05/2024 13:13 PM	756303244	5,000	DOROTHY NYACHWO (756303244)	1
+// 103395481902	05/05/2024 09:57 AM	744157365	5,000	SIMON MAIDO (744157365)	1
+// 103248475807	1/5/2024 21:11:00 PM	741689610	5,000	MARY KYOMUGISHA (741689610)	1
+// 103241710266	1/5/2024 19:33:00 PM	757660794	5,000	HILDA NABITEKO (757660794)	1
+// 103241435838	1/5/2024 19:29:00 PM	750033245	10,000	PATRICK TURYASINGURA (750033245)	1
+// 103236620869	1/5/2024 18:19:00 PM	707426622	5,000	ROBERT YIGA (707426622)	1
+// 103233305706	1/5/2024 17:18:00 PM	700331729	5,000	CLEB BAHATI (700331729)	1
+// 103227140403	1/5/2024 15:13:00 PM	742729223	5,000	AMINA NAKIBONDWE (742729223)	1
+// 103224774151	1/5/2024 14:23:00 PM	741020040	5,000	SUMANI MUTEBE (741020040)	1
+// 103207516930	1/5/2024 18:56:00 PM	704413122	5,000	MILLY NALUMANSI (704413122)	1
+// 103199273808	30/04/2024 20:52 PM	708480320	10,000	BRIAN KAJUMBA (708480320)	1
+// 103167939893	30/04/2024 11:41 AM	703166702	5,000	ESTHER ATYANGHA (703166702)	1
+
 const array_of_phone_numbers = [
 
-  { transaction_id: 102225504260, transaction_date: '09-04-2024 5:45 PM', phone_number: '702116686', premium: 50000 },
+
+  // { transaction_id:  103706220612, phone_number: 751816886, premium: 5000, transaction_date: '11-05-2024 11:16 PM', installment_count: 2 },
+  // { transaction_id:  103706076028, phone_number: 751816886, premium: 5000, transaction_date: '11-05-2024 11:09 PM', installment_count: 2 },
+  // { transaction_id:  103576153221, phone_number: 752682142, premium: 5000, transaction_date: '09-05-2024 9:56 AM', installment_count: 2 },
+
 
 ];
 
@@ -456,10 +585,10 @@ async function updateAARpolicyNumber(arr_members: any) {
             arr_member_number: memberNumber,
           },
         }],
-        order : [["createdAt", "ASC"]]
+        order: [["createdAt", "ASC"]]
       });
 
-   
+
       if (policy && policy.user) {
         policy.user.arr_member_number = memberNumber;
         console.log("arr_member", memberNumber, policy.user.name, policy.phone_number, policy.premium);
@@ -467,9 +596,9 @@ async function updateAARpolicyNumber(arr_members: any) {
         // await updateAirtelMoneyId(memberNumber, policy.membership_id.toString(), policy.airtel_money_id);
 
         // Update premium if implemented
-        if ( policy.user.arr_member_number !== null ) {
+        if (policy.user.arr_member_number !== null) {
           const updatedPolicy = await updatePremium(policy.user, policy); // Pass a copy to avoid data race
-          console.log("POLICY found and updated",updatedPolicy);
+          console.log("POLICY found and updated", updatedPolicy);
         }
       } else {
         console.log("Policy not found", memberNumber);
@@ -563,30 +692,60 @@ async function createARRDependants() {
 
 export const _sendPolicyRenewalReminder = async () => {
   try {
-      //  has no arr_member_number and partner_id is 2 and policy_status is pending
-    const customers = await db.users.findAll({
+    //  has no arr_member_number and partner_id is 2 and policy_status is pending
+
+    //       select  p.phone_number from policies p where p.partner_id =2 and p.policy_status ='paid' 
+    // and p.policy_paid_date <= '2024-02-28' and p.policy_start_date <= '2024-02-28'and p.installment_type = 2 and p.installment_order< 4
+
+    const policies = await db.policies.findAll({
       where: {
         partner_id: 2,
-        arr_member_number: null,
-        phone_number: {
-          [Op.not]: null
+        policy_status: 'paid',
+        policy_paid_date: {
+          [Op.lte]: '2024-02-28'
         },
-        email: null
+        policy_start_date: {
+          [Op.lte]: '2024-02-28'
+        },
+        installment_type: 2,
+        installment_order: {
+          [Op.lt]: 4
+        }
       },
-      limit : 10000,
-      order : [["createdAt", "DESC"]]
-    });
-       
-    let message =`Dear Customer, May is here with us but getting health insurance has never been easier. Ddwaliro Care is just a few taps away. Dial *185*7*6*3# now to purchase and enjoy peace of mind. Act today, protect tomorrow!`
 
-    customers.forEach(async (customer) => {
-     // console.log("customer", customer)
-      let phone_number = `+256${customer.phone_number}`
-     console.log("phone_number", phone_number, customer.name)
-    //  Send SMS
-      await SMSMessenger.sendSMS(2, phone_number, message);
     });
-    
+    // order by  policy_paid_date desc
+    // const customers = await db.users.findAll({
+    //   where: {
+    //     partner_id: 2,
+    //     arr_member_number: null,
+    //     phone_number: {
+    //       [Op.not]: null
+    //     },
+    //     email: null
+    //   },
+    //   limit : 10000,
+    //   order : [["createdAt", "DESC"]]
+    // });
+
+    let message = `Gyebaleko! Have you renewed your Ddwaliro care this month? Dial *185*7*6*3# today to renew, osigale ku cover.`
+
+    // customers.forEach(async (customer) => {
+    //  // console.log("customer", customer)
+    //   let phone_number = `+256${customer.phone_number}`
+    //  console.log("phone_number", phone_number, customer.name)
+    // //  Send SMS
+    //   await SMSMessenger.sendSMS(2, phone_number, message);
+    // });
+
+    policies.forEach(async (policy) => {
+      let phone_number = policy.phone_number
+      console.log("phone_number", phone_number, policy.first_name, policy.last_name)
+      //  Send SMS
+      await SMSMessenger.sendSMS(2, phone_number, message);
+    }
+    )
+
     return {
       status: true,
       message: "successfully resent reminder sms"
@@ -601,12 +760,12 @@ export const _sendPolicyRenewalReminder = async () => {
 
 export const playground = async () => {
 
-//policyReconciliation(array_of_phone_numbers)
- // _sendPolicyRenewalReminder()
+  //policyReconciliation(array_of_phone_numbers)
+  //_sendPolicyRenewalReminder()
 
- //updateAARpolicyNumber(arr_members)
+  //updateAARpolicyNumber(arr_members)
 
-  //getDataFromSheet();
+  //getDataFromSheet()
   //createARRDependants()
 
   //updateMembershipData()

@@ -20,6 +20,7 @@ import SMSMessenger from "../services/sendSMS";
 import { logger } from '../middleware/loggingMiddleware';
 const { Op, Sequelize, } = require("sequelize");
 import moment from 'moment';
+const redisClient = require("../middleware/redis");
 
 const User = db.users;
 const Partner = db.partners;

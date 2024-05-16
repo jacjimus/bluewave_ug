@@ -14,7 +14,7 @@ import helmet from "helmet";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { loggingMiddleware, logger } from "./src/middleware/loggingMiddleware";
 import bodyParser from "body-parser";
-const { initializeRedisClient } = require("./src/middleware/redis");
+
 
 
 
@@ -39,8 +39,6 @@ async function initializeExpressServer() {
       },
     })
   );
-
-  await initializeRedisClient();
 
 
   const morganMiddleware = morgan(

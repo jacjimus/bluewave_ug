@@ -60,6 +60,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
 async function getAirtelUser(phoneNumber: string, partnerId: number) {
   try {
+    let result 
     const countryCode = partnerId === 1 ? "KE" : "UG";
     const currencyCode = partnerId === 1 ? "KES" : "UGX";
 
@@ -71,39 +72,28 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
       Authorization: `Bearer ${await authTokenByPartner(partnerId)}`,
     };
 
-    // Remove leading '+' and country code from phone number
-    phoneNumber = phoneNumber.replace("+", "").substring(3);
-
+    // Remove  the leading 256 from the phone number if it exists or 0 if it exists  or +256 if it exists
+    phoneNumber = phoneNumber.replace(/^(\+256|256|0)/, "");
     const baseUrl = partnerId === 1 ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
-    console.log("GET_USER_URL", GET_USER_URL);
+    console.log("GET_USER_URL", GET_USER_URL, headers);
 
     const response = await axios.get(GET_USER_URL, { headers });
+    console.log("RESULT", response.data);
 
-    let user: any;
+   
+  if(response.data){
+    result = {
+      first_name: response.data.first_name,
+      last_name: response.data.last_name,
+    };
+  }
 
-    if (response.data.status.success === false || response.data.status.code !== "200") {
-      // If user is not found, create a dummy user with phone number
-      const userData = {
-        first_name: "FN" + phoneNumber,
-        last_name: "LN" + phoneNumber,
-        msisdn: phoneNumber
-      };
-      user = await createUserIfNotExists(userData, phoneNumber, partnerId);
-      console.log("User not found. Dummy user created:", user);
-    } else {
-      // If user is found, extract user data and create if not exists
-      const userData = response.data.data;
-      user = await createUserIfNotExists(userData, phoneNumber, partnerId);
-      console.log("User found:", user);
-    }
-
-    return user;
+    return result;
 
   } catch (error) {
-    logger.error("Error in getAirtelUser:", error.message);
-    throw new Error("Failed to get Airtel user. Please try again later.");
+   console .log("Error in getAirtelUser:", error.message);
   }
 }
 

@@ -6,6 +6,7 @@ import moment from 'moment'
 import { calculatePremium } from "../services/utils";
 const { v4: uuidv4 } = require("uuid");
 const { Op, Sequelize, } = require("sequelize");
+const redisClient = require("../middleware/redis");
 
 
 interface Policy {
@@ -83,71 +84,68 @@ interface Policy {
     *         description: Invalid request
     */
 
-const getPolicies = async (req: any, res) => {
+const getPolicies = async (req: any, res: any) => {
   try {
-
     let { start_date, end_date, partner_id, filter, page, limit } = req.query;
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
     filter = filter?.toString().toLowerCase() || "";
 
-    console.log("SATRT__DATE POLICIES", start_date)
-    console.log("END_DATE POLICIES", end_date)
+    const cacheKey = `policies_${partner_id}_${start_date}_${end_date}_${filter}_${page}_${limit}`;
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      return res.status(200).json({
+        code: 200,
+        status: "OK",
+        result: JSON.parse(cachedData)
+      });
+    }
 
     const dateFilters: any = {};
     if (start_date) {
       dateFilters.policy_paid_date = { [Op.gte]: new Date(start_date) };
     }
     if (end_date) {
-      dateFilters.policy_paid_date  = { ...dateFilters.policy_paid_date , [Op.lte]: new Date(end_date) };
+      dateFilters.policy_paid_date = { ...dateFilters.policy_paid_date, [Op.lte]: new Date(end_date) };
     }
 
-    if (start_date== end_date) {
-      dateFilters.policy_paid_date  = { [Op.eq]: new Date(start_date) };
+    if (start_date === end_date) {
+      dateFilters.policy_paid_date = { [Op.eq]: new Date(start_date) };
     }
-
 
     if (start_date && end_date) {
-      dateFilters.policy_paid_date  = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+      dateFilters.policy_paid_date = { [Op.between]: [new Date(start_date), new Date(end_date)] };
     }
-   
-    // Prepare the search filters based on the provided filter string
+
     const searchFilters: any = {};
     if (filter) {
-
       searchFilters[Op.or] = [
         { policy_status: { [Op.iLike]: `%${filter}%` } },
         { policy_type: { [Op.iLike]: `%${filter}%` } },
         { beneficiary: { [Op.iLike]: `%${filter}%` } },
         { first_name: { [Op.iLike]: `%${filter}%` } },
         { last_name: { [Op.iLike]: `%${filter}%` } },
-
-        { '$user.name$': { [Op.iLike]: `%${filter}%` } }, 
-        { '$user.first_name$': { [Op.iLike]: `%${filter}%` } }, 
-        { '$user.last_name$': { [Op.iLike]: `%${filter}%` } }, 
-        { '$user.phone_number$': { [Op.iLike]: `%${filter}%`} },
-        { '$user.arr_member_number$': { [Op.iLike]: `%${filter}%` }}
-
-
+        { '$user.name$': { [Op.iLike]: `%${filter}%` } },
+        { '$user.first_name$': { [Op.iLike]: `%${filter}%` } },
+        { '$user.last_name$': { [Op.iLike]: `%${filter}%` } },
+        { '$user.phone_number$': { [Op.iLike]: `%${filter}%` } },
+        { '$user.arr_member_number$': { [Op.iLike]: `%${filter}%` } }
       ];
     }
 
-    // Prepare the where condition based on the provided filters
     const whereCondition: any = {
       partner_id: partner_id,
       policy_status: 'paid',
       ...dateFilters,
       ...searchFilters,
-    
     };
 
     const paginationOptions = {
-      offset: (page - 1) * limit, 
-      limit: limit, 
+      offset: (page - 1) * limit,
+      limit: limit,
     };
-    
 
-    // Find query
     const { rows: policies, count: totalCount } = await db.policies.findAndCountAll({
       where: whereCondition,
       order: [["policy_start_date", "DESC"]],
@@ -164,16 +162,11 @@ const getPolicies = async (req: any, res) => {
         as: 'user',
         where: {
           partner_id: partner_id
-
         },
-
       }],
       ...paginationOptions,
-
     });
 
-    console.log("POLICIES", policies)
-  
     const result = {
       message: "Policies fetched successfully",
       currentPage: page,
@@ -181,12 +174,15 @@ const getPolicies = async (req: any, res) => {
       count: totalCount,
       items: policies
     };
+
+    // Store the result in Redis with an expiration time of 1 hour (3600 seconds)
+    await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
+
     return res.status(200).json({
       code: 200,
       status: "OK",
       result
     });
-
 
   } catch (error) {
     console.error(error);
@@ -198,6 +194,7 @@ const getPolicies = async (req: any, res) => {
     });
   }
 };
+
 
 
 
