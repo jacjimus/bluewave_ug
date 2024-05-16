@@ -478,25 +478,28 @@ const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
  *       200:
  *         description: Successful response
  */
-const findAllUsers = async (req: any, res) => {
-  const partner_id = req.query.partner_id;
-  let filter = req.query?.filter
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const start_date = req.query.start_date;
-  const end_date = req.query.end_date;
+const findAllUsers = async (req, res) => {
+  const { partner_id, filter, page = 1, limit = 10, start_date, end_date } = req.query;
+
+  if (!partner_id) {
+    return res.status(400).json({ status: "FAILED", message: "Please provide a partner id" });
+  }
+
+  const offset = Math.max(0, (parseInt(page) - 1) * parseInt(limit));
+  const cacheKey = `users_${partner_id}_${filter}_${page}_${limit}_${start_date}_${end_date}`;
 
   try {
-    if (!partner_id) {
-      return res.status(400).json({ status: "FAILED", message: "Please provide a partner id" });
+    // Check Redis cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.status(200).json({
+        code: 200,
+        status: "OK",
+        result: JSON.parse(cachedData),
+      });
     }
 
-
-    const offset = Math.max(0, (page - 1) * limit);
-
-    let whereCondition: any = {
-      partner_id: partner_id,
-    };
+    let whereCondition: any = { partner_id: partner_id };
 
     if (start_date && end_date) {
       whereCondition.createdAt = {
@@ -505,22 +508,20 @@ const findAllUsers = async (req: any, res) => {
     }
 
     if (filter) {
-      filter = filter?.trim().toLowerCase();
-      // Add global filtering for user properties (modify this as needed)
+      const trimmedFilter = filter.trim().toLowerCase();
       whereCondition = {
         ...whereCondition,
         [Op.or]: [
-          { name: { [Op.like]: `%${filter}%` } },
-          { first_name: { [Op.like]: `%${filter}%` } },
-          { last_name: { [Op.like]: `%${filter}%` } },
+          { name: { [Op.like]: `%${trimmedFilter}%` } },
+          { first_name: { [Op.like]: `%${trimmedFilter}%` } },
+          { last_name: { [Op.like]: `%${trimmedFilter}%` } },
         ],
       };
     }
 
-    // Now, you can use Sequelize to fetch users based on the whereCondition and pagination
-    let users = await User.findAndCountAll({
+    const users = await User.findAndCountAll({
       where: whereCondition,
-      limit: limit,
+      limit: parseInt(limit),
       offset: offset,
       order: [["createdAt", "DESC"]],
       attributes: {
@@ -529,7 +530,7 @@ const findAllUsers = async (req: any, res) => {
       include: [
         {
           model: Policy,
-          attributes: ["beneficiary", "policy_type", "policy_type", "policy_status", "premium", "policy_paid_amount", "installment_type", "installment_order", "policy_start_date", "createdAt"],
+          attributes: ["beneficiary", "policy_type", "policy_status", "premium", "policy_paid_amount", "installment_type", "installment_order", "policy_start_date", "createdAt"],
           where: {
             partner_id: partner_id,
             policy_status: "paid"
@@ -538,20 +539,32 @@ const findAllUsers = async (req: any, res) => {
       ],
     });
 
+    const result = {
+      message: "Customers fetched successfully",
+      items: users.rows,
+      count: users.count,
+    };
 
-    // Send the response
+    // Store result in Redis cache with an expiration time (e.g., 1 hour)
+    await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
+
     if (users && users.count > 0) {
       return res.status(200).json({
-        result: { message: "Customers fetched successfully", items: users.rows, count: users.count },
+        code: 200,
+        status: "OK",
+        result,
       });
     }
 
     return res.status(404).json({ status: "FAILED", code: 404, message: "No customers found" });
+
   } catch (error) {
     console.error("ERROR", error);
     return res.status(500).json({
       code: 500,
-      status: "FAILED", message: "Internal server error", error: error
+      status: "FAILED",
+      message: "Internal server error",
+      error: error.message || "Unknown error",
     });
   }
 };

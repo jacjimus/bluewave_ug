@@ -18,6 +18,7 @@ const Payment = db.payments;
 const Policy = db.policies;
 const Beneficiary = db.beneficiaries;
 const PolicySchedule = db.policy_schedules;
+const User = db.users;
 
 const router = express.Router();
 
@@ -96,13 +97,13 @@ const updateInstallmentLogic = async (policy, amount) => {
     const date = new Date();
     let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
 
-    const policyPaidCountOfUser = await db.policies.count({
-      where: { user_id: policy.user_id, policy_status: "paid" }
-    });
+    // const policyPaidCountOfUser = await db.policies.count({
+    //   where: { user_id: policy.user_id, policy_status: "paid" }
+    // });
 
-    await db.users.update({ number_of_policies: policyPaidCountOfUser }, {
-      where: { user_id: policy.user_id }
-    });
+    // await db.users.update({ number_of_policies: policyPaidCountOfUser }, {
+    //   where: { user_id: policy.user_id }
+    // });
 
     // Handle negative dates by rolling back to the previous month's end
     if (installment_alert_date.getDate() < 1) {
@@ -231,7 +232,7 @@ router.all("/callback", async (req, res) => {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-    logger.error("Error handling UG callback:", error)
+   
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
