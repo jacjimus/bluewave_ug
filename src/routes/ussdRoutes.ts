@@ -6,26 +6,20 @@ import moment from "moment";
 
 import SMSMessenger from "../services/sendSMS";
 import { db } from "../models/db";
-import { v4 as uuidv4 } from "uuid";
-import { initiateConsent } from "../services/payment"
 import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependant } from "../services/aarServices"
 import { calculateProrationPercentage, formatAmount, formatPhoneNumber } from "../services/utils";
-import { Op } from 'sequelize';
 import { logger } from "../middleware/loggingMiddleware";
-import axios from "axios";
+
 
 
 const Transaction = db.transactions;
 const Payment = db.payments;
-const Policy = db.policies;
-const Beneficiary = db.beneficiaries;
-const PolicySchedule = db.policy_schedules;
-const User = db.users;
+
 
 const router = express.Router();
 
 const sendResponse = (res, mode, data) => {
-  if (mode === 'CON' || mode === 'continue') {
+  if (mode === "CON" || mode === 'continue') {
     res.setHeader('Freeflow', 'FC');
     res.setHeader('charge', 'Y');
     res.setHeader('amount', '0');
@@ -42,17 +36,14 @@ const sendResponse = (res, mode, data) => {
 const handleUSSDRequest = async (req: any, res: any, menuBuilder: any) => {
   try {
 
-    let  menu_res = await menuBuilder(req.body, db);
+    let menu_res = await menuBuilder(req.body, db);
 
-    console.log("MENU RESPONSE", menu_res);
+    console.log("KE MENU RESPONSE", menu_res);
 
-    menu_res = menu_res.replace(/(\r\n|\n|\r)/gm, "");
-    menu_res = menu_res.replace(/\s+/g, ' ').trim();
-   
     const MODE = menu_res.includes("CON") ? "CON" : "FB";
 
     sendResponse(res, MODE, menu_res);
-    //res.send(menu_res);
+
   } catch (error) {
     console.log("MENU ERROR", error);
     res.status(500).send(error);
@@ -143,7 +134,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
       // Adjust policy amounts
       policy.policy_paid_amount = parseInt(policy.installment_order) * parseInt(policy.premium);
-      policy.policy_pending_premium =parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
+      policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
 
       console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
 
@@ -258,7 +249,7 @@ router.all("/callback", async (req, res) => {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-   
+
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
