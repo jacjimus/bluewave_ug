@@ -8,6 +8,8 @@ const excelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path")
 const XLSX = require("xlsx");
+const redisClient = require("../middleware/redis");
+
 
 const Policy = db.policies;
 const User = db.users;
@@ -102,6 +104,15 @@ const getPolicySummary = async (req: any, res: any) => {
     //         partner_id: partner_id,
     //     },
     // });
+
+    const cacheKey = `policy_summary_${partner_id}_${today}_${this_week}_${this_month}`;
+
+    // Check Redis cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
 
     const freePolicies = await db.policies.count({
       where: {
@@ -206,6 +217,16 @@ const getPolicySummary = async (req: any, res: any) => {
     } else {
       console.error("Invalid partner_id");
     }
+
+    await redisClient.set(cacheKey, JSON.stringify({
+      result: {
+        code: 200,
+        status: "OK",
+        countryCode: country_code,
+        currencyCode: currency_code,
+        items: summary,
+      },
+    }), 'EX', 3600);
 
     return res.status(200).json({
       result: {
@@ -1914,6 +1935,8 @@ async function policyReconciliation(req: any, res: any) {
 
 async function getPolicySummarySnapshot(req, res) {
   try {
+
+    console.log(" ====== GetPolicySummarySnapshot =======")
     let { partner_id, start_date, end_date, category, policy_type, policy_duration } = req.query;
 
     if (!start_date) {
@@ -1932,12 +1955,23 @@ async function getPolicySummarySnapshot(req, res) {
       });
     }
 
+
+    const cacheKey = `policy_summary_snapshot_${partner_id}_${start_date}_${end_date}_${category}_${policy_type}_${policy_duration}`;
+      console.log("cacheKey", cacheKey)
+    // Check Redis cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      console.log("cachedData", cachedData)
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
     const startDate = moment(start_date).startOf('quarter');
     const endDate = moment(end_date).endOf('quarter');
     const quarterRanges = [];
 
     for (let quarterStart = moment(startDate); quarterStart.isBefore(endDate); quarterStart.add(3, 'months')) {
       const quarterEnd = moment(quarterStart).endOf('quarter');
+      console.log("quarterStart", quarterStart)
       quarterRanges.push({ start: quarterStart.clone(), end: quarterEnd.clone() });
     }
 
@@ -1974,6 +2008,7 @@ async function getPolicySummarySnapshot(req, res) {
         total_premium: 0
       });
 
+      console.log("accumulated_report.retention_rate", accumulated_report.retention_rate)
       accumulated_report.retention_rate = (accumulated_report.retention_rate / months.length).toFixed(2);
       accumulated_report.conversion_rate = (accumulated_report.conversion_rate / months.length).toFixed(2);
 
@@ -1984,7 +2019,10 @@ async function getPolicySummarySnapshot(req, res) {
       };
     });
 
+
+   console.log("fetchPromises", fetchPromises)
     const quarterData = await Promise.all(fetchPromises);
+    console.log("quarterData", quarterData)
 
     const annualReport = quarterData.reduce((acc, quarter) => {
       for (const key in acc) {
@@ -2007,10 +2045,17 @@ async function getPolicySummarySnapshot(req, res) {
 
     });
 
-    console.log("annualReport.retention_rate", annualReport.retention_rate)
+    console.log("annualReport", annualReport)
     annualReport.retention_rate = Number((annualReport.retention_rate / quarterData.length).toFixed(2))
     annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
 
+     // Store result in Redis cache with an expiration time (e.g., 1 hour)
+     await redisClient.set(cacheKey, JSON.stringify({
+      status: "OK",
+      message: "Policy Summary snapshot fetched successfully",
+      annualReport,
+      quarterData,
+    }), 'EX', 3600);
 
     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", annualReport, quarterData });
   }

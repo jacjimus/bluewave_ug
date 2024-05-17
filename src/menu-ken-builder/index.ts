@@ -12,7 +12,7 @@ import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 import { Op } from "sequelize";
 import {db } from '../models/db'
-import {logger} from '../middleware/loggingMiddleware'
+
 
 
 require("dotenv").config();
@@ -42,13 +42,12 @@ menu.sessionConfig({
 });
 
 
-
 export default function (args: KenRequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
 
       let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password , servicecode} = args;
-      logger.info("KEN args", args);
+
       // check if the userinput is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userinput is '00' set the input to empty string
@@ -99,12 +98,7 @@ export default function (args: KenRequestBody, db: any) {
       let previousStep = currentStep - 1;
       let userText = allSteps[allSteps.length - 1];
 
-      // console.log("KEN allStepsAfter", allSteps);
-      // console.log("KEN firstStep", firstStep);
-      // console.log("KEN currentStep", currentStep);
-      // console.log("KEN previousStep", previousStep);
-      // console.log("KEN userinput", userText);
-
+    
       const params = {
         msisdn,
         input,
@@ -114,22 +108,7 @@ export default function (args: KenRequestBody, db: any) {
         userText,
         allSteps,
       };
-      console.log("KEN params", params);
-
-      // let existingPolicy = await db.policies.findAndCountAll({
-      //   where: {
-      //       phone_number: msisdn,
-      //       partner_id: 3,
-      //       policy_status: "paid",
-      //      [Op.or]: [
-      //         { beneficiary: "FAMILY" },
-      //         { beneficiary: "SELF" }
-      //       ]},
-      //   limit: 1,
-      // });
-
-     
-
+   
       if (input == "") {
         response = "CON " +
           "\n1. Buy for self" +
@@ -168,7 +147,6 @@ export default function (args: KenRequestBody, db: any) {
         response = await faqsMenu(params);
 
       }
-
       resolve(response);
 
       return;

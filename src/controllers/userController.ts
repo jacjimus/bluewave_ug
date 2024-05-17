@@ -59,7 +59,7 @@ async function findUserByUserId(user_id: string, partner_id: number) {
  * /api/v1/users/signup:
  *   post:
  *     tags:
- *       - Users
+ *       - Auth
  *     description: Register User
  *     operationId: registerUser
  *     summary: Register User
@@ -303,7 +303,7 @@ interface LoginRequestBody {
  * /api/v1/users/login:
  *   post:
  *     tags:
- *      - Users
+ *      - Auth
  *     summary: Authenticate user
  *     description: Returns a JWT token upon successful login
  *     security:
@@ -1171,7 +1171,7 @@ const createUserFunction = async (userData: any) => {
  * /api/v1/users/admin/signup:
  *   post:
  *     tags:
- *       - Users
+ *       - Auth
  *     description: Register a admin
  *     operationId: registerAdmin
  *     summary: Register a admin
@@ -1709,7 +1709,7 @@ async function changePassword(req: any, res: any) {
  * /api/v1/users/agent/signup:
  *   post:
  *     tags:
- *       - Agent
+ *       - Auth
  *     description: Register Agent
  *     operationId: registerAgent
  *     summary: Register Agent

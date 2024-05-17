@@ -12,6 +12,8 @@ import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependan
 import { calculateProrationPercentage, formatAmount, formatPhoneNumber } from "../services/utils";
 import { Op } from 'sequelize';
 import { logger } from "../middleware/loggingMiddleware";
+import axios from "axios";
+
 
 const Transaction = db.transactions;
 const Payment = db.payments;
@@ -22,11 +24,35 @@ const User = db.users;
 
 const router = express.Router();
 
+const sendResponse = (res, mode, data) => {
+  if (mode === 'CON' || mode === 'continue') {
+    res.setHeader('Freeflow', 'FC');
+    res.setHeader('charge', 'Y');
+    res.setHeader('amount', '0');
+  } else {
+    res.setHeader('Freeflow', 'FB');
+    res.setHeader('charge', 'Y');
+    res.setHeader('amount', '0');
+  }
+  res.setHeader('content-type', 'text/plain');
+  res.send(data);
+};
+
+
 const handleUSSDRequest = async (req: any, res: any, menuBuilder: any) => {
   try {
-    console.log(req.body);
-    const menu_res = await menuBuilder(req.body, db);
-    res.send(menu_res);
+
+    let  menu_res = await menuBuilder(req.body, db);
+
+    console.log("MENU RESPONSE", menu_res);
+
+    menu_res = menu_res.replace(/(\r\n|\n|\r)/gm, "");
+    menu_res = menu_res.replace(/\s+/g, ' ').trim();
+   
+    const MODE = menu_res.includes("CON") ? "CON" : "FB";
+
+    sendResponse(res, MODE, menu_res);
+    //res.send(menu_res);
   } catch (error) {
     console.log("MENU ERROR", error);
     res.status(500).send(error);
