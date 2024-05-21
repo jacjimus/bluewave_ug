@@ -119,13 +119,9 @@ console.log(currentStep == 1, currentStep == '1', userText)
 
 async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
-  console.log("msisdn", msisdn)
   let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
   const trimmedMsisdn = msisdn?.replace('+', "")?.substring(3);
   let existingUser = await findExistingUser(trimmedMsisdn, 1, db);
-  // console.log("msisdn", msisdn)
-  // console.log("fullPhone", fullPhone)
-  // console.log("existingUser KE", existingUser)
 
   if (!existingUser) {
     console.log("USER DOES NOT EXIST SELF KENYA ");

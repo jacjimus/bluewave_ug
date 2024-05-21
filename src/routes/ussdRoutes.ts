@@ -29,20 +29,39 @@ const sendResponse = (res, mode, data) => {
     res.setHeader('amount', '0');
   }
   res.setHeader('content-type', 'text/plain');
+  data = data.replace(/^(CON |END )/g, "").trim();
+  console.log("RESPONSE ==>", data)
   res.send(data);
 };
 
 
-const handleUSSDRequest = async (req: any, res: any, menuBuilder: any) => {
+const handleUSSDRequestKe = async (req: any, res: any, menuBuilder: any) => {
   try {
-
+    console.log("REQ", req.params, req.body, req.query)
     let menu_res = await menuBuilder(req.body, db);
 
     console.log("KE MENU RESPONSE", menu_res);
 
     const MODE = menu_res.includes("CON") ? "CON" : "FB";
 
+    
+
     sendResponse(res, MODE, menu_res);
+
+  } catch (error) {
+    console.log("MENU ERROR", error);
+    res.status(500).send(error);
+  }
+};
+
+const handleUSSDRequest= async (req: any, res: any, menuBuilder: any) => {
+  try {
+
+
+
+    let menu_res = await menuBuilder(req.params, db);
+
+    res.send(menu_res);
 
   } catch (error) {
     console.log("MENU ERROR", error);
@@ -61,7 +80,7 @@ router.post("/uat/uga", async (req: any, res: any) => {
 
 router.post("/uat/ken", async (req: any, res: any) => {
 
-  await handleUSSDRequest(req, res, ussdKenMenuBuilder);
+  await handleUSSDRequestKe(req, res, ussdKenMenuBuilder);
 });
 
 router.post("/uat/vodacom", async (req: any, res: any) => {

@@ -1,4 +1,4 @@
-import { KenRequestBody, RequestBody } from "./typings/global";
+import { KenRequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
 import UssdMenu from "ussd-menu-builder";
@@ -10,9 +10,6 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
-import { Op } from "sequelize";
-import {db } from '../models/db'
-
 
 
 require("dotenv").config();
@@ -60,11 +57,9 @@ export default function (args: KenRequestBody, db: any) {
       // if the allsteps array includes '284' and '14773'  remove them from the array and retain the rest
       if (allSteps.includes(servicecode)) {
         allSteps = allSteps.filter((step) => step !== servicecode);
-        console.log("KEN allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
         input = allSteps.join("*").replace(servicecode, "");
-        console.log("input", input);
       }
 
 
@@ -76,9 +71,6 @@ export default function (args: KenRequestBody, db: any) {
       const handleBack = (arr: any) => {
         let index = arr.indexOf("0");
         if (index > -1) {
-
-          console.log("index", index);
-          console.log("KEN allSteps", allSteps);
 
           allSteps.splice(index - 1, 2)
           input = allSteps.join("*");
