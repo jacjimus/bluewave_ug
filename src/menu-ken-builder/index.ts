@@ -1,7 +1,6 @@
 import { KenRequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
-import UssdMenu from "ussd-menu-builder";
 import selfMenu from "./menus/selfMenu";
 import familyMenu from "./menus/familyMenu";
 import faqsMenu from "./menus/faqsMenu";
@@ -11,73 +10,73 @@ import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 
-
 require("dotenv").config();
-
 
 let sessions = {};
 
-let menu = new UssdMenu();
-menu.sessionConfig({
-  start: (sessionId, callback) => {
-    if (!(sessionId in sessions)) sessions[sessionId] = {};
-    callback();
-  },
-  end: (sessionId, callback) => {
-    delete sessions[sessionId];
-    callback();
-  },
-  set: (sessionId, key, value, callback) => {
-    sessions[sessionId][key] = value;
-    callback();
-  },
-  get: (sessionId, key, callback) => {
-    let value = sessions[sessionId][key];
-    callback(null, value);
+// Session management functions
+const startSession = (sessionId) => {
+  if (!(sessionId in sessions)) sessions[sessionId] = {};
+};
 
-  }
-});
+const endSession = (sessionId) => {
+  delete sessions[sessionId];
+};
 
+const setSessionData = (sessionId, key, value) => {
+  sessions[sessionId][key] = value;
+};
+
+const getSessionData = (sessionId, key) => {
+  return sessions[sessionId][key];
+};
 
 export default function (args: KenRequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
-
-      let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password , servicecode} = args;
+      let { msisdn, input, language, location, sessionid, date, new: new_, region, user, password, servicecode } = args;
 
       console.log("KEN args", args);
 
-      // check if the userinput is '0' and remove 2 responses from the menu starting from the '0'.
-      // This is to avoid the user from going back to the main menu when they are in the submenus.
-      // check also if the userinput is '00' set the input to empty string
-      let response = "";
-      let allSteps = input.split("*");
-      //*384*14773#
+      // Start the session
+      startSession(sessionid);
 
-      // if the allsteps array includes '284' and '14773'  remove them from the array and retain the rest
+      // Retrieve the stored input for the session
+      let storedInput = getSessionData(sessionid, 'storedInput');
+      console.log("Stored input", storedInput);
+      input = storedInput ? `${storedInput}*${input}` : input;
+
+      let allSteps = input.split("*");
+
+      // Store the updated input back to the session
+      setSessionData(sessionid, 'storedInput', input);
+
+      // Check if the user input is '0' and remove 2 responses from the menu starting from the '0'.
+      // This is to avoid the user from going back to the main menu when they are in the submenus.
+      // Check also if the user input is '00' set the input to an empty string
+      let response = "";
+
+      // If the allSteps array includes '284' and '14773' remove them from the array and retain the rest
       if (allSteps.includes(servicecode)) {
         allSteps = allSteps.filter((step) => step !== servicecode);
-        // remove empty strings from the array
+        // Remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
         input = allSteps.join("*").replace(servicecode, "");
       }
-
 
       if (allSteps[allSteps.length - 1] == "00") {
         allSteps = [];
         input = "";
       }
 
-      const handleBack = (arr: any) => {
+      const handleBack = (arr) => {
         let index = arr.indexOf("0");
         if (index > -1) {
-
-          allSteps.splice(index - 1, 2)
+          allSteps.splice(index - 1, 2);
           input = allSteps.join("*");
-
           return handleBack(allSteps);
         }
-        // find the last index of '00' and return the array from that index
+        // Find the last index of '00' and return the array from that index
         let index2 = arr.lastIndexOf("00");
         if (index2 > -1) {
           return allSteps = allSteps.slice(index2 + 1);
@@ -86,13 +85,13 @@ export default function (args: KenRequestBody, db: any) {
       };
 
       allSteps = handleBack(allSteps);
+      setSessionData(sessionid, 'storedInput', allSteps.join("*"));
 
       let firstStep = allSteps[0];
       let currentStep = allSteps.length;
       let previousStep = currentStep - 1;
       let userText = allSteps[allSteps.length - 1];
 
-    
       const params = {
         msisdn,
         input,
@@ -102,7 +101,7 @@ export default function (args: KenRequestBody, db: any) {
         userText,
         allSteps,
       };
-   
+
       if (input == "") {
         response = "CON " +
           "\n1. Buy for self" +
@@ -114,40 +113,30 @@ export default function (args: KenRequestBody, db: any) {
           "\n7. Terms Conditions" +
           "\n8. FAQs" +
           "\n0. Back 00. Main Menu";
-
-      }
-      else if (firstStep == "1") {
+      } else if (firstStep == "1") {
         response = await selfMenu(params, db);
-      }
-      else if (firstStep == "2") {
+      } else if (firstStep == "2") {
         response = await familyMenu(params, db);
-      }
-      else if (firstStep == "3") {
+      } else if (firstStep == "3") {
         response = await othersMenu(params, db);
-      }
-      else if (firstStep == "4") {
+      } else if (firstStep == "4") {
         response = await claimMenu(params, db);
-      }
-      else if (firstStep == "5") {
+      } else if (firstStep == "5") {
         response = await accountMenu(params, db);
-      }
-      else if (firstStep == "6") {
+      } else if (firstStep == "6") {
         response = await hospitalMenu(params, db);
-      }
-      else if (firstStep == "7") {
+      } else if (firstStep == "7") {
         response = await termsAndConditions(params);
-
       } else if (firstStep == "8") {
         response = await faqsMenu(params);
-
       }
       resolve(response);
 
-      return;
+      // End the session (if needed)
+      endSession(sessionid);
     } catch (e) {
       console.log(e);
       reject("END " + languages[configs.default_lang].generic.fatal_error);
-      return;
     }
   });
 }
