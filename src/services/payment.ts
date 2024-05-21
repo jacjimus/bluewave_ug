@@ -530,6 +530,9 @@ async function reconcilationCallback(transaction) {
 
 
     policy.airtel_money_id = airtel_money_id;
+    policy.policy_status = "paid";
+    policy.payment_date = payment_date;
+    policy.save();
 
     const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
     const policyType = policy.policy_type.toUpperCase();
