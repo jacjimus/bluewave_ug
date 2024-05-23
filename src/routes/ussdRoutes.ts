@@ -55,7 +55,7 @@ const handleUSSDRequestKe = async (req: any, res: any, menuBuilder: any) => {
 const handleUSSDRequest= async (req: any, res: any, menuBuilder: any) => {
   try {
 
-    let menu_res = await menuBuilder(req.params, db);
+    let menu_res = await menuBuilder(req.body, db);
 
     res.send(menu_res);
 
