@@ -1,4 +1,3 @@
-import { all } from "axios";
 import { db } from "../models/db";
 import { reconcilationCallback } from "../services/payment";
 
@@ -94,46 +93,13 @@ const getPolicySummary = async (req: any, res: any) => {
 
     endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
 
-
-    //   const renewalsCount = await db.policies.count({
-    //     where: {
-    //         policy_status: "paid",
-    //         installment_order: {
-    //             [Op.gt]: 1,
-    //         },
-    //         partner_id: partner_id,
-    //     },
-    // });
-
-    const cacheKey = `policy_summary_${partner_id}_${today}_${this_week}_${this_month}`;
-
-    // Check Redis cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      return res.status(200).json(JSON.parse(cachedData));
-    }
-
-
-    const freePolicies = await db.policies.count({
-      where: {
-        partner_id: partner_id,
-        policy_status: 'pending',
-        policy_start_date: {
-          [Op.gte]: startDate,
-          [Op.lt]: endDate
-        }
-      },
-    });
-
     const startOfMonth = moment().startOf('month').format('YYYY-MM-DD hh:mm');
-       const endOfMonth   = moment().endOf('month').format('YYYY-MM-DD hh:mm');
+    const endOfMonth = moment().endOf('month').format('YYYY-MM-DD hh:mm');
 
     const total_policies_renewal = await db.policies.findAll({
       attributes: [
         [db.sequelize.fn('count', db.sequelize.col('*')), 'total_renewals'],
         [db.sequelize.fn('sum', db.sequelize.col('policy_paid_amount')), 'total_renewals_premium']
-
-
       ],
       where: {
         partner_id,
@@ -142,82 +108,79 @@ const getPolicySummary = async (req: any, res: any) => {
           { installment_order: { [Op.gt]: 1 } },
           {
             policy_status: 'paid',
-            policy_paid_date: { [Op.between]: [ startOfMonth, endOfMonth ] }
+            policy_paid_date: { [Op.between]: [startOfMonth, endOfMonth] }
           }
         ]
       }
     });
 
-
     const total_policies_renewed_count = total_policies_renewal[0].dataValues.total_renewals;
     const total_policies_renewed_premium = total_policies_renewal[0].dataValues.total_renewals_premium;
 
+    const [total_users_count, total_users_with_policy, total_policies_paid_count, total_policy_premium_paid, total_paid_payments_count] = await Promise.all([
+      // Total Users Count
+      db.users.count({
+        where: {
+          partner_id,
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          }
+        }
+      }),
+      // Total Users with Policy Count
+      db.users.count({
+        where: {
+          partner_id,
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          },
+          arr_member_number: {
+            [Op.not]: null
+          }
+        }
+      }),
 
-   
-const [total_users_count,total_users_with_policy, total_policies_paid_count, total_policy_premium_paid, total_paid_payments_count] = await Promise.all([
-  // Total Users Count
-  db.users.count({
-    where: {
-      partner_id,
-      createdAt: {
-        [Op.between]: [startDate, endDate]
-      }
-    }
-  }),
-  // Total Users with Policy Count
-  db.users.count({
-    where: {
-      partner_id,
-      createdAt: {
-        [Op.between]: [startDate, endDate]
-      },
-      arr_member_number: {
-        [Op.not]: null
-      }
-    }
-  }),
-
-  // Total Policies Paid Count
-  db.sequelize.query(
-    `SELECT COUNT(*) AS count 
+      // Total Policies Paid Count
+      db.sequelize.query(
+        `SELECT COUNT(*) AS count 
      FROM (SELECT DISTINCT airtel_money_id, phone_number, premium 
            FROM policies 
            WHERE partner_id = :partner_id 
              AND policy_status = 'paid' 
-             AND policy_paid_date BETWEEN :startDate AND :endDate) AS distinct_policies`, 
-    {
-      replacements: { partner_id, startDate, endDate },
-      type: QueryTypes.SELECT
-    }
-  ).then(result => result[0].count),
+             AND policy_paid_date BETWEEN :startDate AND :endDate) AS distinct_policies`,
+        {
+          replacements: { partner_id, startDate, endDate },
+          type: QueryTypes.SELECT
+        }
+      ).then(result => result[0].count),
 
-  // Total Policy Premium Paid
-  db.sequelize.query(
-    `SELECT SUM(policy_paid_amount) AS total_premium 
+      // Total Policy Premium Paid
+      db.sequelize.query(
+        `SELECT SUM(policy_paid_amount) AS total_premium 
      FROM (SELECT DISTINCT ON (airtel_money_id, phone_number, premium) policy_paid_amount 
            FROM policies 
            WHERE partner_id = :partner_id 
              AND policy_status = 'paid' 
-             AND policy_paid_date BETWEEN :startDate AND :endDate) AS distinct_policies`, 
-    {
-      replacements: { partner_id, startDate, endDate },
-      type: QueryTypes.SELECT
-    }
-  ).then(result => result[0].total_premium),
+             AND policy_paid_date BETWEEN :startDate AND :endDate) AS distinct_policies`,
+        {
+          replacements: { partner_id, startDate, endDate },
+          type: QueryTypes.SELECT
+        }
+      ).then(result => result[0].total_premium),
 
-  // Total Paid Payments Count
- db.sequelize.query(
-    `SELECT COUNT(*) AS count 
+      // Total Paid Payments Count
+      db.sequelize.query(
+        `SELECT COUNT(*) AS count 
      FROM (SELECT DISTINCT policy_id, payment_amount 
            FROM payments 
            WHERE payment_status = 'paid' 
              AND partner_id = :partner_id) AS distinct_payments`,
-    {
-      replacements: { partner_id },
-      type: QueryTypes.SELECT
-    }
-  ).then(result => result[0].count)
-]);
+        {
+          replacements: { partner_id },
+          type: QueryTypes.SELECT
+        }
+      ).then(result => result[0].count)
+    ]);
 
 
     let summary = {
@@ -229,8 +192,10 @@ const [total_users_count,total_users_with_policy, total_policies_paid_count, tot
       total_paid_payment_amount: total_paid_payments_count,
       total_policies_renewed: total_policies_renewed_count,
       total_policies_renewed_premium: total_policies_renewed_premium,
-      total_free_policies: freePolicies.count,
+
     };
+
+    console.log("Summary", summary);
 
     let country_code, currency_code;
 
@@ -251,15 +216,15 @@ const [total_users_count,total_users_with_policy, total_policies_paid_count, tot
       console.error("Invalid partner_id");
     }
 
-    await redisClient.set(cacheKey, JSON.stringify({
-      result: {
-        code: 200,
-        status: "OK",
-        countryCode: country_code,
-        currencyCode: currency_code,
-        items: summary,
-      },
-    }), 'EX', 3600);
+    // await redisClient.set(cacheKey, JSON.stringify({
+    //   result: {
+    //     code: 200,
+    //     status: "OK",
+    //     countryCode: country_code,
+    //     currencyCode: currency_code,
+    //     items: summary,
+    //   },
+    // }), 'EX', 3600);
 
     return res.status(200).json({
       result: {
@@ -936,9 +901,9 @@ const generatePolicyExcelReport = async (policies) => {
   function calculateTotalLivesCovered(memberNumberString: string) {
 
     let memberNumber = parseInt(memberNumberString.replace('M', ''), 10);
-    memberNumber =  isNaN(memberNumber) ? 1 : memberNumber + 1
-   
-    return memberNumber 
+    memberNumber = isNaN(memberNumber) ? 1 : memberNumber + 1
+
+    return memberNumber
   }
 
   policies.forEach(async (policy) => {
@@ -1990,7 +1955,7 @@ async function getPolicySummarySnapshot(req, res) {
 
 
     const cacheKey = `policy_summary_snapshot_${partner_id}_${start_date}_${end_date}_${category}_${policy_type}_${policy_duration}`;
-      console.log("cacheKey", cacheKey)
+    console.log("cacheKey", cacheKey)
     // Check Redis cache
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
@@ -2053,7 +2018,7 @@ async function getPolicySummarySnapshot(req, res) {
     });
 
 
-   console.log("fetchPromises", fetchPromises)
+    console.log("fetchPromises", fetchPromises)
     const quarterData = await Promise.all(fetchPromises);
     console.log("quarterData", quarterData)
 
@@ -2082,8 +2047,8 @@ async function getPolicySummarySnapshot(req, res) {
     annualReport.retention_rate = Number((annualReport.retention_rate / quarterData.length).toFixed(2))
     annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
 
-     // Store result in Redis cache with an expiration time (e.g., 1 hour)
-     await redisClient.set(cacheKey, JSON.stringify({
+    // Store result in Redis cache with an expiration time (e.g., 1 hour)
+    await redisClient.set(cacheKey, JSON.stringify({
       status: "OK",
       message: "Policy Summary snapshot fetched successfully",
       annualReport,
