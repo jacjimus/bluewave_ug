@@ -248,11 +248,11 @@ async function singlePolicyReconciliation (pending_policies) {
 }
 
 
-
 const array_of_phone_numbers = [
-
-
-  // { transaction_id:  103706220612, phone_number: 751816886, premium: 5000, transaction_date: '11-05-2024 11:16 PM', installment_count: 2 },
+ 
+ 
+  //{transaction_id: 100959126297, transaction_date: '15-03-2024 08:58 PM', phone_number: 705696805, premium: 5000, full_name: 'ABDALAH KATUMBA (705696805)', installment_count: 1},
+  
 
 
 
@@ -707,7 +707,7 @@ export const _sendPolicyRenewalReminder = async () => {
 
 export const playground = async () => {
 
-//policyReconciliation(array_of_phone_numbers)
+policyReconciliation(array_of_phone_numbers)
   //_sendPolicyRenewalReminder()
 
   //updateAARpolicyNumber(arr_members)

@@ -17,7 +17,7 @@ router.use("/users", userRoutes);
 router.use("/policies", policyRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/claims", claimRoutes);
-router.use("/ussd", ussdRoutes);
+router.use("/ussd", ussdRoutes);// USSD ROUTER
 router.use("/reports", reportRoutes);
 router.use("/products", productRoutes);
 router.use("/generals", generalRoutes);

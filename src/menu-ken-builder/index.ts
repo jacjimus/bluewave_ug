@@ -9,26 +9,24 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
+import { Console } from "winston/lib/winston/transports";
+const redisClient = require("../middleware/redis");
+
 
 require("dotenv").config();
 
-let sessions = {};
 
-// Session management functions
-const startSession = (sessionId) => {
-  if (!(sessionId in sessions)) sessions[sessionId] = {};
+const getSessionData = async (sessionId, key) => {
+  const data = await redisClient.hget(sessionId, key);
+  return data ? JSON.parse(data) : null;
 };
 
-const endSession = (sessionId) => {
-  delete sessions[sessionId];
+const setSessionData = async (sessionId, key, value) => {
+  await redisClient.hset(sessionId, key, JSON.stringify(value));
 };
 
-const setSessionData = (sessionId, key, value) => {
-  sessions[sessionId][key] = value;
-};
-
-const getSessionData = (sessionId, key) => {
-  return sessions[sessionId][key];
+const deleteSessionData = async (sessionId) => {
+  await redisClient.del(sessionId);
 };
 
 export default function (args: KenRequestBody, db: any) {
@@ -39,17 +37,19 @@ export default function (args: KenRequestBody, db: any) {
       console.log("KEN args", args);
 
       // Start the session
-      startSession(sessionid);
+      await setSessionData(sessionid, 'initialized', true);
 
       // Retrieve the stored input for the session
-      let storedInput = getSessionData(sessionid, 'storedInput');
+      let storedInput = await getSessionData(sessionid, 'storedInput');
       console.log("Stored input", storedInput);
       input = storedInput ? `${storedInput}*${input}` : input;
 
       let allSteps = input.split("*");
 
+      console.log("All steps", allSteps);
+
       // Store the updated input back to the session
-      setSessionData(sessionid, 'storedInput', input);
+      await setSessionData(sessionid, 'storedInput', input);
 
       // Check if the user input is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
@@ -85,7 +85,7 @@ export default function (args: KenRequestBody, db: any) {
       };
 
       allSteps = handleBack(allSteps);
-      setSessionData(sessionid, 'storedInput', allSteps.join("*"));
+      await setSessionData(sessionid, 'storedInput', allSteps.join("*"));
 
       let firstStep = allSteps[0];
       let currentStep = allSteps.length;
@@ -133,7 +133,7 @@ export default function (args: KenRequestBody, db: any) {
       resolve(response);
 
       // End the session (if needed)
-      endSession(sessionid);
+      await deleteSessionData(sessionid);
     } catch (e) {
       console.log(e);
       reject("END " + languages[configs.default_lang].generic.fatal_error);

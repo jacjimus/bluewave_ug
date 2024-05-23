@@ -102,20 +102,19 @@ const getPolicies = async (req: any, res: any) => {
       });
     }
 
-    const dateFilters: any = {};
-    if (start_date) {
-      dateFilters.policy_paid_date = { [Op.gte]: new Date(start_date) };
-    }
-    if (end_date) {
-      dateFilters.policy_paid_date = { ...dateFilters.policy_paid_date, [Op.lte]: new Date(end_date) };
-    }
 
-    if (start_date === end_date) {
-      dateFilters.policy_paid_date = { [Op.eq]: new Date(start_date) };
-    }
+    const dateFilters: any = {};
 
     if (start_date && end_date) {
-      dateFilters.policy_paid_date = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+      if (start_date === end_date) {
+        dateFilters.policy_paid_date = { [Op.eq]: new Date(start_date) };
+      } else {
+        dateFilters.policy_paid_date = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+      }
+    } else if (start_date) {
+      dateFilters.policy_paid_date = { [Op.gte]: new Date(start_date) };
+    } else if (end_date) {
+      dateFilters.policy_paid_date = { [Op.lte]: new Date(end_date) };
     }
 
     const searchFilters: any = {};
@@ -134,12 +133,15 @@ const getPolicies = async (req: any, res: any) => {
       ];
     }
 
+    console.log("dateFilters", dateFilters.policy_paid_date)
+
     const whereCondition: any = {
       partner_id: partner_id,
       policy_status: 'paid',
       ...dateFilters,
       ...searchFilters,
     };
+    console.log("whereCondition", whereCondition)
 
     const paginationOptions = {
       offset: (page - 1) * limit,
@@ -344,12 +346,19 @@ const findPolicyByUserId = async (req: any, res: any) => {
     const limit = req.query.limit || 10;
 
     const dateFilters: any = {};
-    if (start_date) {
-      dateFilters.createdAt = { [Op.gte]: new Date(start_date) };
+   
+    if (start_date && end_date) {
+      if (start_date === end_date) {
+        dateFilters.policy_paid_date = { [Op.eq]: new Date(start_date) };
+      } else {
+        dateFilters.policy_paid_date = { [Op.between]: [new Date(start_date), new Date(end_date)] };
+      }
+    } else if (start_date) {
+      dateFilters.policy_paid_date = { [Op.gte]: new Date(start_date) };
+    } else if (end_date) {
+      dateFilters.policy_paid_date = { [Op.lte]: new Date(end_date) };
     }
-    if (end_date) {
-      dateFilters.createdAt = { ...dateFilters.createdAt, [Op.lte]: new Date(end_date) };
-    }
+
 
     let policy = await db.policies.findAll({
       where: {
