@@ -153,43 +153,76 @@ const getPolicySummary = async (req: any, res: any) => {
     const total_policies_renewed_premium = total_policies_renewal[0].dataValues.total_renewals_premium;
 
 
-    const [total_users_count, total_policies_paid_count, total_policy_premium_paid, total_paid_payments_count] = await Promise.all([
-      db.users.count({
-        where: {
-          partner_id,
-          createdAt: {
-            [Op.between]: [startDate, endDate]
-          }
-        }
-      }),
-      db.policies.count({
-        where: {
-          partner_id,
-          policy_status: "paid",
-          createdAt: {
-            [Op.between]: [startDate, endDate]
-          }
-        }
+   
+const [total_users_count,total_users_with_policy, total_policies_paid_count, total_policy_premium_paid, total_paid_payments_count] = await Promise.all([
+  // Total Users Count
+  db.users.count({
+    where: {
+      partner_id,
+      createdAt: {
+        [Op.between]: [startDate, endDate]
+      }
+    }
+  }),
+  // Total Users with Policy Count
+  db.users.count({
+    where: {
+      partner_id,
+      createdAt: {
+        [Op.between]: [startDate, endDate]
+      },
+      arr_member_number: {
+        [Op.not]: null
+      }
+    }
+  }),
 
+  // Total Policies Paid Count
+  db.sequelize.query(
+    `SELECT COUNT(*) AS count 
+     FROM (SELECT DISTINCT airtel_money_id, phone_number, premium 
+           FROM policies 
+           WHERE partner_id = :partner_id 
+             AND policy_status = 'paid' 
+             AND policy_paid_date BETWEEN :startDate AND :endDate) AS distinct_policies`, 
+    {
+      replacements: { partner_id, startDate, endDate },
+      type: QueryTypes.SELECT
+    }
+  ).then(result => result[0].count),
 
-      }),
-      db.policies.sum('policy_paid_amount', {
-        where: {
-          partner_id,
-          policy_status: "paid",
-          createdAt: {
-            [Op.between]: [startDate, endDate]
-          }
-        }
-      }),
-      db.payments.count({ where: { payment_status: "paid", partner_id } }),
-    ]);
+  // Total Policy Premium Paid
+  db.sequelize.query(
+    `SELECT SUM(policy_paid_amount) AS total_premium 
+     FROM (SELECT DISTINCT ON (airtel_money_id, phone_number, premium) policy_paid_amount 
+           FROM policies 
+           WHERE partner_id = :partner_id 
+             AND policy_status = 'paid' 
+             AND policy_paid_date BETWEEN :startDate AND :endDate) AS distinct_policies`, 
+    {
+      replacements: { partner_id, startDate, endDate },
+      type: QueryTypes.SELECT
+    }
+  ).then(result => result[0].total_premium),
 
-
+  // Total Paid Payments Count
+ db.sequelize.query(
+    `SELECT COUNT(*) AS count 
+     FROM (SELECT DISTINCT policy_id, payment_amount 
+           FROM payments 
+           WHERE payment_status = 'paid' 
+             AND partner_id = :partner_id) AS distinct_payments`,
+    {
+      replacements: { partner_id },
+      type: QueryTypes.SELECT
+    }
+  ).then(result => result[0].count)
+]);
 
 
     let summary = {
       total_users: total_users_count,
+      total_users_with_policy: total_users_with_policy,
       total_policies_paid: total_policies_paid_count,
       total_policies_premium_paid: total_policy_premium_paid,
       total_preimum_amount: total_policy_premium_paid,
