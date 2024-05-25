@@ -247,8 +247,6 @@ router.all("/callback", async (req, res) => {
         let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
         await sendSMSNotification(formatPhoneNumber(policy.phone_number, 2), congratText);
 
-        const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-        await processPolicy(user, policy, memberStatus);
 
         return res.status(200).json({
           code: 200,
@@ -335,6 +333,9 @@ router.all("/uat/callback", async (req, res) => {
         await sendSMSNotification(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" }); //4
+       
+       // send this cron job to the cron job service to be done later 
+
         await processPolicy(user, policy, memberStatus); //5
 
         return res.status(200).json({

@@ -39,7 +39,7 @@ async function arr_uganda_login() {
     return response.data.token;
   } catch (error) {
   console.error(error.message)
-    throw new Error(error.message); 
+
   }
 }
 
@@ -122,7 +122,7 @@ async function registerPrincipal(user: any, policy: any) {
       corp_id: "758",
       policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
       policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
-      unique_profile_id: user.membership_id + '',
+      unique_profile_id: user.phone_number + "",
       money_transaction_id: policy.airtel_money_id,
 
     }
@@ -213,7 +213,7 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
             health_plan: "AIRTEL_" + myPolicy?.policy_type.replace(/\s/g, ''),
             policy_start_date: moment(myPolicy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
             policy_end_date: moment(myPolicy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
-            unique_profile_id: existingUser.membership_id + "",
+            unique_profile_id: existingUser.phone_number + "",
           });
 
           console.log("DEPENDANT", dependant)

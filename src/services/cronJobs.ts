@@ -153,6 +153,9 @@ export const  getArrMemberNumberData = async () => {
         }]
   
       });
+
+       // const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+        // await processPolicy(user, policy, memberStatus);
   
       for (let i = 0; i < policies.length; i++) {
         const policy = policies[i];

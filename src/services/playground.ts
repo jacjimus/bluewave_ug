@@ -248,15 +248,23 @@ async function singlePolicyReconciliation (pending_policies) {
 }
 
 
+
+
+
+
+
+//transaction_id transaction_date	phone_number	premium	full_name
+// 101156166553	19-03-2024 06:28 PM	742986660	10,000	ROSE NANSUBUGA (742986660)
+// 100997136690	16-03-2024 04:42 PM	744108260	5,000	MACKLINE AKANKWASA (744108260)
+// 104265323878	24-05-2024 01:09 PM	708305532	5,000	JONES AYEBARE (708305532)
+// 103837715521	15/05/2024 06:01	744378982	5,000	KANYARUSOKE KWIKIRIZA (744378982)
+
 const array_of_phone_numbers = [
  
- 
-  //{transaction_id: 100959126297, transaction_date: '15-03-2024 08:58 PM', phone_number: 705696805, premium: 5000, full_name: 'ABDALAH KATUMBA (705696805)', installment_count: 1},
-  
-
-
-
-
+  { transaction_id: 101156166553, transaction_date: '19-03-2024 06:28 PM', phone_number: 742986660, premium: 10000 },
+  { transaction_id: 100997136690, transaction_date: '16-03-2024 04:42 PM', phone_number: 744108260, premium: 5000 },
+  { transaction_id: 104265323878, transaction_date: '24-05-2024 01:09 PM', phone_number: 708305532, premium: 5000 },
+  { transaction_id: 103837715521, transaction_date: '15-05-2024 06:01', phone_number: 744378982, premium: 5000 }
 ];
 
 
@@ -379,42 +387,49 @@ async function policyReconciliation(array_of_phone_numbers) {
   }
 }
 
-async function getArrMemberNumberData() {
+async function getArrMemberNumberData(array_of_phone_numbers) {
   try {
-    const policies = await db.policies.findAll({
-      // Policy type is 'S MINI'
-      where: {
-        //policy_status: 'paid',
-        //policy_type: { [db.Sequelize.Op.eq]: 'S MINI' },
-        partner_id: 2,
-        // policy_start_date: {
-        //   [Op.between]: ['2023-10-01', '2024-03-31']
-        // },
-
-      },
-      include: [{
-        model: db.users,
+    
+    array_of_phone_numbers.forEach(async (item) => {
+      const transaction_date = moment(item.transaction_date, "YYYY-MM-DD h:mm A");
+      // console.log("transaction_date_str", transaction_date)
+      let policy = await db.policies.findOne({
         where: {
-          arr_member_number: null,
-          partner_id: 2
-        }
-      }]
+          phone_number: `+256${item.phone_number}`,
+          premium: item.premium,
+          policy_status: 'paid',
+        },
+        include: [{
+          model: db.users,
+          where: {
+            partner_id: 2
+          }
+        }],
+        order: [["createdAt", "DESC"]],
+        limit: 1,
+      });
 
-    });
+      if (policy) {
+     
 
-    for (let i = 0; i < policies.length; i++) {
-      const policy = policies[i];
       const customer = policy.user
       console.log(customer.name, policy.phone_number);
 
+      // udpate airtel money id  on policy table
+       policy.airtel_money_id = item.transaction_id
+       policy.save()
+      
+
       let result = await registerPrincipal(customer, policy);
       console.log(result);
-      if (result.code == 608) {
+      if (result.code !== 200) {
         await getMemberNumberData(customer.phone_number);
       }
       // Introduce a delay of 1 second between each iteration
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
+
+    })
 
   } catch (error) {
     console.log(error);
@@ -707,7 +722,7 @@ export const _sendPolicyRenewalReminder = async () => {
 
 export const playground = async () => {
 
-policyReconciliation(array_of_phone_numbers)
+//policyReconciliation(array_of_phone_numbers)
   //_sendPolicyRenewalReminder()
 
   //updateAARpolicyNumber(arr_members)
@@ -715,7 +730,7 @@ policyReconciliation(array_of_phone_numbers)
   //getDataFromSheet()
   //createARRDependants()
 
-  //updateMembershipData()
+  getArrMemberNumberData(array_of_phone_numbers)
 
   //updatePremiumArr(array_of_phone_numbers)
 }
