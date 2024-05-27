@@ -784,7 +784,7 @@ export const playground = async () => {
   //getDataFromSheet()
   //createARRDependants()
 
-  getArrMemberNumberData(array_of_phone_numbers)
+  //getArrMemberNumberData(array_of_phone_numbers)
 
   //updatePremiumArr(array_of_phone_numbers)
 }
