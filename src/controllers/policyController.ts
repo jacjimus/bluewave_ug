@@ -91,16 +91,16 @@ const getPolicies = async (req: any, res: any) => {
     limit = parseInt(limit) || 10;
     filter = filter?.toString().toLowerCase() || "";
 
-    const cacheKey = `policies_${partner_id}_${start_date}_${end_date}_${filter}_${page}_${limit}`;
-    const cachedData = await redisClient.get(cacheKey);
+    // const cacheKey = `policies_${partner_id}_${start_date}_${end_date}_${filter}_${page}_${limit}`;
+    // const cachedData = await redisClient.get(cacheKey);
 
-    if (cachedData) {
-      return res.status(200).json({
-        code: 200,
-        status: "OK",
-        result: JSON.parse(cachedData)
-      });
-    }
+    // if (cachedData) {
+    //   return res.status(200).json({
+    //     code: 200,
+    //     status: "OK",
+    //     result: JSON.parse(cachedData)
+    //   });
+    // }
 
 
     const dateFilters: any = {};
@@ -177,14 +177,14 @@ const getPolicies = async (req: any, res: any) => {
       items: policies
     };
 
-    // Store the result in Redis with an expiration time of 1 hour (3600 seconds)
-    await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
+    // // Store the result in Redis with an expiration time of 1 hour (3600 seconds)
+    // await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
 
-    return res.status(200).json({
-      code: 200,
-      status: "OK",
-      result
-    });
+    // return res.status(200).json({
+    //   code: 200,
+    //   status: "OK",
+    //   result
+    // });
 
   } catch (error) {
     console.error(error);

@@ -105,7 +105,7 @@ async function registerPrincipal(user: any, policy: any) {
       first_name: user.first_name || `256${user.phone_number}`,
       other_names: user.middle_name || `256${user.phone_number}`,
       gender: 1,
-      dob: "1900-01-01",
+      dob: "1990-01-01",
       pri_dep: "24",
       family_title: "3",
       tel_no: `256${user.phone_number}`,
