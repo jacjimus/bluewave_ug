@@ -528,17 +528,10 @@ async function reconcilationCallback(transaction) {
 
     }
 
-
-    policy.airtel_money_id = airtel_money_id;
-    policy.policy_status = "paid";
-    policy.payment_date = payment_date;
-    policy.save();
-
     const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
     const policyType = policy.policy_type.toUpperCase();
     const period = policy.installment_type == 1 ? "yearly" : "monthly";
-    policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`
-
+    policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`;
 
     const payment = await db.payments.create({
       payment_amount: amount,
@@ -554,6 +547,18 @@ async function reconcilationCallback(transaction) {
     });
 
     console.log("Payment record created successfully");
+
+    await db.policies.update({ 
+      policy_status: "paid",
+       airtel_money_id: airtel_money_id,
+      payment_date: payment_date ,
+      bluewave_transaction_id : payment.payment_id,
+      airtel_transaction_ids: policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id],
+      premium: amount,
+      is_expired: false,
+    }, { where: { policy_id: policy_id } });
+
+
 
     let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 

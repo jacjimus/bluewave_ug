@@ -405,7 +405,7 @@ async function policyReconciliation(array_of_phone_numbers) {
               message: `PAID UGX ${item.premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${item.premium}. TID: ${item.airtel_money_id}. Date: ${transaction_date}`,
               status_code: "TS",
               airtel_money_id: item.transaction_id,
-              payment_date: transaction.createdAt,
+              payment_date: transaction_date,
 
             }
           }

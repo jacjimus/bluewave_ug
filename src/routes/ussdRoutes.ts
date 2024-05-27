@@ -100,44 +100,10 @@ export const findTransactionById = async (transactionId) => {
 };
 
 
-const updatePolicyDetails = async (policy, amount, payment, airtel_money_id) => {
-  try {
-    amount = parseInt(amount);
-
-    policy.policy_status = "paid";
-    policy.bluewave_transaction_id = payment.payment_id;
-    policy.airtel_money_id = airtel_money_id;
-    policy.airtel_transaction_ids = policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, payment.payment_id] : [payment.payment_id];
-    policy.policy_deduction_amount = amount;
-    policy.policy_paid_date = new Date();
-    policy.is_expired = false;
-
-    console.log("Policy", policy);
-
-    await policy.save();
-
-    console.log("Policy details updated successfully");
-
-    return policy;
-  } catch (error) {
-    logger.error("Error updating policy details:", error);
-    throw error;
-  }
-};
-
-
 const updateInstallmentLogic = async (policy, amount) => {
   try {
     const date = new Date();
     let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
-
-    // const policyPaidCountOfUser = await db.policies.count({
-    //   where: { user_id: policy.user_id, policy_status: "paid" }
-    // });
-
-    // await db.users.update({ number_of_policies: policyPaidCountOfUser }, {
-    //   where: { user_id: policy.user_id }
-    // });
 
     // Handle negative dates by rolling back to the previous month's end
     if (installment_alert_date.getDate() < 1) {
@@ -146,7 +112,7 @@ const updateInstallmentLogic = async (policy, amount) => {
 
     if (policy.installment_type === 2) {
       policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-      policy.installment_order = parseInt(policy.policy_paid_amount) !== parseInt(amount) ? 1 : parseInt(policy.installment_order) + 1;
+      policy.installment_order = parseInt(policy.policy_deduction_amount) !== parseInt(amount) ? 1 : parseInt(policy.installment_order) + 1;
       policy.installment_alert_date = installment_alert_date;
 
       // Adjust policy amounts
@@ -181,7 +147,6 @@ const updateInstallmentLogic = async (policy, amount) => {
 
 export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
   try {
-    await updatePolicyDetails(policy, amount, payment, airtel_money_id);
     await updateInstallmentLogic(policy, amount);
 
     return policy;
