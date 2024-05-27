@@ -150,7 +150,7 @@ const getPolicies = async (req: any, res: any) => {
 
     const { rows: policies, count: totalCount } = await db.policies.findAndCountAll({
       where: whereCondition,
-      order: [["policy_start_date", "DESC"]],
+      order: [["policy_paid_date", "DESC"]],
       include: [{
         model: db.payments,
         as: 'payments',
@@ -180,11 +180,11 @@ const getPolicies = async (req: any, res: any) => {
     // // Store the result in Redis with an expiration time of 1 hour (3600 seconds)
     // await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
 
-    // return res.status(200).json({
-    //   code: 200,
-    //   status: "OK",
-    //   result
-    // });
+    return res.status(200).json({
+      code: 200,
+      status: "OK",
+      result
+    });
 
   } catch (error) {
     console.error(error);
