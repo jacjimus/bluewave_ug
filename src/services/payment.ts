@@ -117,33 +117,34 @@ async function airtelMoneyKenya(existingUser, policy) {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference: `${policy.beneficiary}-${policy.policy_type}-${policy.policy_id}`,
+      reference: Math.floor(Date.now() / 1000),
       subscriber: {
         country: "KE",
         currency: "KES",
         msisdn: existingUser.phone_number,
       },
       transaction: {
-        amount: policy.premium,
+       // amount: policy.premium,
+        amount: process.env.ENVIROMENT == 'PROD' ? policy.premium : 1,
         country: "KE",
         currency: "KES",
         id: policy.policy_id,
       },
     };
 
-    const headers = {
-      'Content-Type': 'application/json',
-      Accept: '/',
-      'X-Country': "KE",
-      'X-Currency': "KES",
-      Authorization: `${token}`,
-    };
+      const headers = {
+        'Accept': '*/* ',
+        'Content-Type': 'application/json',
+        'X-Country': 'KE',
+        'X-Currency': 'KES',
+        'Authorization': `Bearer ${token}`
+      };
 
     console.log("PAYMENT DATA", paymentData, process.env.UAT_KEN_AIRTEL_PAYMENT_URL, "HEADERS", headers)
 
-    const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
-
-
+    const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData,
+        { headers });
+    console.log("res status", paymentResponse.data.status);
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
       await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id, policy.premium,);
