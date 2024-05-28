@@ -254,59 +254,20 @@ async function singlePolicyReconciliation (pending_policies) {
 
 
 // //transaction_id transaction_date	phone_number	premium	full_name
-// 104246811742	23-05-2024 10:00 PM	743460967	10,000	BETTY NAKABUGO (743460967)	2
-// 104246053526	23-05-2024 09:42 PM	743460967	10,000	BETTY NAKABUGO (743460967)	2
-// 104242977350	23/05/2024 20:44	742607836	10,000	MOSES MATOVU (742607836)	1
-// 104239401714	23/05/2024 19:50	742021186	5,000	CHRISTINE TWIJUKYE (742021186)	2
-// 104239207104	23/05/2024 19:47	743174762	18,000	MAXENSIA NAMPEBWA (743174762)	1
-// 104229906146	23/05/2024 16:54	702217718	10,000	KIVIIRI BENJAMIN (702217718)	4
-// 104224547928	23/05/2024 14:47	702031133	77,000	IBRAHIM KAMULEGEYA (702031133)	3
-// 104222176506	23/05/2024 13:52	702767220	15,000	JIM MATSIKO (702767220)	2
-// 104221718519	23/05/2024 13:42	702598206	18,000	MARIA NAKATOOGO (702598206)	2
-// 104219146425	23/05/2024 12:44	743605818	14,000	YUDA SEKAJJA (743605818)	3
-// 104219109489	23/05/2024 12:43	743605818	14,000	YUDA SEKAJJA (743605818)	3
-// 104212444192	23/05/2024 10:16	708075003	5,000	JOHN JJUMBA (708075003)	1
-// 104184837323	22-05-2024 04:58 PM	743225383	5,000	MOUREEN NAMUGGA (743225383)	1
-// 104175081081	22-05-2024 01:17 PM	743505894	5,000	AGNESI GIMBO (743505894)	2
-// 104160491680	22/05/2024 07:02	759940397	5,000	JALIA NABATANZI (759940397)	5
-// 104160287602	22/05/2024 06:40	759098494	5,000	JANE NAKANDI (759098494)	2
-// 104133847241	21/05/2024 15:25	709375625	10,000	SAMUEL SSEMBOGGA (709375625)	4
-// 104130841090	21/05/2024 14:17	743773764	5,000	FATUMAH NELIMA (743773764)	2
-// 104127876289	21/05/2024 13:12	742060847	5,000	MOHAMMADI LWANGA (742060847)	1
-// 104123826725	21/05/2024 11:46	750555263	18,000	DAVID KALEMEERA (750555263)	2
-// 104122541933	21/05/2024 11:19	756965041	5,000	RONALD ASIIMWE (756965041)	1
-// 104121427034	21/05/2024 10:55	708357953	10,000	JOSHUA KANDI (708357953)	1
-// 104117336114	21-05-2024 09:22 AM	754169557	5,000	ISSA MUDUNGU (754169557)	1
-// 104114945142	21/05/2024 08:17	750849852	5,000	EVERLYN NANDUDU (750849852)	1
-
-
-//103988584561	18/05/2024 12:44	744207264	5,000	JOSEPH KATONGOLE (744207264)
+// 104411502245	27-05-2024 03:40 PM	743072379	18,000	AGATHANEKTARIA BRITAH (743072379)	1
+// 104411303981	27-05-2024 03:35 PM	758040870	5,000	LAMULATU NALUYIMA (758040870)	2
+// 104409477022	27-05-2024 02:54 PM	759639467	5,000	PASIKALI BYARUHANGA (759639467)	1
+// 104406798473	27-05-2024 01:55 PM	703051489	10,000	IRENE NYIRAHABWA (703051489)	1
+// 104406129931	27-05-2024 01:40 PM	706359423	5,000	ERINAH NAKATE (706359423)	1
+// 104405922825	27-05-2024 01:36 PM	709964344	5,000	ENOCA WASSWA (709964344)	1
+// 104386608128	26-05-2024 10:24 PM	706931638	5,000	CHRISTOPHER OKUMU (706931638)	1
+// 104373001389	26-05-2024 06:22 PM	751398156	5,000	JULIUS NYAMUTIDI (751398156)	1
+// 104371919199	26-05-2024 06:01 PM	754635493	5,000	SEITH BAREKYE (754635493)	1
 const array_of_phone_numbers = [
  
-  { transaction_id: 104246811742, transaction_date: '23-05-2024 10:00 PM2', phone_number: 743460967, premium: 10000, installment_count: 1 },
-  { transaction_id: 104246053526, transaction_date: '23-05-2024 09:42 PM', phone_number: 743460967, premium: 10000, installment_count: 1 },
-  { transaction_id: 104242977350, transaction_date: '23/05/2024 20:44', phone_number: 742607836, premium: 10000, installment_count: 1 },
-  { transaction_id: 104239401714, transaction_date: '23/05/2024 19:50', phone_number: 742021186, premium: 5000, installment_count: 1 },
-  { transaction_id: 104239207104, transaction_date: '23/05/2024 19:47', phone_number: 743174762, premium: 18000, installment_count: 1 },
-  { transaction_id: 104229906146, transaction_date: '23/05/2024 16:54', phone_number: 702217718, premium: 10000, installment_count: 1 },
-  { transaction_id: 104224547928, transaction_date: '23/05/2024 14:47', phone_number: 702031133, premium: 77000, installment_count: 1 },
-  { transaction_id: 104222176506, transaction_date: '23/05/2024 13:52', phone_number: 702767220, premium: 15000, installment_count: 1 },
-  { transaction_id: 104221718519, transaction_date: '23/05/2024 13:42', phone_number: 702598206, premium: 18000, installment_count: 1 },
-  { transaction_id: 104219146425, transaction_date: '23/05/2024 12:44', phone_number: 743605818, premium: 14000, installment_count: 1 },
-  { transaction_id: 104219109489, transaction_date: '23/05/2024 12:43', phone_number: 743605818, premium: 14000, installment_count: 1 },
-  { transaction_id: 104212444192, transaction_date: '23/05/2024 10:16', phone_number: 708075003, premium: 5000, installment_count: 1 },
-  { transaction_id: 104184837323, transaction_date: '22-05-2024 04:58 PM', phone_number: 743225383, premium: 5000, installment_count: 1 },
-  { transaction_id: 104175081081, transaction_date: '22-05-2024 01:17 PM', phone_number: 743505894, premium: 5000, installment_count: 1 },
-  { transaction_id: 104160491680, transaction_date: '22/05/2024 07:02', phone_number: 759940397, premium: 5000, installment_count: 1 },
-  { transaction_id: 104160287602, transaction_date: '22/05/2024 06:40', phone_number: 759098494, premium: 5000, installment_count: 1 },
-  { transaction_id: 104133847241, transaction_date: '21/05/2024 15:25', phone_number: 709375625, premium: 10000, installment_count: 1 },
-  { transaction_id: 104130841090, transaction_date: '21/05/2024 14:17', phone_number: 743773764, premium: 5000, installment_count: 1 },
-  { transaction_id: 104127876289, transaction_date: '21/05/2024 13:12', phone_number: 742060847, premium: 5000, installment_count: 1 },
-  { transaction_id: 104123826725, transaction_date: '21/05/2024 11:46', phone_number: 750555263, premium: 18000, installment_count: 1 },
-  { transaction_id: 104122541933, transaction_date: '21/05/2024 11:19', phone_number: 756965041, premium: 5000, installment_count: 1 },
-  { transaction_id: 104121427034, transaction_date: '21/05/2024 10:55', phone_number: 708357953, premium: 10000, installment_count: 1 },
-  { transaction_id: 104117336114, transaction_date: '21-05-2024 09:22 AM', phone_number: 754169557, premium:  5000, installment_count: 1 },
-  { transaction_id: 104114945142, transaction_date: '21/05/2024 08:17', phone_number: 750849852, premium: 5000, installment_count: 1 },
+
+  //{ transaction_id: 104411303981, transaction_date: '27-05-2024 03:35 PM', phone_number: 758040870, premium: 5000, full_name: 'LAMULATU NALUYIMA (758040870)' },
+
 
   
   
@@ -327,7 +288,7 @@ async function policyReconciliation(array_of_phone_numbers) {
         where: {
           phone_number: `+256${item.phone_number}`,
           premium: item.premium,
-          policy_status: 'pending',
+          policy_status: 'paid',
 
           //policy_number: null
         },
@@ -776,7 +737,7 @@ export const _sendPolicyRenewalReminder = async () => {
 
 export const playground = async () => {
 
-//policyReconciliation(array_of_phone_numbers)
+policyReconciliation(array_of_phone_numbers)
   //_sendPolicyRenewalReminder()
 
   //updateAARpolicyNumber(arr_members)

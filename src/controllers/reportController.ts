@@ -1774,11 +1774,6 @@ const paymentReconciliation = async (req, res) => {
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
- *       - name: partner_id
- *         in: query
- *         required: true
- *         schema:
- *           type: number
  *       - name: transaction_date
  *         in: query
  *         required: true
@@ -1799,6 +1794,11 @@ const paymentReconciliation = async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *       - name: renewal
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: boolean
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -1808,7 +1808,7 @@ const paymentReconciliation = async (req, res) => {
 async function policyReconciliation(req: any, res: any) {
 
   try {
-    let { partner_id, airtel_money_id, phone_number, transaction_date, premium } = req.query;
+    let { renewal, airtel_money_id, phone_number, transaction_date, premium } = req.query;
     let result = {
       message: "error",
       code: 404
@@ -1821,9 +1821,12 @@ async function policyReconciliation(req: any, res: any) {
     console.log(`premium, ${premium}`)
     console.log(`existingUser,${phone_number}`)
 
+    let policy_status = renewal ? 'paid' : 'pending';
+
     let policy = await db.policies.findOne({
       where: {
-        partner_id: partner_id,
+        partner_id: 2,
+        policy_status: policy_status,
         phone_number: `+256${phone_number}`,
         policy_deduction_amount: premium,      },
       include: [{

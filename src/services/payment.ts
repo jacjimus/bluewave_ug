@@ -69,7 +69,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
     const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-    
+
     if (paymentResponse.data.status.success !== true) {
       status.code = 500;
       status.message = 'Payment failed'; // Update message only on failure
@@ -102,15 +102,15 @@ function handlePaymentError(error, status) {
 
 
 
-async function airtelMoneyKenya(existingUser, policy ) {
+async function airtelMoneyKenya(existingUser, policy) {
   const status = {
     code: 200,
     status: "OK",
     result: "",
     message: 'Payment successfully initiated'
   };
-  
- 
+
+
 
 
   try {
@@ -146,18 +146,18 @@ async function airtelMoneyKenya(existingUser, policy ) {
 
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
-      await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id,policy.premium,);
+      await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id, policy.premium,);
       return status;
     }
 
     status.code = 500;
-    status.message = 'Payment failed'; 
+    status.message = 'Payment failed';
     return status;
   } catch (error) {
     console.log("ERROR", error)
     logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
-    
+
   }
 }
 
@@ -513,10 +513,7 @@ async function reconcilationCallback(transaction) {
     }
     let policy = await db.policies.findOne({
       where: {
-        [Op.or]: [
-          { policy_id: policy_id },
-          { user_id: user_id }
-        ]
+        policy_id,
       }
     });
 
@@ -548,39 +545,35 @@ async function reconcilationCallback(transaction) {
 
     console.log("Payment record created successfully");
 
-    await db.policies.update({ 
+    await db.policies.update({
       policy_status: "paid",
-       airtel_money_id: airtel_money_id,
-      payment_date: payment_date ,
-      bluewave_transaction_id : payment.payment_id,
+      airtel_money_id: airtel_money_id,
+      payment_date: payment_date,
+      bluewave_transaction_id: payment.payment_id,
       airtel_transaction_ids: policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id],
       premium: amount,
       is_expired: false,
     }, { where: { policy_id: policy_id } });
 
 
-policy.policy_status = "paid";
-policy.airtel_money_id = airtel_money_id;
-policy.payment_date = payment_date;
-policy.bluewave_transaction_id = payment.payment_id;
-policy.airtel_transaction_ids = policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id];
-policy.premium = amount;
-policy.is_expired = false;
+    policy.policy_status = "paid";
+    policy.airtel_money_id = airtel_money_id;
+    policy.payment_date = payment_date;
+    policy.bluewave_transaction_id = payment.payment_id;
+    policy.airtel_transaction_ids = policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id];
+    policy.premium = amount;
+    policy.is_expired = false;
 
-  policy.save();
+    policy.save();
 
 
     let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
 
-    console.log("=== PAYMENT ===", payment)
-    console.log("=== UPDATED POLICY ===", updatedPolicy)
-
-
     // send congratulatory message
-   // await sendCongratulatoryMessage(updatedPolicy, user);
+    await sendCongratulatoryMessage(updatedPolicy, user);
 
-   // const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+    //const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
     //await processPolicy(user, policy, memberStatus);
 
