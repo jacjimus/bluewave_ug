@@ -9,7 +9,6 @@ const path = require("path")
 const XLSX = require("xlsx");
 const redisClient = require("../middleware/redis");
 
-
 const Policy = db.policies;
 const User = db.users;
 const Claim = db.claims;
@@ -1775,11 +1774,6 @@ const paymentReconciliation = async (req, res) => {
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
- *       - name: partner_id
- *         in: query
- *         required: true
- *         schema:
- *           type: number
  *       - name: transaction_date
  *         in: query
  *         required: true
@@ -1800,6 +1794,11 @@ const paymentReconciliation = async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *       - name: renewal
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: boolean
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -1809,45 +1808,52 @@ const paymentReconciliation = async (req, res) => {
 async function policyReconciliation(req: any, res: any) {
 
   try {
-    let { partner_id, airtel_money_id, phone_number, transaction_date, premium } = req.query;
+    let { renewal, airtel_money_id, phone_number, transaction_date, premium } = req.query;
     let result = {
       message: "error",
       code: 404
     }
     //4/2/2024 = 4th Feb 2024
 
-    transaction_date = moment(transaction_date, "DD/MM/YYYY").format("YYYY-MM-DD")
+    transaction_date = moment(transaction_date, "YYYY-MM-DD h:mm A");
 
     console.log(`transaction_date, ${transaction_date}`)
     console.log(`premium, ${premium}`)
     console.log(`existingUser,${phone_number}`)
 
+    let policy_status = renewal ? 'paid' : 'pending';
+
     let policy = await db.policies.findOne({
       where: {
-        partner_id: partner_id,
+        partner_id: 2,
+        policy_status: policy_status,
         phone_number: `+256${phone_number}`,
-        premium: premium,
-      },
+        policy_deduction_amount: premium,      },
+      include: [{
+        model: db.users,
+        where: {
+          partner_id: 2
+        }
+      }],
       limit: 1,
     });
 
     let payment = await db.payments.findOne({
       where: {
         policy_id: policy.policy_id,
-        payment_status: 'paid',
         payment_amount: premium,
 
       },
       limit: 1,
     });
+    
 
     console.log("====== PAYMENT - RECON =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
 
     console.log("===== POLICY  - RECON =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
 
-    if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount) {
-
-      return res.status(400).json({ status: "FAILED", message: "Policy already paid" });
+    if (!policy || !payment) {
+      return res.status(400).json({ status: "FAILED", message: "Policy already reconciled" });
     }
 
     let transactionId = await db.transactions.findOne({
@@ -1864,7 +1870,7 @@ async function policyReconciliation(req: any, res: any) {
         message: `PAID UGX ${premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
         status_code: "TS",
         airtel_money_id: airtel_money_id,
-        payment_date: transactionId.createdAt
+        payment_date: transaction_date
       }
     }
 

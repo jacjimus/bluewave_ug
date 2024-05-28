@@ -253,18 +253,24 @@ async function singlePolicyReconciliation (pending_policies) {
 
 
 
-//transaction_id transaction_date	phone_number	premium	full_name
-// 101156166553	19-03-2024 06:28 PM	742986660	10,000	ROSE NANSUBUGA (742986660)
-// 100997136690	16-03-2024 04:42 PM	744108260	5,000	MACKLINE AKANKWASA (744108260)
-// 104265323878	24-05-2024 01:09 PM	708305532	5,000	JONES AYEBARE (708305532)
-// 103837715521	15/05/2024 06:01	744378982	5,000	KANYARUSOKE KWIKIRIZA (744378982)
-
+// //transaction_id transaction_date	phone_number	premium	full_name
+// 104411502245	27-05-2024 03:40 PM	743072379	18,000	AGATHANEKTARIA BRITAH (743072379)	1
+// 104411303981	27-05-2024 03:35 PM	758040870	5,000	LAMULATU NALUYIMA (758040870)	2
+// 104409477022	27-05-2024 02:54 PM	759639467	5,000	PASIKALI BYARUHANGA (759639467)	1
+// 104406798473	27-05-2024 01:55 PM	703051489	10,000	IRENE NYIRAHABWA (703051489)	1
+// 104406129931	27-05-2024 01:40 PM	706359423	5,000	ERINAH NAKATE (706359423)	1
+// 104405922825	27-05-2024 01:36 PM	709964344	5,000	ENOCA WASSWA (709964344)	1
+// 104386608128	26-05-2024 10:24 PM	706931638	5,000	CHRISTOPHER OKUMU (706931638)	1
+// 104373001389	26-05-2024 06:22 PM	751398156	5,000	JULIUS NYAMUTIDI (751398156)	1
+// 104371919199	26-05-2024 06:01 PM	754635493	5,000	SEITH BAREKYE (754635493)	1
 const array_of_phone_numbers = [
  
-  { transaction_id: 101156166553, transaction_date: '19-03-2024 06:28 PM', phone_number: 742986660, premium: 10000 },
-  { transaction_id: 100997136690, transaction_date: '16-03-2024 04:42 PM', phone_number: 744108260, premium: 5000 },
-  { transaction_id: 104265323878, transaction_date: '24-05-2024 01:09 PM', phone_number: 708305532, premium: 5000 },
-  { transaction_id: 103837715521, transaction_date: '15-05-2024 06:01', phone_number: 744378982, premium: 5000 }
+
+  //{ transaction_id: 104411303981, transaction_date: '27-05-2024 03:35 PM', phone_number: 758040870, premium: 5000, full_name: 'LAMULATU NALUYIMA (758040870)' },
+
+
+  
+  
 ];
 
 
@@ -282,7 +288,7 @@ async function policyReconciliation(array_of_phone_numbers) {
         where: {
           phone_number: `+256${item.phone_number}`,
           premium: item.premium,
-          policy_status: 'pending',
+          policy_status: 'paid',
 
           //policy_number: null
         },
@@ -360,7 +366,7 @@ async function policyReconciliation(array_of_phone_numbers) {
               message: `PAID UGX ${item.premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${item.premium}. TID: ${item.airtel_money_id}. Date: ${transaction_date}`,
               status_code: "TS",
               airtel_money_id: item.transaction_id,
-              payment_date: transaction.createdAt,
+              payment_date: transaction_date,
 
             }
           }
@@ -415,16 +421,25 @@ async function getArrMemberNumberData(array_of_phone_numbers) {
       const customer = policy.user
       console.log(customer.name, policy.phone_number);
 
-      // udpate airtel money id  on policy table
-       policy.airtel_money_id = item.transaction_id
-       policy.save()
+       await db.policies.update({
+        airtel_money_id: item.transaction_id,
+        policy_paid_date: transaction_date,
+      }, {
+        where: {
+          policy_id: policy.policy_id,
+          premium: item.premium,
+          policy_status: 'paid',
+          partner_id: 2,
+        }
+      });
+
       
 
-      let result = await registerPrincipal(customer, policy);
-      console.log(result);
-      if (result.code !== 200) {
-        await getMemberNumberData(customer.phone_number);
-      }
+      // let result = await registerPrincipal(customer, policy);
+      // console.log(result);
+      // if (result.code !== 200) {
+      //   await getMemberNumberData(customer.phone_number);
+      // }
       // Introduce a delay of 1 second between each iteration
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
@@ -722,7 +737,7 @@ export const _sendPolicyRenewalReminder = async () => {
 
 export const playground = async () => {
 
-//policyReconciliation(array_of_phone_numbers)
+policyReconciliation(array_of_phone_numbers)
   //_sendPolicyRenewalReminder()
 
   //updateAARpolicyNumber(arr_members)
@@ -730,7 +745,7 @@ export const playground = async () => {
   //getDataFromSheet()
   //createARRDependants()
 
-  getArrMemberNumberData(array_of_phone_numbers)
+  //getArrMemberNumberData(array_of_phone_numbers)
 
   //updatePremiumArr(array_of_phone_numbers)
 }
