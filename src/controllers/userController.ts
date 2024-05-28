@@ -313,7 +313,7 @@ interface LoginRequestBody {
  *       content:
  *         application/json:
  *           schema:
- *             example: {  "email":"dickensjuma13@gmail.com", "phone_number":"704868023", "password": "pAssW0rd" }
+ *             example: {  "email":"admin@bluewave.insure", "password": "pAssW0rd" }
  *     responses:
  *       200:
  *         description: Successful authentication
