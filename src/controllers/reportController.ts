@@ -1809,6 +1809,7 @@ async function policyReconciliation(req: any, res: any) {
 
   try {
     let { renewal, airtel_money_id, phone_number, transaction_date, premium } = req.query;
+  
     let result = {
       message: "error",
       code: 404
@@ -1821,7 +1822,7 @@ async function policyReconciliation(req: any, res: any) {
     console.log(`premium, ${premium}`)
     console.log(`existingUser,${phone_number}`)
 
-    let policy_status = renewal ? 'paid' : 'pending';
+    let policy_status = renewal ==  "true" ? "paid" : "pending";
 
     let policy = await db.policies.findOne({
       where: {
