@@ -493,15 +493,23 @@ async function reconcilationCallback(transaction) {
   const transactionData = await findTransactionById(id);
 
   if (!transactionData) {
-    throw new Error("Transaction not found");
+    return {
+      code: 404,
+      status: "NOT FOUND",
+      message: "Transaction not found"
+    }
   }
 
-
-
   const { policy_id, user_id, amount, partner_id } = transactionData;
-
-  if (status_code == "TS") {
-
+  
+  if (status_code !== "TS") {
+    return {
+      code: 500,
+      status: "FAILED",
+      message: "Payment failed"
+    }
+  }
+    
     await transactionData.update({
       status: "paid",
     });
@@ -509,8 +517,13 @@ async function reconcilationCallback(transaction) {
     const user = await db.users.findOne({ where: { user_id } });
 
     if (!user) {
-      console.log("================ USER NOT FOUND ================", user_id)
-      throw new Error("User not found");
+    
+      return {
+        code: 404,
+        status: "NOT FOUND",
+        message: "User not found " + user_id
+      
+      }
     }
     let policy = await db.policies.findOne({
       where: {
@@ -520,9 +533,23 @@ async function reconcilationCallback(transaction) {
 
 
     if (!policy) {
-      console.log("================ POLICY NOT FOUND ================", policy_id, user_id)
-
-      throw new Error("Policy not found");
+     
+        await db.payments.create({
+          payment_amount: amount,
+          payment_type: "airtel money payment",
+          user_id,
+          policy_id,
+          payment_status: "failed",
+          payment_description: message,
+          payment_date: new Date(),
+          payment_metadata: transaction,
+          partner_id: partner_id,
+        });
+      return {
+        code: 404,
+        status: "NOT FOUND",
+        message: "Policy not found " + policy_id
+      }
 
     }
 
@@ -544,35 +571,25 @@ async function reconcilationCallback(transaction) {
       partner_id,
     });
 
-    console.log("Payment record created successfully");
 
-    await db.policies.update({
+  let updatePolicy =  await db.policies.update({
       policy_status: "paid",
       airtel_money_id: airtel_money_id,
-      payment_date: payment_date,
+      policy_paid_date :payment_date,
       bluewave_transaction_id: payment.payment_id,
       airtel_transaction_ids: policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id],
       premium: amount,
       is_expired: false,
     }, { where: { policy_id: policy_id } });
 
-
-    policy.policy_status = "paid";
-    policy.airtel_money_id = airtel_money_id;
-    policy.payment_date = payment_date;
-    policy.bluewave_transaction_id = payment.payment_id;
-    policy.airtel_transaction_ids = policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id];
-    policy.premium = amount;
-    policy.is_expired = false;
-
-    policy.save();
+    console.log("UPDATE POLICY", updatePolicy);
 
 
-    let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+    let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
 
     // send congratulatory message
-    await sendCongratulatoryMessage(updatedPolicy, user);
+    await sendCongratulatoryMessage(updatedPolicyInstallement, user);
 
     //const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
@@ -581,31 +598,11 @@ async function reconcilationCallback(transaction) {
     return {
       code: 200,
       status: "OK",
-      message: "Payment record created successfully"
+      message: "Payment record created successfully",
+      policy: updatedPolicyInstallement,
+      payment: payment
     }
-  } else {
-    await db.payments.create({
-      payment_amount: amount,
-      payment_type: "airtel money payment",
-      user_id,
-      policy_id,
-      payment_status: "failed",
-      payment_description: message,
-      payment_date: new Date(),
-      payment_metadata: transaction,
-      partner_id: partner_id,
-    });
 
-    // failed policy
-    // await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
-
-
-    return {
-      code: 500,
-      status: "FAILED",
-      message: "Payment record created successfully"
-    }
-  }
 }
 
 
