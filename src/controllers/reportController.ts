@@ -1825,8 +1825,7 @@ async function policyReconciliation(req: any, res: any) {
       where: {
         partner_id: partner_id,
         phone_number: `+256${phone_number}`,
-        premium: premium,
-      },
+        policy_deduction_amount: premium,      },
       include: [{
         model: db.users,
         where: {
@@ -1845,9 +1844,6 @@ async function policyReconciliation(req: any, res: any) {
       limit: 1,
     });
     
-
-
-
 
     console.log("====== PAYMENT - RECON =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
 

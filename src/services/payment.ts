@@ -559,6 +559,16 @@ async function reconcilationCallback(transaction) {
     }, { where: { policy_id: policy_id } });
 
 
+policy.policy_status = "paid";
+policy.airtel_money_id = airtel_money_id;
+policy.payment_date = payment_date;
+policy.bluewave_transaction_id = payment.payment_id;
+policy.airtel_transaction_ids = policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id];
+policy.premium = amount;
+policy.is_expired = false;
+
+  policy.save();
+
 
     let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
 
@@ -568,7 +578,7 @@ async function reconcilationCallback(transaction) {
 
 
     // send congratulatory message
-    await sendCongratulatoryMessage(updatedPolicy, user);
+   // await sendCongratulatoryMessage(updatedPolicy, user);
 
    // const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
 
