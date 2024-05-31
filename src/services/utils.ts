@@ -1,3 +1,6 @@
+import { Op } from 'sequelize';
+import { db } from '../models/db';
+
 export function isValidKenyanPhoneNumber(phoneNumber: string) {
   const kenyanPhoneNumberRegex = /^(\+?254|0)[17]\d{8}$/;
   return kenyanPhoneNumberRegex.test(phoneNumber);
@@ -91,8 +94,8 @@ export function generateReferralCode(length) {
   const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let referralCode = "";
   for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      referralCode += charset[randomIndex];
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    referralCode += charset[randomIndex];
   }
   return referralCode.toUpperCase();
 }
@@ -165,27 +168,32 @@ export function calculatePaymentOptionsKenya(policyType: string, paymentOption: 
 
 
   if (policyType === "BAMBA") {
-    period = "yearly";
-    installmentType = 1;
+
+
     inPatient = 0;
     outPatient = 0;
     maternity = 0;
     hospitalCash = 4500;
+    sumInsured = 0;
 
     if (paymentOption === 1) {
       period = "monthly";
-      premium = 3294
+      premium = 300
       installmentType = 2;
+    } else if (paymentOption === 2) {
+      premium = 3294;
+      period = "yearly";
+      installmentType = 1;
+
+
+
     }
 
-    sumInsured = 0;
-    premium = 300
   }
 
 
   if (policyType === "ZIDI") {
-    period = "yearly";
-    installmentType = 1;
+
 
     inPatient = 300000;
     outPatient = 0;
@@ -195,17 +203,17 @@ export function calculatePaymentOptionsKenya(policyType: string, paymentOption: 
       period = "monthly";
       premium = 650;
       installmentType = 2;
+    } else if (paymentOption === 2) {
+      premium = 6840;
+      period = "yearly";
+      installmentType = 1;
     }
-    premium = 7140;
-    sumInsured = 0;
-    hospitalCash = 0;
+
 
   }
 
 
   if (policyType === "SMARTA") {
-    period = "yearly";
-    installmentType = 1;
 
     inPatient = 400000;
     outPatient = 30000;
@@ -216,10 +224,13 @@ export function calculatePaymentOptionsKenya(policyType: string, paymentOption: 
       period = "monthly";
       premium = 1400;
       installmentType = 2;
+    } else if (paymentOption === 2) {
+      premium = 15873;
+      period = "yearly";
+      installmentType = 1;
     }
 
-    sumInsured = 0;
-    premium = 15873;
+
   }
 
 
@@ -327,7 +338,7 @@ export function calculatePremium(
 
 
 
-  let categoryOne =vehicle_category = vehicle_category.toUpperCase();
+  let categoryOne = vehicle_category = vehicle_category.toUpperCase();
   vehicle_type = vehicle_type?.toUpperCase() || "";
 
   // Parse vehicle_cv to a numeric value
@@ -567,4 +578,26 @@ export function formatPhoneNumber(number, partner) {
   }
   // Return the original number if conditions are not met
   return number;
+}
+
+// Generate the next membership ID
+export async function generateNextMembershipId(): Promise<string> {
+  // Fetch the highest current membership ID
+  const lastUser = await db.users.findOne({
+    attributes: ['unique_profile_id'],
+    where: {
+      unique_profile_id: {
+        [Op.ne]: null,
+      },
+    },
+    order: [['unique_profile_id', 'DESC']],
+  });
+
+  let nextId = 1;
+  if (lastUser && lastUser.unique_profile_id) {
+    nextId = parseInt(lastUser.unique_profile_id, 10) + 1;
+  }
+
+  // Format the new membership ID as a 4-digit string
+  return nextId.toString().padStart(4, '0');
 }

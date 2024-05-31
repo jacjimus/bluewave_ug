@@ -48,7 +48,7 @@ export default function (args: KenRequestBody, db: any) {
       console.log("KEN args", args);
 
       // Start the session
-     await setSessionData(sessionid, 'initialized', true);
+     //await setSessionData(sessionid, 'initialized', true);
 
       // Retrieve the stored input for the session
       let storedInput = await getSessionData(sessionid, 'storedInput');
@@ -60,7 +60,7 @@ export default function (args: KenRequestBody, db: any) {
       console.log("All steps", allSteps);
 
       // Store the updated input back to the session
-      await setSessionData(sessionid, 'storedInput', input);
+    //  await setSessionData(sessionid, 'storedInput', input);
 
       // Check if the user input is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
@@ -96,7 +96,7 @@ export default function (args: KenRequestBody, db: any) {
       };
 
       allSteps = handleBack(allSteps);
-      await setSessionData(sessionid, 'storedInput', allSteps.join("*"));
+     // await setSessionData(sessionid, 'storedInput', allSteps.join("*"));
 
       let firstStep = allSteps[0];
       let currentStep = allSteps.length;
@@ -113,32 +113,47 @@ export default function (args: KenRequestBody, db: any) {
         allSteps,
       };
 
+      // response = "CON " +
+      // "\n1. Buy for self" +
+      // "\n2. Buy for family" +
+      // "\n3. Buy for others" +
+      // "\n0. Back 00. Main Menu";
+
+
       if (input == "") {
-        response = "CON " +
+        response = "CON " + "Welcome to Afyashua" +
+          "\n1. Buy" +
+          "\n2. Make a Claim" +
+          "\n3. My Policy" +
+          "\n4. View Hospital" +
+          "\n5. Terms Conditions" +
+          "\n6. FAQs" +
+          "\n0. Back 00. Main Menu";
+
+      } else if (firstStep == "1" && currentStep == 1) {
+        response = "CON " + 
           "\n1. Buy for self" +
           "\n2. Buy for family" +
-          "\n3. Buy for others" +
-          "\n4. Make Claim" +
-          "\n5. My Policy" +
-          "\n6. View Hospital" +
-          "\n7. Terms Conditions" +
-          "\n8. FAQs" +
-          "\n0. Back 00. Main Menu";
-      } else if (firstStep == "1") {
-        response = await selfMenu(params, db);
+          "\n3. Buy for others";
+
+      } else if (currentStep >= 2) { 
+        let insuranceType = allSteps[1];
+        if (insuranceType == "1") {
+          response = await selfMenu(params, db);
+        } else if (insuranceType == "2") {
+          response = await familyMenu(params, db);
+        } else if (insuranceType == "3") {
+          response = await othersMenu(params, db);
+        }
       } else if (firstStep == "2") {
-        response = await familyMenu(params, db);
-      } else if (firstStep == "3") {
-        response = await othersMenu(params, db);
-      } else if (firstStep == "4") {
         response = await claimMenu(params, db);
-      } else if (firstStep == "5") {
+      } else if (firstStep == "3") {
         response = await accountMenu(params, db);
-      } else if (firstStep == "6") {
+      } else if (firstStep == "4") {
         response = await hospitalMenu(params, db);
-      } else if (firstStep == "7") {
+      } else if (firstStep == "5") {
         response = await termsAndConditions(params);
-      } else if (firstStep == "8") {
+      } else if (firstStep == "6") {
         response = await faqsMenu(params);
       }
       resolve(response);

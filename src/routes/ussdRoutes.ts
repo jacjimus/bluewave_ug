@@ -34,7 +34,7 @@ const sendResponse = (res, mode, data) => {
 };
 
 
-const handleUSSDRequestKe = async (req: any, res: any, menuBuilder: any) => {
+const handleUSSDRequestUat = async (req: any, res: any, menuBuilder: any) => {
   try {
   
     let menu_res = await menuBuilder(req.body, db);
@@ -71,14 +71,14 @@ router.post("/uga", async (req: any, res: any) => {
 });
 router.post("/uat/uga", async (req: any, res: any) => {
 
-  await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
+  await handleUSSDRequestUat(req, res, ussdUgaMenuBuilder);
 });
 
 
 // UAT KENYA
 router.post("/uat/ken", async (req: any, res: any) => {
 
-  await handleUSSDRequestKe(req, res, ussdKenMenuBuilder);
+  await handleUSSDRequestUat(req, res, ussdKenMenuBuilder);
 });
 
 router.post("/uat/vodacom", async (req: any, res: any) => {

@@ -1,7 +1,7 @@
 import { airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
-import { calculatePaymentOptionsKenya, parseAmount } from "../../services/utils";
+import { calculatePaymentOptionsKenya, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser, getAirtelUserKenya } from "../../services//getAirtelUserKyc";
 import { Op } from "sequelize";
 
@@ -31,8 +31,8 @@ const selfMenu = async (args, db) => {
     sum_insured: "",
     sumInsured: 0,
     premium: "650",
-    yearly_premium: "7,140",
-    yearPemium: 7140,
+    yearly_premium: "6,840",
+    yearPemium: 6840,
     last_expense_insured: "",
     lastExpenseInsured: 0,
     inPatient: 300000,
@@ -56,8 +56,10 @@ const selfMenu = async (args, db) => {
   }];
 
 
-console.log(currentStep == 1, currentStep == '1', userText)
-  if (currentStep === 1) {
+  console.log("currentStep", currentStep);
+  if (currentStep === 2) {
+    console.log("userText", userText);
+
     switch (userText) {
       case "1":
 
@@ -74,30 +76,46 @@ console.log(currentStep == 1, currentStep == '1', userText)
         break;
 
     }
-  } else if (currentStep === 2) {
+  } else if (currentStep === 3) {
+    console.log("userText", userText);
+
     let coverType = coverTypes[parseInt(userText) - 1];
     if (!coverType) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
     }
-    //let usermsisdn = msisdn?.replace('+', "")?.substring(3);
+    let coverTypeText
+    if (coverType.name === "BAMBA") {
+      coverTypeText = "You get KShs 4,500 per night of hospitalisation up to a Maximum of 30 days a year"
+    } else if (coverType.name === "ZIDI") {
+      coverTypeText = "You get Inpatient for KSh 300,000 and Maternity for KSh 100,000."
+    } else if (coverType.name === "SMARTA") {
+      coverTypeText = "You get Inpatient for KSh 400,000, Outpatient for 30,000 and Maternity for KSh 100,0000."
+    }
 
-    response = `CON You get KShs 4,500 per night of hospitalisation up to a Maximum of 30 days a year ` +
+    // "You get Inpatient for KSh 300,000 and Maternity for KSh 100,000.
+
+
+    // "You get Inpatient for KSh 400,000, Outpatient for 30,000 and Maternity for KSh 100,0000.
+
+    response = "CON " + coverTypeText +
       "\nPAY " +
       `\n1. ${coverType.premium} monthly` +
       `\n2. ${coverType.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
-  }
-  else if (currentStep === 3) {
+  } else if (currentStep === 4) {
     let paymentOption = parseInt(userText);
-    let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
+    let selectedPolicyType = coverTypes[parseInt(allSteps[2]) - 1];
     let policy_type = selectedPolicyType.name;
+
+    console.log("paymentOption", paymentOption);
+    console.log("policy_type", policy_type);
 
     let options = calculatePaymentOptionsKenya(policy_type, paymentOption);
 
-    response = `CON Pay Kshs ${options.premium} ${options.period}. Terms Conditions - www.airtel.com to Agree and Pay \nAge 0 - 65 Years` + "\n1. Confirm \n0. Back  \n00. Main Menu";
+    response = `CON Pay Kshs ${options.premium} ${options.period}. Terms and Conditions - www.airtel.com\nAge 0 - 65 Years` +
+      "\nConfirm to Agree and Pay" + "\n1. Confirm \n0. Back  \n00. Main Menu";
 
-  }
-  else if (currentStep === 4) {
+  } else if (currentStep === 5) {
 
     if (userText == "1") {
 
@@ -118,32 +136,55 @@ console.log(currentStep == 1, currentStep == '1', userText)
 
 
 async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
-  let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
+  let selectedPolicyType = coverTypes[parseInt(allSteps[2]) - 1];
   let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
   const trimmedMsisdn = msisdn?.replace('+', "")?.substring(3);
   let existingUser = await findExistingUser(trimmedMsisdn, 1, db);
 
   if (!existingUser) {
     console.log("USER DOES NOT EXIST SELF KENYA ");
-    let user = await getAirtelUserKenya(trimmedMsisdn);
+    //let user = await getAirtelUserKenya(trimmedMsisdn);
 
+    let unique_profile_id = await generateNextMembershipId()
     let membershipId = Math.floor(100000 + Math.random() * 900000);
-    if (user?.first_name && user?.last_name) {
-      existingUser = await createNewUser(msisdn, user, membershipId, db);
-      const message = `Dear ${user.first_name}, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
-      await SMSMessenger.sendSMS(3, fullPhone, message);
-    }
+    console.log("membershipId", membershipId);
+    existingUser = await createNewUser(trimmedMsisdn, membershipId, unique_profile_id, db);
+    const message = `Dear Customer, welcome to AfyaSure Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
+    await SMSMessenger.sendSMS(3, fullPhone, message);
+
   }
 
   let policyObject = createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn);
-  let policy = await createPolicy(policyObject, db);
+
+  // check if user has a policy that is pending
+
+  let pendingPolicy = await db.policies.findOne({
+    where: {
+      user_id: existingUser.user_id,
+      policy_status: "pending",
+      policy_type: selectedPolicyType.name,
+      installment_type: parseInt(allSteps[3])
+    }
+  });
+
+  let policy = null;
+  if (!pendingPolicy) {
+    console.log("USER HAS PENDING POLICY SELF KENYA ");
+    policy = await createPolicy(policyObject, db);
+
+  } else {
+    policy = pendingPolicy;
+
+  }
+
+
 
   console.log("============== START TIME - SELF KENYA   ================ ", msisdn, new Date());
 
   const airtelMoneyResponse = airtelMoneyKenya(
     existingUser,
     policy
-   
+
   );
 
   console.log("=========== PUSH TO AIRTEL MONEY ===========", await airtelMoneyResponse, new Date());
@@ -160,14 +201,12 @@ async function findExistingUser(trimmedMsisdn, partner_id, db) {
   });
 }
 
-async function createNewUser(trimmedMsisdn, user, membershipId, db) {
+async function createNewUser(trimmedMsisdn, membershipId, unique_profile_id, db) {
   return await db.users.create({
     user_id: uuidv4(),
     phone_number: trimmedMsisdn,
     membership_id: membershipId,
-    first_name: user?.first_name,
-    last_name: user?.last_name,
-    name: `${user?.first_name} ${user?.last_name}`,
+    unique_profile_id: unique_profile_id,
     total_member_number: "M",
     partner_id: 1,
     role: "user",
@@ -177,7 +216,7 @@ async function createNewUser(trimmedMsisdn, user, membershipId, db) {
 
 function createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn) {
   let policy_type = selectedPolicyType.name;
-  let installment_type = parseInt(allSteps[2]);
+  let installment_type = parseInt(allSteps[3]);
   let ultimatePremium = calculatePaymentOptionsKenya(policy_type, installment_type);
 
   let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)

@@ -1,6 +1,6 @@
 import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
-import { calculatePaymentOptions, parseAmount } from "../../services/utils";
+import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { all } from "axios";
@@ -368,7 +368,7 @@ const othersMenu = async (args, db) => {
       existingUser = await db.users.create({
         user_id: uuidv4(),
         phone_number: phone,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
+        membership_id: generateNextMembershipId(),
         first_name: user.first_name,
         last_name: user.last_name,
         name: `${user.first_name} ${user.last_name}`,
@@ -472,7 +472,7 @@ const othersMenu = async (args, db) => {
         const airtelMoneyResponse = airtelMoneyKenya(
           existingUser,
           policy
-         
+
         );
 
         console.log("AIRTEL MONEY RESPONSE", airtelMoneyResponse);

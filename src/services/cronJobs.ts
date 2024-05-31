@@ -6,6 +6,7 @@ import { getMemberNumberData, registerPrincipal } from './aarServices';
 const cron = require('node-cron');
 const { exec } = require('child_process');
 import dotenv from 'dotenv';  
+import { getAirtelUserKenya } from './getAirtelUserKyc';
 dotenv.config();
 
 
@@ -197,3 +198,47 @@ export const job = cron.schedule(cronSchedule, () => {
     scheduled: false // Start the job manually
 });
 
+
+export const updateAirtelUserKyc = async () => {
+    try {
+        console.log(" =======  UPDATE AIRTEL USER KYC =========")
+        const users = await db.users.findAll({
+            where: {
+                partner_id: 1,
+                first_name: null,
+                last_name: null,
+
+            }
+        });
+        if(users.length == 0){
+          console.log("No users to update")
+            return;
+        }
+        
+
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            console.log(user.phone_number);
+              let getAirtelUserKyc = await getAirtelUserKenya(user.phone_number);
+
+              if(getAirtelUserKyc){
+                await db.users.update({
+                    first_name: getAirtelUserKyc.first_name,
+                    last_name: getAirtelUserKyc.last_name,
+                }, {
+                    where: {
+                        phone_number: user.phone_number,
+                        partner_id: 1,
+                        role: 'user'
+
+                    }
+                });
+              }
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+    } catch (error) {
+        console.log(error);
+
+    }
+}

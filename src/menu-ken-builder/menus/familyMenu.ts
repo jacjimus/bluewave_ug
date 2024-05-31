@@ -1,7 +1,7 @@
 import { airtelMoney, airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
-import { calculatePaymentOptions, parseAmount } from "../../services/utils";
+import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 
 
@@ -529,26 +529,28 @@ const familyMenu = async (args, db) => {
 
     await Beneficiary.create(beneficiary);
 
-   
+
     console.log("EXISTING USER", existingUser?.name)
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
       let user = await getAirtelUser(msisdn, 2);
-      let membershierId = Math.floor(100000 + Math.random() * 900000);
-      existingUser = await db.users.create({
-        user_id: uuidv4(),
-        phone_number: phone,
-        membership_id: membershierId,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        name: `${user.first_name} ${user.last_name}`,
-        total_member_number: selectedPolicyType.code_name,
-        partner_id: 1,
-        nationality: "KENYA"
-      });
+
+      let membership_id = generateNextMembershipId(),
+
+        existingUser = await db.users.create({
+          user_id: uuidv4(),
+          phone_number: phone,
+          membership_id: membership_id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          name: `${user.first_name} ${user.last_name}`,
+          total_member_number: selectedPolicyType.code_name,
+          partner_id: 1,
+          nationality: "KENYA"
+        });
       console.log("USER DOES NOT EXIST", user);
-      const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membershierId} Dial *334*7*3# to access your account.`;
+      const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membership_id} Dial *334*7*3# to access your account.`;
       await SMSMessenger.sendSMS(3, fullPhone, message);
 
     }
@@ -584,12 +586,12 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
   const airtelMoneyResponse = airtelMoneyKenya(
     existingUser,
     policy
-   
+
   );
 
   console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, new Date());
 
-  let  response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
+  let response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
   console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, new Date());
 
   return response;
