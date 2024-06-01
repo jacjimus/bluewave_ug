@@ -144,7 +144,7 @@ export default function (args: KenRequestBody, db: any) {
       resolve(response);
 
       // End the session (if needed)
-     // await deleteSessionData(sessionid);
+      ///await deleteSessionData(sessionid);
     } catch (e) {
       console.log(e);
       reject("END " + languages[configs.default_lang].generic.fatal_error);

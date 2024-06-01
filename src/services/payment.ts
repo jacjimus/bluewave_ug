@@ -125,7 +125,7 @@ async function airtelMoneyKenya(existingUser, policy) {
       },
       transaction: {
        // amount: policy.premium,
-        amount: process.env.ENVIROMENT == 'PROD' ? policy.premium : 1,
+        amount: process.env.ENV === 'PROD' ? policy.premium : 1,
         country: "KE",
         currency: "KES",
         id: policy.policy_id,
