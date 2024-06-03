@@ -221,20 +221,22 @@ export const updateAirtelUserKyc = async () => {
             console.log(user.phone_number);
               let getAirtelUserKyc = await getAirtelUserKenya(user.phone_number);
 
-              if(getAirtelUserKyc){
-                await db.users.update({
+              console.log('getAirtelUserKyc',getAirtelUserKyc);
+
+              if(getAirtelUserKyc && getAirtelUserKyc.first_name && getAirtelUserKyc.last_name){
+               let updateUser=  await db.users.update({
                     first_name: getAirtelUserKyc.first_name,
                     last_name: getAirtelUserKyc.last_name,
                 }, {
                     where: {
                         phone_number: user.phone_number,
                         partner_id: 1,
-                        role: 'user'
 
                     }
                 });
+                console.log(updateUser);
               }
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            //await new Promise(resolve => setTimeout(resolve, 2000));
         }
 
     } catch (error) {

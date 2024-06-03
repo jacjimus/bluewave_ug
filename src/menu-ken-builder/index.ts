@@ -9,7 +9,6 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
-import { Console } from "winston/lib/winston/transports";
 const redisClient = require("../middleware/redis");
 
 
@@ -48,7 +47,7 @@ export default function (args: KenRequestBody, db: any) {
       console.log("KEN args", args);
 
       // Start the session
-     await setSessionData(sessionid, 'initialized', true);
+      await setSessionData(sessionid, 'initialized', true);
 
       // Retrieve the stored input for the session
       let storedInput = await getSessionData(sessionid, 'storedInput');
@@ -60,7 +59,7 @@ export default function (args: KenRequestBody, db: any) {
       console.log("All steps", allSteps);
 
       // Store the updated input back to the session
-     await setSessionData(sessionid, 'storedInput', input);
+      await setSessionData(sessionid, 'storedInput', input);
 
       // Check if the user input is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
@@ -96,7 +95,7 @@ export default function (args: KenRequestBody, db: any) {
       };
 
       allSteps = handleBack(allSteps);
-     await setSessionData(sessionid, 'storedInput', allSteps.join("*"));
+      await setSessionData(sessionid, 'storedInput', allSteps.join("*"));
 
       let firstStep = allSteps[0];
       let currentStep = allSteps.length;
@@ -157,9 +156,6 @@ export default function (args: KenRequestBody, db: any) {
         response = await faqsMenu(params);
       }
       resolve(response);
-
-      // End the session (if needed)
-     // await deleteSessionData(sessionid);
     } catch (e) {
       console.log(e);
       reject("END " + languages[configs.default_lang].generic.fatal_error);
