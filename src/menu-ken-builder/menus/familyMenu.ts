@@ -584,7 +584,28 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
   console.log("ULTIMATE PREMIUM", ultimatePremium)
 
   let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, msisdn, ultimatePremium);
-  let policy = await createAndSavePolicy(policyObject, db);
+
+  let pendingPolicy = await db.policies.findOne({
+    where: {
+      user_id: existingUser.user_id,
+      policy_status: "pending",
+      premium : ultimatePremium,
+      policy_type: selectedPackage.name,
+    }
+  });
+
+  let policy;
+  
+  if (!pendingPolicy) {
+    policy = await createAndSavePolicy(policyObject, db);
+
+  } else {
+    // Delete existing pending policy before creating a new one
+    await pendingPolicy.destroy();
+    policy = await createAndSavePolicy(policyObject, db);
+
+  }
+
 
   console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, new Date());
 

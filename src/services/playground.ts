@@ -18488,54 +18488,21 @@ async function updateMembershipData() {
 
 
 let arr_members = [
+  'UG156006-00','UG156178-00','UG156178-01','UG157156-00','UG160223-00',
 
-  "UG156006-00",
-  "UG156178-00",
-  "UG156178-01",
-  "UG157156-00",
-  "UG160223-00",
-  "UG160264-00",
-  "UG160484-00",
-  "UG160683-00",
-  "UG161318-00",
-  "UG162422-00",
-  "UG189692-00",
-  "UG189707-00",
-  "UG189709-00",
-  "UG189712-00",
-  "UG189713-00",
-  "UG189797-00",
-  "UG189799-00",
-  "UG189800-00",
-  "UG189802-00",
-  "UG189803-00",
-  "UG189804-00",
-  "UG189810-00",
-  "UG189811-00",
-  "UG189812-00",
-  "UG189813-00",
-  "UG189814-00",
-  "UG189815-00",
-  "UG189816-00",
-  "UG189817-00",
-  "UG189818-00",
-  "UG189829-00",
-  "UG189830-00",
-  "UG189867-00",
-  "UG189868-00",
-  "UG189874-00",
-  "UG189884-00",
-  "UG189885-00",
-  "UG189887-00",
-  "UG190063-00",
-  "UG190064-00",
-  "UG190065-00",
-  "UG190066-00",
-  "UG190155-00",
-  "UG190156-00",
-  "UG190157-00",
-  "UG190159-00",
-
+  'UG160264-00','UG160484-00','UG160683-00','UG161318-00','UG162422-00',
+  
+  'UG189692-00','UG189707-00','UG189709-00','UG189712-00','UG189713-00',
+  
+  'UG189797-00','UG189799-00','UG189800-00','UG189802-00','UG189803-00',
+  
+  'UG189804-00','UG189810-00','UG189811-00','UG189812-00','UG189813-00',
+  
+  'UG189814-00','UG189815-00','UG189816-00','UG189817-00','UG189818-00',
+  
+  'UG189829-00','UG189830-00','UG189867-00','UG189868-00','UG189874-00',
+  
+  'UG189884-00','UG189885-00','UG189887-00','UG190167-00','UG190168-00'
 ]
 
 async function updateAARUnique(arr_data) {
@@ -18611,6 +18578,8 @@ async function updateAARPolicyNumbers(memberNumbers: string[]) {
           const updatedPolicy = await updatePremium(user, policy); // Pass user and policy to avoid data race
           console.log("Policy updated:", updatedPolicy);
           
+        } else {
+          console.log("arr_member_number not found for member:", memberNumber);
         }
       } else {
         console.log("Policy not found for member:", memberNumber);
@@ -18775,7 +18744,7 @@ export const playground = async () => {
 //policyReconciliation(array_of_phone_numbers)
   //_sendPolicyRenewalReminder()
 
- //updateAARPolicyNumbers(arr_members)
+ updateAARPolicyNumbers(arr_members)
 
   //getDataFromSheet()
   //createARRDependants()

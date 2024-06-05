@@ -167,15 +167,16 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
     }
   });
 
-  let policy = null;
+  let policy;
+  
   if (!pendingPolicy) {
-    console.log("USER HAS PENDING POLICY SELF KENYA ");
     policy = await createPolicy(policyObject, db);
-
   } else {
-    policy = pendingPolicy;
-
+    // Delete existing pending policy before creating a new one
+    await pendingPolicy.destroy();
+    policy = await createPolicy(policyObject, db);
   }
+
 
 
 

@@ -471,7 +471,29 @@ const othersMenu = async (args, db) => {
 
       try {
 
-        let policy = await db.policies.create(policyObject);
+        const pendingPolicy = await db.policies.findOne({
+          where: {
+            user_id: existingUser.user_id,
+            policy_status: "pending",
+            premium : parseAmount(ultimatePremium),
+            bought_for: otherUser.user_id,
+            policy_type: policyType.name.toUpperCase(),
+          },
+          limit: 1,
+        });
+
+        let policy;
+  
+        if (!pendingPolicy) {
+          policy = await db.policies.create(policyObject);
+        } else {
+          // Delete existing pending policy before creating a new one
+          await pendingPolicy.destroy();
+          policy = await db.policies.create(policyObject);
+        }
+      
+
+
 
         const airtelMoneyResponse = airtelMoneyKenya(
           existingUser,
