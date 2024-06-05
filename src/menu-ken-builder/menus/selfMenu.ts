@@ -170,15 +170,12 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   let policy;
   
   if (!pendingPolicy) {
-    policy = await createPolicy(policyObject, db);
+    policy = await db.policies.create(policyObject);
   } else {
     // Delete existing pending policy before creating a new one
     await pendingPolicy.destroy();
-    policy = await createPolicy(policyObject, db);
+    policy = await db.policies.create(policyObject);
   }
-
-
-
 
   console.log("============== START TIME - SELF KENYA   ================ ", msisdn, new Date());
 
@@ -190,7 +187,7 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
 
   console.log("=========== PUSH TO AIRTEL MONEY ===========", await airtelMoneyResponse, new Date());
 
-  //await handleAirtelMoneyPromise(airtelMoneyPromise, trimmedMsisdn);
+  await handleAirtelMoneyPromise(airtelMoneyResponse, trimmedMsisdn);
 }
 
 async function findExistingUser(trimmedMsisdn, partner_id, db) {
@@ -258,33 +255,30 @@ function createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn) 
   return policyObject;
 }
 
-async function createPolicy(policyObject, db) {
-  return await db.policies.create(policyObject);
+
+async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
+  const timeout = 3000;
+
+  try {
+    await Promise.race([
+      airtelMoneyPromise,
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error('Airtel Money Kenya operation timed out'));
+        }, timeout);
+      })
+    ]);
+    console.log("============== END TIME - SELF KENYA  ================ ", msisdn, new Date());
+    console.log("SELF RESPONSE WAS CALLED KENYA ",);
+    return 'END Payment successful';
+  } catch (error) {
+    logger.error(`Airtel Money Kenya operation failed: ${error.message}`);
+    console.log("SELF - RESPONSE WAS CALLED KENYA ", error);
+    return 'END Payment failed';
+  } finally {
+    console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", msisdn, new Date());
+  }
 }
-
-// async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
-//   const timeout = 3000;
-
-//   try {
-//     await Promise.race([
-//       airtelMoneyPromise,
-//       new Promise((resolve, reject) => {
-//         setTimeout(() => {
-//           reject(new Error('Airtel Money Kenya operation timed out'));
-//         }, timeout);
-//       })
-//     ]);
-//     console.log("============== END TIME - SELF KENYA  ================ ", msisdn, new Date());
-//     console.log("SELF RESPONSE WAS CALLED KENYA ",);
-//     return 'END Payment successful';
-//   } catch (error) {
-//     logger.error(`Airtel Money Kenya operation failed: ${error.message}`);
-//     console.log("SELF - RESPONSE WAS CALLED KENYA ", error);
-//     return 'END Payment failed';
-//   } finally {
-//     console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", msisdn, new Date());
-//   }
-// }
 
 
 export default selfMenu;

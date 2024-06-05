@@ -110,21 +110,17 @@ async function airtelMoneyKenya(existingUser, policy) {
     message: 'Payment successfully initiated'
   };
 
-
-
-
   try {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference: Math.floor(Date.now() / 1000),
+      reference:existingUser.phoneNumber,
       subscriber: {
         country: "KE",
         currency: "KES",
         msisdn: existingUser.phone_number,
       },
       transaction: {
-       // amount: policy.premium,
         amount: process.env.ENVIROMENT == 'PROD' ? policy.premium : 1,
         country: "KE",
         currency: "KES",
@@ -150,7 +146,6 @@ async function airtelMoneyKenya(existingUser, policy) {
       await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id, policy.premium,);
       return status;
     }
-
     status.code = 500;
     status.message = 'Payment failed';
     return status;

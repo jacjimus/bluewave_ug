@@ -492,9 +492,6 @@ const othersMenu = async (args, db) => {
           policy = await db.policies.create(policyObject);
         }
       
-
-
-
         const airtelMoneyResponse = airtelMoneyKenya(
           existingUser,
           policy
