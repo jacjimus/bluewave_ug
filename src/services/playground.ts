@@ -18744,7 +18744,7 @@ export const playground = async () => {
 //policyReconciliation(array_of_phone_numbers)
   //_sendPolicyRenewalReminder()
 
- updateAARPolicyNumbers(arr_members)
+ //updateAARPolicyNumbers(arr_members)
 
   //getDataFromSheet()
   //createARRDependants()
