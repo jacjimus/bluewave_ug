@@ -114,7 +114,7 @@ async function airtelMoneyKenya(existingUser, policy) {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference:existingUser.phoneNumber,
+      reference:`254${existingUser.phone_number}`,
       subscriber: {
         country: "KE",
         currency: "KES",
