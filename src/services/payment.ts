@@ -4,7 +4,6 @@ import { db } from '../models/db';
 import dotenv from 'dotenv';
 import { findTransactionById, updateUserPolicyStatus } from '../routes/ussdRoutes';
 import SMSMessenger from './sendSMS';
-import { fetchMemberStatusData, processPolicy } from './aarServices';
 import authTokenByPartner from './authorization';
 import { Op } from "sequelize";
 import { logger } from '../middleware/loggingMiddleware';
@@ -496,7 +495,7 @@ async function reconcilationCallback(transaction) {
   }
 
   const { policy_id, user_id, amount, partner_id } = transactionData;
-  
+
   if (status_code !== "TS") {
     return {
       code: 500,
@@ -504,7 +503,7 @@ async function reconcilationCallback(transaction) {
       message: "Payment failed"
     }
   }
-    
+
     await transactionData.update({
       status: "paid",
     });
@@ -512,12 +511,12 @@ async function reconcilationCallback(transaction) {
     const user = await db.users.findOne({ where: { user_id } });
 
     if (!user) {
-    
+
       return {
         code: 404,
         status: "NOT FOUND",
         message: "User not found " + user_id
-      
+
       }
     }
     let policy = await db.policies.findOne({
@@ -528,7 +527,7 @@ async function reconcilationCallback(transaction) {
 
 
     if (!policy) {
-     
+
         await db.payments.create({
           payment_amount: amount,
           payment_type: "airtel money payment",
