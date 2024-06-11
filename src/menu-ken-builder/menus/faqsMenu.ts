@@ -3,7 +3,7 @@ const faqsMenu = async (args) => {
     let { response, currentStep, userText } = args;
 
     const faqs = [
-       
+
         {
             question: "Eligibility",
             answer: " Persons between the ages of 18 and 65 are eligible to purchase Medical cover Policy."
@@ -51,10 +51,10 @@ const faqsMenu = async (args) => {
         }
     ]
 
-    if (userText === '0' || currentStep === 1) {
+    if (currentStep === 1) {
         response = "CON FAQs" +
             faqs.map((faq, index) => {
-                return `\n${index + 1}. ${faq.question }  `  
+                return `\n${index + 1}. ${faq.question }  `
             }).join("") +
             "\n0. Back" +
             "\n00. Main Menu"

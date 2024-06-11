@@ -32,6 +32,7 @@ const setSessionData = async (sessionId: string, key: string, value: string | bo
   }
 };
 
+
 const selfMenu = async (args, db) => {
   let { msisdn, response, currentStep, userText, allSteps } = args;
   //let phone = msisdn?.replace('+', "")?.substring(3);
@@ -83,11 +84,13 @@ const selfMenu = async (args, db) => {
 
   let coverTypes = await getSessionData(msisdn, "coverTypes");
 
+
   if (!coverTypes) {
     coverTypes = await db.cover_types.findAll();
     console.log("coverTypes", coverTypes);
     await setSessionData(msisdn, "coverTypes", coverTypes);
   }
+
 
 
   console.log("currentStep", currentStep);
@@ -99,9 +102,9 @@ const selfMenu = async (args, db) => {
 
         // create a raw menu with the cover types without looping
         response = "CON " +
-          "\n1. Bamba at KShs 300" +
-          "\n2. Zidi at KShs 650" +
-          "\n3. Smarta at KShs 1,400" +
+          `\n1. ${coverTypes[0].name} at KShs ${coverTypes[0].premium}  ` +
+          `\n2. ${coverTypes[1].name} at KShs ${coverTypes[1].premium}  ` +
+          `\n3. ${coverTypes[2].name} at KShs ${coverTypes[2].premium}  ` +
           "\n0. Back \n00. Main Menu";
 
         break;
@@ -114,17 +117,18 @@ const selfMenu = async (args, db) => {
     console.log("userText", userText);
 
     let coverType = coverTypes[parseInt(userText) - 1];
+
     if (!coverType) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
     }
     let coverTypeText
     if (coverType.name === "BAMBA") {
-      coverTypeText = "You get KShs 4,500 per night of hospitalisation up to a Maximum of 30 days a year"
+      coverTypeText = `You get KShs ${coverType.hospitalcash} per night of hospitalization up to a Maximum of 30 days a year`
     } else if (coverType.name === "ZIDI") {
-      coverTypeText = "You get Inpatient for KSh 300,000 and Maternity for KSh 100,000."
+      coverTypeText = `You get Inpatient for KSh ${coverType.inpatient} and Maternity for KSh ${coverType.maternity}.`
     } else if (coverType.name === "SMARTA") {
-      coverTypeText = "You get Inpatient for KSh 400,000, Outpatient for 30,000 and Maternity for KSh 100,0000."
+      coverTypeText = `You get Inpatient for KSh ${coverType.inpatient}, Outpatient for 30,000 and Maternity for KSh ${coverType.maternity}.`
     }
 
     // "You get Inpatient for KSh 300,000 and Maternity for KSh 100,000.
