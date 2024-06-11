@@ -123,7 +123,7 @@ export default function (args: KenRequestBody, db: any) {
           "\n2. Buy for Family" +
           "\n3. Buy for Others";
 
-      } else if (currentStep >= 2) {
+      } else if (currentStep >= 2  && firstStep === '1') {
         let insuranceType = allSteps[1];
         if (insuranceType == "1") {
           response = await selfMenu(params, db);

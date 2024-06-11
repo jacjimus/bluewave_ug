@@ -488,7 +488,7 @@ const familyMenu = async (args, db) => {
 
   async function getPackagesWithDetails() {
     try {
-      const query = `SELECT 
+      const query = `SELECT
       fc.name AS family_cover_name,
       fc.code_name AS family_cover_code,
       p.name AS package_name,
@@ -502,23 +502,13 @@ const familyMenu = async (args, db) => {
       p.inpatient_cover,
       p.outpatient_cover,
       p.hospital_cash,
-      p.maternity,
-      po.name AS payment_option_name,
-      po.code_name AS payment_option_code,
-      po.premium AS payment_option_premium,
-      po.yearly_premium AS payment_option_yearly_premium,
-      po.installment_type,
-      po.period
-  FROM 
+      p.maternity
+  FROM
       family_covers fc
-  JOIN 
+  JOIN
       packages p ON fc.id = p.family_cover_id
-  JOIN 
-      package_payment_options ppo ON p.id = ppo.package_id
-  JOIN 
-      payment_options po ON ppo.payment_option_id = po.id
-  ORDER BY 
-      fc.id, p.id, po.id;
+  ORDER BY
+      fc.id, p.id;
   `
 
       const results = await db.sequelize.query(query, {
@@ -555,19 +545,10 @@ const familyMenu = async (args, db) => {
             outpatient_cover: result.outpatient_cover,
             hospital_cash: result.hospital_cash,
             maternity: result.maternity,
-            payment_options: []
           };
           currentFamilyCover.packages.push(currentPackage);
         }
 
-        currentPackage.payment_options.push({
-          name: result.payment_option_name,
-          code_name: result.payment_option_code,
-          premium: result.payment_option_premium,
-          yearly_premium: result.payment_option_yearly_premium,
-          installment_type: result.installment_type,
-          period: result.period
-        });
       }
       //console.log("FORMARTED FAMILY COVER DATA", family_cover_data)
       return family_cover_data;
@@ -608,6 +589,7 @@ const familyMenu = async (args, db) => {
       response = "END Invalid option" + "\n0. Back \n00. Main Menu";
       return response;
     }
+    console.log('Packages', selectedCover.packages);
     const packages = selectedCover.packages.map((coverType, index) => {
       return `\n${index + 1}. ${coverType.name} at KES ${coverType.premium}`
     }
@@ -627,14 +609,15 @@ const familyMenu = async (args, db) => {
   } else if (currentStep == 6) {
 
     const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
+    console.log(selectedCover);
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     let usermsisdn = msisdn?.replace('+', "")?.substring(3);
 
     console.log("SELECTED PACKAGE", selectedPackage)
     let coverText = `CON Inpatient cover for 0${usermsisdn}, ${selectedPackage.inpatient_cover} a year` +
       "\nPAY " +
-      `\n1. Kshs ${selectedPackage?.payment_options[0].premium} monthly` +
-      `\n2. Kshs ${selectedPackage?.payment_options[1].yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
+      `\n1. Kshs ${selectedPackage?.premium} monthly` +
+      `\n2. Kshs ${selectedPackage?.year_premium} yearly` + "\n0. Back \n00. Main Menu";
 
     response = coverText;
 
@@ -642,8 +625,8 @@ const familyMenu = async (args, db) => {
 
     const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    let premium = selectedPackage?.payment_options[parseInt(userText) - 1].premium;
-    let period = selectedPackage?.payment_options[parseInt(userText) - 1].period;
+    let premium = selectedPackage?.premium;
+    let period = parseInt(userText) == 1 ? 'Monthy' : 'Annually';
     let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
 
     let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];

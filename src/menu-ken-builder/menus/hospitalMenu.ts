@@ -17,7 +17,7 @@ const hospitalMenu = async (args: any, db: any) => {
 
 
     if (currentStep == 1) {
-        response = "CON Type your hospital e.g Nairibi hospital";
+        response = "CON Type your hospital e.g Nairobi hospital";
     } else if (currentStep == 2) {
         const userText = allSteps[1]
         const userTextLower = userText.toLowerCase();
@@ -56,7 +56,7 @@ const hospitalMenu = async (args: any, db: any) => {
             );
 
             response = `CON select hospital` +
-                `\n${hospitalList.join("\n")}`;
+                `\n${hospitalList.join("\n")}` + '\n0. Search again 00. Main menu';
         }
 
 
