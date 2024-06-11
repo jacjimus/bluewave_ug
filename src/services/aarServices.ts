@@ -259,8 +259,7 @@ async function updatePremium(user: any, policy: any) {
       console.log("NO AAR MEMBER NUMBER")
       return
     }
-    let unique_profile_id = user.membership_id + "";
-
+    
     // if(policy.beneficiary == "OTHER"){
     //   console.log("OTHER BENEFICIARY", user.name, policy.beneficiary, policy.policy_type,policy.membership_id );
     //   let principal = await db.users.findOne({ where: { membership_id : policy.membership_id } });
@@ -295,16 +294,17 @@ async function updatePremium(user: any, policy: any) {
 
       const requestData: requestPremiumData = {
         member_no: user.arr_member_number,
-        unique_profile_id: unique_profile_id,
+        unique_profile_id: user.unique_profile_id + "",
         health_plan: "AIRTEL_" + policy.policy_type.replace(/\s/g, ''),
         health_option: "64",
         premium: ultimatePremium,
         premium_type: policy.installment_type.toString(),
-        premium_installment: policy.installment_order.toString(),
+        premium_installment: 1,
+         //policy.installment_order.toString(),
         // main_benefit_limit: main_benefit_limit,
         // last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
-        money_transaction_id: policy?.airtel_money_id.toString() || payment?.airtel_money_id.toString()
+        money_transaction_id: policy?.airtel_money_id?.toString() || payment?.airtel_money_id?.toString()
       };
 
       console.log(requestData)

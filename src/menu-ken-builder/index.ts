@@ -9,7 +9,6 @@ import othersMenu from "./menus/othersMenu";
 import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
-import { Console } from "winston/lib/winston/transports";
 const redisClient = require("../middleware/redis");
 
 
@@ -48,7 +47,7 @@ export default function (args: KenRequestBody, db: any) {
       console.log("KEN args", args);
 
       // Start the session
-     await setSessionData(sessionid, 'initialized', true);
+      await setSessionData(sessionid, 'initialized', true);
 
       // Retrieve the stored input for the session
       let storedInput = await getSessionData(sessionid, 'storedInput');
@@ -114,37 +113,42 @@ export default function (args: KenRequestBody, db: any) {
       };
 
       if (input == "") {
+        response = "CON " + "Welcome to Afyashua" +
+          "\n1. Buy" +
+          "\n2. Make a Claim" +
+          "\n3. My Policy" +
+          "\n4. View Hospital" +
+          "\n5. Terms Conditions" +
+          "\n6. FAQs" +
+          "\n0. Back 00. Main Menu";
+
+      } else if (firstStep == "1" && currentStep == 1) {
         response = "CON " +
           "\n1. Buy for self" +
           "\n2. Buy for family" +
-          "\n3. Buy for others" +
-          "\n4. Make Claim" +
-          "\n5. My Policy" +
-          "\n6. View Hospital" +
-          "\n7. Terms Conditions" +
-          "\n8. FAQs" +
-          "\n0. Back 00. Main Menu";
-      } else if (firstStep == "1") {
-        response = await selfMenu(params, db);
+          "\n3. Buy for others";
+
+      } else if (currentStep >= 2) {
+        let insuranceType = allSteps[1];
+        if (insuranceType == "1") {
+          response = await selfMenu(params, db);
+        } else if (insuranceType == "2") {
+          response = await familyMenu(params, db);
+        } else if (insuranceType == "3") {
+          response = await othersMenu(params, db);
+        }
       } else if (firstStep == "2") {
-        response = await familyMenu(params, db);
-      } else if (firstStep == "3") {
-        response = await othersMenu(params, db);
-      } else if (firstStep == "4") {
         response = await claimMenu(params, db);
-      } else if (firstStep == "5") {
+      } else if (firstStep == "3") {
         response = await accountMenu(params, db);
-      } else if (firstStep == "6") {
+      } else if (firstStep == "4") {
         response = await hospitalMenu(params, db);
-      } else if (firstStep == "7") {
+      } else if (firstStep == "5") {
         response = await termsAndConditions(params);
-      } else if (firstStep == "8") {
+      } else if (firstStep == "6") {
         response = await faqsMenu(params);
       }
       resolve(response);
-
-      // End the session (if needed)
-      ///await deleteSessionData(sessionid);
     } catch (e) {
       console.log(e);
       reject("END " + languages[configs.default_lang].generic.fatal_error);

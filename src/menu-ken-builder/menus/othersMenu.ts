@@ -1,6 +1,6 @@
 import SMSMessenger from "../../services/sendSMS";
 import { v4 as uuidv4 } from 'uuid';
-import { calculatePaymentOptions, parseAmount } from "../../services/utils";
+import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { all } from "axios";
@@ -293,14 +293,14 @@ const othersMenu = async (args, db) => {
     }
   ];
 
-  if (currentStep == 1) {
+  if (currentStep == 2) {
     let coversList = covers.map((cover, index) => {
       return `\n${index + 1}. ${cover.name}`
     }).join("")
 
     response = "CON " + coversList + "\n0. Back";
   }
-  else if (currentStep == 2) {
+  else if (currentStep == 3) {
     let selectedCover = covers[parseInt(userText) - 1];
     if (!selectedCover) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -316,23 +316,27 @@ const othersMenu = async (args, db) => {
 
 
   }
-  else if (currentStep == 3) {
+  else if (currentStep == 4) {
     response = "CON Enter atleast Name of Other or 1 child\n"
   }
-  else if (currentStep == 4) {
+  else if (currentStep == 5) {
     response = "CON Enter Phone number for Other e.g 0712345678\n"
   }
-  else if (currentStep == 5) {
+  else if (currentStep == 6) {
     let otherName = allSteps[3];
     let otherPhone = allSteps[4];
-    let coverType = allSteps[2];
+    let coverType = allSteps[3];
 
-    let selectedCover = covers[parseInt(allSteps[1]) - 1];
+    let selectedCover = covers[parseInt(allSteps[2]) - 1];
+    console.log("SELECTED COVER", selectedCover);
+
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
+
+    console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
 
     otherUser = await db.users.findOne({
       where: {
-        phone_number: allSteps[4].replace('0', ""),
+        phone_number: allSteps[5].replace('0', ""),
       },
       limit: 1,
     });
@@ -343,11 +347,11 @@ const othersMenu = async (args, db) => {
       `\n1 Kshs ${selectedCoverPackage.premium} monthly` +
       `\n2 Kshs ${selectedCoverPackage.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
   }
-  else if (currentStep == 6) {
-    const selectedCover = covers[parseInt(allSteps[1]) - 1];
+  else if (currentStep == 7) {
+    const selectedCover = covers[parseInt(allSteps[2]) - 1];
     let paymentOption = parseInt(userText);
     let period = paymentOption == 1 ? "monthly" : "yearly";
-    let coverType = allSteps[2];
+    let coverType = allSteps[3];
     console.log("COVER TYPE", coverType);
     //console.log("SELECTED COVER", selectedCover);
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
@@ -362,32 +366,30 @@ const othersMenu = async (args, db) => {
 
     if (!existingUser) {
 
-      let user = await getAirtelUser(msisdn, 1)
+      //let user = await getAirtelUser(msisdn, 1)
       let membershipId = Math.floor(100000 + Math.random() * 900000);
 
       existingUser = await db.users.create({
         user_id: uuidv4(),
         phone_number: phone,
-        membership_id: Math.floor(100000 + Math.random() * 900000),
-        first_name: user.first_name,
-        last_name: user.last_name,
-        name: `${user.first_name} ${user.last_name}`,
+        membership_id: generateNextMembershipId(),
         total_member_number: selectedPolicyType.code_name,
         partner_id: 1,
         role: "user",
         nationality: "KENYA"
       });
-      const message = `Dear ${user.first_name}, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
+      const message = `Dear Customer, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
       await SMSMessenger.sendSMS(3, fullPhone, message);
 
     }
 
 
     response = `CON Kshs ${ultimatePremium} ${period}.` +
-      `\nTerms&Conditions - www.airtel.com` +
-      `\nConfirm to Agree and Pay \n Age 0 - 65 Years ` + "\n1. Confirm \n0. Back";
+      `\nTerms and Conditions - www.airtel.com` +
+      `\nConfirm to Agree and Pay\n Age 0 - 65 Years ` +
+       "\n1. Confirm \n0. Back";
   }
-  else if (currentStep == 7) {
+  else if (currentStep == 8) {
 
 
     if (userText == "1") {
@@ -396,19 +398,20 @@ const othersMenu = async (args, db) => {
       console.log("=============== END SCREEN USSD RESPONCE WAS CALLED KENYA  =======", new Date());
       //console.log("otherUser", otherUser);
 
-      let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
+      let selectedPolicyType = covers[parseInt(allSteps[2]) - 1];
+      console.log("SELECTED POLICY TYPE", selectedPolicyType);
       let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
 
-      let paymentOption = parseInt(allSteps[5]);
+      let paymentOption = parseInt(allSteps[6]);
       let installment_type = paymentOption == 1 ? 2 : 1;
       let installment_order = 1
 
 
       // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
 
-      let policyType = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
-      //console.log("POLICY TYPE USERTEXT 1", policyType)
+      let policyType = selectedPolicyType.packages[parseInt(allSteps[3]) - 1];
+      console.log("POLICY TYPE USERTEXT 1", policyType)
       let ultimatePremium = paymentOption == 1 ? policyType.premium : policyType.yearly_premium;
       //console.log("ULTIMATE PREMIUM", ultimatePremium)
 
@@ -416,12 +419,13 @@ const othersMenu = async (args, db) => {
 
       //console.log("OTHER USER", otherUser, allSteps[4].replace('0', ""))
       if (!otherUser) {
-        let otherPhone = allSteps[4].replace('0', "");
+        let otherPhone = allSteps[5].replace('0', "");
 
         let otherData = {
           user_id: uuidv4(),
           phone_number: otherPhone,
           membership_id: Math.floor(100000 + Math.random() * 900000),
+          unique_profile_id: await generateNextMembershipId(),
           first_name: allSteps[3]?.split(" ")[0]?.toUpperCase(),
           middle_name: allSteps[3]?.split(" ")[1]?.toUpperCase(),
           last_name: allSteps[3]?.split(" ")[2]?.toUpperCase() ? allSteps[3]?.split(" ")[2]?.toUpperCase() : allSteps[3]?.split(" ")[1]?.toUpperCase(),
@@ -467,12 +471,31 @@ const othersMenu = async (args, db) => {
 
       try {
 
-        let policy = await db.policies.create(policyObject);
+        const pendingPolicy = await db.policies.findOne({
+          where: {
+            user_id: existingUser.user_id,
+            policy_status: "pending",
+            premium : parseAmount(ultimatePremium),
+            bought_for: otherUser.user_id,
+            policy_type: policyType.name.toUpperCase(),
+          },
+          limit: 1,
+        });
 
+        let policy;
+  
+        if (!pendingPolicy) {
+          policy = await db.policies.create(policyObject);
+        } else {
+          // Delete existing pending policy before creating a new one
+          await pendingPolicy.destroy();
+          policy = await db.policies.create(policyObject);
+        }
+      
         const airtelMoneyResponse = airtelMoneyKenya(
           existingUser,
           policy
-         
+
         );
 
         console.log("AIRTEL MONEY RESPONSE", airtelMoneyResponse);

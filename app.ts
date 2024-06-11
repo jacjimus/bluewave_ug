@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { getArrMemberNumberData, sendPolicyRenewalReminder } from "./src/services/cronJobs";
+import { getArrMemberNumberData, sendPolicyRenewalReminder, updateAirtelUserKyc } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";
@@ -14,6 +14,7 @@ import helmet from "helmet";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { loggingMiddleware, logger } from "./src/middleware/loggingMiddleware";
 import bodyParser from "body-parser";
+import e from "express";
 
 
 
@@ -122,6 +123,13 @@ async function initializeExpressServer() {
     cron.schedule("*/30 * * * *", () => {
       console.log("Running a task every 30 minutes");
       getArrMemberNumberData();
+    });  
+  }else{
+  
+  
+    cron.schedule("*/10 * * * *", () => {
+      console.log("Running a task every minute");
+      updateAirtelUserKyc()
     });
   }
  

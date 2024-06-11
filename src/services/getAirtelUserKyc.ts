@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "./sendSMS";
 import dotenv from "dotenv";
 import authTokenByPartner from "./authorization";
-import { formatPhoneNumber } from "./utils";
+import { formatPhoneNumber, generateNextMembershipId } from "./utils";
 import { logger } from "../middleware/loggingMiddleware";
 
 dotenv.config();
@@ -26,7 +26,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
     if (!userData) {
       const user = await User.create({
         user_id: uuidv4(),
-        membership_id: generateMembershipId(phoneNumber),
+        membership_id: generateNextMembershipId(),
         name: `${userData.first_name} ${userData.last_name}`,
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -73,7 +73,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 
     // Remove  the leading 256 from the phone number if it exists or 0 if it exists  or +256 if it exists
     phoneNumber = phoneNumber.replace(/^(\+256|256|0)/, "");
-    
+
     const baseUrl = partnerId === 1 ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
@@ -131,7 +131,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   const existingUser = await db.users.create({
     user_id: uuidv4(),
     phone_number: phone_number,
-    membership_id: membershipId,
+    membership_id: generateNextMembershipId(),
     pin: Math.floor(1000 + Math.random() * 9000),
     first_name: first_name,
     last_name: last_name,
@@ -173,6 +173,7 @@ function generatePIN() {
 interface UserData {
   first_name: string;
   last_name: string;
+  code: number;
 }
 
 async function getAirtelUserKenya(msisdn: string): Promise<UserData> {
@@ -192,15 +193,14 @@ async function getAirtelUserKenya(msisdn: string): Promise<UserData> {
     const response = await axios.get(GET_USER_URL, { headers });
     console.log('RESULT', response.data);
 
-    const userData: UserData = {
-      first_name: response.data.first_name,
-      last_name: response.data.last_name,
-    };
+    if(response.data.status.success === false || response.data.status.code !== '200') {
+      throw new Error('User not found');
+    }
 
-    return userData;
+    return response.data.data;
   } catch (error) {
     logger.error('Error in getAirtelUserKenya:', error.message);
-    throw new Error('Failed to get Airtel user. Please try again later.');
+    //throw new Error('Failed to get Airtel user. Please try again later.');
   }
 }
 

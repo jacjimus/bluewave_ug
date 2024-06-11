@@ -1809,18 +1809,12 @@ async function policyReconciliation(req: any, res: any) {
 
   try {
     let { renewal, airtel_money_id, phone_number, transaction_date, premium } = req.query;
+
+    console.log("REQ QUERY", req.query)
   
-    let result = {
-      message: "error",
-      code: 404
-    }
     //4/2/2024 = 4th Feb 2024
 
     transaction_date = moment(transaction_date, "YYYY-MM-DD h:mm A");
-
-    console.log(`transaction_date, ${transaction_date}`)
-    console.log(`premium, ${premium}`)
-    console.log(`existingUser,${phone_number}`)
 
     let policy_status = renewal ==  "true" ? "paid" : "pending";
 
@@ -1829,14 +1823,13 @@ async function policyReconciliation(req: any, res: any) {
         partner_id: 2,
         policy_status: policy_status,
         phone_number: `+256${phone_number}`,
-        policy_deduction_amount: premium,      },
+        policy_deduction_amount: parseInt(premium),      },
       include: [{
         model: db.users,
         where: {
           partner_id: 2
         }
-      }],
-      limit: 1,
+      }]
     });
 
     let payment = await db.payments.findOne({
@@ -1849,11 +1842,8 @@ async function policyReconciliation(req: any, res: any) {
     });
     
 
-    console.log("====== PAYMENT - RECON =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
 
-    console.log("===== POLICY  - RECON =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
-
-    if (!policy || !payment) {
+    if (!policy) {
       return res.status(400).json({ status: "FAILED", message: "Policy already reconciled" });
     }
 
@@ -1864,6 +1854,10 @@ async function policyReconciliation(req: any, res: any) {
       limit: 1,
     });
 
+    if(!transactionId){
+
+      return res.status(400).json({ status: "FAILED", message: "Transaction ID not found" });
+    }
 
     let paymentCallback = {
       transaction: {
@@ -1875,9 +1869,7 @@ async function policyReconciliation(req: any, res: any) {
       }
     }
 
-    result = await reconcilationCallback(paymentCallback.transaction)
-
-
+    const result = await reconcilationCallback(paymentCallback.transaction)
 
     return res.status(200).json({ status: "OK", message: "Policy Reconciliation done successfully", result });
   } catch (error) {
@@ -2345,3 +2337,5 @@ module.exports = {
   getUserExcelReportDownload,
   getPolicySummarySnapshot
 };
+
+

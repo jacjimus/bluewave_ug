@@ -1,7 +1,7 @@
 import { airtelMoney, airtelMoneyKenya } from '../../services/payment';
 import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
-import { calculatePaymentOptions, parseAmount } from "../../services/utils";
+import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 
 
@@ -451,7 +451,7 @@ const familyMenu = async (args, db) => {
     }
   ];
 
-  if (currentStep == 1) {
+  if (currentStep == 2) {
     console.log("CURRENT STEP", currentStep)
 
     response = "CON " +
@@ -464,7 +464,7 @@ const familyMenu = async (args, db) => {
       "\n0. Back \n00. Main Menu";
 
 
-  } else if (currentStep == 2) {
+  } else if (currentStep == 3) {
     const selectedCover = family_cover_data[parseInt(userText) - 1];
 
     console.log("SELECTED COVER", selectedCover)
@@ -482,14 +482,14 @@ const familyMenu = async (args, db) => {
     response = "CON " + selectedCover.name + packages + "\n0. Back \n00. Main Menu";
 
 
-  } else if (currentStep == 3) {
+  } else if (currentStep == 4) {
 
     response = "CON Enter atleast Full Name of spouse or 1 child \nAge 0 - 65 Years\n"
 
-  } else if (currentStep == 4) {
+  } else if (currentStep == 5) {
 
     response = "CON Enter Phone of spouse (or Main member, if dependent is child) \n"
-  } else if (currentStep == 5) {
+  } else if (currentStep == 6) {
 
     const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
@@ -502,7 +502,7 @@ const familyMenu = async (args, db) => {
 
     response = coverText;
 
-  } else if (currentStep == 6) {
+  } else if (currentStep == 7) {
 
     const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
@@ -529,26 +529,28 @@ const familyMenu = async (args, db) => {
 
     await Beneficiary.create(beneficiary);
 
-   
+
     console.log("EXISTING USER", existingUser?.name)
 
     if (!existingUser) {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
       let user = await getAirtelUser(msisdn, 2);
-      let membershierId = Math.floor(100000 + Math.random() * 900000);
-      existingUser = await db.users.create({
-        user_id: uuidv4(),
-        phone_number: phone,
-        membership_id: membershierId,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        name: `${user.first_name} ${user.last_name}`,
-        total_member_number: selectedPolicyType.code_name,
-        partner_id: 1,
-        nationality: "KENYA"
-      });
+
+      let membership_id = generateNextMembershipId(),
+
+        existingUser = await db.users.create({
+          user_id: uuidv4(),
+          phone_number: phone,
+          membership_id: membership_id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          name: `${user.first_name} ${user.last_name}`,
+          total_member_number: selectedPolicyType.code_name,
+          partner_id: 1,
+          nationality: "KENYA"
+        });
       console.log("USER DOES NOT EXIST", user);
-      const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membershierId} Dial *334*7*3# to access your account.`;
+      const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membership_id} Dial *334*7*3# to access your account.`;
       await SMSMessenger.sendSMS(3, fullPhone, message);
 
     }
@@ -557,7 +559,7 @@ const familyMenu = async (args, db) => {
     response = `CON Kshs ${premium} payable ${period}` +
       `\nTerms&Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay \n Age 0 - 65 Years` + "\n1. Confirm \n0. Back" + "\n00. Main Menu";
-  } else if (currentStep == 7) {
+  } else if (currentStep == 8) {
 
     console.log("existingUser", existingUser)
     response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment';
@@ -572,24 +574,50 @@ const familyMenu = async (args, db) => {
 async function processUserText1(allSteps, msisdn, family_cover_data, existingUser, db) {
   console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", new Date());
 
+  console.log("ALL STEPS", allSteps)
+
   let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
+  console.log("SELECTED POLICY TYPE", selectedPolicyType)
   let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
-  let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[5]) - 1].premium);
+  console.log("SELECTED PACKAGE", selectedPackage)
+  let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[6]) - 1].premium);
+  console.log("ULTIMATE PREMIUM", ultimatePremium)
 
   let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, msisdn, ultimatePremium);
-  let policy = await createAndSavePolicy(policyObject, db);
+
+  let pendingPolicy = await db.policies.findOne({
+    where: {
+      user_id: existingUser.user_id,
+      policy_status: "pending",
+      premium : ultimatePremium,
+      policy_type: selectedPackage.name,
+    }
+  });
+
+  let policy;
+  
+  if (!pendingPolicy) {
+    policy = await createAndSavePolicy(policyObject, db);
+
+  } else {
+    // Delete existing pending policy before creating a new one
+    await pendingPolicy.destroy();
+    policy = await createAndSavePolicy(policyObject, db);
+
+  }
+
 
   console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, new Date());
 
   const airtelMoneyResponse = airtelMoneyKenya(
     existingUser,
     policy
-   
+
   );
 
   console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, new Date());
 
-  let  response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
+  let response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
   console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, new Date());
 
   return response;

@@ -10,7 +10,8 @@ import {
   getRandomInt,
   isValidEmail,
   globalSearch,
-  generateReferralCode
+  generateReferralCode,
+  generateNextMembershipId
 
 } from "../services/utils";
 
@@ -133,12 +134,9 @@ const signup = async (req, res) => {
       }
     }
 
-    // Generate membership ID
-    const membership_id = Math.floor(100000 + Math.random() * 900000);
-
     // Create user data object
     const userData = {
-      membership_id,
+      membership_id: generateNextMembershipId(),
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,
@@ -923,8 +921,8 @@ const getPartner = async (req: any, res: any) => {
  */
 const listPartners = async (req: any, res: any) => {
   try {
-console.log("================req.partner_id.+====================",req.partner_id)
-     
+    console.log("================req.partner_id.+====================", req.partner_id)
+
     let partner: any = await Partner.findAll();
     if (parseInt(req.partner_id) == 4) {
 
@@ -1788,13 +1786,12 @@ const agentSignup = async (req, res) => {
       }
     }
 
-    // Generate membership ID
-    const membership_id = Math.floor(100000 + Math.random() * 900000);
+
     const referral_code = generateReferralCode(5)
 
     // Create user data object
     const userData = {
-      membership_id,
+      membership_id: generateNextMembershipId(),
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,
@@ -1922,7 +1919,7 @@ const findUsersByReferralCode = async (req: any, res: any) => {
     const searchFilters: any = {};
     if (filter) {
 
-      searchFilters[Op.or] =  [
+      searchFilters[Op.or] = [
         {
           first_name: { [Sequelize.Op.like]: `%${filter}%` }
         },
@@ -1937,18 +1934,18 @@ const findUsersByReferralCode = async (req: any, res: any) => {
         },
         {
           name: { [Sequelize.Op.like]: `%${filter}%` }
-  
+
         }
-  
+
       ]
     }
-  
+
     const paginationOptions = {
-      offset: (page - 1) * limit, 
-      limit: limit, 
+      offset: (page - 1) * limit,
+      limit: limit,
     };
 
-    
+
     let { rows: agents, count: totalCount } = await db.users.findAndCountAll({
       where: {
         partner_id: partner_id,
@@ -1967,26 +1964,26 @@ const findUsersByReferralCode = async (req: any, res: any) => {
       ],
       ...searchFilters,
       ...paginationOptions,
-    
+
     });
 
     if (!agents || agents.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
     }
 
-    
+
 
     return res
       .status(200)
       .json({
         result: {
           code: 200,
-          status: "OK", message: "Agent fetched successfully", 
+          status: "OK", message: "Agent fetched successfully",
           currentPage: page,
           totalPages: Math.ceil(totalCount / limit),
           count: totalCount,
           items: agents,
-         
+
         }
       });
   } catch (error) {
