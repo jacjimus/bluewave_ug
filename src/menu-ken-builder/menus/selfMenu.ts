@@ -7,53 +7,87 @@ import { Op } from "sequelize";
 
 import { logger } from "../../middleware/loggingMiddleware";
 
+const redisClient = require("../../middleware/redis");
+
+
+require("dotenv").config();
+
+
+const getSessionData = async (sessionid: string, key: string) => {
+  try {
+    const data = await redisClient.hget(sessionid, key);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error(`Error getting session data for  key ${key}:`, error);
+    return null;
+  }
+};
+
+const setSessionData = async (sessionId: string, key: string, value: string | boolean, ttl = 180) => {
+  try {
+    await redisClient.hset(sessionId, key, JSON.stringify(value));
+    await redisClient.expire(sessionId, ttl);
+  } catch (error) {
+    console.error(`Error setting session data for key ${key}:`, error);
+  }
+};
+
 const selfMenu = async (args, db) => {
   let { msisdn, response, currentStep, userText, allSteps } = args;
   //let phone = msisdn?.replace('+', "")?.substring(3);
 
 
-  const coverTypes = [{
-    name: "BAMBA",
-    sum_insured: "",
-    sumInsured: 0,
-    premium: "300",
-    yearly_premium: "3,294",
-    yearPemium: 3294,
-    last_expense_insured: "",
-    lastExpenseInsured: 0,
-    inPatient: 0,
-    outPatient: 0,
-    maternity: 0,
-    hospitalCash: 4500
-  },
-  {
-    name: "ZIDI",
-    sum_insured: "",
-    sumInsured: 0,
-    premium: "650",
-    yearly_premium: "6,840",
-    yearPemium: 6840,
-    last_expense_insured: "",
-    lastExpenseInsured: 0,
-    inPatient: 300000,
-    outPatient: 0,
-    maternity: 100000,
-    hospitalCash: 0
-  },
-  {
-    name: "SMARTA",
-    sum_insured: "",
-    sumInsured: 0,
-    premium: "1,400",
-    yearly_premium: "15,873",
-    yearPemium: 15873,
-    last_expense_insured: "",
-    lastExpenseInsured: 0,
-    inPatient: 400000,
-    outPatient: 30000,
-    maternity: 100000,
-    hospitalCash: 0
-  }];
+  // const coverTypes = [{
+  //   name: "BAMBA",
+  //   sum_insured: "",
+  //   sumInsured: 0,
+  //   premium: "300",
+  //   yearly_premium: "3,294",
+  //   yearPemium: 3294,
+  //   last_expense_insured: "",
+  //   lastExpenseInsured: 0,
+  //   inPatient: 0,
+  //   outPatient: 0,
+  //   maternity: 0,
+  //   hospitalCash: 4500
+  // },
+  // {
+  //   name: "ZIDI",
+  //   sum_insured: "",
+  //   sumInsured: 0,
+  //   premium: "650",
+  //   yearly_premium: "6,840",
+  //   yearPemium: 6840,
+  //   last_expense_insured: "",
+  //   lastExpenseInsured: 0,
+  //   inPatient: 300000,
+  //   outPatient: 0,
+  //   maternity: 100000,
+  //   hospitalCash: 0
+  // },
+  // {
+  //   name: "SMARTA",
+  //   sum_insured: "",
+  //   sumInsured: 0,
+  //   premium: "1,400",
+  //   yearly_premium: "15,873",
+  //   yearPemium: 15873,
+  //   last_expense_insured: "",
+  //   lastExpenseInsured: 0,
+  //   inPatient: 400000,
+  //   outPatient: 30000,
+  //   maternity: 100000,
+  //   hospitalCash: 0
+  // }];
+
+
+  let coverTypes = await getSessionData(msisdn, "coverTypes");
+
+  if (!coverTypes) {
+    coverTypes = await db.cover_types.findAll();
+    console.log("coverTypes", coverTypes);
+    await setSessionData(msisdn, "coverTypes", coverTypes);
+  }
 
 
   console.log("currentStep", currentStep);
@@ -168,7 +202,7 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
   });
 
   let policy;
-  
+
   if (!pendingPolicy) {
     policy = await db.policies.create(policyObject);
   } else {

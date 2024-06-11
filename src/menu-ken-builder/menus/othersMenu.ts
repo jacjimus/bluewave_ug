@@ -8,6 +8,10 @@ import { all } from "axios";
 const othersMenu = async (args, db) => {
   let { msisdn, response, currentStep, userText, allSteps } = args;
 
+  const FamilyCover = db.family_covers;
+  const Packages = db.packages;
+  const PaymentOption = db.payment_options;
+
   let phone = msisdn?.replace('+', "")?.substring(3);
   // console.log("SELECTED POLICY TYPE", selectedPolicyType);
   let existingUser = await db.users.findOne({
@@ -27,7 +31,7 @@ const othersMenu = async (args, db) => {
       code_name: 'M',
       sum_insured: '',
       premium: '300',
-      yearly_premium: '',
+      yearly_premium: '3,294',
       last_expense_insured: '',
       inpatient_cover: 400000,
       outpatient_cover: 0,
@@ -36,6 +40,7 @@ const othersMenu = async (args, db) => {
       packages: [
         {
           name: 'Bamba',
+          code_name: 'M',
           sum_insured: '',
           sumInsured: 0,
           premium: '300',
@@ -49,6 +54,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Zidi',
+          code_name: 'M',
           sum_insured: '',
           sumInsured: 0,
           premium: '650',
@@ -62,6 +68,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M',
           sum_insured: '',
           sumInsured: 0,
           premium: '1,400',
@@ -87,6 +94,7 @@ const othersMenu = async (args, db) => {
 
         {
           name: 'Zidi',
+          code_name: 'M+1',
           sum_insured: '',
           sumInsured: 0,
           premium: '1,040',
@@ -100,6 +108,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M+1',
           sum_insured: '',
           sumInsured: 0,
           premium: '12,480',
@@ -123,6 +132,7 @@ const othersMenu = async (args, db) => {
 
         {
           name: 'Zidi',
+          code_name: 'M+2',
           sum_insured: '',
           premium: '1,300',
           yearly_premium: '13,680',
@@ -135,6 +145,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M+2',
           sum_insured: '',
           sumInsured: 0,
           premium: '2,800',
@@ -158,6 +169,7 @@ const othersMenu = async (args, db) => {
 
         {
           name: 'Zidi',
+          code_name: 'M+3',
           sum_insured: '',
           sumInsured: 0,
           premium: '1,456',
@@ -171,6 +183,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M+3',
           sum_insured: '',
           sumInsured: 0,
           premium: '3,136',
@@ -194,6 +207,7 @@ const othersMenu = async (args, db) => {
 
         {
           name: 'Zidi',
+          code_name: 'M+4',
           sum_insured: '',
           sumInsured: 0,
           premium: '1,602',
@@ -207,6 +221,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M+4',
           sum_insured: '',
           sumInsured: 0,
           premium: '3,450',
@@ -230,6 +245,7 @@ const othersMenu = async (args, db) => {
 
         {
           name: 'Zidi',
+          code_name: 'M+5',
           sum_insured: '',
           sumInsured: 0,
           premium: '1,730',
@@ -243,6 +259,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M+5',
           sum_insured: '',
           sumInsured: 0,
           premium: '3,726',
@@ -265,6 +282,7 @@ const othersMenu = async (args, db) => {
       packages: [
         {
           name: 'Zidi',
+          code_name: 'M+6',
           sum_insured: '',
           sumInsured: 0,
           premium: '1,834',
@@ -278,6 +296,7 @@ const othersMenu = async (args, db) => {
         },
         {
           name: 'Smarta',
+          code_name: 'M+6',
           sum_insured: '',
           sumInsured: 0,
           premium: '3,949',

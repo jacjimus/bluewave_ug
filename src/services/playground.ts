@@ -18488,22 +18488,37 @@ async function updateMembershipData() {
 
 
 let arr_members = [
-  'UG156006-00','UG156178-00','UG156178-01','UG157156-00','UG160223-00',
+//'UG156006-00','UG156178-00','UG156178-01','UG157156-00','UG160223-00',
 
-  'UG160264-00','UG160484-00','UG160683-00','UG161318-00','UG162422-00',
+  // 'UG160264-00','UG160484-00','UG160683-00','UG161318-00','UG162422-00',
   
-  'UG189692-00','UG189707-00','UG189709-00','UG189712-00','UG189713-00',
+  //  'UG189692-00','UG189707-00','UG189709-00','UG189712-00','UG189713-00',
   
-  'UG189797-00','UG189799-00','UG189800-00','UG189802-00','UG189803-00',
+  // 'UG189797-00','UG189799-00','UG189800-00','UG189802-00','UG189803-00',
   
-  'UG189804-00','UG189810-00','UG189811-00','UG189812-00','UG189813-00',
+   //'UG189804-00','UG189810-00','UG189811-00','UG189812-00','UG189813-00',
   
-  'UG189814-00','UG189815-00','UG189816-00','UG189817-00','UG189818-00',
+  //'UG189814-00','UG189815-00','UG189816-00','UG189817-00','UG189818-00',
   
-  'UG189829-00','UG189830-00','UG189867-00','UG189868-00','UG189874-00',
+//'UG189830-00','UG189867-00','UG189868-00','UG189874-00',
   
-  'UG189884-00','UG189885-00','UG189887-00','UG190167-00','UG190168-00'
+   'UG189884-00','UG189885-00','UG189887-00','UG190167-00','UG190168-00'
 ]
+
+function updateAAR(arr_members) {
+  try {
+    for (const memberNumber of arr_members) {
+      console.log("Processing member:", memberNumber);
+
+      // GET USER USING MEMBER NUMBER
+
+      
+    }
+    console.log("All members updated successfully")
+  } catch (error) {
+    console.error("Error updating member details:", error);
+}
+}
 
 async function updateAARUnique(arr_data) {
   try {
@@ -18514,9 +18529,11 @@ async function updateAARUnique(arr_data) {
 
      
 
+
       // update user unique_profile_id 
       const userUpdate = await db.users.update({
-        unique_profile_id: unique_profile_id
+        unique_profile_id: unique_profile_id,
+         
       }, {
         where: {
           arr_member_number: member_no,

@@ -14,7 +14,6 @@ import helmet from "helmet";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { loggingMiddleware, logger } from "./src/middleware/loggingMiddleware";
 import bodyParser from "body-parser";
-import e from "express";
 
 
 
@@ -133,7 +132,7 @@ async function initializeExpressServer() {
     });
   }
  
-  playground()
+  //playground()
 
 
 

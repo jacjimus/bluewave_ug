@@ -4,6 +4,35 @@ import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 
+const redisClient = require("../../middleware/redis");
+
+
+
+
+require("dotenv").config();
+
+
+const getSessionData = async (sessionid: string, key: string) => {
+  try {
+    const data = await redisClient.hget(sessionid, key);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error(`Error getting session data for  key ${key}:`, error);
+    return null;
+  }
+};
+
+const setSessionData = async (sessionId: string, key: string, value: string | boolean, ttl = 180) => {
+  try {
+    await redisClient.hset(sessionId, key, JSON.stringify(value));
+    await redisClient.expire(sessionId, ttl);
+  } catch (error) {
+    console.error(`Error setting session data for key ${key}:`, error);
+  }
+};
+
+
+
 
 const familyMenu = async (args, db) => {
   let { msisdn, text, response,
@@ -14,6 +43,9 @@ const familyMenu = async (args, db) => {
   const Policy = db.policies;
   const Beneficiary = db.beneficiaries;
   const User = db.users;
+  const FamilyCover = db.family_covers;
+  const Packages = db.packages;
+  const PaymentOption = db.payment_options;
   console.log("CURRENT STEP", currentStep)
   let phone = msisdn?.replace('+', "")?.substring(3);
   let existingUser = await db.users.findOne({
@@ -25,431 +57,534 @@ const familyMenu = async (args, db) => {
   });
 
   // family_cover_data for family
-  const family_cover_data = [
-    {
-      name: "Self+Spouse or Child",
-      code_name: "M+1",
-      packages: [
-        {
-          name: "Zidi",
-          code_name: "ZIDI",
-          premium: '1,040',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '10,944',
-          inpatient_cover: 300000,
-          outpatient_cover: 0,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '1,040',
-              yearly_premium: '10,944',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '10,944',
-              yearly_premium: '10,944',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-        {
-          name: "Smarta",
-          code_name: "SMARTA",
-          premium: '2,240',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '24,736',
-          inpatient_cover: 400000,
-          outpatient_cover: 400000,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '2,240',
-              yearly_premium: '24,736',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '24,736',
-              yearly_premium: '24,736',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
+  // const family_cover_data = [
+  //   {
+  //     name: "Self+Spouse or Child",
+  //     code_name: "M+1",
+  //     packages: [
+  //       {
+  //         name: "Zidi",
+  //         code_name: "ZIDI",
+  //         premium: '1,040',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '10,944',
+  //         inpatient_cover: 300000,
+  //         outpatient_cover: 0,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '1,040',
+  //             yearly_premium: '10,944',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '10,944',
+  //             yearly_premium: '10,944',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+  //       {
+  //         name: "Smarta",
+  //         code_name: "SMARTA",
+  //         premium: '2,240',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '24,736',
+  //         inpatient_cover: 400000,
+  //         outpatient_cover: 400000,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '2,240',
+  //             yearly_premium: '24,736',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '24,736',
+  //             yearly_premium: '24,736',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       }
+
+  //     ],
+  //   }, {
+  //     name: "Self+Spouse+1 Child",
+  //     code_name: "M+2",
+  //     packages: [
+  //       {
+  //         name: "Zidi",
+  //         code_name: "ZIDI",
+  //         premium: '1,300',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '0',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '13,680',
+  //         inpatient_cover: 300000,
+  //         outpatient_cover: 0,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '1,300',
+  //             yearly_premium: '13,680',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '13,680',
+  //             yearly_premium: '13,680',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+  //       {
+  //         name: "Smarta",
+  //         code_name: "SMARTA",
+  //         premium: '2,800',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '30,745',
+  //         inpatient_cover: 400000,
+  //         outpatient_cover: 400000,
+  //         hospital_cash: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '2,800',
+  //             yearly_premium: '30,745',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '30,745',
+  //             yearly_premium: '30,745',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       }
+
+  //     ],
+  //   },
+  //   {
+  //     name: "Self+Spouse+2 Children",
+  //     code_name: "M+3",
+  //     packages: [
+  //       {
+  //         name: "Zidi",
+  //         code_name: "ZIDI",
+  //         premium: '1.456',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '15,322',
+  //         inpatient_cover: 300000,
+  //         outpatient_cover: 0,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '1,456',
+  //             yearly_premium: '15,322',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '15,322',
+  //             yearly_premium: '15,322',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+  //       {
+  //         name: "Smarta",
+  //         code_name: "SMARTA",
+  //         premium: '3,136',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '15,322',
+  //         inpatient_cover: 400000,
+  //         outpatient_cover: 400000,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '3,136',
+  //             yearly_premium: '35,322',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '35,322',
+  //             yearly_premium: '35,322',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       }
+
+  //     ],
+  //   }, {
+  //     name: "Self+Spouse+3 Children",
+  //     code_name: "M+4",
+  //     packages: [
+  //       {
+  //         name: "Zidi",
+  //         code_name: "ZIDI",
+  //         premium: '1,602',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '16,854',
+  //         inpatient_cover: 300000,
+  //         outpatient_cover: 0,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '1,602',
+  //             yearly_premium: '16,854',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '16,854',
+  //             yearly_premium: '16,854',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+  //       {
+  //         name: "Smarta",
+  //         code_name: "SMARTA",
+  //         premium: '3,450',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '38,732',
+  //         inpatient_cover: 400000,
+  //         outpatient_cover: 400000,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '3,450',
+  //             yearly_premium: '38,732',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '38,732',
+  //             yearly_premium: '38,732',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+
+
+  //     ],
+  //   }, {
+  //     name: "Self+Spouse+4 Children",
+  //     code_name: "M+5",
+  //     packages: [
+  //       {
+  //         name: "Zidi",
+  //         code_name: "ZIDI",
+  //         premium: '1,730',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '18,203',
+  //         inpatient_cover: 300000,
+  //         outpatient_cover: 0,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '1,730',
+  //             yearly_premium: '18,203',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '18,203',
+  //             yearly_premium: '18,203',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+  //       {
+  //         name: "Smarta",
+  //         code_name: "SMARTA",
+  //         premium: '3,726',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '41,831',
+  //         inpatient_cover: 0,
+  //         outpatient_cover: 400000,
+  //         hospital_cash: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '3,726',
+  //             yearly_premium: '41,831',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '41,831',
+  //             yearly_premium: '41,831',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+
+
+  //     ],
+  //   }, {
+  //     name: "Self+Spouse+5 Children",
+  //     code_name: "M+6",
+  //     packages: [
+  //       {
+  //         name: "Zidi",
+  //         code_name: "ZIDI",
+  //         premium: '1,834',
+  //         sum_insured: '',
+  //         sumInsured: 0,
+  //         last_expense_insured: '',
+  //         lastExpenseInsured: 0,
+  //         year_premium: '19,259',
+  //         inpatient_cover: 300000,
+  //         outpatient_cover: 0,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '1,834',
+  //             yearly_premium: '19,259',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '19,259',
+  //             yearly_premium: '19,259',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+  //       {
+  //         name: "Smarta",
+  //         code_name: "SMARTA",
+  //         premium: '3,949',
+  //         sum_insured: '3M',
+  //         sumInsured: 3000000,
+  //         last_expense_insured: '1.5M',
+  //         lastExpenseInsured: 1500000,
+  //         year_premium: '44,341',
+  //         inpatient_cover: 400000,
+  //         outpatient_cover: 400000,
+  //         hospital_cash: 0,
+  //         maternity: 0,
+  //         payment_options: [
+  //           {
+  //             name: 'Monthly',
+  //             code_name: 'monthly',
+  //             premium: '3,949',
+  //             yearly_premium: '44,341',
+  //             installment_type: 1,
+  //             period: 'monthly'
+  //           },
+  //           {
+  //             name: 'Yearly',
+  //             code_name: 'yearly',
+  //             premium: '44,341',
+  //             yearly_premium: '44,341',
+  //             installment_type: 2,
+  //             period: 'yearly'
+  //           }
+  //         ]
+  //       },
+
+
+  //     ],
+  //   }
+  // ];
+
+
+  // await setSessionData(sessionid, 'family_cover_data', family_cover_data);// Adjust the path as needed
+
+  async function getPackagesWithDetails() {
+    try {
+      const query = `SELECT 
+      fc.name AS family_cover_name,
+      fc.code_name AS family_cover_code,
+      p.name AS package_name,
+      p.code_name AS package_code,
+      p.premium,
+      p.sum_insured,
+      p.sumInsured,
+      p.last_expense_insured,
+      p.lastExpenseInsured,
+      p.year_premium,
+      p.inpatient_cover,
+      p.outpatient_cover,
+      p.hospital_cash,
+      p.maternity,
+      po.name AS payment_option_name,
+      po.code_name AS payment_option_code,
+      po.premium AS payment_option_premium,
+      po.yearly_premium AS payment_option_yearly_premium,
+      po.installment_type,
+      po.period
+  FROM 
+      family_covers fc
+  JOIN 
+      packages p ON fc.id = p.family_cover_id
+  JOIN 
+      package_payment_options ppo ON p.id = ppo.package_id
+  JOIN 
+      payment_options po ON ppo.payment_option_id = po.id
+  ORDER BY 
+      fc.id, p.id, po.id;
+  `
+
+      const results = await db.sequelize.query(query, {
+        type: db.sequelize.QueryTypes.SELECT
+      });
+
+      //console.log("RESULTS", results)
+
+      let family_cover_data = [];
+      let currentFamilyCover = null;
+      let currentPackage = null;
+
+      for (let result of results) {
+        if (!currentFamilyCover || currentFamilyCover.code_name !== result.family_cover_code) {
+          currentFamilyCover = {
+            name: result.family_cover_name,
+            code_name: result.family_cover_code,
+            packages: []
+          };
+          family_cover_data.push(currentFamilyCover);
         }
 
-      ],
-    }, {
-      name: "Self+Spouse+1 Child",
-      code_name: "M+2",
-      packages: [
-        {
-          name: "Zidi",
-          code_name: "ZIDI",
-          premium: '1,300',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '0',
-          lastExpenseInsured: 0,
-          year_premium: '13,680',
-          inpatient_cover: 300000,
-          outpatient_cover: 0,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '1,300',
-              yearly_premium: '13,680',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '13,680',
-              yearly_premium: '13,680',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-        {
-          name: "Smarta",
-          code_name: "SMARTA",
-          premium: '2,800',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '30,745',
-          inpatient_cover: 400000,
-          outpatient_cover: 400000,
-          hospital_cash: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '2,800',
-              yearly_premium: '30,745',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '30,745',
-              yearly_premium: '30,745',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
+        if (!currentPackage || currentPackage.code_name !== result.package_code) {
+          currentPackage = {
+            name: result.package_name,
+            code_name: result.package_code,
+            premium: result.premium,
+            sum_insured: result.sum_insured,
+            sumInsured: result.sumInsured,
+            last_expense_insured: result.last_expense_insured,
+            lastExpenseInsured: result.lastExpenseInsured,
+            year_premium: result.year_premium,
+            inpatient_cover: result.inpatient_cover,
+            outpatient_cover: result.outpatient_cover,
+            hospital_cash: result.hospital_cash,
+            maternity: result.maternity,
+            payment_options: []
+          };
+          currentFamilyCover.packages.push(currentPackage);
         }
 
-      ],
-    },
-    {
-      name: "Self+Spouse+2 Children",
-      code_name: "M+3",
-      packages: [
-        {
-          name: "Zidi",
-          code_name: "ZIDI",
-          premium: '1.456',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '15,322',
-          inpatient_cover: 300000,
-          outpatient_cover: 0,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '1,456',
-              yearly_premium: '15,322',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '15,322',
-              yearly_premium: '15,322',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-        {
-          name: "Smarta",
-          code_name: "SMARTA",
-          premium: '3,136',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '15,322',
-          inpatient_cover: 400000,
-          outpatient_cover: 400000,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '3,136',
-              yearly_premium: '35,322',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '35,322',
-              yearly_premium: '35,322',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        }
+        currentPackage.payment_options.push({
+          name: result.payment_option_name,
+          code_name: result.payment_option_code,
+          premium: result.payment_option_premium,
+          yearly_premium: result.payment_option_yearly_premium,
+          installment_type: result.installment_type,
+          period: result.period
+        });
+      }
+      //console.log("FORMARTED FAMILY COVER DATA", family_cover_data)
+      return family_cover_data;
 
-      ],
-    }, {
-      name: "Self+Spouse+3 Children",
-      code_name: "M+4",
-      packages: [
-        {
-          name: "Zidi",
-          code_name: "ZIDI",
-          premium: '1,602',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '16,854',
-          inpatient_cover: 300000,
-          outpatient_cover: 0,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '1,602',
-              yearly_premium: '16,854',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '16,854',
-              yearly_premium: '16,854',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-        {
-          name: "Smarta",
-          code_name: "SMARTA",
-          premium: '3,450',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '38,732',
-          inpatient_cover: 400000,
-          outpatient_cover: 400000,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '3,450',
-              yearly_premium: '38,732',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '38,732',
-              yearly_premium: '38,732',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-
-
-      ],
-    }, {
-      name: "Self+Spouse+4 Children",
-      code_name: "M+5",
-      packages: [
-        {
-          name: "Zidi",
-          code_name: "ZIDI",
-          premium: '1,730',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '18,203',
-          inpatient_cover: 300000,
-          outpatient_cover: 0,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '1,730',
-              yearly_premium: '18,203',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '18,203',
-              yearly_premium: '18,203',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-        {
-          name: "Smarta",
-          code_name: "SMARTA",
-          premium: '3,726',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '41,831',
-          inpatient_cover: 0,
-          outpatient_cover: 400000,
-          hospital_cash: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '3,726',
-              yearly_premium: '41,831',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '41,831',
-              yearly_premium: '41,831',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-
-
-      ],
-    }, {
-      name: "Self+Spouse+5 Children",
-      code_name: "M+6",
-      packages: [
-        {
-          name: "Zidi",
-          code_name: "ZIDI",
-          premium: '1,834',
-          sum_insured: '',
-          sumInsured: 0,
-          last_expense_insured: '',
-          lastExpenseInsured: 0,
-          year_premium: '19,259',
-          inpatient_cover: 300000,
-          outpatient_cover: 0,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '1,834',
-              yearly_premium: '19,259',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '19,259',
-              yearly_premium: '19,259',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-        {
-          name: "Smarta",
-          code_name: "SMARTA",
-          premium: '3,949',
-          sum_insured: '3M',
-          sumInsured: 3000000,
-          last_expense_insured: '1.5M',
-          lastExpenseInsured: 1500000,
-          year_premium: '44,341',
-          inpatient_cover: 400000,
-          outpatient_cover: 400000,
-          hospital_cash: 0,
-          maternity: 0,
-          payment_options: [
-            {
-              name: 'Monthly',
-              code_name: 'monthly',
-              premium: '3,949',
-              yearly_premium: '44,341',
-              installment_type: 1,
-              period: 'monthly'
-            },
-            {
-              name: 'Yearly',
-              code_name: 'yearly',
-              premium: '44,341',
-              yearly_premium: '44,341',
-              installment_type: 2,
-              period: 'yearly'
-            }
-          ]
-        },
-
-
-      ],
+    } catch (error) {
+      console.error('Error fetching packages with details:', error);
     }
-  ];
+  }
+
+
+  let family_cover_data = await  getSessionData(msisdn, 'family_cover_data');
+  if(!family_cover_data){
+
+  family_cover_data = await getPackagesWithDetails();
+  await setSessionData(msisdn, 'family_cover_data', family_cover_data);
+  }
+
 
   if (currentStep == 2) {
     console.log("CURRENT STEP", currentStep)
@@ -495,6 +630,7 @@ const familyMenu = async (args, db) => {
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     let usermsisdn = msisdn?.replace('+', "")?.substring(3);
 
+    console.log("SELECTED PACKAGE", selectedPackage)
     let coverText = `CON Inpatient cover for 0${usermsisdn}, ${selectedPackage.inpatient_cover} a year` +
       "\nPAY " +
       `\n1. Kshs ${selectedPackage?.payment_options[0].premium} monthly` +
@@ -589,13 +725,13 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
     where: {
       user_id: existingUser.user_id,
       policy_status: "pending",
-      premium : ultimatePremium,
+      premium: ultimatePremium,
       policy_type: selectedPackage.name,
     }
   });
 
   let policy;
-  
+
   if (!pendingPolicy) {
     policy = await createAndSavePolicy(policyObject, db);
 
