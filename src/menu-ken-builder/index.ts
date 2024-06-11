@@ -10,14 +10,11 @@ import claimMenu from "./menus/claimMenu";
 import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 const redisClient = require("../middleware/redis");
-
-
 require("dotenv").config();
 
-
-const getSessionData = async (sessionid: string ,key: string) => {
+const getSessionData = async (sessionId: string ,key: string) => {
   try {
-    const data = await redisClient.hget(sessionid, key);
+    const data = await redisClient.hget(sessionId, key);
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error(`Error getting session data for  key ${key}:`, error);
@@ -34,10 +31,6 @@ const setSessionData = async (sessionId: string, key: string, value: string | bo
   }
 };
 
-
-const deleteSessionData = async (sessionId) => {
-  await redisClient.del(sessionId);
-};
 
 export default function (args: KenRequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
@@ -79,22 +72,24 @@ export default function (args: KenRequestBody, db: any) {
         input = "";
       }
 
-      const handleBack = (arr) => {
-        let index = arr.indexOf("0");
-        if (index > -1) {
-          allSteps.splice(index - 1, 2);
+      const handleBack = (arr: string | string[]) => {
+        let back_menu_option = arr.indexOf("0");
+        if (back_menu_option > -1) {
+          allSteps.splice(back_menu_option - 1, 2);
           input = allSteps.join("*");
           return handleBack(allSteps);
         }
         // Find the last index of '00' and return the array from that index
-        let index2 = arr.lastIndexOf("00");
-        if (index2 > -1) {
-          return allSteps = allSteps.slice(index2 + 1);
+        let main_menu_option = arr.lastIndexOf("00");
+
+        if (main_menu_option > -1) {
+          return allSteps = allSteps.slice(main_menu_option + 1);
         }
         return allSteps;
       };
 
       allSteps = handleBack(allSteps);
+
       await setSessionData(sessionid, 'storedInput', allSteps.join("*"));
 
       let firstStep = allSteps[0];
