@@ -119,9 +119,9 @@ export default function (args: KenRequestBody, db: any) {
 
       } else if (firstStep == "1" && currentStep == 1) {
         response = "CON " +
-          "\n1. Buy for self" +
-          "\n2. Buy for family" +
-          "\n3. Buy for others";
+          "\n1. Buy for Self" +
+          "\n2. Buy for Family" +
+          "\n3. Buy for Others";
 
       } else if (currentStep >= 2) {
         let insuranceType = allSteps[1];
