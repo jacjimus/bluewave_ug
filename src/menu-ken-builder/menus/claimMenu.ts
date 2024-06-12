@@ -20,8 +20,8 @@ const claimMenu = async (args, db) => {
                     },
                 });
      if (!policy) {
-                    response = "CON No policy found" + "\n0. Back \n00. Main Menu";
-                    return response;
+        response = "CON No policy found" + "\n0. Back \n00. Main Menu";
+        return response;
      }
 
     if (currentStep === 1) {
