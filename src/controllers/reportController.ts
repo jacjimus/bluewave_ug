@@ -759,13 +759,13 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
     }
 
     if (start_date && end_date) {
-      whereClause.policy_start_date = {
+      whereClause.policy_paid_date = {
         [Op.between]: [new Date(start_date), new Date(end_date)],
       };
     }
 
     if (start_date && !end_date) {
-      whereClause.policy_start_date = {
+      whereClause.policy_paid_date = {
         [Op.gte]: new Date(start_date),
       };
     }
@@ -1382,21 +1382,21 @@ const getAggregatedMonthlySalesReport = async (req: any, res: any) => {
     // `;
     const query = `
     SELECT
-      EXTRACT(MONTH FROM policy_start_date) AS month,
-      EXTRACT(DAY FROM policy_start_date) AS day,
+      EXTRACT(MONTH FROM policy_paid_date) AS month,
+      EXTRACT(DAY FROM policy_paid_date) AS day,
       policy_id,
       SUM(policy_paid_amount) AS total_amount,
       COUNT(DISTINCT user_id) AS total_users
     FROM
       public.policies
     WHERE
-    policy_start_date BETWEEN DATE_TRUNC('month', policy_start_date) AND (DATE_TRUNC('month', policy_start_date) + INTERVAL '1 month' - INTERVAL '1 day') 
-      AND EXTRACT(MONTH FROM policy_start_date) = :filterMonth 
+    policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+      AND EXTRACT(MONTH FROM policy_paid_date) = :filterMonth 
       AND policy_status = 'paid'
       AND partner_id = :partner_id
     GROUP BY
-      EXTRACT(MONTH FROM policy_start_date),
-      EXTRACT(DAY FROM policy_start_date),
+      EXTRACT(MONTH FROM policy_paid_date),
+      EXTRACT(DAY FROM policy_paid_date),
       policy_id
     ORDER BY
       month,
@@ -2169,7 +2169,7 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 
   const whereConditions = {
     partner_id: partner_id,
-    policy_start_date: { [Op.gte]: startDate, [Op.lt]: endDate },
+    policy_paid_date: { [Op.gte]: startDate, [Op.lt]: endDate },
     ...(category && { beneficiary: category }),
     ...(policy_type && { policy_type }),
     ...(policy_duration && { installment_type: policy_duration })
