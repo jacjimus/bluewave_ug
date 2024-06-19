@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney, createTransaction } from "../../services/payment";
 import { Op } from "sequelize";
+import moment from "moment";
 
 
 
@@ -8,7 +9,7 @@ const renewMenu = async (args: any, db: any) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
     const trimmedPhoneNumber = phoneNumber.replace("+", "").substring(3);
-   // const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
+    // const smsPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${phoneNumber}`;
 
     const currentUser = await db.users.findOne({
         where: {
@@ -81,49 +82,49 @@ const renewMenu = async (args: any, db: any) => {
 
         let choosenPolicy = paidPolicies[allSteps[1] - 1];
         const preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
-    // Create transaction
-      await createTransaction(existingUser.user_id, existingUser.partner_id, choosenPolicy.policy_id, preGeneratedTransactionId, choosenPolicy.premium);
+        // Create transaction
+        await createTransaction(existingUser.user_id, existingUser.partner_id, choosenPolicy.policy_id, preGeneratedTransactionId, choosenPolicy.premium);
 
 
-      const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
-              
-
-      setTimeout(async () => {        
+        const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
 
 
-          const airtelMoneyPromise = await airtelMoney(
-              phoneNumber.replace("+", "").substring(3),
-              choosenPolicy.premium,
-              existingUser.phone_number.toString(),
-              preGeneratedTransactionId
-          );
-
-          const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
+        setTimeout(async () => {
 
 
-          Promise.race([
-              airtelMoneyPromise,
-              new Promise((resolve, reject) => {
-                  setTimeout(() => {
-                      reject(new Error('Airtel Money operation timed out'));
-                  }, race_timeout);
-              })
-          ]).then((result) => {
-              // Airtel Money operation completed successfully
-              console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
-              //response = 'END Payment successful';
-              console.log("SELF RESPONSE WAS CALLED", result);
-              return response;
-          }).catch((error) => {
-              // Airtel Money operation failed
-              //response = 'END Payment failed';
-              console.log("SELF RESPONSE WAS CALLED", error);
-              return response;
-          });
+            const airtelMoneyPromise = await airtelMoney(
+                phoneNumber.replace("+", "").substring(3),
+                choosenPolicy.premium,
+                existingUser.phone_number.toString(),
+                preGeneratedTransactionId
+            );
 
-          console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
-      }, timeout);
-        console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+            const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
+
+
+            Promise.race([
+                airtelMoneyPromise,
+                new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        reject(new Error('Airtel Money operation timed out'));
+                    }, race_timeout);
+                })
+            ]).then((result) => {
+                // Airtel Money operation completed successfully
+                console.log("============== END TIME - SELF ================ ", phoneNumber, moment().toDate());
+                //response = 'END Payment successful';
+                console.log("SELF RESPONSE WAS CALLED", result);
+                return response;
+            }).catch((error) => {
+                // Airtel Money operation failed
+                //response = 'END Payment failed';
+                console.log("SELF RESPONSE WAS CALLED", error);
+                return response;
+            });
+
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
+        }, timeout);
+        console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
     } else {
         response = "END Invalid option"
     }

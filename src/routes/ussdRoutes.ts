@@ -102,17 +102,20 @@ export const findTransactionById = async (transactionId) => {
 
 const updateInstallmentLogic = async (policy, amount) => {
   try {
-    const date = new Date();
-    let installment_alert_date = new Date(date.getFullYear(), date.getMonth(), policy.policy_deduction_day - 3);
+
+    // YYYY-MM-DD
+     policy.policy_paid_date = moment().toDate(); 
+    // installments are monthly
+    let installment_alert_date =   moment(policy.installment_alert_date).add(1, 'months').toDate();
 
     // Handle negative dates by rolling back to the previous month's end
     if (installment_alert_date.getDate() < 1) {
-      installment_alert_date = new Date(date.getFullYear(), date.getMonth(), 0);
+      installment_alert_date = moment(policy.installment_alert_date).subtract(1, 'months').endOf('month').toDate();
     }
 
     if (policy.installment_type === 2) {
-      policy.policy_next_deduction_date = new Date(date.getFullYear(), date.getMonth() + 1, policy.policy_deduction_day);
-      policy.installment_order = parseInt(policy.policy_deduction_amount) !== parseInt(amount) ? 1 : parseInt(policy.installment_order) + 1;
+      policy.policy_next_deduction_date = installment_alert_date;
+      policy.installment_order = parseInt(policy.policy_deduction_amount) == parseInt(policy.policy_paid_amount) ? 1 : parseInt(policy.installment_order) + 1;
       policy.installment_alert_date = installment_alert_date;
 
       // Adjust policy amounts
@@ -126,7 +129,8 @@ const updateInstallmentLogic = async (policy, amount) => {
       }
     } else {
       policy.policy_paid_amount = parseInt(amount);
-      policy.policy_next_deduction_date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+      // next year
+      policy.policy_next_deduction_date =  moment(policy.policy_next_deduction_date).add(1, 'years').toDate();
       policy.policy_pending_premium = 0;
 
       if (policy.installment_order === 12) {
@@ -134,7 +138,7 @@ const updateInstallmentLogic = async (policy, amount) => {
       }
     }
 
-    console.log("Policy installment logic updated successfully");
+    console.log("Policy installment logic updated successfully", policy);
 
     await policy.save();
 
@@ -161,7 +165,7 @@ router.all("/callback", async (req, res) => {
   try {
     if (req.method === "POST" || req.method === "GET") {
       const { transaction } = req.body;
-      console.log("AIRTEL CALLBACK", transaction)
+      console.log("========== AIRTEL CALLBACK =============", transaction)
       const { id, status_code, message, airtel_money_id } = transaction;
 
       const transactionData = await findTransactionById(id);
@@ -205,7 +209,7 @@ router.all("/callback", async (req, res) => {
 
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
 
-        const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+        const thisDayThisMonth = policy.installment_type === 2 ? moment().add(1, 'months').toDate() : moment().add(1, 'years').toDate();
 
         let { sum_insured, last_expense_insured } = policy
 
@@ -285,7 +289,7 @@ router.all("/uat/callback", async (req, res) => {
         console.log("MEMBERS", members, policy.total_member_number);
 
 
-        const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+        const thisDayThisMonth = policy.installment_type === 2 ? moment().add(1, 'months').toDate() : moment().add(1, 'years').toDate();
 
 
         let sum_insured = policy.sum_insured;
@@ -334,7 +338,7 @@ const createPaymentRecord = async (policy, amount, user_id, policy_id, descripti
     policy_id,
     payment_status: "paid",
     payment_description: description,
-    payment_date: new Date(),
+    payment_date: moment().toDate(),
     payment_metadata: metadata,
     airtel_transaction_id: airtel_money_id,
     partner_id,
@@ -371,7 +375,7 @@ const handleFailedPaymentRecord = async (amount, user_id, policy_id, description
     policy_id,
     payment_status: "failed",
     payment_description: description,
-    payment_date: new Date(),
+    payment_date: moment().toDate(),
     payment_metadata: metadata,
     partner_id,
   });
@@ -437,7 +441,7 @@ router.all("/callback/kenya", async (req, res) => {
           policy_id,
           payment_status: "paid",
           payment_description: message,
-          payment_date: new Date(),
+          payment_date: moment().toDate(),
           payment_metadata: req.body,
           partner_id,
         });
@@ -460,7 +464,7 @@ router.all("/callback/kenya", async (req, res) => {
         const outPatientCover = formatAmount(policy.outpatient_cover);
         const maternityCover = formatAmount(policy.maternity_cover);
 
-        const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+        const thisDayThisMonth = policy.installment_type === 2 ? moment().add(1, 'months').toDate() : moment().add(1, 'years').toDate();
 
 
         let congratText = "";
@@ -502,7 +506,7 @@ router.all("/callback/kenya", async (req, res) => {
           policy_id,
           payment_status: "failed",
           payment_description: message,
-          payment_date: new Date(),
+          payment_date: moment().toDate(),
           payment_metadata: req.body,
           partner_id: partner_id,
         });
@@ -562,7 +566,7 @@ router.all("/uat/callback/kenya", async (req, res) => {
           policy_id,
           payment_status: "paid",
           payment_description: message,
-          payment_date: new Date(),
+          payment_date: moment().toDate(),
           payment_metadata: req.body,
           partner_id,
         });
@@ -585,7 +589,7 @@ router.all("/uat/callback/kenya", async (req, res) => {
         const outPatientCover = formatAmount(policy.outpatient_cover);
         const maternityCover = formatAmount(policy.maternity_cover);
 
-        const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+        const thisDayThisMonth = policy.installment_type === 2 ? moment().add(1, 'months').toDate() : moment().add(1, 'years').toDate();
 
 
         let congratText = "";
@@ -627,7 +631,7 @@ router.all("/uat/callback/kenya", async (req, res) => {
           policy_id,
           payment_status: "failed",
           payment_description: message,
-          payment_date: new Date(),
+          payment_date: moment().toDate(),
           payment_metadata: req.body,
           partner_id: partner_id,
         });

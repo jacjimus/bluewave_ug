@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
-import { all } from "axios";
+import moment from "moment";
 
 const othersMenu = async (args, db) => {
   let { msisdn, response, currentStep, userText, allSteps } = args;
@@ -406,7 +406,7 @@ const othersMenu = async (args, db) => {
     response = `CON Kshs ${ultimatePremium} ${period}.` +
       `\nTerms and Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay\n Age 0 - 65 Years ` +
-       "\n1. Confirm \n0. Back";
+      "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 8) {
 
@@ -414,7 +414,7 @@ const othersMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED KENYA  =======", new Date());
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED KENYA  =======", moment().toDate());
       //console.log("otherUser", otherUser);
 
       let selectedPolicyType = covers[parseInt(allSteps[2]) - 1];
@@ -427,7 +427,7 @@ const othersMenu = async (args, db) => {
       let installment_order = 1
 
 
-      // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+      // let installment_next_month_date = new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1)
 
       let policyType = selectedPolicyType.packages[parseInt(allSteps[3]) - 1];
       console.log("POLICY TYPE USERTEXT 1", policyType)
@@ -494,7 +494,7 @@ const othersMenu = async (args, db) => {
           where: {
             user_id: existingUser.user_id,
             policy_status: "pending",
-            premium : parseAmount(ultimatePremium),
+            premium: parseAmount(ultimatePremium),
             bought_for: otherUser.user_id,
             policy_type: policyType.name.toUpperCase(),
           },
@@ -502,7 +502,7 @@ const othersMenu = async (args, db) => {
         });
 
         let policy;
-  
+
         if (!pendingPolicy) {
           policy = await db.policies.create(policyObject);
         } else {
@@ -510,7 +510,7 @@ const othersMenu = async (args, db) => {
           await pendingPolicy.destroy();
           policy = await db.policies.create(policyObject);
         }
-      
+
         const airtelMoneyResponse = airtelMoneyKenya(
           existingUser,
           policy
@@ -522,7 +522,7 @@ const othersMenu = async (args, db) => {
         //response = 'END Payment failed'; // Set an error response
         console.log("OTHER - RESPONSE WAS CALLED EER", error);
       }
-      console.log("============== AFTER CATCH  TIME KENYA ================ ", new Date());
+      console.log("============== AFTER CATCH  TIME KENYA ================ ", moment().toDate());
 
 
     } else {

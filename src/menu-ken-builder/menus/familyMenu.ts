@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
-
+import moment from "moment";
 const redisClient = require("../../middleware/redis");
 
 
@@ -578,11 +578,11 @@ const familyMenu = async (args, db) => {
   }
 
 
-  let family_cover_data = await  getSessionData(msisdn, 'family_cover_data');
-  if(!family_cover_data){
+  let family_cover_data = await getSessionData(msisdn, 'family_cover_data');
+  if (!family_cover_data) {
 
-  family_cover_data = await getPackagesWithDetails();
-  await setSessionData(msisdn, 'family_cover_data', family_cover_data);
+    family_cover_data = await getPackagesWithDetails();
+    await setSessionData(msisdn, 'family_cover_data', family_cover_data);
   }
 
 
@@ -708,7 +708,7 @@ const familyMenu = async (args, db) => {
 
 
 async function processUserText1(allSteps, msisdn, family_cover_data, existingUser, db) {
-  console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", new Date());
+  console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", moment().toDate());
 
   console.log("ALL STEPS", allSteps)
 
@@ -743,7 +743,7 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
   }
 
 
-  console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, new Date());
+  console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, moment().toDate());
 
   const airtelMoneyResponse = airtelMoneyKenya(
     existingUser,
@@ -751,10 +751,10 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
 
   );
 
-  console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, new Date());
+  console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, moment().toDate());
 
   let response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
-  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, new Date());
+  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, moment().toDate());
 
   return response;
 }
@@ -809,10 +809,10 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
       }),
     ]);
 
-    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
+    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, moment().toDate());
     return 'END Payment successful';
   } catch (error) {
-    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
+    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, moment().toDate());
     return 'END Payment failed';
   }
 }

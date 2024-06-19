@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
 import { Op } from "sequelize";
 import { calculateProrationPercentage, formatAmount } from "../../services/utils";
+import moment from "moment";
 
 
 const accountMenu = async (args: any, db: any) => {
@@ -147,7 +148,7 @@ const accountMenu = async (args: any, db: any) => {
                         console.log("POLICY START DATE", policyStartDate)
 
 
-                        if (policyStartDate > new Date() && paidPolicies[0].installment_type == 2) {
+                        if (policyStartDate > moment().toDate() && paidPolicies[0].installment_type == 2) {
                             response = `END Your available inpatient limit is Kshs ${(paidPolicies[0].inpatient_cover / proratedPercentage).toLocaleString()
                                 } and Maternity  expense of Kshs ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()
                                 }`
@@ -187,13 +188,13 @@ const accountMenu = async (args: any, db: any) => {
 
                 let choosenPolicy = paidPolicies[allSteps[2] - 1];
 
-            
+
 
 
                 const airtelMoneyPromise = airtelMoneyKenya(
                     existingUser,
                     choosenPolicy
-                  
+
                 );
 
 
@@ -208,7 +209,7 @@ const accountMenu = async (args: any, db: any) => {
                         }, timeout);
                     }),
                 ]).then((result) => {
-                    console.log("============== END TIME - FAMIY ================ ", msisdn, new Date());
+                    console.log("============== END TIME - FAMIY ================ ", msisdn, moment().toDate());
                     response = 'END Payment successful';
                     console.log("RESPONSE WAS CALLED", result);
                     return response;
@@ -219,7 +220,7 @@ const accountMenu = async (args: any, db: any) => {
                         return response;
                     })
 
-                console.log("============== AFTER CATCH  TIME - FAMILY ================ ", msisdn, new Date());
+                console.log("============== AFTER CATCH  TIME - FAMILY ================ ", msisdn, moment().toDate());
 
 
                 break;
@@ -234,7 +235,7 @@ const accountMenu = async (args: any, db: any) => {
                     });
                     await db.policies.update({
                         policy_status: "cancelled",
-                        cancelled_at: new Date(),
+                        cancelled_at: moment().toDate(),
                         user_id: user.user_id
                     }, {
                         where: {

@@ -5,6 +5,7 @@ import { reconciliation, registerDependant, registerPrincipal, updatePremium } f
 import welcomeTemplate from "../services/emailTemplates/welcome";
 import { sendEmail, sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
 import jwt from 'jsonwebtoken'
+
 const dotenv = require("dotenv").config();
 import {
   getRandomInt,
@@ -156,8 +157,8 @@ const signup = async (req, res) => {
       title,
       partner_id,
       referral_code,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().toDate(),
+      updatedAt: moment().toDate(),
     };
 
     // Create a new user
@@ -787,8 +788,8 @@ const updateUser = async (req: any, res: any) => {
       phone_number,
       national_id,
       password: await bcrypt.hash(password, 10),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().toDate(),
+      updatedAt: moment().toDate(),
       dob,
       gender,
       marital_status,
@@ -1117,8 +1118,8 @@ const bulkUserRegistration = async (req: any, res: any) => {
         phone_number,
         national_id,
         password: await bcrypt.hash(phone_number.toString(), 10),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: moment().toDate(),
+        updatedAt: moment().toDate(),
         dob,
         gender,
         marital_status,
@@ -1810,8 +1811,8 @@ const agentSignup = async (req, res) => {
       nationality,
       referral_code: referral_code,
       partner_id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().toDate(),
+      updatedAt: moment().toDate(),
     };
 
     // Create a new user
@@ -2071,14 +2072,14 @@ async function agentSummaryAnalytics(req: any, res: any) {
 
     // 5. Total number of policies expired
     const totalPoliciesExpired = await db.policies.count({
-      where: { referral_code: agent_referral_code, policy_status: 'expired', policy_end_date: { [Op.lt]: new Date() } } // Filter for expired policies
+      where: { referral_code: agent_referral_code, policy_status: 'expired', policy_end_date: { [Op.lt]: moment().toDate() } } // Filter for expired policies
     });
 
     console.log('totalPoliciesExpired', totalPoliciesExpired);
 
     // 6. Total number of policies active
     const totalPoliciesActive = await db.policies.count({
-      where: { policy_status: 'paid', referral_code: agent_referral_code, policy_end_date: { [Op.gt]: new Date() } } // Filter for active policies (not expired)
+      where: { policy_status: 'paid', referral_code: agent_referral_code, policy_end_date: { [Op.gt]: moment().toDate() } } // Filter for active policies (not expired)
     });
 
     console.log('totalPoliciesActive', totalPoliciesActive);

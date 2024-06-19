@@ -63,20 +63,20 @@ const getPolicySummary = async (req: any, res: any) => {
     const this_week = req.query.this_week === "true";
     const this_month = req.query.this_month === "true";
 
-    const twentyFourHoursAgo = new Date();
+    const twentyFourHoursAgo = moment().toDate();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     let startDate, endDate;
 
     if (today) {
       startDate = new Date(twentyFourHoursAgo);
-      endDate = new Date();
+      endDate = moment().toDate();
     } else if (this_week) {
-      startDate = new Date();
+      startDate = moment().toDate();
       startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date();
+      endDate = moment().toDate();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
@@ -87,7 +87,7 @@ const getPolicySummary = async (req: any, res: any) => {
       endDate.setHours(23, 59, 59, 999);
     } else {
       startDate = new Date(0);
-      endDate = new Date();
+      endDate = moment().toDate();
     }
 
     endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
@@ -287,7 +287,7 @@ const getClaimSummary = async (req: any, res: any) => {
     const this_week = req.query.this_week === "true"; // Convert to a boolean value
     const this_month = req.query.this_month === "true"; // Convert to a boolean value
 
-    const twentyFourHoursAgo = new Date();
+    const twentyFourHoursAgo = moment().toDate();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     let claim: any, startDate: any, endDate: any;
@@ -295,16 +295,16 @@ const getClaimSummary = async (req: any, res: any) => {
     if (today) {
       // For today
       startDate = new Date(twentyFourHoursAgo);
-      endDate = new Date();
+      endDate = moment().toDate();
     } else if (this_week) {
       // For this week
-      startDate = new Date();
+      startDate = moment().toDate();
       startDate.setDate(
         twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay()
       );
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date();
+      endDate = moment().toDate();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
@@ -325,7 +325,7 @@ const getClaimSummary = async (req: any, res: any) => {
     } else {
       // Handle the case when none of the filtering options are provided
       startDate = new Date(0); // A distant past date (or you can set it to your default start date)
-      endDate = new Date(); // Current date
+      endDate = moment().toDate(); // Current date
     }
 
     if (partner_id == 1) {
@@ -428,7 +428,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     const this_week = req.query.this_week === "true"; // Convert to a boolean value
     const this_month = req.query.this_month === "true"; // Convert to a boolean value
 
-    const twentyFourHoursAgo = new Date();
+    const twentyFourHoursAgo = moment().toDate();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     let startDate: any, endDate: any;
@@ -436,16 +436,16 @@ const getAllReportSummary = async (req: any, res: any) => {
     if (today) {
       // For today
       startDate = new Date(twentyFourHoursAgo);
-      endDate = new Date();
+      endDate = moment().toDate();
     } else if (this_week) {
       // For this week
-      startDate = new Date();
+      startDate = moment().toDate();
       startDate.setDate(
         twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay()
       );
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date();
+      endDate = moment().toDate();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
@@ -466,7 +466,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     } else {
       // Handle the case when none of the filtering options are provided
       startDate = new Date(0); // A distant past date (or you can set it to your default start date)
-      endDate = new Date(); // Current date
+      endDate = moment().toDate(); // Current date
     }
 
 
@@ -571,7 +571,7 @@ const getSalesReportByPeriod = async (req: any, periodType: string) => {
   const { partner_id } = req.query;
 
   try {
-    const today = new Date();
+    const today = moment().toDate();
     const startOfPeriod = new Date(today);
     const report = {};
 
@@ -1811,19 +1811,20 @@ async function policyReconciliation(req: any, res: any) {
     let { renewal, airtel_money_id, phone_number, transaction_date, premium } = req.query;
 
     console.log("REQ QUERY", req.query)
-  
+
     //4/2/2024 = 4th Feb 2024
 
     transaction_date = moment(transaction_date, "YYYY-MM-DD h:mm A");
 
-    let policy_status = renewal ==  "true" ? "paid" : "pending";
+    let policy_status = renewal == "true" ? "paid" : "pending";
 
     let policy = await db.policies.findOne({
       where: {
         partner_id: 2,
         policy_status: policy_status,
         phone_number: `+256${phone_number}`,
-        policy_deduction_amount: parseInt(premium),      },
+        policy_deduction_amount: parseInt(premium),
+      },
       include: [{
         model: db.users,
         where: {
@@ -1840,7 +1841,7 @@ async function policyReconciliation(req: any, res: any) {
       },
       limit: 1,
     });
-    
+
 
 
     if (!policy) {
@@ -1854,7 +1855,7 @@ async function policyReconciliation(req: any, res: any) {
       limit: 1,
     });
 
-    if(!transactionId){
+    if (!transactionId) {
 
       return res.status(400).json({ status: "FAILED", message: "Transaction ID not found" });
     }

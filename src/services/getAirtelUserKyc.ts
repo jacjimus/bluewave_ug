@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import authTokenByPartner from "./authorization";
 import { formatPhoneNumber, generateNextMembershipId } from "./utils";
 import { logger } from "../middleware/loggingMiddleware";
+import moment from "moment";
 
 dotenv.config();
 
@@ -36,8 +37,8 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
           `${userData.first_name}${userData.last_name}`,
           10
         ),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: moment().toDate(),
+        updatedAt: moment().toDate(),
         pin: generatePIN(),
         role: "user",
         status: "active",
@@ -193,7 +194,7 @@ async function getAirtelUserKenya(msisdn: string): Promise<UserData> {
     const response = await axios.get(GET_USER_URL, { headers });
     console.log('RESULT', response.data);
 
-    if(response.data.status.success === false || response.data.status.code !== '200') {
+    if (response.data.status.success === false || response.data.status.code !== '200') {
       throw new Error('User not found');
     }
 

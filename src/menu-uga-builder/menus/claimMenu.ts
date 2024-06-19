@@ -1,11 +1,12 @@
 
 import { generateClaimId } from "../../services/utils";
 import SMSMessenger from "../../services/sendSMS";
+import moment from "moment";
 
 
 const claimMenu = async (args, db) => {
     let { response, currentStep, userText, allSteps } = args;
-let policy: any;
+    let policy: any;
     if (currentStep === 1) {
         response = "CON Make Claim " +
             "\n1. Inpatient Claim" +
@@ -25,7 +26,7 @@ let policy: any;
                 });
 
 
-              
+
                 if (!user) {
                     response = "CON Sorry, you must buy a policy first to claim" + "\n0. Back \n00. Main Menu";
                     return response;
@@ -46,11 +47,11 @@ let policy: any;
 
                 const claimId = generateClaimId();
 
-                 await db.claims.create({
+                await db.claims.create({
                     claim_number: claimId,
                     policy_id: policy.policy_id,
                     user_id: user.user_id,
-                    claim_date: new Date(),
+                    claim_date: moment().toDate(),
                     claim_status: "pending",
                     partner_id: user.partner_id,
                     claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id
@@ -61,7 +62,7 @@ let policy: any;
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
                 break;
             case "2":
-                if(!policy){
+                if (!policy) {
                     response = "CON Sorry you have no active policy" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
@@ -91,7 +92,7 @@ let policy: any;
 
 
         // CREATE CLAIM
-        
+
         let user = await db.users.findOne({
             where: {
                 [db.Sequelize.Op.or]: [
@@ -128,25 +129,25 @@ let policy: any;
             response = "CON You already have a claim" + "\n0. Back \n00. Main Menu";
             return response;
         }
-    
-        
+
+
         if (policy.length == 0) {
             response = "CON Sorry you cant make a claim" + "\n0. Back \n00. Main Menu";
             return response;
         }
-        
+
         const sms = `Send Death certificate or Burial permit and Next of Kin's ID via Whatsapp No. 0759608107`
-        await SMSMessenger.sendSMS(2,`+256${user.phone_number}`, sms);
+        await SMSMessenger.sendSMS(2, `+256${user.phone_number}`, sms);
 
         response = `END Your claim documents have been received. Your claim is being processed.`;
         const claimId = generateClaimId();
 
 
-         await db.claims.create({
+        await db.claims.create({
             claim_number: claimId,
             policy_id: policy[policy.length - 1].policy_id,
             user_id: user.user_id,
-            claim_date: new Date(),
+            claim_date: moment().toDate(),
             claim_status: "pending",
             partner_id: user.partner_id,
             claim_description: `Death Claim ID: ${claimId} for AAR Memberr Numbe: ${user.arr_membership_number

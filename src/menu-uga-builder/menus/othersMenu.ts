@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import {  parseAmount } from "../../services/utils";
+import { parseAmount } from "../../services/utils";
 import { createUserIfNotExists, getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, createTransaction, processPayment } from "../../services/payment";
+import moment from "moment";
 
 
 const othersMenu = async (args, db) => {
@@ -425,7 +426,7 @@ const othersMenu = async (args, db) => {
       // existingUser = await getAirtelUser(otherUserPhone, 2);
       // console.log("USER CREATED SELF", existingUser);
 
-  
+
       // If user is not found, create a other user with phone number
       const userData = {
         first_name: "FN" + otherUserPhone,
@@ -434,7 +435,7 @@ const othersMenu = async (args, db) => {
       };
       existingUser = await createUserIfNotExists(userData, otherUserPhone, 2);
       console.log("User not found. Dummy user created:", existingUser);
-  
+
 
     }
 
@@ -448,7 +449,7 @@ const othersMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED - OTHER =======", new Date());
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED - OTHER =======", moment().toDate());
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment.'
@@ -490,56 +491,56 @@ const othersMenu = async (args, db) => {
         user_id: existingOther.user_id,
         phone_number: phoneNumber,
         total_member_number: selectedPolicyType.code_name,
-        bought_for:  existingOther.user_id,
+        bought_for: existingOther.user_id,
         first_name: existingOther?.first_name,
         last_name: existingOther?.last_name,
         policy_number: policyNumber
-        
+
       }
 
-     // await processPayment(policyObject, phone, existingOther)
-     const  preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
-     let policy = await db.policies.create(policyObject);
-     await createTransaction(existingOther.user_id, existingOther.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
+      // await processPayment(policyObject, phone, existingOther)
+      const preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
+      let policy = await db.policies.create(policyObject);
+      await createTransaction(existingOther.user_id, existingOther.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
-     const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
+      const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
 
       setTimeout(async () => {
 
 
         const airtelMoneyPromise = await airtelMoney(
-            phoneNumber.replace("+", "").substring(3),
-            policy.premium,
-            existingOther.phone_number.toString(),
-            preGeneratedTransactionId
+          phoneNumber.replace("+", "").substring(3),
+          policy.premium,
+          existingOther.phone_number.toString(),
+          preGeneratedTransactionId
         );
 
         const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
         Promise.race([
-            airtelMoneyPromise,
-            new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    reject(new Error('Airtel Money operation timed out'));
-                }, race_timeout);
-            })
+          airtelMoneyPromise,
+          new Promise((resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('Airtel Money operation timed out'));
+            }, race_timeout);
+          })
         ]).then((result) => {
-            // Airtel Money operation completed successfully
-            console.log("============== END TIME - FAMILY ================ ", phoneNumber, new Date());
-            //response = 'END Payment successful';
-            console.log("SELF RESPONSE WAS CALLED", result);
-            return response;
+          // Airtel Money operation completed successfully
+          console.log("============== END TIME - FAMILY ================ ", phoneNumber, moment().toDate());
+          //response = 'END Payment successful';
+          console.log("SELF RESPONSE WAS CALLED", result);
+          return response;
         }).catch((error) => {
-            // Airtel Money operation failed
-            //response = 'END Payment failed';
-            console.log("SELF RESPONSE WAS CALLED", error);
-            return response;
+          // Airtel Money operation failed
+          //response = 'END Payment failed';
+          console.log("SELF RESPONSE WAS CALLED", error);
+          return response;
         });
 
-        console.log("============== AFTER CATCH TIME - FAMILY ================ ", phoneNumber, new Date());
-    }, timeout);
+        console.log("============== AFTER CATCH TIME - FAMILY ================ ", phoneNumber, moment().toDate());
+      }, timeout);
 
 
-      console.log("============== AFTER CATCH  TIME - OTHER ================ ", new Date());
+      console.log("============== AFTER CATCH  TIME - OTHER ================ ", moment().toDate());
 
     }
   }

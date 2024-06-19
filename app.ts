@@ -132,7 +132,7 @@ async function initializeExpressServer() {
     });
   }
  
-  //playground()
+  playground()
 
 
 

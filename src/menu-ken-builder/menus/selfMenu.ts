@@ -4,6 +4,7 @@ import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptionsKenya, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser, getAirtelUserKenya } from "../../services//getAirtelUserKyc";
 import { Op } from "sequelize";
+import moment from "moment";
 
 import { logger } from "../../middleware/loggingMiddleware";
 
@@ -154,7 +155,7 @@ const selfMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for Airtel Money PIN prompt to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", msisdn, new Date());
+      console.log("=============== END SCREEN USSD RESPONCE SELF KENYA =======", msisdn, moment().toDate());
 
       await handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db)
 
@@ -211,7 +212,7 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
     policy = await db.policies.create(policyObject);
   }
 
-  console.log("============== START TIME - SELF KENYA   ================ ", msisdn, new Date());
+  console.log("============== START TIME - SELF KENYA   ================ ", msisdn, moment().toDate());
 
   const airtelMoneyResponse = airtelMoneyKenya(
     existingUser,
@@ -219,7 +220,7 @@ async function handleAirtelMoneyPayment(allSteps, msisdn, coverTypes, db) {
 
   );
 
-  console.log("=========== PUSH TO AIRTEL MONEY ===========", await airtelMoneyResponse, new Date());
+  console.log("=========== PUSH TO AIRTEL MONEY ===========", await airtelMoneyResponse, moment().toDate());
 
   await handleAirtelMoneyPromise(airtelMoneyResponse, trimmedMsisdn);
 }
@@ -251,7 +252,7 @@ function createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn) 
   let installment_type = parseInt(allSteps[3]);
   let ultimatePremium = calculatePaymentOptionsKenya(policy_type, installment_type);
 
-  let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+  let installment_next_month_date = new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1)
 
   let policyObject = {
     policy_id: uuidv4(),
@@ -264,13 +265,13 @@ function createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn) 
     premium: ultimatePremium.premium,
     yearly_premium: selectedPolicyType.yearPemium,
     last_expense_insured: selectedPolicyType.lastExpenseInsured,
-    policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
-    policy_start_date: new Date(),
-    installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
+    policy_end_date: new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1)),
+    policy_start_date: moment().toDate(),
+    installment_date: installment_type == 1 ? new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1)) : installment_next_month_date,
     membership_id: Math.floor(100000 + Math.random() * 900000),
     beneficiary: "SELF",
     policy_status: "pending",
-    policy_deduction_day: new Date().getDate() - 1,
+    policy_deduction_day: moment().toDate().getDate() - 1,
     partner_id: 1,
     country_code: "KE",
     currency_code: "KES",
@@ -302,7 +303,7 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
         }, timeout);
       })
     ]);
-    console.log("============== END TIME - SELF KENYA  ================ ", msisdn, new Date());
+    console.log("============== END TIME - SELF KENYA  ================ ", msisdn, moment().toDate());
     console.log("SELF RESPONSE WAS CALLED KENYA ",);
     return 'END Payment successful';
   } catch (error) {
@@ -310,7 +311,7 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
     console.log("SELF - RESPONSE WAS CALLED KENYA ", error);
     return 'END Payment failed';
   } finally {
-    console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", msisdn, new Date());
+    console.log("============== AFTER CATCH TIME - SELF KENYA  ================ ", msisdn, moment().toDate());
   }
 }
 
