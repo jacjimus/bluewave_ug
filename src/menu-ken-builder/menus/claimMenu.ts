@@ -5,7 +5,25 @@ import moment from "moment";
 
 const claimMenu = async (args, db) => {
     let { response, currentStep, userText, allSteps } = args;
-    let user: any = null;
+    let user : any = null;
+    user = await db.users.findOne({
+                    where: {
+                        phone_number: args.msisdn.replace('+', "")?.substring(3),
+                    },
+                    limit: 1,
+                });
+
+    const policy = await db.policies.findOne({
+                    where: {
+                        user_id: user.user_id,
+                        policy_status: "paid",
+                    },
+                });
+     if (!policy) {
+        response = "CON No policy found" + "\n0. Back \n00. Main Menu";
+        return response;
+     }
+
     if (currentStep === 1) {
         response = "CON Make Claim " +
             "\n1. Inpatient Claim" +
@@ -21,28 +39,13 @@ const claimMenu = async (args, db) => {
             case "1":
 
                 let claim_type = "Inpatient Claim";
-                user = await db.users.findOne({
-                    where: {
-                        phone_number: args.msisdn.replace('+', "")?.substring(3),
-                    },
-                    limit: 1,
-                });
+
                 console.log("USER ID", user.user_id);
 
                 response = "END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and get service"
-                const policy = await db.policies.findAll({
-                    where: {
-                        user_id: user.user_id,
-                        policy_status: "paid",
-                    },
-                });
+
 
                 console.log("POLICY", policy);
-
-                if (!policy) {
-                    response = "CON No policy found" + "\n0. Back \n00. Main Menu";
-                    return response;
-                }
 
 
                 await db.claims.create({
@@ -78,8 +81,8 @@ const claimMenu = async (args, db) => {
     }
 
 
-    return response
+        return response
 
-}
+    }
 
 export default claimMenu;

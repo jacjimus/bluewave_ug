@@ -32,6 +32,11 @@ const accountMenu = async (args: any, db: any) => {
         limit: 6
     });
 
+    if (paidPolicies.length == 0) {
+            response = "CON No active policy found" + "\n0. Back \n00. Main Menu";
+            return response;
+      }
+
     //console.log("PAID POLICIES", paidPolicies.length)
 
     let policyMessages = await paidPolicies.map((policy: any, index: number) => {
