@@ -1954,14 +1954,14 @@ async function getPolicySummarySnapshot(req, res) {
     }
 
 
-    const cacheKey = `policy_summary_snapshot_${partner_id}_${start_date}_${end_date}_${category}_${policy_type}_${policy_duration}`;
-    console.log("cacheKey", cacheKey)
-    // Check Redis cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      console.log("cachedData", cachedData)
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    // const cacheKey = `policy_summary_snapshot_${partner_id}_${start_date}_${end_date}_${category}_${policy_type}_${policy_duration}`;
+    // console.log("cacheKey", cacheKey)
+    // // Check Redis cache
+    // const cachedData = await redisClient.get(cacheKey);
+    // if (cachedData) {
+    //   console.log("cachedData", cachedData)
+    //   return res.status(200).json(JSON.parse(cachedData));
+    // }
 
     const startDate = moment(start_date).startOf('quarter');
     const endDate = moment(end_date).endOf('quarter');
@@ -2048,12 +2048,12 @@ async function getPolicySummarySnapshot(req, res) {
     annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
 
     // Store result in Redis cache with an expiration time (e.g., 1 hour)
-    await redisClient.set(cacheKey, JSON.stringify({
-      status: "OK",
-      message: "Policy Summary snapshot fetched successfully",
-      annualReport,
-      quarterData,
-    }), 'EX', 3600);
+    // await redisClient.set(cacheKey, JSON.stringify({
+    //   status: "OK",
+    //   message: "Policy Summary snapshot fetched successfully",
+    //   annualReport,
+    //   quarterData,
+    // }), 'EX', 3600);
 
     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", annualReport, quarterData });
   }
