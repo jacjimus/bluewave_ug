@@ -1,6 +1,7 @@
 import { RequestBody } from "./typings/global";
 import languages from "./lang";
 import configs from "./configs";
+import { generateNextMembershipId } from "../services/utils";
 
 require("dotenv").config();
 
@@ -604,6 +605,7 @@ export default function (args: RequestBody, db: any) {
               phone_number: phone,
               voter_id: allSteps[1],
               partner_id: 3,
+              unique_profile_id: await generateNextMembershipId(),
             });
             response =
               "END Thank you for registering on VodaInsure. " +

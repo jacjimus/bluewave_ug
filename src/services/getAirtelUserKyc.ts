@@ -43,6 +43,8 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
         role: "user",
         status: "active",
         partner_id: partner_id,
+        unique_profile_id: await generateNextMembershipId(),
+        
       });
 
       // WELCOME SMS
@@ -141,6 +143,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
     partner_id: 2,
     role: "user",
     nationality: "UGANDA",
+    unique_profile_id: await generateNextMembershipId(),
   });
 
   const message = `Dear ${full_name}, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;

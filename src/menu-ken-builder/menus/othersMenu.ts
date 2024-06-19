@@ -395,7 +395,8 @@ const othersMenu = async (args, db) => {
         total_member_number: selectedPolicyType.code_name,
         partner_id: 1,
         role: "user",
-        nationality: "KENYA"
+        nationality: "KENYA",
+        unique_profile_id: await generateNextMembershipId(),
       });
       const message = `Dear Customer, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
       await SMSMessenger.sendSMS(3, fullPhone, message);

@@ -248,6 +248,7 @@ async function createNewUser(trimmedMsisdn, membershipId, unique_profile_id, db)
     partner_id: 1,
     role: "user",
     nationality: "KENYA",
+   
   });
 }
 

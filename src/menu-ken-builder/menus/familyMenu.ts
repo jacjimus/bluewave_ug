@@ -666,7 +666,8 @@ const familyMenu = async (args, db) => {
           name: `${user.first_name} ${user.last_name}`,
           total_member_number: selectedPolicyType.code_name,
           partner_id: 1,
-          nationality: "KENYA"
+          nationality: "KENYA",
+          unique_profile_id: await generateNextMembershipId(),
         });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membership_id} Dial *334*7*3# to access your account.`;
