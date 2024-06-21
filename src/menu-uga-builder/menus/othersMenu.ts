@@ -414,6 +414,8 @@ const othersMenu = async (args, db) => {
 
     otherUserPhone = allSteps[4].substring(1)
 
+    // block user from buying for themselves
+
     existingOther = await db.users.findOne({
       where: {
         phone_number: otherUserPhone,

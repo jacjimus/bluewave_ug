@@ -463,10 +463,12 @@ async function checkIfPolicyExists(airtel_money_id) {
 
 //transaction_id transaction_date	phone_number	premium	full_name
 
-
+//105535443172	20-06-2024 08:47 PM	740456795	5,000	EUGINE AMANYA (740456795)
 
 
 const array_of_phone_numbers = [
+
+  { transaction_id: '105535443172', transaction_date: '20-06-2024 08:47 PM', phone_number: '740456795', premium: 5000, full_name: 'EUGINE AMANYA (740456795)' },
 
 
 
@@ -521,7 +523,7 @@ async function policyReconciliation(array_of_phone_numbers) {
         where: {
           phone_number: phoneNumber,
           premium: item.premium,
-          policy_status: 'paid',
+          policy_status: 'pending',
         },
         include: [{
           model: db.users,

@@ -5,10 +5,7 @@ import dotenv from 'dotenv';
 import { findTransactionById, updateUserPolicyStatus } from '../routes/ussdRoutes';
 import SMSMessenger from './sendSMS';
 import authTokenByPartner from './authorization';
-import { Op } from "sequelize";
 import { logger } from '../middleware/loggingMiddleware';
-import { log } from 'handlebars';
-import { Console } from 'winston/lib/winston/transports';
 import moment from 'moment';
 dotenv.config();
 
@@ -579,8 +576,9 @@ async function reconcilationCallback(transaction) {
 
   console.log("UPDATE POLICY", updatePolicy);
 
+  
 
-  let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+  let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), airtel_money_id);
 
 
   // send congratulatory message

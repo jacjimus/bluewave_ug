@@ -3,6 +3,7 @@ import ussdUgaMenuBuilder from "../menu-uga-builder";
 import ussdKenMenuBuilder from "../menu-ken-builder"
 import ussdVodacomMenuBuilder from "../menu-vodacom-builder";
 import moment from "moment";
+import EventEmitter from  "events";
 
 import SMSMessenger from "../services/sendSMS";
 import { db } from "../models/db";
@@ -10,11 +11,8 @@ import { registerPrincipal, updatePremium, fetchMemberStatusData, createDependan
 import { calculateProrationPercentage, formatAmount, formatPhoneNumber } from "../services/utils";
 import { logger } from "../middleware/loggingMiddleware";
 
-
-
 const Transaction = db.transactions;
 const Payment = db.payments;
-
 
 const router = express.Router();
 
@@ -100,58 +98,50 @@ export const findTransactionById = async (transactionId) => {
 };
 
 
-const updateInstallmentLogic = async (policy, amount) => {
+export const updateUserPolicyStatus = async (policy, amount,airtel_money_id) => {
   try {
+      // policy status
+      policy.policy_status = "paid";
+      policy.airtel_money_id = airtel_money_id;
 
-    // YYYY-MM-DD
-     policy.policy_paid_date = moment().toDate(); 
-    // installments are monthly
-    let installment_alert_date =   moment(policy.installment_alert_date).add(1, 'months').toDate();
-
-    // Handle negative dates by rolling back to the previous month's end
-    if (installment_alert_date.getDate() < 1) {
-      installment_alert_date = moment(policy.installment_alert_date).subtract(1, 'months').endOf('month').toDate();
-    }
-
-    if (policy.installment_type === 2) {
-      policy.policy_next_deduction_date = installment_alert_date;
-      policy.installment_order = parseInt(policy.policy_deduction_amount) == parseInt(policy.policy_paid_amount) ? 1 : parseInt(policy.installment_order) + 1;
-      policy.installment_alert_date = installment_alert_date;
-
-      // Adjust policy amounts
-      policy.policy_paid_amount = parseInt(policy.installment_order) * parseInt(policy.premium);
-      policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
-
-      console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
-
-      if (parseInt(policy.policy_pending_premium) + parseInt(policy.policy_paid_amount) === parseInt(policy.yearly_premium)) {
+      // YYYY-MM-DD
+       policy.policy_paid_date = moment().toDate(); 
+      // installments are monthly
+      let installment_alert_date =   moment(policy.installment_alert_date).add(1, 'months').toDate();
+  
+      // Handle negative dates by rolling back to the previous month's end
+      if (installment_alert_date.getDate() < 1) {
+        installment_alert_date = moment(policy.installment_alert_date).subtract(1, 'months').endOf('month').toDate();
+      }
+  
+      if (policy.installment_type === 2) {
+        policy.policy_next_deduction_date = installment_alert_date;
+        policy.installment_order = parseInt(policy.policy_deduction_amount) == parseInt(policy.policy_paid_amount) ? 1 : parseInt(policy.installment_order) + 1;
+        policy.installment_alert_date = installment_alert_date;
+  
+        // Adjust policy amounts
+        policy.policy_paid_amount = parseInt(policy.installment_order) * parseInt(policy.premium);
         policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
+  
+        console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
+  
+        if (parseInt(policy.policy_pending_premium) + parseInt(policy.policy_paid_amount) === parseInt(policy.yearly_premium)) {
+          policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
+        }
+      } else {
+        policy.policy_paid_amount = parseInt(amount);
+        // next year
+        policy.policy_next_deduction_date =  moment(policy.policy_next_deduction_date).add(1, 'years').toDate();
+        policy.policy_pending_premium = 0;
+  
+        if (policy.installment_order === 12) {
+          policy.is_expired = true;
+        }
       }
-    } else {
-      policy.policy_paid_amount = parseInt(amount);
-      // next year
-      policy.policy_next_deduction_date =  moment(policy.policy_next_deduction_date).add(1, 'years').toDate();
-      policy.policy_pending_premium = 0;
-
-      if (policy.installment_order === 12) {
-        policy.is_expired = true;
-      }
-    }
-
-    console.log("Policy installment logic updated successfully", policy);
-
-    await policy.save();
-
-  } catch (error) {
-    logger.error("Error updating installment logic:", error);
-    throw error;
-  }
-};
-
-
-export const updateUserPolicyStatus = async (policy, amount, payment, airtel_money_id) => {
-  try {
-    await updateInstallmentLogic(policy, amount);
+  
+      console.log("Policy installment logic updated successfully", policy);
+  
+      await policy.save();
 
     return policy;
   } catch (error) {
@@ -160,12 +150,31 @@ export const updateUserPolicyStatus = async (policy, amount, payment, airtel_mon
   }
 };
 
-// POST and GET request handler
+
+const eventEmitter = new EventEmitter();
+
+eventEmitter.on('updatePolicy', async (policy,amount, airtel_money_id) => {
+  console.log("=== UPDATE POLICY ===", policy, amount, airtel_money_id);
+  await updateUserPolicyStatus(policy, amount, airtel_money_id)
+});
+
+eventEmitter.on('createPayment', async (policy, amount, user_id, policy_id, message, body, partner_id, airtel_money_id) => {
+  console.log("=== CREATE PAYMENT ===", policy, amount, user_id, policy_id, message, body, partner_id, airtel_money_id);
+  await createPaymentRecord(policy, amount, user_id, policy_id, message, body, partner_id, airtel_money_id);
+});
+
+eventEmitter.on('sendSMS', async (policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth) => {
+  console.log("=== SEND SMS ===", policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
+  let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
+  await sendSMSNotification(formatPhoneNumber(policy.phone_number, 2), congratText);
+});
+
 router.all("/callback", async (req, res) => {
   try {
     if (req.method === "POST" || req.method === "GET") {
       const { transaction } = req.body;
-      console.log("========== AIRTEL CALLBACK =============", transaction)
+      console.log("========== AIRTEL CALLBACK =============", transaction);
+
       const { id, status_code, message, airtel_money_id } = transaction;
 
       const transactionData = await findTransactionById(id);
@@ -177,7 +186,7 @@ router.all("/callback", async (req, res) => {
 
       const { policy_id, user_id, amount, partner_id } = transactionData;
 
-      if (status_code === "TS") {
+      if (status_code === "TS") { // TS means transaction successful
         await transactionData.update({ status: "paid" });
 
         let policy = await db.policies.findOne({
@@ -190,7 +199,6 @@ router.all("/callback", async (req, res) => {
               {
                 model: db.users,
                 as: "user",
-
               }
             ]
           }
@@ -202,41 +210,37 @@ router.all("/callback", async (req, res) => {
         }
 
         let user = policy.user;
-
-        const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id, airtel_money_id);
-
-        await updateUserPolicyStatus(policy, amount, payment, airtel_money_id);
-
         const members = policy.total_member_number?.match(/\d+(\.\d+)?/g);
-
         const thisDayThisMonth = policy.installment_type === 2 ? moment().add(1, 'months').toDate() : moment().add(1, 'years').toDate();
+        let { sum_insured, last_expense_insured } = policy;
 
-        let { sum_insured, last_expense_insured } = policy
-
-        let congratText = generateCongratulatoryText(policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
-        await sendSMSNotification(formatPhoneNumber(policy.phone_number, 2), congratText);
-
+        // Emit events
+        eventEmitter.emit('updatePolicy', policy,amount, airtel_money_id);
+        eventEmitter.emit('createPayment', policy, amount, user_id, policy_id, message, req.body, partner_id, airtel_money_id);
+        eventEmitter.emit('sendSMS', policy, user, members, sum_insured, last_expense_insured, thisDayThisMonth);
 
         return res.status(200).json({
           code: 200,
-          status: "OK", message: "Payment record created successfully"
+          status: "OK",
+          message: "Payment record created successfully"
         });
       } else {
         await handleFailedPaymentRecord(amount, user_id, policy_id, message, req.body, partner_id);
         console.log("Payment record for failed transaction created");
         return res.status(200).json({
           code: 200,
-          status: "OK", message: "POST/GET request handled successfully"
+          status: "OK",
+          message: "POST/GET request handled successfully"
         });
       }
     } else {
       return res.status(405).send("Method Not Allowed");
     }
   } catch (error) {
-
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
+
 
 
 router.all("/uat/callback", async (req, res) => {
@@ -281,7 +285,7 @@ router.all("/uat/callback", async (req, res) => {
         const payment = await createPaymentRecord(policy, amount, user_id, policy_id, message, req.body, partner_id, airtel_money_id);// 1
         console.log("Payment record created successfully");
 
-        let updatedPolicy = await updateUserPolicyStatus(policy, amount, payment, airtel_money_id); //2
+        let updatedPolicy = await updateUserPolicyStatus(policy, amount,airtel_money_id); //2
         console.log("=== PAYMENT ===", payment);
         console.log("=== UPDATED POLICY ===", updatedPolicy);
 
@@ -448,8 +452,10 @@ router.all("/callback/kenya", async (req, res) => {
 
         console.log("Payment record created successfully");
 
+        await policy.update({ airtel_money_id, policy_status: 'paid' });
 
-        let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+
+        let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount),airtel_money_id);
 
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
@@ -574,7 +580,7 @@ router.all("/uat/callback/kenya", async (req, res) => {
         console.log("Payment record created successfully");
 
 
-        let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
+        let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount),airtel_money_id);
 
         console.log("=== PAYMENT ===", payment)
         console.log("=== TRANSACTION === ", transactionData)
