@@ -19,7 +19,6 @@ const othersMenu = async (args, db) => {
       phone_number: phone,
       partner_id: 1,
     },
-    limit: 1,
   });
   let otherUser: any;
 
@@ -313,13 +312,13 @@ const othersMenu = async (args, db) => {
   ];
 
   if (currentStep == 2) {
+    console.log('Other Menu 2')
     let coversList = covers.map((cover, index) => {
       return `\n${index + 1}. ${cover.name}`
     }).join("")
 
     response = "CON " + coversList + "\n0. Back";
-  }
-  else if (currentStep == 3) {
+  } else if (currentStep == 3) {
     let selectedCover = covers[parseInt(userText) - 1];
     if (!selectedCover) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -391,7 +390,7 @@ const othersMenu = async (args, db) => {
       existingUser = await db.users.create({
         user_id: uuidv4(),
         phone_number: phone,
-        membership_id: generateNextMembershipId(),
+        membership_id: membershipId,
         total_member_number: selectedPolicyType.code_name,
         partner_id: 1,
         role: "user",

@@ -130,6 +130,7 @@ export default function (args: KenRequestBody, db: any) {
         } else if (insuranceType == "2") {
           response = await familyMenu(params, db);
         } else if (insuranceType == "3") {
+          console.log("Others menu 1");
           response = await othersMenu(params, db);
         }
       } else if (firstStep == "2") {

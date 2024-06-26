@@ -655,7 +655,7 @@ const familyMenu = async (args, db) => {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
       let user = await getAirtelUser(msisdn, 2);
 
-      let membership_id = generateNextMembershipId(),
+      let membership_id = await generateNextMembershipId(),
 
         existingUser = await db.users.create({
           user_id: uuidv4(),
@@ -667,7 +667,7 @@ const familyMenu = async (args, db) => {
           total_member_number: selectedPolicyType.code_name,
           partner_id: 1,
           nationality: "KENYA",
-          unique_profile_id: await generateNextMembershipId(),
+          unique_profile_id: membership_id
         });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membership_id} Dial *334*7*3# to access your account.`;

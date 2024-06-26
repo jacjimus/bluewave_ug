@@ -137,7 +137,7 @@ const signup = async (req, res) => {
 
     // Create user data object
     const userData = {
-      membership_id: generateNextMembershipId(),
+      membership_id: await generateNextMembershipId(),
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,
@@ -1792,7 +1792,7 @@ const agentSignup = async (req, res) => {
 
     // Create user data object
     const userData = {
-      membership_id: generateNextMembershipId(),
+      membership_id: await generateNextMembershipId(),
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,

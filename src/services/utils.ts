@@ -601,4 +601,5 @@ export async function generateNextMembershipId(): Promise<string> {
 
   // Format the new membership ID as a 4-digit string
   return nextId.toString().padStart(4, '0');
+
 }

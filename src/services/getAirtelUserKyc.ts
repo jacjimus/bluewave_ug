@@ -27,7 +27,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
     if (!userData) {
       const user = await User.create({
         user_id: uuidv4(),
-        membership_id: generateNextMembershipId(),
+        membership_id: await generateNextMembershipId(),
         name: `${userData.first_name} ${userData.last_name}`,
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -134,7 +134,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   const existingUser = await db.users.create({
     user_id: uuidv4(),
     phone_number: phone_number,
-    membership_id: generateNextMembershipId(),
+    membership_id: await generateNextMembershipId(),
     pin: Math.floor(1000 + Math.random() * 9000),
     first_name: first_name,
     last_name: last_name,
