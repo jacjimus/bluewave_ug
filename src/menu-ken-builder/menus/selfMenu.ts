@@ -297,7 +297,7 @@ function createPolicyObject(selectedPolicyType, allSteps, existingUser, msisdn) 
 
 
 async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
-  const timeout = 3000;
+  const timeout = 1000;
 
   try {
     await Promise.race([
