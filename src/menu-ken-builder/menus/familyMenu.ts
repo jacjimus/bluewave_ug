@@ -609,7 +609,7 @@ const familyMenu = async (args, db) => {
   } else if (currentStep == 6) {
 
     const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
-    console.log(selectedCover);
+    console.log("SELECTED COVER ", selectedCover);
     const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
     let usermsisdn = msisdn?.replace('+', "")?.substring(3);
 
@@ -700,7 +700,7 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
   console.log("SELECTED POLICY TYPE", selectedPolicyType)
   let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
   console.log("SELECTED PACKAGE", selectedPackage)
-  let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[6]) - 1].premium);
+  let ultimatePremium = parseAmount(selectedPackage.premium);
   console.log("ULTIMATE PREMIUM", ultimatePremium)
 
   let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, msisdn, ultimatePremium);
