@@ -338,9 +338,11 @@ const othersMenu = async (args, db) => {
     response = "CON Enter atleast Name of Other or 1 child\n"
   }
   else if (currentStep == 5) {
-    response = "CON Enter Phone number for Other e.g 0712345678\n"
+    response = "CON Enter Phone number for Other e.g 07XXXXXXXX\n"
   }
   else if (currentStep == 6) {
+    console.log("OTHERS MENU 6")
+    console.log("ALL STEPS", allSteps)
     let otherName = allSteps[3];
     let otherPhone = allSteps[4];
     let coverType = allSteps[3];
@@ -366,18 +368,20 @@ const othersMenu = async (args, db) => {
       `\n2 Kshs ${selectedCoverPackage.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
   }
   else if (currentStep == 7) {
+    console.log("OTHERS MENU 7")  
+    console.log("ALL STEPS", allSteps)
     const selectedCover = covers[parseInt(allSteps[2]) - 1];
     let paymentOption = parseInt(userText);
     let period = paymentOption == 1 ? "monthly" : "yearly";
     let coverType = allSteps[3];
     console.log("COVER TYPE", coverType);
-    //console.log("SELECTED COVER", selectedCover);
+    console.log("SELECTED COVER", selectedCover);
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
-    //console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
+    console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-    //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
+    console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
 
     let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;

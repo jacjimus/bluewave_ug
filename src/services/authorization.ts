@@ -33,7 +33,7 @@ async function authTokenByPartner(partnerId: number) {
       Accept: '*/*',
     };
     
-    console.log("======== partnerConfig =========== ",partnerConfig[partnerId],inputBody);
+    console.log("======== partnerConfig =========== ",inputBody);
     try {
       const response = await axios.post(url, inputBody, { headers });
   

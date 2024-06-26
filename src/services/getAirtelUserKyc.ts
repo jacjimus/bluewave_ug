@@ -48,7 +48,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
       });
 
       // WELCOME SMS
-      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
+      const message = `Dear Customer, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
       await SMSMessenger.sendSMS(2, user.phone_number, message);
       console.log("USER FOR AIRTEL API", user);
     }
@@ -146,7 +146,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
     unique_profile_id: await generateNextMembershipId(),
   });
 
-  const message = `Dear ${full_name}, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
+  const message = `Dear Customer, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
   await SMSMessenger.sendSMS(2, fullPhone, message);
   return existingUser;
 }
