@@ -20,7 +20,7 @@ const claimMenu = async (args, db) => {
                     },
                 });
      if (!policy) {
-        response = "CON No policy found" + "\n0. Back \n00. Main Menu";
+        response = "CON You do not have any active policy" + "\n0. Back \n00. Main Menu";
         return response;
      }
 
