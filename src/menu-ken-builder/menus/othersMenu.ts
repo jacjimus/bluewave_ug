@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { airtelMoney, airtelMoneyKenya } from "../../services/payment";
-import { all } from "axios";
+import moment from "moment";
 
 const othersMenu = async (args, db) => {
   let { msisdn, response, currentStep, userText, allSteps } = args;
@@ -19,7 +19,6 @@ const othersMenu = async (args, db) => {
       phone_number: phone,
       partner_id: 1,
     },
-    limit: 1,
   });
   let otherUser: any;
 
@@ -313,13 +312,13 @@ const othersMenu = async (args, db) => {
   ];
 
   if (currentStep == 2) {
+    console.log('Other Menu 2')
     let coversList = covers.map((cover, index) => {
       return `\n${index + 1}. ${cover.name}`
     }).join("")
 
     response = "CON " + coversList + "\n0. Back";
-  }
-  else if (currentStep == 3) {
+  } else if (currentStep == 3) {
     let selectedCover = covers[parseInt(userText) - 1];
     if (!selectedCover) {
       response = "CON Invalid option" + "\n0. Back \n00. Main Menu";
@@ -339,9 +338,11 @@ const othersMenu = async (args, db) => {
     response = "CON Enter atleast Name of Other or 1 child\n"
   }
   else if (currentStep == 5) {
-    response = "CON Enter Phone number for Other e.g 0712345678\n"
+    response = "CON Enter Phone number for Other e.g 07XXXXXXXX\n"
   }
   else if (currentStep == 6) {
+    console.log("OTHERS MENU 6")
+    console.log("ALL STEPS", allSteps)
     let otherName = allSteps[3];
     let otherPhone = allSteps[4];
     let coverType = allSteps[3];
@@ -367,18 +368,20 @@ const othersMenu = async (args, db) => {
       `\n2 Kshs ${selectedCoverPackage.yearly_premium} yearly` + "\n0. Back \n00. Main Menu";
   }
   else if (currentStep == 7) {
+    console.log("OTHERS MENU 7")  
+    console.log("ALL STEPS", allSteps)
     const selectedCover = covers[parseInt(allSteps[2]) - 1];
     let paymentOption = parseInt(userText);
     let period = paymentOption == 1 ? "monthly" : "yearly";
     let coverType = allSteps[3];
     console.log("COVER TYPE", coverType);
-    //console.log("SELECTED COVER", selectedCover);
+    console.log("SELECTED COVER", selectedCover);
     let selectedCoverPackage = selectedCover.packages[coverType - 1];
-    //console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
+    console.log("SELECTED COVER PACKAGE", selectedCoverPackage);
     let ultimatePremium = paymentOption == 1 ? selectedCoverPackage.premium : selectedCoverPackage.yearly_premium;
 
     let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
-    //console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
+    console.log("POLICY TYPE USERTEXT 1", selectedPolicyType)
 
 
     let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
@@ -391,11 +394,12 @@ const othersMenu = async (args, db) => {
       existingUser = await db.users.create({
         user_id: uuidv4(),
         phone_number: phone,
-        membership_id: generateNextMembershipId(),
+        membership_id: membershipId,
         total_member_number: selectedPolicyType.code_name,
         partner_id: 1,
         role: "user",
-        nationality: "KENYA"
+        nationality: "KENYA",
+        unique_profile_id: await generateNextMembershipId(),
       });
       const message = `Dear Customer, welcome to AfyaShua Care. Membership ID: ${membershipId} Dial *334*7*3# to access your account.`;
       await SMSMessenger.sendSMS(3, fullPhone, message);
@@ -406,7 +410,7 @@ const othersMenu = async (args, db) => {
     response = `CON Kshs ${ultimatePremium} ${period}.` +
       `\nTerms and Conditions - www.airtel.com` +
       `\nConfirm to Agree and Pay\n Age 0 - 65 Years ` +
-       "\n1. Confirm \n0. Back";
+      "\n1. Confirm \n0. Back";
   }
   else if (currentStep == 8) {
 
@@ -414,7 +418,7 @@ const othersMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED KENYA  =======", new Date());
+      console.log("=============== END SCREEN USSD RESPONCE WAS CALLED KENYA  =======", moment().toDate());
       //console.log("otherUser", otherUser);
 
       let selectedPolicyType = covers[parseInt(allSteps[2]) - 1];
@@ -427,7 +431,7 @@ const othersMenu = async (args, db) => {
       let installment_order = 1
 
 
-      // let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+      // let installment_next_month_date = new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1)
 
       let policyType = selectedPolicyType.packages[parseInt(allSteps[3]) - 1];
       console.log("POLICY TYPE USERTEXT 1", policyType)
@@ -494,7 +498,7 @@ const othersMenu = async (args, db) => {
           where: {
             user_id: existingUser.user_id,
             policy_status: "pending",
-            premium : parseAmount(ultimatePremium),
+            premium: parseAmount(ultimatePremium),
             bought_for: otherUser.user_id,
             policy_type: policyType.name.toUpperCase(),
           },
@@ -502,7 +506,7 @@ const othersMenu = async (args, db) => {
         });
 
         let policy;
-  
+
         if (!pendingPolicy) {
           policy = await db.policies.create(policyObject);
         } else {
@@ -510,7 +514,7 @@ const othersMenu = async (args, db) => {
           await pendingPolicy.destroy();
           policy = await db.policies.create(policyObject);
         }
-      
+
         const airtelMoneyResponse = airtelMoneyKenya(
           existingUser,
           policy
@@ -522,7 +526,7 @@ const othersMenu = async (args, db) => {
         //response = 'END Payment failed'; // Set an error response
         console.log("OTHER - RESPONSE WAS CALLED EER", error);
       }
-      console.log("============== AFTER CATCH  TIME KENYA ================ ", new Date());
+      console.log("============== AFTER CATCH  TIME KENYA ================ ", moment().toDate());
 
 
     } else {

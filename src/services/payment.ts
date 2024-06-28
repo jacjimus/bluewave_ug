@@ -5,10 +5,8 @@ import dotenv from 'dotenv';
 import { findTransactionById, updateUserPolicyStatus } from '../routes/ussdRoutes';
 import SMSMessenger from './sendSMS';
 import authTokenByPartner from './authorization';
-import { Op } from "sequelize";
 import { logger } from '../middleware/loggingMiddleware';
-import { log } from 'handlebars';
-import { Console } from 'winston/lib/winston/transports';
+import moment from 'moment';
 dotenv.config();
 
 const Transaction = db.transactions;
@@ -113,7 +111,7 @@ async function airtelMoneyKenya(existingUser, policy) {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference:existingUser.phone_number,
+      reference: existingUser.phone_number,
       subscriber: {
         country: "KE",
         currency: "KES",
@@ -127,18 +125,18 @@ async function airtelMoneyKenya(existingUser, policy) {
       },
     };
 
-      const headers = {
-        'Accept': '*/* ',
-        'Content-Type': 'application/json',
-        'X-Country': 'KE',
-        'X-Currency': 'KES',
-        'Authorization': `Bearer ${token}`
-      };
+    const headers = {
+      'Accept': '*/* ',
+      'Content-Type': 'application/json',
+      'X-Country': 'KE',
+      'X-Currency': 'KES',
+      'Authorization': `Bearer ${token}`
+    };
 
     console.log("PAYMENT DATA", paymentData, process.env.UAT_KEN_AIRTEL_PAYMENT_URL, "HEADERS", headers)
 
     const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData,
-        { headers });
+      { headers });
     console.log("res status", paymentResponse.data.status);
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
@@ -504,98 +502,99 @@ async function reconcilationCallback(transaction) {
     }
   }
 
-    await transactionData.update({
-      status: "paid",
-    });
+  await transactionData.update({
+    status: "paid",
+  });
 
-    const user = await db.users.findOne({ where: { user_id } });
+  const user = await db.users.findOne({ where: { user_id } });
 
-    if (!user) {
-
-      return {
-        code: 404,
-        status: "NOT FOUND",
-        message: "User not found " + user_id
-
-      }
-    }
-    let policy = await db.policies.findOne({
-      where: {
-        policy_id,
-      }
-    });
-
-
-    if (!policy) {
-
-        await db.payments.create({
-          payment_amount: amount,
-          payment_type: "airtel money payment",
-          user_id,
-          policy_id,
-          payment_status: "failed",
-          payment_description: message,
-          payment_date: new Date(),
-          payment_metadata: transaction,
-          partner_id: partner_id,
-        });
-      return {
-        code: 404,
-        status: "NOT FOUND",
-        message: "Policy not found " + policy_id
-      }
-
-    }
-
-    const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
-    const policyType = policy.policy_type.toUpperCase();
-    const period = policy.installment_type == 1 ? "yearly" : "monthly";
-    policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`;
-
-    const payment = await db.payments.create({
-      payment_amount: amount,
-      payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
-      user_id,
-      policy_id,
-      payment_status: "paid",
-      payment_description: message,
-      payment_date: payment_date,
-      payment_metadata: transaction,
-      airtel_transaction_id: airtel_money_id,
-      partner_id,
-    });
-
-
-  let updatePolicy =  await db.policies.update({
-      policy_status: "paid",
-      airtel_money_id: airtel_money_id,
-      policy_paid_date :payment_date,
-      bluewave_transaction_id: payment.payment_id,
-      airtel_transaction_ids: policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id],
-      premium: amount,
-      is_expired: false,
-    }, { where: { policy_id: policy_id } });
-
-    console.log("UPDATE POLICY", updatePolicy);
-
-
-    let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
-
-
-    // send congratulatory message
-    await sendCongratulatoryMessage(updatedPolicyInstallement, user);
-
-    //const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-
-    //await processPolicy(user, policy, memberStatus);
+  if (!user) {
 
     return {
-      code: 200,
-      status: "OK",
-      message: "Payment record created successfully",
-      policy: updatedPolicyInstallement,
-      payment: payment
+      code: 404,
+      status: "NOT FOUND",
+      message: "User not found " + user_id
+
     }
+  }
+  let policy = await db.policies.findOne({
+    where: {
+      policy_id,
+    }
+  });
+
+
+  if (!policy) {
+
+    await db.payments.create({
+      payment_amount: amount,
+      payment_type: "airtel money payment",
+      user_id,
+      policy_id,
+      payment_status: "failed",
+      payment_description: message,
+      payment_date: payment_date === undefined ? moment().toDate() : payment_date,
+      payment_metadata: transaction,
+      partner_id: partner_id,
+    });
+    return {
+      code: 404,
+      status: "NOT FOUND",
+      message: "Policy not found " + policy_id
+    }
+
+  }
+
+  const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
+  const policyType = policy.policy_type.toUpperCase();
+  const period = policy.installment_type == 1 ? "yearly" : "monthly";
+  policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`;
+
+  const payment = await db.payments.create({
+    payment_amount: amount,
+    payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
+    user_id,
+    policy_id,
+    payment_status: "paid",
+    payment_description: message,
+    payment_date: payment_date,
+    payment_metadata: transaction,
+    airtel_transaction_id: airtel_money_id,
+    partner_id,
+  });
+
+
+  let updatePolicy = await db.policies.update({
+    policy_status: "paid",
+    airtel_money_id: airtel_money_id,
+    policy_paid_date: payment_date,
+    bluewave_transaction_id: payment.payment_id,
+    airtel_transaction_ids: policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id],
+    premium: amount,
+    is_expired: false,
+  }, { where: { policy_id: policy_id } });
+
+  console.log("UPDATE POLICY", updatePolicy);
+
+  
+
+  let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), airtel_money_id);
+
+
+  // send congratulatory message
+  await sendCongratulatoryMessage(updatedPolicyInstallement, user);
+
+  //const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+
+  //await processPolicy(user, policy, memberStatus);
+
+  return {
+    code: 200,
+    status: "OK",
+    message: "Payment record created successfully",
+    policy: updatedPolicyInstallement,
+    payment: payment
+  }
 
 }
 
@@ -616,7 +615,7 @@ async function sendCongratulatoryMessage(policy, user) {
     console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
 
-    const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+    const thisDayThisMonth = policy.installment_type === 2 ? new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1) : new Date(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1);
 
     let congratText = "";
 
@@ -665,7 +664,7 @@ async function processPayment(policyObject, phoneNumber, existingOther) {
         })
       ]).then((result) => {
         // Airtel Money operation completed successfully
-        console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+        console.log("============== END TIME - SELF ================ ", phoneNumber, moment().toDate());
         //response = 'END Payment successful';
         console.log("SELF RESPONSE WAS CALLED", result);
         return response;
@@ -676,7 +675,7 @@ async function processPayment(policyObject, phoneNumber, existingOther) {
         return response;
       });
 
-      console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+      console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
     }, 500);
     // Airtel Money operation completed successfully
     console.log("PAYMENT - RESPONSE WAS CALLED", response);

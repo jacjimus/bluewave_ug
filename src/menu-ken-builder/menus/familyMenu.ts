@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, generateNextMembershipId, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
-
+import moment from "moment";
 const redisClient = require("../../middleware/redis");
 
 
@@ -559,16 +559,17 @@ const familyMenu = async (args, db) => {
   }
 
 
-  let family_cover_data = await  getSessionData(msisdn, 'family_cover_data');
-  if(!family_cover_data){
+  let family_cover_data = await getSessionData(msisdn, 'family_cover_data');
+  if (!family_cover_data) {
 
-  family_cover_data = await getPackagesWithDetails();
-  await setSessionData(msisdn, 'family_cover_data', family_cover_data);
+    family_cover_data = await getPackagesWithDetails();
+    await setSessionData(msisdn, 'family_cover_data', family_cover_data);
   }
 
 
   if (currentStep == 2) {
-    console.log("CURRENT STEP", currentStep)
+    console.log("CURRENT STEP 2", currentStep)
+    console.log("ALL STEPS", allSteps)
 
     response = "CON " +
       "\n1. Self+Spouse or Child" +
@@ -581,6 +582,8 @@ const familyMenu = async (args, db) => {
 
 
   } else if (currentStep == 3) {
+    console.log("CURRENT STEP 3", currentStep)
+    console.log("ALL STEPS", allSteps)
     const selectedCover = family_cover_data[parseInt(userText) - 1];
 
     console.log("SELECTED COVER", selectedCover)
@@ -600,17 +603,19 @@ const familyMenu = async (args, db) => {
 
 
   } else if (currentStep == 4) {
+    console.log ("ALL STEPS 4", allSteps)
 
     response = "CON Enter atleast Full Name of spouse or 1 child \nAge 0 - 65 Years\n"
 
   } else if (currentStep == 5) {
+    console.log("ALL STEPS 5", allSteps)
 
     response = "CON Enter Phone of spouse (or Main member, if dependent is child) \n"
   } else if (currentStep == 6) {
-
-    const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
-    console.log(selectedCover);
-    const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
+   console.log("ALL STEPS 6", allSteps)
+    const selectedCover = family_cover_data[parseInt(allSteps[2]) - 1];
+    console.log("SELECTED COVER ", selectedCover);
+    const selectedPackage = selectedCover.packages[parseInt(allSteps[3]) - 1];
     let usermsisdn = msisdn?.replace('+', "")?.substring(3);
 
     console.log("SELECTED PACKAGE", selectedPackage)
@@ -622,10 +627,11 @@ const familyMenu = async (args, db) => {
     response = coverText;
 
   } else if (currentStep == 7) {
+    console.log("ALL STEPS 7", allSteps)
 
-    const selectedCover = family_cover_data[parseInt(allSteps[1]) - 1];
-    const selectedPackage = selectedCover.packages[parseInt(allSteps[2]) - 1];
-    let premium = selectedPackage?.premium;
+    const selectedCover = family_cover_data[parseInt(allSteps[2]) - 1];
+    const selectedPackage = selectedCover.packages[parseInt(allSteps[3]) - 1];
+    let premium = parseInt(userText) == 1 ? selectedPackage?.premium : selectedPackage?.year_premium;
     let period = parseInt(userText) == 1 ? 'Monthy' : 'Annually';
     let fullPhone = !msisdn?.startsWith('+') ? `+${msisdn}` : msisdn;
 
@@ -655,7 +661,7 @@ const familyMenu = async (args, db) => {
       console.log("USER DOES NOT EXIST FAMILY KENYA ");
       let user = await getAirtelUser(msisdn, 2);
 
-      let membership_id = generateNextMembershipId(),
+      let membership_id = await generateNextMembershipId(),
 
         existingUser = await db.users.create({
           user_id: uuidv4(),
@@ -666,7 +672,8 @@ const familyMenu = async (args, db) => {
           name: `${user.first_name} ${user.last_name}`,
           total_member_number: selectedPolicyType.code_name,
           partner_id: 1,
-          nationality: "KENYA"
+          nationality: "KENYA",
+          unique_profile_id: membership_id
         });
       console.log("USER DOES NOT EXIST", user);
       const message = `Dear ${existingUser.first_name}, welcome to AfyaShua Care. Membership ID: ${membership_id} Dial *334*7*3# to access your account.`;
@@ -691,15 +698,17 @@ const familyMenu = async (args, db) => {
 
 
 async function processUserText1(allSteps, msisdn, family_cover_data, existingUser, db) {
-  console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", new Date());
+  console.log("=============== END SCREEN USSD RESPONSE - FAMILY KENYA =======", moment().toDate());
 
+  console.log('family_cover_data', family_cover_data)
   console.log("ALL STEPS", allSteps)
 
-  let selectedPolicyType = family_cover_data[parseInt(allSteps[1]) - 1];
+
+  let selectedPolicyType = family_cover_data[parseInt(allSteps[2]) - 1];
   console.log("SELECTED POLICY TYPE", selectedPolicyType)
-  let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
+  let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[3]) - 1];
   console.log("SELECTED PACKAGE", selectedPackage)
-  let ultimatePremium = parseAmount(selectedPackage.payment_options[parseInt(allSteps[6]) - 1].premium);
+  let ultimatePremium =  parseInt(allSteps[6]) == 1 ? parseAmount(selectedPackage.premium) : parseAmount(selectedPackage.year_premium);
   console.log("ULTIMATE PREMIUM", ultimatePremium)
 
   let policyObject = createPolicyObject(selectedPackage, allSteps, family_cover_data, existingUser, msisdn, ultimatePremium);
@@ -726,7 +735,7 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
   }
 
 
-  console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, new Date());
+  console.log("============== START TIME - FAMILY KENYA  ================ ", msisdn, moment().toDate());
 
   const airtelMoneyResponse = airtelMoneyKenya(
     existingUser,
@@ -734,10 +743,10 @@ async function processUserText1(allSteps, msisdn, family_cover_data, existingUse
 
   );
 
-  console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, new Date());
+  console.log("=========== PUSH TO AIRTEL MONEY ===========", airtelMoneyResponse, moment().toDate());
 
   let response = await handleAirtelMoneyPromise(airtelMoneyResponse, msisdn);
-  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, new Date());
+  console.log("============== AFTER CATCH  TIME - FAMILY  KENYA ================ ", msisdn, moment().toDate());
 
   return response;
 }
@@ -792,10 +801,10 @@ async function handleAirtelMoneyPromise(airtelMoneyPromise, msisdn) {
       }),
     ]);
 
-    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
+    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, moment().toDate());
     return 'END Payment successful';
   } catch (error) {
-    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, new Date());
+    console.log("============== END TIME - FAMIY KENYA  ================ ", msisdn, moment().toDate());
     return 'END Payment failed';
   }
 }

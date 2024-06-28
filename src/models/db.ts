@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes, Op, QueryTypes } = require('sequelize')
 require('dotenv').config()
+const moment = require('moment')
 
 const DB_URL = process.env.ENV === 'PROD' ? process.env.DB_URL : process.env.DB_URL_DEV
 const sequelize = new Sequelize(process.env.DB_URL, {
@@ -12,8 +13,8 @@ const sequelize = new Sequelize(process.env.DB_URL, {
 })
 
 sequelize.authenticate().then(() => {
-  console.log(`Database connected to Bluewave! time: ${new Date()}`)
-  
+  console.log(`Database connected to Bluewave! time: ${moment().toDate()}`)
+
 }).catch((err) => {
   console.log(err)
 })

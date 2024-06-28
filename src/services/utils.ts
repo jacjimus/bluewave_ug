@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { db } from '../models/db';
+import moment from 'moment';
 
 export function isValidKenyanPhoneNumber(phoneNumber: string) {
   const kenyanPhoneNumberRegex = /^(\+?254|0)[17]\d{8}$/;
@@ -80,7 +81,7 @@ export function generatePolicyNumber(quotationNumber: any) {
 // const policyNumber = generatePolicyNumber(quotationNumber);
 // console.log(policyNumber); // Output: "P20230522-00007"
 export function generateClaimId() {
-  const timestamp = new Date().getTime(); // Get current timestamp in milliseconds
+  const timestamp = moment().toDate().getTime(); // Get current timestamp in milliseconds
   const randomNum = Math.floor(Math.random() * 10000); // Generate a random number between 0 and 9999 (adjust the range as needed)
 
   // Combine timestamp and random number to create the claim ID
@@ -600,4 +601,5 @@ export async function generateNextMembershipId(): Promise<string> {
 
   // Format the new membership ID as a 4-digit string
   return nextId.toString().padStart(4, '0');
+
 }

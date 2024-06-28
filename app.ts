@@ -126,13 +126,13 @@ async function initializeExpressServer() {
   }else{
   
   
-    cron.schedule("*/10 * * * *", () => {
+    cron.schedule("*/30 * * * *", () => {
       console.log("Running a task every minute");
       updateAirtelUserKyc()
     });
   }
  
-  //playground()
+  playground()
 
 
 

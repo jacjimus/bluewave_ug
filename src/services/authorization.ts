@@ -15,24 +15,25 @@ async function authTokenByPartner(partnerId: number) {
         clientSecret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
       },
     };
-  
+    
     if (!partnerConfig[partnerId]) {
       throw new Error('Invalid partner ID');
     }
-  
+    
     const { url, clientId, clientSecret } = partnerConfig[partnerId];
-  
+    
     const inputBody = {
       client_id: clientId,
       client_secret: clientSecret,
       grant_type: 'client_credentials',
     };
-  
+    
     const headers = {
       'Content-Type': 'application/json',
       Accept: '*/*',
     };
-  
+    
+    console.log("======== partnerConfig =========== ",inputBody);
     try {
       const response = await axios.post(url, inputBody, { headers });
   

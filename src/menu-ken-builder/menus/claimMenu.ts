@@ -1,7 +1,7 @@
 
 import { generateClaimId } from "../../services/utils";
 import SMSMessenger from "../../services/sendSMS";
-
+import moment from "moment";
 
 const claimMenu = async (args, db) => {
     let { response, currentStep, userText, allSteps } = args;
@@ -48,11 +48,11 @@ const claimMenu = async (args, db) => {
                 console.log("POLICY", policy);
 
 
-             await db.claims.create({
+                await db.claims.create({
                     claim_number: claimId,
                     policy_id: policy.policy_id,
                     user_id: user.user_id,
-                    claim_date: new Date(),
+                    claim_date: moment().toDate(),
                     claim_status: "pending",
                     partner_id: user.partner_id,
                     claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id
@@ -63,11 +63,11 @@ const claimMenu = async (args, db) => {
                 break;
             case "2":
                 response = `END Proceed to the preferred Hospital reception and mention your Airtel Phone number to verify your detail and your clim sorted`
-                 await db.claims.create({
+                await db.claims.create({
                     claim_number: claimId,
                     policy_id: policy.policy_id,
                     user_id: user.user_id,
-                    claim_date: new Date(),
+                    claim_date: moment().toDate(),
                     claim_status: "pending",
                     partner_id: user.partner_id,
                     claim_description: `${claim_type} ID: ${claimId} for Member ID: ${user.membership_id
@@ -77,8 +77,8 @@ const claimMenu = async (args, db) => {
                 });
 
                 break;
-            }
         }
+    }
 
 
         return response

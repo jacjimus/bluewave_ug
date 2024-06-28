@@ -4,7 +4,7 @@ import SMSMessenger from "../../services/sendSMS";
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc";
 import { Op } from 'sequelize';
-
+import moment from "moment";
 
 const familyMenu = async (args, db) => {
   let { phoneNumber, text, response,
@@ -842,7 +842,7 @@ const familyMenu = async (args, db) => {
     if (userText == "1") {
 
       response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
-      console.log("=============== END SCREEN USSD RESPONCE - FAMILY =======", new Date());
+      console.log("=============== END SCREEN USSD RESPONCE - FAMILY =======", moment().toDate());
 
       let selectedPolicyType = covers[parseInt(allSteps[1]) - 1];
       let selectedPackage = selectedPolicyType.packages[parseInt(allSteps[2]) - 1];
@@ -867,7 +867,7 @@ const familyMenu = async (args, db) => {
         installment_order: 1,
         policy_type: selectedPackage.code_name,
         policy_deduction_amount: ultimatePremium,
-        policy_next_deduction_date: parseInt(allSteps[5]) == 1 ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        policy_next_deduction_date: parseInt(allSteps[5]) == 1 ? new Date(moment().toDate().setMonth(moment().toDate().getMonth() + 1)) : new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1)),
         policy_pending_premium: parseAmount(selectedPackage.year_premium) - ultimatePremium,
         sum_insured: selectedPackage.sumInsured,
         premium: ultimatePremium,
@@ -891,51 +891,51 @@ const familyMenu = async (args, db) => {
       let policy = await db.policies.create(policyObject);
 
 
-      console.log("============== START TIME - FAMILY ================ ", phoneNumber, new Date());
+      console.log("============== START TIME - FAMILY ================ ", phoneNumber, moment().toDate());
 
-      
+
       let preGeneratedTransactionId = uuidv4();
 
       await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
       const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
-   
+
       setTimeout(async () => {
 
 
         const airtelMoneyPromise = await airtelMoney(
-            phoneNumber.replace("+", "").substring(3),
-            policy.premium,
-            existingUser.phone_number.toString(),
-            preGeneratedTransactionId
+          phoneNumber.replace("+", "").substring(3),
+          policy.premium,
+          existingUser.phone_number.toString(),
+          preGeneratedTransactionId
         );
 
         const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
 
         Promise.race([
-            airtelMoneyPromise,
-            new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    reject(new Error('Airtel Money operation timed out'));
-                }, race_timeout);
-            })
+          airtelMoneyPromise,
+          new Promise((resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('Airtel Money operation timed out'));
+            }, race_timeout);
+          })
         ]).then((result) => {
-            // Airtel Money operation completed successfully
-            console.log("============== END TIME - FAMILY ================ ", phoneNumber, new Date());
-            //response = 'END Payment successful';
-            console.log("SELF RESPONSE WAS CALLED", result);
-            return response;
+          // Airtel Money operation completed successfully
+          console.log("============== END TIME - FAMILY ================ ", phoneNumber, moment().toDate());
+          //response = 'END Payment successful';
+          console.log("SELF RESPONSE WAS CALLED", result);
+          return response;
         }).catch((error) => {
-            // Airtel Money operation failed
-            //response = 'END Payment failed';
-            console.log("SELF RESPONSE WAS CALLED", error);
-            return response;
+          // Airtel Money operation failed
+          //response = 'END Payment failed';
+          console.log("SELF RESPONSE WAS CALLED", error);
+          return response;
         });
 
-        console.log("============== AFTER CATCH TIME - FAMILY ================ ", phoneNumber, new Date());
-    }, timeout);
+        console.log("============== AFTER CATCH TIME - FAMILY ================ ", phoneNumber, moment().toDate());
+      }, timeout);
 
-      console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, new Date());
+      console.log("============== AFTER CATCH  TIME - FAMILY ================ ", phoneNumber, moment().toDate());
 
     } else {
       response = "END Thank you for using Ddwaliro Care"
