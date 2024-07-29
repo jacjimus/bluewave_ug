@@ -3,5 +3,5 @@ export interface RequestBody{
     serviceCode: string,
     text: string,
     sessionId: string,
-    
+    password: string
 }

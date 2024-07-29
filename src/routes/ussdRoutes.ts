@@ -34,27 +34,22 @@ const sendResponse = (res, mode, data) => {
 
 const handleUSSDRequestUat = async (req: any, res: any, menuBuilder: any) => {
   try {
-  
+
     let menu_res = await menuBuilder(req.body, db);
-
-   // console.log("KE MENU RESPONSE", menu_res);
-
-    const MODE = menu_res.includes("CON") ? "CON" : "FB";
-
-
-    sendResponse(res, MODE, menu_res);
+    const mode = menu_res.includes("CON") ? "CON" : "FB";
+    sendResponse(res, mode, menu_res);
 
   } catch (error) {
-    console.log("KE MENU ERROR", error);
+    console.log("USSD MENU ERROR", error);
     res.status(500).send(error);
   }
+
 };
 
 const handleUSSDRequest= async (req: any, res: any, menuBuilder: any) => {
   try {
 
     let menu_res = await menuBuilder(req.body, db);
-
     res.send(menu_res);
 
   } catch (error) {
@@ -63,22 +58,36 @@ const handleUSSDRequest= async (req: any, res: any, menuBuilder: any) => {
   }
 };
 
+/**
+ *
+ * Production Uganda USSD
+ */
 router.post("/uga", async (req: any, res: any) => {
-
   await handleUSSDRequest(req, res, ussdUgaMenuBuilder);
 });
-router.post("/uat/uga", async (req: any, res: any) => {
 
+/**
+ *
+ * UAT Uganda USSD
+ */
+router.post("/uat/uga", async (req: any, res: any) => {
   await handleUSSDRequestUat(req, res, ussdUgaMenuBuilder);
 });
 
+/**
+ *
+ * UAT Kenya USSD
+ */
 
-// UAT KENYA
 router.post("/uat/ken", async (req: any, res: any) => {
 
   await handleUSSDRequestUat(req, res, ussdKenMenuBuilder);
 });
 
+/**
+ *
+ * UAT Vodacom USSD
+ */
 router.post("/uat/vodacom", async (req: any, res: any) => {
 
   await handleUSSDRequest(req, res, ussdVodacomMenuBuilder);
@@ -105,26 +114,26 @@ export const updateUserPolicyStatus = async (policy, amount,airtel_money_id) => 
       policy.airtel_money_id = airtel_money_id;
 
       // YYYY-MM-DD
-       policy.policy_paid_date = moment().toDate(); 
+       policy.policy_paid_date = moment().toDate();
       // installments are monthly
       let installment_alert_date =   moment(policy.installment_alert_date).add(1, 'months').toDate();
-  
+
       // Handle negative dates by rolling back to the previous month's end
       if (installment_alert_date.getDate() < 1) {
         installment_alert_date = moment(policy.installment_alert_date).subtract(1, 'months').endOf('month').toDate();
       }
-  
+
       if (policy.installment_type === 2) {
         policy.policy_next_deduction_date = installment_alert_date;
         policy.installment_order = parseInt(policy.policy_deduction_amount) == parseInt(policy.policy_paid_amount) ? 1 : parseInt(policy.installment_order) + 1;
         policy.installment_alert_date = installment_alert_date;
-  
+
         // Adjust policy amounts
         policy.policy_paid_amount = parseInt(policy.installment_order) * parseInt(policy.premium);
         policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
-  
+
         console.log("Updated policy:", policy.policy_pending_premium, policy.policy_paid_amount, policy.yearly_premium);
-  
+
         if (parseInt(policy.policy_pending_premium) + parseInt(policy.policy_paid_amount) === parseInt(policy.yearly_premium)) {
           policy.policy_pending_premium = parseInt(policy.yearly_premium) - parseInt(policy.policy_paid_amount);
         }
@@ -133,14 +142,14 @@ export const updateUserPolicyStatus = async (policy, amount,airtel_money_id) => 
         // next year
         policy.policy_next_deduction_date =  moment(policy.policy_next_deduction_date).add(1, 'years').toDate();
         policy.policy_pending_premium = 0;
-  
+
         if (policy.installment_order === 12) {
           policy.is_expired = true;
         }
       }
-  
+
       console.log("Policy installment logic updated successfully", policy);
-  
+
       await policy.save();
 
     return policy;
@@ -306,8 +315,8 @@ router.all("/uat/callback", async (req, res) => {
         await sendSMSNotification(to, congratText);
 
         const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" }); //4
-       
-       // send this cron job to the cron job service to be done later 
+
+       // send this cron job to the cron job service to be done later
 
         await processPolicy(user, policy, memberStatus); //5
 

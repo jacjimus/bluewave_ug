@@ -45,8 +45,7 @@ menu.sessionConfig({
 export default function (args: RequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
-             console.log("args", args);
-      let { phoneNumber, text, sessionId, serviceCode } = args;
+      let { phoneNumber, text, sessionId, serviceCode,password : string } = args;
       // check if the userText is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userText is '00' set the text to empty string
@@ -141,10 +140,10 @@ export default function (args: RequestBody, db: any) {
           "\n8. FAQs"
       }
 
-  
+
 
       if (text == "") {
-        response 
+        response
       }
       else if (firstStep == "1" && existingPolicy.count == 0) {
         response = await selfMenu(params, db);

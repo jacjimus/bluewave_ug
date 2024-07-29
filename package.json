@@ -74,5 +74,6 @@
   "repository": "https://github.com/bluewaveinsuranceke/airtel_health_ussd.git",
   "devDependencies": {
     "@types/node-cron": "^3.0.11"
-  }
+  },
+  "packageManager": "pnpm@8.15.6+sha1.8105075ad0aa306138be128c017e9c41e28ecffa"
 }
