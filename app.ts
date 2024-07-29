@@ -15,11 +15,7 @@ import { RateLimiterMemory } from "rate-limiter-flexible";
 import { loggingMiddleware, logger } from "./src/middleware/loggingMiddleware";
 import bodyParser from "body-parser";
 
-
-
-
 dotenv.config();
-
 
 async function initializeExpressServer() {
 
@@ -118,29 +114,24 @@ async function initializeExpressServer() {
       console.log("Running a task every day at 8 AM");
       sendPolicyRenewalReminder();
     });
-  
+
     cron.schedule("*/30 * * * *", () => {
       console.log("Running a task every 30 minutes");
       getArrMemberNumberData();
-    });  
-  }else{
-  
-  
+    });
+  } else{
+
     cron.schedule("*/30 * * * *", () => {
       console.log("Running a task every minute");
       updateAirtelUserKyc()
     });
   }
- 
+
   playground()
-
-
 
   const port = process.env.PORT || 4000;
   app.listen(port, () => console.log(`Server listening at port ${port}`));
 }
-
-
 
 initializeExpressServer()
   .then()
