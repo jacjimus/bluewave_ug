@@ -150,7 +150,7 @@ async function registerPrincipal(user: any, policy: any) {
       principal_member.arr_member_number = response.data.member_no
       principal_member.is_active = true
       principal_member.save();
-      const message = `Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *185*7*6*3# and check on My Policy.`
+      const message = `Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *129*9002*23# and check on My Policy.`
       await SMSMessenger.sendSMS(2, `+256${principal_member.phone_number}`, message);
       user.arr_member_number = response.data.member_no;
       await updatePremium(user, policy);
