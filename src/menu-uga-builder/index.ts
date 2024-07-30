@@ -12,33 +12,54 @@ import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 import renewMenu from "./menus/renewMenu";
 import { Op } from "sequelize";
+const redisClient = require("../middleware/redis");
 
 
 require("dotenv").config();
 
 
+const getSessionData = async (sessionId: string ,key: string) => {
+  try {
+    const data = await redisClient.hget(sessionId, key);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error(`Error getting session data for  key ${key}:`, error);
+    return null;
+  }
+};
+
+const setSessionData = async (sessionId: string, key: string, value: string | boolean, ttl = 180) => {
+  try {
+    await redisClient.hset(sessionId, key, JSON.stringify(value));
+    await redisClient.expire(sessionId, ttl);
+  } catch (error) {
+    console.error(`Error setting session data for key ${key}:`, error);
+  }
+};
+
+
 let sessions = {};
 
 let menu = new UssdMenu();
-menu.sessionConfig({
-  start: (sessionId, callback) => {
-    if (!(sessionId in sessions)) sessions[sessionId] = {};
-    callback();
-  },
-  end: (sessionId, callback) => {
-    delete sessions[sessionId];
-    callback();
-  },
-  set: (sessionId, key, value, callback) => {
-    sessions[sessionId][key] = value;
-    callback();
-  },
-  get: (sessionId, key, callback) => {
-    let value = sessions[sessionId][key];
-    callback(null, value);
-
-  }
-});
+// menu.sessionConfig({
+//   start: (sessionId, callback) => {
+//     if (!(sessionId in sessions)) sessions[sessionId] = {};
+//     callback();
+//   },
+//   end: (sessionId, callback) => {
+//     delete sessions[sessionId];
+//     callback();
+//   },
+//   set: (sessionId, key, value, callback) => {
+//     sessions[sessionId][key] = value;
+//     callback();
+//   },
+//   get: (sessionId, key, callback) => {
+//     let value = sessions[sessionId][key];
+//     callback(null, value);
+//
+//   }
+// });
 
 
 
@@ -49,6 +70,17 @@ export default function (args: RequestBody, db: any) {
       // check if the userText is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userText is '00' set the text to empty string
+
+      await setSessionData(sessionId, 'initialized', true);
+
+      // Retrieve the stored input for the session
+      let storedInput = await getSessionData(sessionId, 'storedInput');
+      console.log('storedInput::', storedInput);
+      text = storedInput ? `${storedInput}*${text}` : text;
+
+      console.log('Input logs', text);
+      // Store the updated input back to the session
+      await setSessionData(sessionId, 'storedInput', text);
       let response = "";
       let allSteps = text.split("*");
 
