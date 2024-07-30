@@ -44,7 +44,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
         status: "active",
         partner_id: partner_id,
         unique_profile_id: await generateNextMembershipId(),
-        
+
       });
 
       // WELCOME SMS
@@ -80,7 +80,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     const baseUrl = partnerId === 1 ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
-    console.log("GET_USER_URL", GET_USER_URL, headers);
+    console.log("JAME GET_USER_URL", GET_USER_URL, headers);
 
     const response = await axios.get(GET_USER_URL, { headers });
     console.log("RESULT", response.data);
@@ -151,12 +151,13 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   return existingUser;
 }
 
-function generateMembershipId(phoneNumber) {
+function generateMembershipId(phoneNumber: string) {
   let membershipId = phoneNumber.substring(3);
 
   const user = User.findOne({ where: { membership_id: membershipId } });
 
   if (!user) {
+    // @ts-ignore
     membershipId = generateRandomId();
   }
 

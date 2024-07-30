@@ -118,7 +118,7 @@ const selfMenu = async (args, db) => {
         response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
         if (userText == "1") {
 
-            console.log("=============== END SCREEN USSD RESPONCE -  SELF =======", phoneNumber, moment().toDate());
+            console.log("=============== END SCREEN USSD RESPONSE -  SELF =======", phoneNumber, moment().toDate());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
 
@@ -127,9 +127,6 @@ const selfMenu = async (args, db) => {
                 console.log("USER DOES NOT EXIST SELF");
                 existingUser = await getAirtelUser(phoneNumber, 2);
                 console.log("USER CREATED SELF", existingUser);
-
-
-
             }
 
 
@@ -181,20 +178,14 @@ const selfMenu = async (args, db) => {
                 policy_number: policyNumber
             }
 
-
             let policy = await db.policies.create(policyObject);
-
-
             let preGeneratedTransactionId = uuidv4();
-
             await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
             console.log("============== START TIME - SELF ================ ", phoneNumber, moment().toDate());
             const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
 
-
             setTimeout(async () => {
-
 
                 const airtelMoneyPromise = await airtelMoney(
                     phoneNumber.replace("+", "").substring(3),
@@ -204,7 +195,6 @@ const selfMenu = async (args, db) => {
                 );
 
                 const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
-
 
                 Promise.race([
                     airtelMoneyPromise,
