@@ -45,7 +45,7 @@ menu.sessionConfig({
 export default function (args: RequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
-      let { phoneNumber, text, sessionId, serviceCode,password : string } = args;
+      let { phoneNumber, text, sessionId, serviceCode, password : string } = args;
       // check if the userText is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userText is '00' set the text to empty string
@@ -58,7 +58,7 @@ export default function (args: RequestBody, db: any) {
         console.log("allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
-        text = allSteps.join("*").replace("129*9902#", "");
+        text = allSteps.join("*").replace("129*9902", "");
         console.log("text", text);
       }
 
