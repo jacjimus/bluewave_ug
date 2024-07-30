@@ -80,7 +80,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     const baseUrl = partnerId === 1 ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
-    console.log("JAME GET_USER_URL", GET_USER_URL, headers);
+    console.log("GET_USER_URL", GET_USER_URL, headers);
 
     const response = await axios.get(GET_USER_URL, { headers });
     console.log("RESULT", response.data);
@@ -111,7 +111,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
   }
 }
 
-async function createUserIfNotExists(userResponce: any, phone_number: string, partner_id: number) {
+async function createUserIfNotExists(userResponse: any, phone_number: string, partner_id: number) {
   let membershipId = generateMembershipId(phone_number);
 
   let fullPhone = await formatPhoneNumber(phone_number, 2);
@@ -125,7 +125,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   if (user) {
     return user;
   }
-  const { first_name, last_name } = userResponce;
+  const { first_name, last_name } = userResponse;
   let full_name = `${first_name} ${last_name}`;
 
   if (full_name.includes("FN") || full_name.includes("LN")) {
