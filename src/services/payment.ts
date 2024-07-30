@@ -38,7 +38,9 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
   };
 
   try {
-    const token = await authTokenByPartner(2);
+    const partnerId = process.env.IS_UAT ? 1 : 2;
+
+    const token = await authTokenByPartner(partnerId);
 
     const paymentData = {
       reference,
@@ -64,8 +66,8 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
     };
 
     const AIRTEL_PAYMENT_URL = process.env.IS_UAT ?
-        'https://openapiuat.airtel.africa/merchant/v1/payments/':
-        'https://openapi.airtel.africa/merchant/v1/payments/';
+        process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
+        process.env.PROD_AIRTEL_PAYMENT_URL;
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
 
@@ -120,7 +122,7 @@ async function airtelMoneyKenya(existingUser, policy) {
         msisdn: existingUser.phone_number,
       },
       transaction: {
-        amount: process.env.ENVIROMENT == 'PROD' ? policy.premium : 1,
+        amount: process.env.IS_UAT ? policy.premium : 1,
         country: "KE",
         currency: "KES",
         id: policy.policy_id,
