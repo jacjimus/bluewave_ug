@@ -75,10 +75,8 @@ export default function (args: RequestBody, db: any) {
 
       // Retrieve the stored input for the session
       let storedInput = await getSessionData(sessionId, 'storedInput');
-      console.log('storedInput::', storedInput);
       text = storedInput ? `${storedInput}*${text}` : text;
 
-      console.log('Input logs', text);
       // Store the updated input back to the session
       await setSessionData(sessionId, 'storedInput', text);
       let response = "";
@@ -91,7 +89,6 @@ export default function (args: RequestBody, db: any) {
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
         text = allSteps.join("*").replace("129*9902", "");
-        console.log("text", text);
       }
 
 

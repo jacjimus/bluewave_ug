@@ -34,7 +34,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
 
   const status = {
     code: 200,
-    message: 'Payment successfully initiated',
+    message: process.env.IS_UAT ?  'UAT Payment successfully initiated' : 'Payment successfully initiated',
   };
 
   try {
@@ -63,7 +63,9 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
       Authorization: `Bearer ${token}`,
     };
 
-    const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
+    const AIRTEL_PAYMENT_URL = process.env.IS_UAT ?
+        'https://openapiuat.airtel.africa/merchant/v1/payments/':
+        'https://openapi.airtel.africa/merchant/v1/payments/';
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
 
@@ -576,7 +578,7 @@ async function reconcilationCallback(transaction) {
 
   console.log("UPDATE POLICY", updatePolicy);
 
-  
+
 
   let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), airtel_money_id);
 
