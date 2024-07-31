@@ -65,6 +65,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
       Authorization: `Bearer ${token}`,
     };
 
+    console.log(headers);
     const AIRTEL_PAYMENT_URL = process.env.IS_UAT ?
         process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
         process.env.PROD_AIRTEL_PAYMENT_URL;

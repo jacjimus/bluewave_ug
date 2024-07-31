@@ -39,6 +39,7 @@ const handleUSSDRequestUat = async (req: any, res: any, menuBuilder: any) => {
     const mode = menu_res.includes("CON") ? "CON" : "FB";
     sendResponse(res, mode, menu_res);
 
+
   } catch (error) {
     console.log("USSD MENU ERROR", error);
     res.status(500).send(error);
