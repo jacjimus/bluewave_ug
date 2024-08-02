@@ -12,8 +12,8 @@ import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 import renewMenu from "./menus/renewMenu";
 import { Op } from "sequelize";
+import dotenv from 'dotenv';
 const redisClient = require("../middleware/redis");
-
 
 require("dotenv").config();
 
@@ -91,11 +91,11 @@ export default function (args: RequestBody, db: any) {
         text = allSteps.join("*").replace("129*9902", "");
       }
 
-
       if (allSteps[allSteps.length - 1] == "00") {
         allSteps = [];
         text = "";
       }
+      console.log("IS_UAT:",  process.env.IS_UAT);
 
       const handleBack = (arr: any) => {
         let index = arr.indexOf("0");

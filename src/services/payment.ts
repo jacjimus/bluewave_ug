@@ -38,7 +38,8 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
   };
 
   try {
-    const partnerId = process.env.IS_UAT ? 1 : 2;
+
+    const partnerId = process.env.IS_UAT === '1' ? 1 : 2;
 
     const token = await authTokenByPartner(partnerId);
 
@@ -66,7 +67,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
     };
 
     console.log(headers);
-    const AIRTEL_PAYMENT_URL = process.env.IS_UAT ?
+    const AIRTEL_PAYMENT_URL = process.env.IS_UAT === '1' ?
         process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
         process.env.PROD_AIRTEL_PAYMENT_URL;
 
@@ -123,7 +124,7 @@ async function airtelMoneyKenya(existingUser, policy) {
         msisdn: existingUser.phone_number,
       },
       transaction: {
-        amount: process.env.IS_UAT ? policy.premium : 1,
+        amount: process.env.IS_UAT === '0' ? policy.premium : 1,
         country: "KE",
         currency: "KES",
         id: policy.policy_id,
