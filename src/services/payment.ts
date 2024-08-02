@@ -72,11 +72,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
         process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
         process.env.PROD_AIRTEL_PAYMENT_URL;
 
-    await delay(5000);
-
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-
-    console.log("Airtel Money Response: ", paymentResponse);
 
     if (paymentResponse.data.status.success !== true) {
       status.code = 500;
