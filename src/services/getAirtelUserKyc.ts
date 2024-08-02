@@ -107,7 +107,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 
   } catch (error) {
     logger.error("Error in getAirtelUser:", error.message);
-    throw new Error("Failed to get Airtel user. Please try again later.");
+    throw new Error("Failed to get Airtel user. Please try again later. " +  error.message);
   }
 }
 
