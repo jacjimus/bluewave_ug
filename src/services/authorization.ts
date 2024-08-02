@@ -10,7 +10,7 @@ async function authTokenByPartner(partnerId: number) {
         clientSecret: process.env.UAT_AIRTEL_KEN_CLIENT_SECRET,
       },
       2: {
-        url: process.env.UAT_AIRTEL_AUTH_TOKEN_URL,
+        url: process.env.UAT_KEN_AIRTEL_AUTH_TOKEN_URL,
         clientId: process.env.UAT_AIRTEL_UGX_CLIENT_ID,
         clientSecret: process.env.UAT_AIRTEL_UGX_CLIENT_SECRET,
       },

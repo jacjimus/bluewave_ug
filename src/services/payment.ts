@@ -39,7 +39,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
 
   try {
 
-    const partnerId = process.env.IS_UAT === '1' ? 1 : 2;
+    const partnerId = 2;
 
     const token = await authTokenByPartner(partnerId);
 
@@ -66,7 +66,8 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
       Authorization: `Bearer ${token}`,
     };
 
-    console.log(headers);
+    console.log("Airtel Money Payment Headers:", headers);
+
     const AIRTEL_PAYMENT_URL = process.env.IS_UAT === '1' ?
         process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
         process.env.PROD_AIRTEL_PAYMENT_URL;
@@ -74,6 +75,8 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
     await delay(5000);
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
+
+    console.log("Airtel Money Response: ", paymentResponse);
 
     if (paymentResponse.data.status.success !== true) {
       status.code = 500;
@@ -83,7 +86,6 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
   } catch (error) {
     logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
-
     return status;
   }
 }
