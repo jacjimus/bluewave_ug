@@ -167,12 +167,10 @@ router.all("/callback", async (req, res) => {
       const { id, status_code, message, airtel_money_id } = transaction;
 
       const transactionData = await findTransactionById(id);
-
       if (!transactionData) {
         console.log("Transaction not found");
         return res.status(404).json({ message: "Transaction not found" });
       }
-
       const { policy_id, user_id, amount, partner_id } = transactionData;
 
       if (status_code === "TS") { // TS means transaction successful
@@ -180,17 +178,17 @@ router.all("/callback", async (req, res) => {
 
         let policy = await db.policies.findOne({
           where: {
-            policy_id,
-            user_id,
+            policy_id: policy_id,
+            user_id: user_id,
             partner_id: partner_id,
             premium: amount,
-            include: [
-              {
-                model: db.users,
-                as: "user",
-              }
-            ]
-          }
+          },
+          include: [
+            {
+              model: db.users,
+              as: 'user',
+            }
+          ]
         });
 
         if (!policy) {
