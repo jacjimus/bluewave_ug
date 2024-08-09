@@ -91,16 +91,16 @@ const getPolicies = async (req: any, res: any) => {
     limit = parseInt(limit) || 10;
     filter = filter?.toString().toLowerCase() || "";
 
-    const cacheKey = `policies_${partner_id}_${start_date}_${end_date}_${filter}_${page}_${limit}`;
-    const cachedData = await redisClient.get(cacheKey);
+    // const cacheKey = `policies_${partner_id}_${start_date}_${end_date}_${filter}_${page}_${limit}`;
+    // const cachedData = await redisClient.get(cacheKey);
 
-    if (cachedData) {
-      return res.status(200).json({
-        code: 200,
-        status: "OK",
-        result: JSON.parse(cachedData)
-      });
-    }
+    // if (cachedData) {
+    //   return res.status(200).json({
+    //     code: 200,
+    //     status: "OK",
+    //     result: JSON.parse(cachedData)
+    //   });
+    // }
 
 
     const dateFilters: any = {};
@@ -150,7 +150,7 @@ const getPolicies = async (req: any, res: any) => {
 
     const { rows: policies, count: totalCount } = await db.policies.findAndCountAll({
       where: whereCondition,
-      order: [["policy_start_date", "DESC"]],
+      order: [["policy_paid_date", "DESC"]],
       include: [{
         model: db.payments,
         as: 'payments',
@@ -177,8 +177,8 @@ const getPolicies = async (req: any, res: any) => {
       items: policies
     };
 
-    // Store the result in Redis with an expiration time of 1 hour (3600 seconds)
-    await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
+    // // Store the result in Redis with an expiration time of 1 hour (3600 seconds)
+    // await redisClient.set(cacheKey, JSON.stringify(result), 'EX', 3600);
 
     return res.status(200).json({
       code: 200,
@@ -346,7 +346,7 @@ const findPolicyByUserId = async (req: any, res: any) => {
     const limit = req.query.limit || 10;
 
     const dateFilters: any = {};
-   
+
     if (start_date && end_date) {
       if (start_date === end_date) {
         dateFilters.policy_paid_date = { [Op.eq]: new Date(start_date) };
@@ -372,7 +372,7 @@ const findPolicyByUserId = async (req: any, res: any) => {
     })
 
 
-  
+
     if (!policy || policy.length === 0) {
       status.code = 404;
       status.result = { message: "No policy found" };
@@ -380,14 +380,14 @@ const findPolicyByUserId = async (req: any, res: any) => {
     }
     let count = policy.length;
 
-  
+
     return res.status(status.code).json({
       result: {
         code: 200,
         status: "OK",
         message: "Policies fetched successfully",
-        count:count,
-        items : policy
+        count: count,
+        items: policy
       }
     });
   } catch (error) {
@@ -994,14 +994,14 @@ calculate the percentages of the categories
   */
 const getCategoryNotPaidLastmonth = async (req, res) => {
   try {
-    const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
+    const lastMonth = new Date(moment().toDate().setMonth(moment().toDate().getMonth() - 1));
 
     const categoryData = await db.policies.findAll({
       where: {
         partner_id: req.query.partner_id,
         policy_status: "pending",
         createdAt: {
-          [Op.between]: [lastMonth, new Date()],
+          [Op.between]: [lastMonth, moment().toDate()],
         },
       },
       attributes: [

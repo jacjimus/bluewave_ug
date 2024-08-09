@@ -10,32 +10,33 @@ async function authTokenByPartner(partnerId: number) {
         clientSecret: process.env.UAT_AIRTEL_KEN_CLIENT_SECRET,
       },
       2: {
-        url: process.env.PROD_AIRTEL_AUTH_TOKEN_URL,
-        clientId: process.env.PROD_AIRTEL_UGX_CLIENT_ID,
-        clientSecret: process.env.PROD_AIRTEL_UGX_CLIENT_SECRET,
+        url: process.env.UAT_KEN_AIRTEL_AUTH_TOKEN_URL,
+        clientId: process.env.UAT_AIRTEL_UGX_CLIENT_ID,
+        clientSecret: process.env.UAT_AIRTEL_UGX_CLIENT_SECRET,
       },
     };
-  
+
     if (!partnerConfig[partnerId]) {
       throw new Error('Invalid partner ID');
     }
-  
+
     const { url, clientId, clientSecret } = partnerConfig[partnerId];
-  
+
     const inputBody = {
       client_id: clientId,
       client_secret: clientSecret,
       grant_type: 'client_credentials',
     };
-  
+
     const headers = {
       'Content-Type': 'application/json',
       Accept: '*/*',
     };
-  
+
+    console.log("======== partnerConfig =========== ",inputBody);
     try {
       const response = await axios.post(url, inputBody, { headers });
-  
+
       if (response.status === 200) {
         return response.data.access_token;
       } else {
@@ -46,6 +47,5 @@ async function authTokenByPartner(partnerId: number) {
       throw error;
     }
   }
-  
+
   export default authTokenByPartner;
-  

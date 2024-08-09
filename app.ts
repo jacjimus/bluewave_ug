@@ -1,6 +1,6 @@
 import express from "express";
 import cron from "node-cron";
-import { getArrMemberNumberData, sendPolicyRenewalReminder } from "./src/services/cronJobs";
+import { getArrMemberNumberData, sendPolicyRenewalReminder, updateAirtelUserKyc } from "./src/services/cronJobs";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { playground } from "./src/services/playground";
@@ -15,11 +15,7 @@ import { RateLimiterMemory } from "rate-limiter-flexible";
 import { loggingMiddleware, logger } from "./src/middleware/loggingMiddleware";
 import bodyParser from "body-parser";
 
-
-
-
 dotenv.config();
-
 
 async function initializeExpressServer() {
 
@@ -75,9 +71,9 @@ async function initializeExpressServer() {
     definition: {
       openapi: "3.0.0",
       info: {
-        title: "BLUEWAVE API Documentation",
+        title: "BLUEWAVE Uganda API Documentation",
         version: "1.0.0",
-        description: "BLUEWAVE API Documentation",
+        description: "BLUEWAVE Uganda API Documentation",
       },
       components: {
         securitySchemes: {
@@ -103,7 +99,7 @@ async function initializeExpressServer() {
 
 
   app.get("/", (req: any, res: any) =>
-    res.send({ status: "I'm up and running - Bluewave Insurance" })
+    res.send({ status: "I'm up and running - Bluewave UG Insurance" })
   );
 
   app.use("/api/v1", router);
@@ -118,22 +114,24 @@ async function initializeExpressServer() {
       console.log("Running a task every day at 8 AM");
       sendPolicyRenewalReminder();
     });
-  
+
     cron.schedule("*/30 * * * *", () => {
       console.log("Running a task every 30 minutes");
       getArrMemberNumberData();
     });
+  } else{
+
+    cron.schedule("*/30 * * * *", () => {
+      console.log("Running a task every minute");
+      updateAirtelUserKyc()
+    });
   }
- 
+
   playground()
-
-
 
   const port = process.env.PORT || 4000;
   app.listen(port, () => console.log(`Server listening at port ${port}`));
 }
-
-
 
 initializeExpressServer()
   .then()

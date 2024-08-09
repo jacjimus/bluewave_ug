@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import { db } from "../models/db";
 import { uuid } from 'uuidv4';
+import moment from 'moment';
 
 module.exports = (sequelize, DataTypes) => {
     const Policy = sequelize.define("policy", {
@@ -27,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "pending",
             allowNull: true,
             enum: ["pending", "paid", "expired", 'unpaid', 'cancelled']
-            
+
         },
         beneficiary: {
             type: DataTypes.STRING,
@@ -37,16 +38,16 @@ module.exports = (sequelize, DataTypes) => {
         policy_type: {
             type: DataTypes.STRING,
             allowNull: false,
-            enum: ["S MINI", "MINI", "MIDI", "BIGGIE","BAMBA","ZIDI","SMARTA", "COMPREHENSIVE", "FT", "TPO"]
+            enum: ["S MINI", "MINI", "MIDI", "BIGGIE", "BAMBA", "ZIDI", "SMARTA", "COMPREHENSIVE", "FT", "TPO"]
         },
         policy_start_date: {
             type: DataTypes.DATE,
-            defaultValue: new Date(),
+            defaultValue: moment().toDate(),
             allowNull: false
         },
         policy_end_date: {
             type: DataTypes.DATE,
-            defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
+            defaultValue: new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1)),
             allowNull: true
 
         },
@@ -58,18 +59,18 @@ module.exports = (sequelize, DataTypes) => {
         policy_next_deduction_date: {
             type: DataTypes.DATE,
             allowNull: true,
-            default: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1))
+            default: new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1))
         },
         policy_deduction_day: {
             type: DataTypes.INTEGER,
-            defaultValue: new Date().getDate() - 1,
+            defaultValue: moment().toDate().getDate() - 1,
             allowNull: true
         },
         installment_order: {
             type: DataTypes.INTEGER,
             allowNull: true,
             defaultValue: 1,
-            enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11, 12] // monthly
+            enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] // monthly
         },
         installment_type: {
             type: DataTypes.INTEGER,
@@ -79,14 +80,14 @@ module.exports = (sequelize, DataTypes) => {
         installment_date: {
             type: DataTypes.DATE,
             allowNull: true,
-            defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
+            defaultValue: new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 3))
         },
         installment_alert_date: {
             type: DataTypes.DATE,
             allowNull: true,
-            defaultValue: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 3))
+            defaultValue: new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 3))
         },
-      
+
         premium: {
             type: DataTypes.NUMBER,
             allowNull: true
@@ -104,7 +105,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.NUMBER,
             allowNull: true
         },
-      
+
         currency_code: {
             type: DataTypes.STRING,
             allowNull: true
@@ -113,7 +114,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-      
+
         policy_documents: {
             type: DataTypes.ARRAY(DataTypes.TEXT),
             allowNull: true
@@ -230,11 +231,11 @@ module.exports = (sequelize, DataTypes) => {
     },
 
         { timestamps: true },)
-        Policy.associate = (models:any) => {
-            Policy.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
-            Policy.hasMany(models.Payment, { foreignKey: 'policy_id', as: 'payments' });
-        };
-    
+    Policy.associate = (models: any) => {
+        Policy.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+        Policy.hasMany(models.Payment, { foreignKey: 'policy_id', as: 'payments' });
+    };
+
 
     return Policy
 }

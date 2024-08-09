@@ -4,12 +4,9 @@ import { db } from '../models/db';
 import dotenv from 'dotenv';
 import { findTransactionById, updateUserPolicyStatus } from '../routes/ussdRoutes';
 import SMSMessenger from './sendSMS';
-import { fetchMemberStatusData, processPolicy } from './aarServices';
 import authTokenByPartner from './authorization';
-import { Op } from "sequelize";
 import { logger } from '../middleware/loggingMiddleware';
-import { log } from 'handlebars';
-import { Console } from 'winston/lib/winston/transports';
+import moment from 'moment';
 dotenv.config();
 
 const Transaction = db.transactions;
@@ -37,11 +34,14 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
 
   const status = {
     code: 200,
-    message: 'Payment successfully initiated',
+    message: process.env.IS_UAT ?  'UAT Payment successfully initiated' : 'Payment successfully initiated',
   };
 
   try {
-    const token = await authTokenByPartner(2);
+
+    const partnerId = 2;
+
+    const token = await authTokenByPartner(partnerId);
 
     const paymentData = {
       reference,
@@ -66,24 +66,32 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
       Authorization: `Bearer ${token}`,
     };
 
-    const AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
+    console.log("Airtel Money Payment Headers:", headers);
+
+    const AIRTEL_PAYMENT_URL = process.env.IS_UAT === '1' ?
+        process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
+        process.env.PROD_AIRTEL_PAYMENT_URL;
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-    
+
+    console.log("Airtel Money", paymentResponse);
+
     if (paymentResponse.data.status.success !== true) {
       status.code = 500;
       status.message = 'Payment failed'; // Update message only on failure
+    } else {
     }
     return status;
   } catch (error) {
     logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
-
     return status;
   }
 }
 
-
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 function handlePaymentError(error, status) {
   if (error.response) {
     const responseData = error.response.data;
@@ -102,29 +110,26 @@ function handlePaymentError(error, status) {
 
 
 
-async function airtelMoneyKenya(existingUser, policy ) {
+async function airtelMoneyKenya(existingUser, policy) {
   const status = {
     code: 200,
     status: "OK",
     result: "",
     message: 'Payment successfully initiated'
   };
-  
- 
-
 
   try {
     const token = await authTokenByPartner(1);
 
     const paymentData = {
-      reference: `${policy.beneficiary}-${policy.policy_type}-${policy.policy_id}`,
+      reference: existingUser.phone_number,
       subscriber: {
         country: "KE",
         currency: "KES",
         msisdn: existingUser.phone_number,
       },
       transaction: {
-        amount: policy.premium,
+        amount: process.env.IS_UAT === '0' ? policy.premium : 1,
         country: "KE",
         currency: "KES",
         id: policy.policy_id,
@@ -132,32 +137,31 @@ async function airtelMoneyKenya(existingUser, policy ) {
     };
 
     const headers = {
+      'Accept': '*/* ',
       'Content-Type': 'application/json',
-      Accept: '/',
-      'X-Country': "KE",
-      'X-Currency': "KES",
-      Authorization: `${token}`,
+      'X-Country': 'KE',
+      'X-Currency': 'KES',
+      'Authorization': `Bearer ${token}`
     };
 
     console.log("PAYMENT DATA", paymentData, process.env.UAT_KEN_AIRTEL_PAYMENT_URL, "HEADERS", headers)
 
-    const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData, { headers });
-
-
+    const paymentResponse = await axios.post(process.env.UAT_KEN_AIRTEL_PAYMENT_URL, paymentData,
+      { headers });
+    console.log("res status", paymentResponse.data.status);
     if (paymentResponse.data.status.success == true) {
       status.result = paymentResponse.data.status;
-      await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id,policy.premium,);
+      await createTransaction(existingUser.user_id, 1, policy.policy_id, paymentData.transaction.id, policy.premium,);
       return status;
     }
-
     status.code = 500;
-    status.message = 'Payment failed'; 
+    status.message = 'Payment failed';
     return status;
   } catch (error) {
     console.log("ERROR", error)
     logger.error('Failed to initiate payment:', error.message);
     handlePaymentError(error, status);
-    
+
   }
 }
 
@@ -492,89 +496,47 @@ async function reconcilationCallback(transaction) {
   const transactionData = await findTransactionById(id);
 
   if (!transactionData) {
-    throw new Error("Transaction not found");
+    return {
+      code: 404,
+      status: "NOT FOUND",
+      message: "Transaction not found"
+    }
   }
-
-
 
   const { policy_id, user_id, amount, partner_id } = transactionData;
 
-  if (status_code == "TS") {
-
-    await transactionData.update({
-      status: "paid",
-    });
-
-    const user = await db.users.findOne({ where: { user_id } });
-
-    if (!user) {
-      console.log("================ USER NOT FOUND ================", user_id)
-      throw new Error("User not found");
+  if (status_code !== "TS") {
+    return {
+      code: 500,
+      status: "FAILED",
+      message: "Payment failed"
     }
-    let policy = await db.policies.findOne({
-      where: {
-        [Op.or]: [
-          { policy_id: policy_id },
-          { user_id: user_id }
-        ]
-      }
-    });
+  }
 
+  await transactionData.update({
+    status: "paid",
+  });
 
-    if (!policy) {
-      console.log("================ POLICY NOT FOUND ================", policy_id, user_id)
+  const user = await db.users.findOne({ where: { user_id } });
 
-      throw new Error("Policy not found");
-
-    }
-
-
-    policy.airtel_money_id = airtel_money_id;
-    policy.policy_status = "paid";
-    policy.payment_date = payment_date;
-    policy.save();
-
-    const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
-    const policyType = policy.policy_type.toUpperCase();
-    const period = policy.installment_type == 1 ? "yearly" : "monthly";
-    policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`
-
-
-    const payment = await db.payments.create({
-      payment_amount: amount,
-      payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
-      user_id,
-      policy_id,
-      payment_status: "paid",
-      payment_description: message,
-      payment_date: payment_date,
-      payment_metadata: transaction,
-      airtel_transaction_id: airtel_money_id,
-      partner_id,
-    });
-
-    console.log("Payment record created successfully");
-
-    let updatedPolicy = await updateUserPolicyStatus(policy, parseInt(amount), payment, airtel_money_id);
-
-
-    console.log("=== PAYMENT ===", payment)
-    console.log("=== UPDATED POLICY ===", updatedPolicy)
-
-
-    // send congratulatory message
-    await sendCongratulatoryMessage(updatedPolicy, user);
-
-    const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
-
-    await processPolicy(user, policy, memberStatus);
+  if (!user) {
 
     return {
-      code: 200,
-      status: "OK",
-      message: "Payment record created successfully"
+      code: 404,
+      status: "NOT FOUND",
+      message: "User not found " + user_id
+
     }
-  } else {
+  }
+  let policy = await db.policies.findOne({
+    where: {
+      policy_id,
+    }
+  });
+
+
+  if (!policy) {
+
     await db.payments.create({
       payment_amount: amount,
       payment_type: "airtel money payment",
@@ -582,21 +544,69 @@ async function reconcilationCallback(transaction) {
       policy_id,
       payment_status: "failed",
       payment_description: message,
-      payment_date: new Date(),
+      payment_date: payment_date === undefined ? moment().toDate() : payment_date,
       payment_metadata: transaction,
       partner_id: partner_id,
     });
-
-    // failed policy
-    // await db.policies.update({ policy_status: "unpaid", airtel_money_id: airtel_money_id }, { where: { policy_id } });
-
-
     return {
-      code: 500,
-      status: "FAILED",
-      message: "Payment record created successfully"
+      code: 404,
+      status: "NOT FOUND",
+      message: "Policy not found " + policy_id
     }
+
   }
+
+  const to = user.phone_number?.startsWith("7") ? `+256${user.phone_number}` : user.phone_number?.startsWith("0") ? `+256${user.phone_number.substring(1)}` : user.phone_number?.startsWith("+") ? user.phone_number : `+256${user.phone_number}`;
+  const policyType = policy.policy_type.toUpperCase();
+  const period = policy.installment_type == 1 ? "yearly" : "monthly";
+  policy.policy_number = `BW${to?.replace('+', '')?.substring(3)}`;
+
+  const payment = await db.payments.create({
+    payment_amount: amount,
+    payment_type: "airtel money stk push for " + policyType + " " + period + " payment",
+    user_id,
+    policy_id,
+    payment_status: "paid",
+    payment_description: message,
+    payment_date: payment_date,
+    payment_metadata: transaction,
+    airtel_transaction_id: airtel_money_id,
+    partner_id,
+  });
+
+
+  let updatePolicy = await db.policies.update({
+    policy_status: "paid",
+    airtel_money_id: airtel_money_id,
+    policy_paid_date: payment_date,
+    bluewave_transaction_id: payment.payment_id,
+    airtel_transaction_ids: policy.airtel_transaction_ids ? [...policy.airtel_transaction_ids, policy.airtel_money_id] : [policy.airtel_money_id],
+    premium: amount,
+    is_expired: false,
+  }, { where: { policy_id: policy_id } });
+
+  console.log("UPDATE POLICY", updatePolicy);
+
+
+
+  let updatedPolicyInstallement = await updateUserPolicyStatus(policy, parseInt(amount), airtel_money_id);
+
+
+  // send congratulatory message
+  await sendCongratulatoryMessage(updatedPolicyInstallement, user);
+
+  //const memberStatus = await fetchMemberStatusData({ member_no: user.arr_member_number, unique_profile_id: user.membership_id + "" });
+
+  //await processPolicy(user, policy, memberStatus);
+
+  return {
+    code: 200,
+    status: "OK",
+    message: "Payment record created successfully",
+    policy: updatedPolicyInstallement,
+    payment: payment
+  }
+
 }
 
 
@@ -616,7 +626,7 @@ async function sendCongratulatoryMessage(policy, user) {
     console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
 
-    const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+    const thisDayThisMonth = policy.installment_type === 2 ? new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1) : new Date(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1);
 
     let congratText = "";
 
@@ -665,7 +675,7 @@ async function processPayment(policyObject, phoneNumber, existingOther) {
         })
       ]).then((result) => {
         // Airtel Money operation completed successfully
-        console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+        console.log("============== END TIME - SELF ================ ", phoneNumber, moment().toDate());
         //response = 'END Payment successful';
         console.log("SELF RESPONSE WAS CALLED", result);
         return response;
@@ -676,7 +686,7 @@ async function processPayment(policyObject, phoneNumber, existingOther) {
         return response;
       });
 
-      console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+      console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
     }, 500);
     // Airtel Money operation completed successfully
     console.log("PAYMENT - RESPONSE WAS CALLED", response);

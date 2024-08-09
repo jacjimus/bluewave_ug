@@ -12,44 +12,73 @@ import accountMenu from "./menus/accountMenu";
 import hospitalMenu from "./menus/hospitalMenu";
 import renewMenu from "./menus/renewMenu";
 import { Op } from "sequelize";
-
+import dotenv from 'dotenv';
+const redisClient = require("../middleware/redis");
 
 require("dotenv").config();
+
+
+const getSessionData = async (sessionId: string ,key: string) => {
+  try {
+    const data = await redisClient.hget(sessionId, key);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error(`Error getting session data for  key ${key}:`, error);
+    return null;
+  }
+};
+
+const setSessionData = async (sessionId: string, key: string, value: string | boolean, ttl = 180) => {
+  try {
+    await redisClient.hset(sessionId, key, JSON.stringify(value));
+    await redisClient.expire(sessionId, ttl);
+  } catch (error) {
+    console.error(`Error setting session data for key ${key}:`, error);
+  }
+};
 
 
 let sessions = {};
 
 let menu = new UssdMenu();
-menu.sessionConfig({
-  start: (sessionId, callback) => {
-    if (!(sessionId in sessions)) sessions[sessionId] = {};
-    callback();
-  },
-  end: (sessionId, callback) => {
-    delete sessions[sessionId];
-    callback();
-  },
-  set: (sessionId, key, value, callback) => {
-    sessions[sessionId][key] = value;
-    callback();
-  },
-  get: (sessionId, key, callback) => {
-    let value = sessions[sessionId][key];
-    callback(null, value);
-
-  }
-});
+// menu.sessionConfig({
+//   start: (sessionId, callback) => {
+//     if (!(sessionId in sessions)) sessions[sessionId] = {};
+//     callback();
+//   },
+//   end: (sessionId, callback) => {
+//     delete sessions[sessionId];
+//     callback();
+//   },
+//   set: (sessionId, key, value, callback) => {
+//     sessions[sessionId][key] = value;
+//     callback();
+//   },
+//   get: (sessionId, key, callback) => {
+//     let value = sessions[sessionId][key];
+//     callback(null, value);
+//
+//   }
+// });
 
 
 
 export default function (args: RequestBody, db: any) {
   return new Promise(async (resolve, reject) => {
     try {
-             console.log("args", args);
-      let { phoneNumber, text, sessionId, serviceCode } = args;
+      let { phoneNumber, text, sessionId, serviceCode, password : string } = args;
       // check if the userText is '0' and remove 2 responses from the menu starting from the '0'.
       // This is to avoid the user from going back to the main menu when they are in the submenus.
       // check also if the userText is '00' set the text to empty string
+
+      await setSessionData(sessionId, 'initialized', true);
+
+      // Retrieve the stored input for the session
+      let storedInput = await getSessionData(sessionId, 'storedInput');
+      text = storedInput ? `${storedInput}*${text}` : text;
+
+      // Store the updated input back to the session
+      await setSessionData(sessionId, 'storedInput', text);
       let response = "";
       let allSteps = text.split("*");
 
@@ -59,15 +88,14 @@ export default function (args: RequestBody, db: any) {
         console.log("allSteps", allSteps)
         // remove empty strings from the array
         allSteps = allSteps.filter((step) => step !== "");
-        text = allSteps.join("*").replace("129*9902#", "");
-        console.log("text", text);
+        text = allSteps.join("*").replace("129*9902", "");
       }
-
 
       if (allSteps[allSteps.length - 1] == "00") {
         allSteps = [];
         text = "";
       }
+      console.log("IS_UAT:",  process.env.IS_UAT);
 
       const handleBack = (arr: any) => {
         let index = arr.indexOf("0");
@@ -141,10 +169,10 @@ export default function (args: RequestBody, db: any) {
           "\n8. FAQs"
       }
 
-  
+
 
       if (text == "") {
-        response 
+        response
       }
       else if (firstStep == "1" && existingPolicy.count == 0) {
         response = await selfMenu(params, db);

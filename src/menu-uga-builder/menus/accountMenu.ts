@@ -65,7 +65,7 @@ const accountMenu = async (args: any, db: any) => {
         if (policy.installment_type == 2) {
             monthly_renewal_date.setMonth(monthly_renewal_date.getMonth() + 1);
 
-            if (monthly_renewal_date < new Date()) {
+            if (monthly_renewal_date < moment().toDate()) {
                 // send a reminder
                 return `Dwaliro ${policy.policy_type} Inpatient UGX ${policy.premium.toLocaleString()}  is due for renewal on ${monthly_renewal_date.toLocaleString()}`
             } else {
@@ -90,7 +90,7 @@ const accountMenu = async (args: any, db: any) => {
             "\n7. View Details" +
             "\n8. Check Policy Number";
     } else if (currentStep == 2) {
-       
+
         switch (userText) {
             case "1":
                 response = paidPolicies.length > 0 ? `CON ${policyMessages[0]}\n1. Next` : "END Sorry you have no active policy"
@@ -189,11 +189,11 @@ const accountMenu = async (args: any, db: any) => {
 
                 break;
             case "8":
-                if(!paidPolicies || paidPolicies.length == 0 ) {
+                if (!paidPolicies || paidPolicies.length == 0) {
                     response = "END You have no active policy"
                     return response
                 }
-                if(paidPolicies[0].user.arr_member_number == null) {
+                if (paidPolicies[0].user.arr_member_number == null) {
                     //send email to admin
                     const email = "admin@bluewave.insure"
                     const subject = "Policy Number Generation"
@@ -206,7 +206,7 @@ const accountMenu = async (args: any, db: any) => {
                     response = "END Your policy number is not yet generated. Please wait for a few minutes and try again"
                     return response
                 }
-        
+
                 const policy_number_message = `Your policy number is ${paidPolicies[0].user.arr_member_number}. Please use this number when visiting the hospital`
                 SMSMessenger.sendSMS(2, smsPhone, policy_number_message)
                 response = `END Your policy number is ${paidPolicies[0].user.arr_member_number}. Please use this number when visiting the hospital`
@@ -217,7 +217,7 @@ const accountMenu = async (args: any, db: any) => {
         }
 
     } else if (currentStep == 3) {
-        
+
         if (userText == "1" && allSteps[1] == '1') {
 
             if (userText == "1" && paidPolicies.length > 1) {
@@ -244,7 +244,7 @@ const accountMenu = async (args: any, db: any) => {
                     policyStartDate.setMonth(policyStartDate.getMonth() + payments.length)
 
 
-                    if (policyStartDate > new Date() && paidPolicies[0].installment_type == 2) {
+                    if (policyStartDate > moment().toDate() && paidPolicies[0].installment_type == 2) {
                         response = `END Your available inpatient limit is UGX ${(paidPolicies[0].sum_insured / proratedPercentage).toLocaleString()
                             } and Funeral expense of UGX ${(paidPolicies[0].last_expense_insured / proratedPercentage).toLocaleString()
                             }`
@@ -277,19 +277,19 @@ const accountMenu = async (args: any, db: any) => {
 
             let choosenPolicy = paidPolicies[allSteps[2] - 1];
 
-           
-           
+
+
             let preGeneratedTransactionId = uuidv4();
 
             await createTransaction(existingUser.user_id, existingUser.partner_id, choosenPolicy.policy_id, preGeneratedTransactionId, choosenPolicy.premium);
 
             const airtelMoneyPromise = await airtelMoney(
-            
+
                 phoneNumber.replace("+", "").substring(3),
                 choosenPolicy.premium,
                 existingUser.phone_number.toString(),
                 preGeneratedTransactionId
-               
+
             );
 
             const timeout = 1000;
@@ -303,7 +303,7 @@ const accountMenu = async (args: any, db: any) => {
                 })
             ]).then((result) => {
                 // Airtel Money operation completed successfully
-                console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                console.log("============== END TIME - SELF ================ ", phoneNumber, moment().toDate());
                 response = 'END Payment successful';
                 console.log("OTHER - RESPONSE WAS CALLED", result);
                 return response;
@@ -313,7 +313,7 @@ const accountMenu = async (args: any, db: any) => {
                 return response;
             });
 
-            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
 
 
         } else if (allSteps[1] == "5" && allSteps[0] == "4") {
@@ -327,8 +327,8 @@ const accountMenu = async (args: any, db: any) => {
                 limit: 1,
             });
             await db.policies.update({
-                is_cancelled : true,
-                cancelled_at: new Date(),
+                is_cancelled: true,
+                cancelled_at: moment().toDate(),
                 user_id: user.user_id
             }, {
                 where: {
@@ -369,7 +369,7 @@ const accountMenu = async (args: any, db: any) => {
             }
 
         } else if (allSteps[1] == '6') {
-        
+
 
             if (allSteps[1] == "6" && userText == "1") {
                 // list beneficiaries where beneficiary_type = DEPENDANT
@@ -398,7 +398,7 @@ const accountMenu = async (args: any, db: any) => {
         }
 
     } else if (currentStep == 4) {
-       
+
         if (userText == "1" && allSteps[0] == '1') {
 
             response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
@@ -406,7 +406,7 @@ const accountMenu = async (args: any, db: any) => {
         } else if ((allSteps[2] == "2" || allSteps[2] == "1") && allSteps[0] == "5") {
             let gender = allSteps[2] == "1" ? "MALE" : "FEMALE";
             let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
-          
+
 
             const user = await db.users.findOne({
                 where: {
@@ -448,7 +448,7 @@ const accountMenu = async (args: any, db: any) => {
 
 
         } else if (allSteps[1] == '4' && allSteps[0] == '4') {
-      
+
             response = 'CON Enter New Next of Kin  Phone number e.g 07XXXXXXXX \n 0.Back 00.Main Menu'
 
 
@@ -465,7 +465,7 @@ const accountMenu = async (args: any, db: any) => {
             })
 
             let dependant_message = `You have added successfully added ${allSteps[3]} as your dependant. Please dial *185*7*6*3# to add any additional dependant.`
-        
+
 
             SMSMessenger.sendSMS(2, smsPhone, dependant_message)
             response = `You have added successfully added ${allSteps[3]} as your dependant`
@@ -476,7 +476,7 @@ const accountMenu = async (args: any, db: any) => {
     } else if (currentStep == 5) {
         if (allSteps[1] == "4" && allSteps[0] == "4") {
             // list beneficiaries where beneficiary_type = KIN
-           
+
             let beneficiaries = await db.beneficiaries.findAll({
                 where: {
                     principal_phone_number: trimmedPhoneNumber,
@@ -533,7 +533,7 @@ const accountMenu = async (args: any, db: any) => {
                 member_status: "1",
                 reason_for_member_status: "next of kin update",
             }
-        
+
             await updateMember(data)
 
             const kin_message = `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`
@@ -542,7 +542,7 @@ const accountMenu = async (args: any, db: any) => {
 
 
         }
-    } 
+    }
     return response
 }
 

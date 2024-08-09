@@ -38,7 +38,7 @@ async function arr_uganda_login() {
 
     return response.data.token;
   } catch (error) {
-  console.error(error.message)
+    console.error(error.message)
 
   }
 }
@@ -100,69 +100,69 @@ async function registerPrincipal(user: any, policy: any) {
     console.log("POLICY NOT FOR USER");
   }
 
-    const userData: PrincipalRegistration = {
-      surname: user.last_name || `256${user.phone_number}`,
-      first_name: user.first_name || `256${user.phone_number}`,
-      other_names: user.middle_name || `256${user.phone_number}`,
-      gender: 1,
-      dob: "1900-01-01",
-      pri_dep: "24",
-      family_title: "3",
-      tel_no: `256${user.phone_number}`,
-      email: user.email || "admin@bluewave.insure",
-      next_of_kin: {
-        surname: user.last_name,
-        first_name: user.first_name,
-        other_names: user.middle_name || "",
-        tel_no: user.phone_number,
+  const userData: PrincipalRegistration = {
+    surname: user.last_name || `256${user.phone_number}`,
+    first_name: user.first_name || `256${user.phone_number}`,
+    other_names: user.middle_name || `256${user.phone_number}`,
+    gender: 1,
+    dob: "1990-01-01",
+    pri_dep: "24",
+    family_title: "3",
+    tel_no: `256${user.phone_number}`,
+    email: user.email || "admin@bluewave.insure",
+    next_of_kin: {
+      surname: user.last_name,
+      first_name: user.first_name,
+      other_names: user.middle_name || "",
+      tel_no: user.phone_number,
+    },
+    member_status: "1",
+    health_option: "64",
+    health_plan: "AIRTEL_" + policy.policy_type.replace(/\s/g, ''),
+    corp_id: "758",
+    policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
+    policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
+    unique_profile_id: user.phone_number + "",
+    money_transaction_id: policy.airtel_money_id,
+
+  }
+
+
+  try {
+    const config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
+      headers: {
+        'Authorization': 'Bearer ' + await arr_uganda_login(),
+        'Content-Type': 'application/json',
       },
-      member_status: "1",
-      health_option: "64",
-      health_plan:  "AIRTEL_" + policy.policy_type.replace(/\s/g, ''),
-      corp_id: "758",
-      policy_start_date: moment(policy.policy_start_date).format('YYYY-MM-DD').split("T")[0],
-      policy_end_date: moment(policy.policy_end_date).format('YYYY-MM-DD').split("T")[0],
-      unique_profile_id: user.phone_number + "",
-      money_transaction_id: policy.airtel_money_id,
+      data: userData,
+    };
+    console.log("User Data", userData)
+    const response = await axios.request(config);
+    console.log("ARR REG MEMBER RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number, policy.phone_number);
 
+    if (response.data.code == 200) {
+      logger.info("ARR REG MEMBER RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number, policy.phone_number);
+      await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
+      let principal_member = await db.users.findOne({ where: { user_id: user.user_id } });
+      principal_member.arr_member_number = response.data.member_no
+      principal_member.is_active = true
+      principal_member.save();
+      const message = `Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *129*9002*23# and check on My Policy.`
+      await SMSMessenger.sendSMS(2, `+256${principal_member.phone_number}`, message);
+      user.arr_member_number = response.data.member_no;
+      await updatePremium(user, policy);
+      return { ...response.data, ...userData }
     }
 
+    return response.data;
+  } catch (error) {
+    throw error;
+    logger.error(error.message)
+  }
 
-    try {
-      const config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'http://airtelapi.aar-insurance.ug:82/api/airtel/v1/protected/register_principal',
-        headers: {
-          'Authorization': 'Bearer ' + await arr_uganda_login(),
-          'Content-Type': 'application/json',
-        },
-        data: userData,
-      };
-      console.log("User Data", userData)
-      const response = await axios.request(config);
-      console.log("ARR REG MEMBER RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number, policy.phone_number);
-
-      if (response.data.code == 200) {
-        logger.info("ARR REG MEMBER RESPONSE", response.data, user.name, policy.policy_type, user.total_member_number, policy.phone_number);
-        await db.users.update({ is_active: true, arr_member_number: response.data.member_no }, { where: { user_id: user.user_id } });
-        let principal_member = await db.users.findOne({ where: { user_id: user.user_id } });
-        principal_member.arr_member_number = response.data.member_no
-        principal_member.is_active = true
-        principal_member.save();
-        const message = `Dear customer, your Ddwaliro Care Policy number is ${principal_member.arr_member_number}. Present this to the hospital whenever you have a claim. To renew, dial *185*7*6*3# and check on My Policy.`
-        await SMSMessenger.sendSMS(2, `+256${principal_member.phone_number}`, message);
-        user.arr_member_number = response.data.member_no;
-        await updatePremium(user, policy);
-        return { ...response.data, ...userData }
-      }
-
-      return response.data;
-    } catch (error) {
-      throw error;
-      logger.error(error.message)
-    }
-  
 }
 
 interface requestPremiumData {
@@ -236,7 +236,7 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
               resolve(true)
             }
             resolve(true)
-          }else{
+          } else {
             logger.error("DEPENDANT NOT CREATED", dependant);
             resolve(true)
           }
@@ -247,7 +247,7 @@ async function createDependant(existingUser: any, myPolicy: any, number_of_depen
 
   } catch (error) {
     console.error('Error:', error.message);
-    
+
   }
 }
 
@@ -259,7 +259,6 @@ async function updatePremium(user: any, policy: any) {
       console.log("NO AAR MEMBER NUMBER")
       return
     }
-    let unique_profile_id = user.membership_id + "";
 
     // if(policy.beneficiary == "OTHER"){
     //   console.log("OTHER BENEFICIARY", user.name, policy.beneficiary, policy.policy_type,policy.membership_id );
@@ -269,7 +268,7 @@ async function updatePremium(user: any, policy: any) {
     // }
     console.log("USER ID , POLICY ID", user.user_id, policy.user_id)
     if (user.user_id !== policy.user_id) {
-      console.log("POLICY NOT FOR USER", user.name,policy.phone_number, policy.airtel_money_id, policy.policy_type, user.total_member_number);
+      console.log("POLICY NOT FOR USER", user.name, policy.phone_number, policy.airtel_money_id, policy.policy_type, user.total_member_number);
     } else {
 
       console.log('UPDATE PREMIUM', user.name, policy.phone_number, policy.policy_type, policy.total_member_number, policy.airtel_money_id)
@@ -291,20 +290,21 @@ async function updatePremium(user: any, policy: any) {
         // main_benefit_limit = policy.sum_insured  / (parseInt(memberSize) + 1)
         // last_expense_limit = policy.last_expense_insured  / (parseInt(memberSize) + 1)
       }
-           const payment = await db.payments.findOne({ where: { policy_id: policy.policy_id } });
+      const payment = await db.payments.findOne({ where: { policy_id: policy.policy_id } });
 
       const requestData: requestPremiumData = {
         member_no: user.arr_member_number,
-        unique_profile_id: unique_profile_id,
+        unique_profile_id: user.unique_profile_id + "",
         health_plan: "AIRTEL_" + policy.policy_type.replace(/\s/g, ''),
         health_option: "64",
         premium: ultimatePremium,
         premium_type: policy.installment_type.toString(),
-        premium_installment: policy.installment_order.toString(),
+        premium_installment: 1,
+        //policy.installment_order.toString(),
         // main_benefit_limit: main_benefit_limit,
         // last_expense_limit: last_expense_limit,
         transaction_date: moment(policy.policy_paid_date).format('YYYY-MM-DD').split("T")[0],
-        money_transaction_id: policy?.airtel_money_id.toString() || payment?.airtel_money_id.toString()
+        money_transaction_id: policy?.airtel_money_id?.toString() || payment?.airtel_money_id?.toString()
       };
 
       console.log(requestData)
@@ -641,7 +641,7 @@ async function reconciliation(existingUser, paymentData) {
   //   console.log("SUM INSURED", sumInsured);
   //   console.log("LAST EXPENSE INSURED", lastExpenseInsured);
 
-  //   const thisDayThisMonth = policy.installment_type === 2 ? new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1) : new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1);
+  //   const thisDayThisMonth = policy.installment_type === 2 ? new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1) : new Date(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1);
 
   //   let congratText = "";
 

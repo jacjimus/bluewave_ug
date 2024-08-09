@@ -5,12 +5,14 @@ import { reconciliation, registerDependant, registerPrincipal, updatePremium } f
 import welcomeTemplate from "../services/emailTemplates/welcome";
 import { sendEmail, sendForgotPasswordEmail, sendWelcomeEmail } from "../services/emailService";
 import jwt from 'jsonwebtoken'
+
 const dotenv = require("dotenv").config();
 import {
   getRandomInt,
   isValidEmail,
   globalSearch,
-  generateReferralCode
+  generateReferralCode,
+  generateNextMembershipId
 
 } from "../services/utils";
 
@@ -133,12 +135,9 @@ const signup = async (req, res) => {
       }
     }
 
-    // Generate membership ID
-    const membership_id = Math.floor(100000 + Math.random() * 900000);
-
     // Create user data object
     const userData = {
-      membership_id,
+      membership_id: await generateNextMembershipId(),
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,
@@ -158,8 +157,8 @@ const signup = async (req, res) => {
       title,
       partner_id,
       referral_code,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().toDate(),
+      updatedAt: moment().toDate(),
     };
 
     // Create a new user
@@ -313,7 +312,7 @@ interface LoginRequestBody {
  *       content:
  *         application/json:
  *           schema:
- *             example: {  "email":"dickensjuma13@gmail.com", "phone_number":"704868023", "password": "pAssW0rd" }
+ *             example: {  "email":"admin@bluewave.insure", "password": "pAssW0rd" }
  *     responses:
  *       200:
  *         description: Successful authentication
@@ -789,8 +788,8 @@ const updateUser = async (req: any, res: any) => {
       phone_number,
       national_id,
       password: await bcrypt.hash(password, 10),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().toDate(),
+      updatedAt: moment().toDate(),
       dob,
       gender,
       marital_status,
@@ -923,8 +922,8 @@ const getPartner = async (req: any, res: any) => {
  */
 const listPartners = async (req: any, res: any) => {
   try {
-console.log("================req.partner_id.+====================",req.partner_id)
-     
+    console.log("================req.partner_id.+====================", req.partner_id)
+
     let partner: any = await Partner.findAll();
     if (parseInt(req.partner_id) == 4) {
 
@@ -1119,8 +1118,8 @@ const bulkUserRegistration = async (req: any, res: any) => {
         phone_number,
         national_id,
         password: await bcrypt.hash(phone_number.toString(), 10),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: moment().toDate(),
+        updatedAt: moment().toDate(),
         dob,
         gender,
         marital_status,
@@ -1788,13 +1787,12 @@ const agentSignup = async (req, res) => {
       }
     }
 
-    // Generate membership ID
-    const membership_id = Math.floor(100000 + Math.random() * 900000);
+
     const referral_code = generateReferralCode(5)
 
     // Create user data object
     const userData = {
-      membership_id,
+      membership_id: await generateNextMembershipId(),
       name: `${first_name} ${last_name}`,
       first_name,
       last_name,
@@ -1813,8 +1811,8 @@ const agentSignup = async (req, res) => {
       nationality,
       referral_code: referral_code,
       partner_id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().toDate(),
+      updatedAt: moment().toDate(),
     };
 
     // Create a new user
@@ -1922,7 +1920,7 @@ const findUsersByReferralCode = async (req: any, res: any) => {
     const searchFilters: any = {};
     if (filter) {
 
-      searchFilters[Op.or] =  [
+      searchFilters[Op.or] = [
         {
           first_name: { [Sequelize.Op.like]: `%${filter}%` }
         },
@@ -1937,18 +1935,18 @@ const findUsersByReferralCode = async (req: any, res: any) => {
         },
         {
           name: { [Sequelize.Op.like]: `%${filter}%` }
-  
+
         }
-  
+
       ]
     }
-  
+
     const paginationOptions = {
-      offset: (page - 1) * limit, 
-      limit: limit, 
+      offset: (page - 1) * limit,
+      limit: limit,
     };
 
-    
+
     let { rows: agents, count: totalCount } = await db.users.findAndCountAll({
       where: {
         partner_id: partner_id,
@@ -1967,26 +1965,26 @@ const findUsersByReferralCode = async (req: any, res: any) => {
       ],
       ...searchFilters,
       ...paginationOptions,
-    
+
     });
 
     if (!agents || agents.length === 0) {
       return res.status(404).json({ item: 0, message: "No user found" });
     }
 
-    
+
 
     return res
       .status(200)
       .json({
         result: {
           code: 200,
-          status: "OK", message: "Agent fetched successfully", 
+          status: "OK", message: "Agent fetched successfully",
           currentPage: page,
           totalPages: Math.ceil(totalCount / limit),
           count: totalCount,
           items: agents,
-         
+
         }
       });
   } catch (error) {
@@ -2074,14 +2072,14 @@ async function agentSummaryAnalytics(req: any, res: any) {
 
     // 5. Total number of policies expired
     const totalPoliciesExpired = await db.policies.count({
-      where: { referral_code: agent_referral_code, policy_status: 'expired', policy_end_date: { [Op.lt]: new Date() } } // Filter for expired policies
+      where: { referral_code: agent_referral_code, policy_status: 'expired', policy_end_date: { [Op.lt]: moment().toDate() } } // Filter for expired policies
     });
 
     console.log('totalPoliciesExpired', totalPoliciesExpired);
 
     // 6. Total number of policies active
     const totalPoliciesActive = await db.policies.count({
-      where: { policy_status: 'paid', referral_code: agent_referral_code, policy_end_date: { [Op.gt]: new Date() } } // Filter for active policies (not expired)
+      where: { policy_status: 'paid', referral_code: agent_referral_code, policy_end_date: { [Op.gt]: moment().toDate() } } // Filter for active policies (not expired)
     });
 
     console.log('totalPoliciesActive', totalPoliciesActive);

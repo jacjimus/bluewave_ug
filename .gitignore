@@ -60,9 +60,15 @@ back.env.*
 .next
 
 # Jetbins.gitignore
+.idea/.gitignore
+.idea/**/Project_Default.xml
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/modules.xml
+.idea/markdown.xml
+.idea/php.xml
+.idea/vcs.xml
+.idea/watcherTasks.xml
 .idea/*.iml
 
 .directory

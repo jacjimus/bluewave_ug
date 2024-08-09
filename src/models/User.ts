@@ -18,6 +18,10 @@ module.exports = (sequelize: any, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
+        unique_profile_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         name: {
             type: DataTypes.STRING,
             allowNull: true,

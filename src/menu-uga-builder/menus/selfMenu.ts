@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { calculatePaymentOptions, parseAmount } from "../../services/utils";
 import { getAirtelUser } from "../../services/getAirtelUserKyc"
 import { Op } from "sequelize";
-
+import moment from "moment";
 const selfMenu = async (args, db) => {
     let { phoneNumber, response, currentStep, userText, allSteps } = args;
     let phone = phoneNumber?.replace("+", "")?.substring(3);
@@ -118,7 +118,7 @@ const selfMenu = async (args, db) => {
         response = 'END Please wait for the Airtel Money prompt to enter your PIN to complete the payment'
         if (userText == "1") {
 
-            console.log("=============== END SCREEN USSD RESPONCE -  SELF =======", phoneNumber, new Date());
+            console.log("=============== END SCREEN USSD RESPONSE -  SELF =======", phoneNumber, moment().toDate());
 
             let selectedPolicyType = coverTypes[parseInt(allSteps[1]) - 1];
 
@@ -127,9 +127,6 @@ const selfMenu = async (args, db) => {
                 console.log("USER DOES NOT EXIST SELF");
                 existingUser = await getAirtelUser(phoneNumber, 2);
                 console.log("USER CREATED SELF", existingUser);
-
-                
-
             }
 
 
@@ -137,7 +134,7 @@ const selfMenu = async (args, db) => {
             let policy_type = selectedPolicyType.name;
             let installment_type = parseInt(allSteps[2]);
             let ultimatePremium = calculatePaymentOptions(policy_type, installment_type);
-            let installment_next_month_date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() - 1)
+            let installment_next_month_date = new Date(moment().toDate().getFullYear(), moment().toDate().getMonth() + 1, moment().toDate().getDate() - 1)
 
             let checkPaidPolicy = await db.policies.findAndCountAll({
                 where: {
@@ -158,18 +155,18 @@ const selfMenu = async (args, db) => {
                 policy_type: policy_type,
                 policy_deduction_amount: ultimatePremium.premium,
                 policy_pending_premium: selectedPolicyType.yearPemium - ultimatePremium.premium,
-                policy_next_deduction_date: installment_type == 1 ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+                policy_next_deduction_date: installment_type == 1 ? new Date(moment().toDate().setMonth(moment().toDate().getMonth() + 1)) : new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1)),
                 sum_insured: selectedPolicyType.sumInsured,
                 premium: installment_type == 1 ? ultimatePremium.premium : selectedPolicyType.yearPemium,
                 yearly_premium: selectedPolicyType.yearPemium,
                 last_expense_insured: selectedPolicyType.lastExpenseInsured,
-                policy_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)),
-                policy_start_date: new Date(),
-                installment_date: installment_type == 1 ? new Date(new Date().setFullYear(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate() - 1)) : installment_next_month_date,
+                policy_end_date: new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1)),
+                policy_start_date: moment().toDate(),
+                installment_date: installment_type == 1 ? new Date(moment().toDate().setFullYear(moment().toDate().getFullYear() + 1, moment().toDate().getMonth(), moment().toDate().getDate() - 1)) : installment_next_month_date,
                 membership_id: existingUser.membership_id,
                 beneficiary: "SELF",
                 policy_status: "pending",
-                policy_deduction_day: new Date().getDate() - 1,
+                policy_deduction_day: moment().toDate().getDate() - 1,
                 partner_id: 2,
                 country_code: "UGA",
                 currency_code: "UGX",
@@ -181,20 +178,14 @@ const selfMenu = async (args, db) => {
                 policy_number: policyNumber
             }
 
-
             let policy = await db.policies.create(policyObject);
-
-
             let preGeneratedTransactionId = uuidv4();
-
             await createTransaction(existingUser.user_id, existingUser.partner_id, policy.policy_id, preGeneratedTransactionId, policy.premium);
 
-            console.log("============== START TIME - SELF ================ ", phoneNumber, new Date());
-              const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
-              
+            console.log("============== START TIME - SELF ================ ", phoneNumber, moment().toDate());
+            const timeout = parseInt(process.env.AIRTEL_MONEY_TIMEOUT) || 500;
 
-            setTimeout(async () => {        
-
+            setTimeout(async () => {
 
                 const airtelMoneyPromise = await airtelMoney(
                     phoneNumber.replace("+", "").substring(3),
@@ -205,7 +196,6 @@ const selfMenu = async (args, db) => {
 
                 const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
 
-
                 Promise.race([
                     airtelMoneyPromise,
                     new Promise((resolve, reject) => {
@@ -215,7 +205,7 @@ const selfMenu = async (args, db) => {
                     })
                 ]).then((result) => {
                     // Airtel Money operation completed successfully
-                    console.log("============== END TIME - SELF ================ ", phoneNumber, new Date());
+                    console.log("============== END TIME - SELF ================ ", phoneNumber, moment().toDate());
                     //response = 'END Payment successful';
                     console.log("SELF RESPONSE WAS CALLED", result);
                     return response;
@@ -226,11 +216,11 @@ const selfMenu = async (args, db) => {
                     return response;
                 });
 
-                console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+                console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
             }, timeout);
 
 
-            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, new Date());
+            console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
 
         } else {
             response = "END Thank you for using Ddwaliro Care"

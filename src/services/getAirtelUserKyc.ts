@@ -6,8 +6,9 @@ import { v4 as uuidv4 } from "uuid";
 import SMSMessenger from "./sendSMS";
 import dotenv from "dotenv";
 import authTokenByPartner from "./authorization";
-import { formatPhoneNumber } from "./utils";
+import { formatPhoneNumber, generateNextMembershipId } from "./utils";
 import { logger } from "../middleware/loggingMiddleware";
+import moment from "moment";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
     if (!userData) {
       const user = await User.create({
         user_id: uuidv4(),
-        membership_id: generateMembershipId(phoneNumber),
+        membership_id: await generateNextMembershipId(),
         name: `${userData.first_name} ${userData.last_name}`,
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -36,16 +37,18 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
           `${userData.first_name}${userData.last_name}`,
           10
         ),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: moment().toDate(),
+        updatedAt: moment().toDate(),
         pin: generatePIN(),
         role: "user",
         status: "active",
         partner_id: partner_id,
+        unique_profile_id: await generateNextMembershipId(),
+
       });
 
       // WELCOME SMS
-      const message = `Dear ${user.first_name}, welcome to Ddwaliro Care. Membership ID: ${user.membership_id}. Dial *185*7*6# to access your account.`;
+      const message = `Dear Customer, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
       await SMSMessenger.sendSMS(2, user.phone_number, message);
       console.log("USER FOR AIRTEL API", user);
     }
@@ -73,7 +76,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 
     // Remove  the leading 256 from the phone number if it exists or 0 if it exists  or +256 if it exists
     phoneNumber = phoneNumber.replace(/^(\+256|256|0)/, "");
-    
+
     const baseUrl = partnerId === 1 ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
@@ -104,11 +107,11 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
 
   } catch (error) {
     logger.error("Error in getAirtelUser:", error.message);
-    throw new Error("Failed to get Airtel user. Please try again later.");
+    throw new Error("Failed to get Airtel user. Please try again later. " +  error.message);
   }
 }
 
-async function createUserIfNotExists(userResponce: any, phone_number: string, partner_id: number) {
+async function createUserIfNotExists(userResponse: any, phone_number: string, partner_id: number) {
   let membershipId = generateMembershipId(phone_number);
 
   let fullPhone = await formatPhoneNumber(phone_number, 2);
@@ -122,7 +125,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   if (user) {
     return user;
   }
-  const { first_name, last_name } = userResponce;
+  const { first_name, last_name } = userResponse;
   let full_name = `${first_name} ${last_name}`;
 
   if (full_name.includes("FN") || full_name.includes("LN")) {
@@ -131,7 +134,7 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
   const existingUser = await db.users.create({
     user_id: uuidv4(),
     phone_number: phone_number,
-    membership_id: membershipId,
+    membership_id: await generateNextMembershipId(),
     pin: Math.floor(1000 + Math.random() * 9000),
     first_name: first_name,
     last_name: last_name,
@@ -140,19 +143,21 @@ async function createUserIfNotExists(userResponce: any, phone_number: string, pa
     partner_id: 2,
     role: "user",
     nationality: "UGANDA",
+    unique_profile_id: await generateNextMembershipId(),
   });
 
-  const message = `Dear ${full_name}, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
+  const message = `Dear Customer, welcome to Ddwaliro Care. Dial *185*7*6# to access your account.`;
   await SMSMessenger.sendSMS(2, fullPhone, message);
   return existingUser;
 }
 
-function generateMembershipId(phoneNumber) {
+function generateMembershipId(phoneNumber: string) {
   let membershipId = phoneNumber.substring(3);
 
   const user = User.findOne({ where: { membership_id: membershipId } });
 
   if (!user) {
+    // @ts-ignore
     membershipId = generateRandomId();
   }
 
@@ -173,6 +178,7 @@ function generatePIN() {
 interface UserData {
   first_name: string;
   last_name: string;
+  code: number;
 }
 
 async function getAirtelUserKenya(msisdn: string): Promise<UserData> {
@@ -192,15 +198,14 @@ async function getAirtelUserKenya(msisdn: string): Promise<UserData> {
     const response = await axios.get(GET_USER_URL, { headers });
     console.log('RESULT', response.data);
 
-    const userData: UserData = {
-      first_name: response.data.first_name,
-      last_name: response.data.last_name,
-    };
+    if (response.data.status.success === false || response.data.status.code !== '200') {
+      throw new Error('User not found');
+    }
 
-    return userData;
+    return response.data.data;
   } catch (error) {
     logger.error('Error in getAirtelUserKenya:', error.message);
-    throw new Error('Failed to get Airtel user. Please try again later.');
+    //throw new Error('Failed to get Airtel user. Please try again later.');
   }
 }
 

@@ -9,7 +9,6 @@ const path = require("path")
 const XLSX = require("xlsx");
 const redisClient = require("../middleware/redis");
 
-
 const Policy = db.policies;
 const User = db.users;
 const Claim = db.claims;
@@ -64,20 +63,20 @@ const getPolicySummary = async (req: any, res: any) => {
     const this_week = req.query.this_week === "true";
     const this_month = req.query.this_month === "true";
 
-    const twentyFourHoursAgo = new Date();
+    const twentyFourHoursAgo = moment().toDate();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     let startDate, endDate;
 
     if (today) {
       startDate = new Date(twentyFourHoursAgo);
-      endDate = new Date();
+      endDate = moment().toDate();
     } else if (this_week) {
-      startDate = new Date();
+      startDate = moment().toDate();
       startDate.setDate(twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay());
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date();
+      endDate = moment().toDate();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
@@ -88,7 +87,7 @@ const getPolicySummary = async (req: any, res: any) => {
       endDate.setHours(23, 59, 59, 999);
     } else {
       startDate = new Date(0);
-      endDate = new Date();
+      endDate = moment().toDate();
     }
 
     endDate = new Date(moment(endDate).add(1, 'days').format("YYYY-MM-DD"))
@@ -288,7 +287,7 @@ const getClaimSummary = async (req: any, res: any) => {
     const this_week = req.query.this_week === "true"; // Convert to a boolean value
     const this_month = req.query.this_month === "true"; // Convert to a boolean value
 
-    const twentyFourHoursAgo = new Date();
+    const twentyFourHoursAgo = moment().toDate();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     let claim: any, startDate: any, endDate: any;
@@ -296,16 +295,16 @@ const getClaimSummary = async (req: any, res: any) => {
     if (today) {
       // For today
       startDate = new Date(twentyFourHoursAgo);
-      endDate = new Date();
+      endDate = moment().toDate();
     } else if (this_week) {
       // For this week
-      startDate = new Date();
+      startDate = moment().toDate();
       startDate.setDate(
         twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay()
       );
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date();
+      endDate = moment().toDate();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
@@ -326,7 +325,7 @@ const getClaimSummary = async (req: any, res: any) => {
     } else {
       // Handle the case when none of the filtering options are provided
       startDate = new Date(0); // A distant past date (or you can set it to your default start date)
-      endDate = new Date(); // Current date
+      endDate = moment().toDate(); // Current date
     }
 
     if (partner_id == 1) {
@@ -429,7 +428,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     const this_week = req.query.this_week === "true"; // Convert to a boolean value
     const this_month = req.query.this_month === "true"; // Convert to a boolean value
 
-    const twentyFourHoursAgo = new Date();
+    const twentyFourHoursAgo = moment().toDate();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
     let startDate: any, endDate: any;
@@ -437,16 +436,16 @@ const getAllReportSummary = async (req: any, res: any) => {
     if (today) {
       // For today
       startDate = new Date(twentyFourHoursAgo);
-      endDate = new Date();
+      endDate = moment().toDate();
     } else if (this_week) {
       // For this week
-      startDate = new Date();
+      startDate = moment().toDate();
       startDate.setDate(
         twentyFourHoursAgo.getDate() - twentyFourHoursAgo.getDay()
       );
       startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date();
+      endDate = moment().toDate();
       endDate.setDate(startDate.getDate() + 7);
       endDate.setHours(23, 59, 59, 999);
     } else if (this_month) {
@@ -467,7 +466,7 @@ const getAllReportSummary = async (req: any, res: any) => {
     } else {
       // Handle the case when none of the filtering options are provided
       startDate = new Date(0); // A distant past date (or you can set it to your default start date)
-      endDate = new Date(); // Current date
+      endDate = moment().toDate(); // Current date
     }
 
 
@@ -572,7 +571,7 @@ const getSalesReportByPeriod = async (req: any, periodType: string) => {
   const { partner_id } = req.query;
 
   try {
-    const today = new Date();
+    const today = moment().toDate();
     const startOfPeriod = new Date(today);
     const report = {};
 
@@ -760,13 +759,13 @@ const getPolicyExcelReportDownload = async (req: any, res: any) => {
     }
 
     if (start_date && end_date) {
-      whereClause.policy_start_date = {
+      whereClause.policy_paid_date = {
         [Op.between]: [new Date(start_date), new Date(end_date)],
       };
     }
 
     if (start_date && !end_date) {
-      whereClause.policy_start_date = {
+      whereClause.policy_paid_date = {
         [Op.gte]: new Date(start_date),
       };
     }
@@ -1383,21 +1382,21 @@ const getAggregatedMonthlySalesReport = async (req: any, res: any) => {
     // `;
     const query = `
     SELECT
-      EXTRACT(MONTH FROM policy_start_date) AS month,
-      EXTRACT(DAY FROM policy_start_date) AS day,
+      EXTRACT(MONTH FROM policy_paid_date) AS month,
+      EXTRACT(DAY FROM policy_paid_date) AS day,
       policy_id,
       SUM(policy_paid_amount) AS total_amount,
       COUNT(DISTINCT user_id) AS total_users
     FROM
       public.policies
     WHERE
-    policy_start_date BETWEEN DATE_TRUNC('month', policy_start_date) AND (DATE_TRUNC('month', policy_start_date) + INTERVAL '1 month' - INTERVAL '1 day') 
-      AND EXTRACT(MONTH FROM policy_start_date) = :filterMonth 
+    policy_paid_date BETWEEN DATE_TRUNC('month', policy_paid_date) AND (DATE_TRUNC('month', policy_paid_date) + INTERVAL '1 month' - INTERVAL '1 day') 
+      AND EXTRACT(MONTH FROM policy_paid_date) = :filterMonth 
       AND policy_status = 'paid'
       AND partner_id = :partner_id
     GROUP BY
-      EXTRACT(MONTH FROM policy_start_date),
-      EXTRACT(DAY FROM policy_start_date),
+      EXTRACT(MONTH FROM policy_paid_date),
+      EXTRACT(DAY FROM policy_paid_date),
       policy_id
     ORDER BY
       month,
@@ -1775,11 +1774,6 @@ const paymentReconciliation = async (req, res) => {
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
- *       - name: partner_id
- *         in: query
- *         required: true
- *         schema:
- *           type: number
  *       - name: transaction_date
  *         in: query
  *         required: true
@@ -1800,6 +1794,11 @@ const paymentReconciliation = async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *       - name: renewal
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: boolean
  *     responses:
  *       200:
  *         description: Information fetched successfully
@@ -1809,45 +1808,44 @@ const paymentReconciliation = async (req, res) => {
 async function policyReconciliation(req: any, res: any) {
 
   try {
-    let { partner_id, airtel_money_id, phone_number, transaction_date, premium } = req.query;
-    let result = {
-      message: "error",
-      code: 404
-    }
+    let { renewal, airtel_money_id, phone_number, transaction_date, premium } = req.query;
+
+    console.log("REQ QUERY", req.query)
+
     //4/2/2024 = 4th Feb 2024
 
-    transaction_date = moment(transaction_date, "DD/MM/YYYY").format("YYYY-MM-DD")
+    transaction_date = moment(transaction_date, "YYYY-MM-DD h:mm A");
 
-    console.log(`transaction_date, ${transaction_date}`)
-    console.log(`premium, ${premium}`)
-    console.log(`existingUser,${phone_number}`)
+    let policy_status = renewal == "true" ? "paid" : "pending";
 
     let policy = await db.policies.findOne({
       where: {
-        partner_id: partner_id,
+        partner_id: 2,
+        policy_status: policy_status,
         phone_number: `+256${phone_number}`,
-        premium: premium,
+        policy_deduction_amount: parseInt(premium),
       },
-      limit: 1,
+      include: [{
+        model: db.users,
+        where: {
+          partner_id: 2
+        }
+      }]
     });
 
     let payment = await db.payments.findOne({
       where: {
         policy_id: policy.policy_id,
-        payment_status: 'paid',
         payment_amount: premium,
 
       },
       limit: 1,
     });
 
-    console.log("====== PAYMENT - RECON =====", payment?.payment_status, payment?.payment_amount, payment?.payment_date, payment?.payment_metadata?.transaction)
 
-    console.log("===== POLICY  - RECON =====", policy.policy_status, policy.premium, policy.policy_paid_date, policy.policy_paid_amount)
 
-    if (policy.policy_status == 'paid' && payment.payment_status == 'paid' && policy.premium == payment.payment_amount) {
-
-      return res.status(400).json({ status: "FAILED", message: "Policy already paid" });
+    if (!policy) {
+      return res.status(400).json({ status: "FAILED", message: "Policy already reconciled" });
     }
 
     let transactionId = await db.transactions.findOne({
@@ -1857,6 +1855,10 @@ async function policyReconciliation(req: any, res: any) {
       limit: 1,
     });
 
+    if (!transactionId) {
+
+      return res.status(400).json({ status: "FAILED", message: "Transaction ID not found" });
+    }
 
     let paymentCallback = {
       transaction: {
@@ -1864,13 +1866,11 @@ async function policyReconciliation(req: any, res: any) {
         message: `PAID UGX ${premium} to AAR Uganda for ${policy.beneficiary} ${policy.policy_status} Cover Charge UGX 0. Bal UGX ${premium}. TID: ${airtel_money_id}. Date: ${transaction_date}`,
         status_code: "TS",
         airtel_money_id: airtel_money_id,
-        payment_date: transactionId.createdAt
+        payment_date: transaction_date
       }
     }
 
-    result = await reconcilationCallback(paymentCallback.transaction)
-
-
+    const result = await reconcilationCallback(paymentCallback.transaction)
 
     return res.status(200).json({ status: "OK", message: "Policy Reconciliation done successfully", result });
   } catch (error) {
@@ -1954,14 +1954,14 @@ async function getPolicySummarySnapshot(req, res) {
     }
 
 
-    const cacheKey = `policy_summary_snapshot_${partner_id}_${start_date}_${end_date}_${category}_${policy_type}_${policy_duration}`;
-    console.log("cacheKey", cacheKey)
-    // Check Redis cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      console.log("cachedData", cachedData)
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    // const cacheKey = `policy_summary_snapshot_${partner_id}_${start_date}_${end_date}_${category}_${policy_type}_${policy_duration}`;
+    // console.log("cacheKey", cacheKey)
+    // // Check Redis cache
+    // const cachedData = await redisClient.get(cacheKey);
+    // if (cachedData) {
+    //   console.log("cachedData", cachedData)
+    //   return res.status(200).json(JSON.parse(cachedData));
+    // }
 
     const startDate = moment(start_date).startOf('quarter');
     const endDate = moment(end_date).endOf('quarter');
@@ -2048,12 +2048,12 @@ async function getPolicySummarySnapshot(req, res) {
     annualReport.conversion_rate = Number((annualReport.conversion_rate / quarterData.length).toFixed(2))
 
     // Store result in Redis cache with an expiration time (e.g., 1 hour)
-    await redisClient.set(cacheKey, JSON.stringify({
-      status: "OK",
-      message: "Policy Summary snapshot fetched successfully",
-      annualReport,
-      quarterData,
-    }), 'EX', 3600);
+    // await redisClient.set(cacheKey, JSON.stringify({
+    //   status: "OK",
+    //   message: "Policy Summary snapshot fetched successfully",
+    //   annualReport,
+    //   quarterData,
+    // }), 'EX', 3600);
 
     return res.status(200).json({ status: "OK", message: "Policy Summary snapshot fetched successfully", annualReport, quarterData });
   }
@@ -2169,7 +2169,7 @@ async function fetchMonthData(partner_id, monthStart, monthEnd, category, policy
 
   const whereConditions = {
     partner_id: partner_id,
-    policy_start_date: { [Op.gte]: startDate, [Op.lt]: endDate },
+    policy_paid_date: { [Op.gte]: startDate, [Op.lt]: endDate },
     ...(category && { beneficiary: category }),
     ...(policy_type && { policy_type }),
     ...(policy_duration && { installment_type: policy_duration })
@@ -2338,3 +2338,5 @@ module.exports = {
   getUserExcelReportDownload,
   getPolicySummarySnapshot
 };
+
+
