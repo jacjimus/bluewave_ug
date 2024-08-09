@@ -1,7 +1,5 @@
 import express from "express";
 import ussdUgaMenuBuilder from "../menu-uga-builder";
-import ussdKenMenuBuilder from "../menu-ken-builder"
-import ussdVodacomMenuBuilder from "../menu-vodacom-builder";
 import moment from "moment";
 import EventEmitter from  "events";
 
@@ -73,25 +71,6 @@ router.post("/uga", async (req: any, res: any) => {
  */
 router.post("/uat/uga", async (req: any, res: any) => {
   await handleUSSDRequestUat(req, res, ussdUgaMenuBuilder);
-});
-
-/**
- *
- * UAT Kenya USSD
- */
-
-router.post("/uat/ken", async (req: any, res: any) => {
-
-  await handleUSSDRequestUat(req, res, ussdKenMenuBuilder);
-});
-
-/**
- *
- * UAT Vodacom USSD
- */
-router.post("/uat/vodacom", async (req: any, res: any) => {
-
-  await handleUSSDRequest(req, res, ussdVodacomMenuBuilder);
 });
 
 export const findTransactionById = async (transactionId) => {

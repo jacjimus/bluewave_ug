@@ -71,9 +71,9 @@ async function initializeExpressServer() {
     definition: {
       openapi: "3.0.0",
       info: {
-        title: "BLUEWAVE API Documentation",
+        title: "BLUEWAVE Uganda API Documentation",
         version: "1.0.0",
-        description: "BLUEWAVE API Documentation",
+        description: "BLUEWAVE Uganda API Documentation",
       },
       components: {
         securitySchemes: {
@@ -99,7 +99,7 @@ async function initializeExpressServer() {
 
 
   app.get("/", (req: any, res: any) =>
-    res.send({ status: "I'm up and running - Bluewave Insurance" })
+    res.send({ status: "I'm up and running - Bluewave UG Insurance" })
   );
 
   app.use("/api/v1", router);

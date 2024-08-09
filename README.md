@@ -1,4 +1,4 @@
-# airtel_health_ussd
+# Bluewave Uganda
 
 BASE URL = ' http://54.161.194.4:4000/api/v1/'
 
