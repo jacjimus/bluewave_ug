@@ -316,9 +316,9 @@ const accountMenu = async (args: any, db: any) => {
             console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
 
 
-        } else if (allSteps[1] == "5" && allSteps[0] == "4") {
-
+        } else if (allSteps[0] == "4" && allSteps[1] == "5" && currentStep == 3 ) {
             response = 'CON Enter your date of birth (dd/mm/yyyy)';
+
         } else if (allSteps[1] == '3' && userText.length == 4) {
             const user = await db.users.findOne({
                 where: {
@@ -336,7 +336,7 @@ const accountMenu = async (args: any, db: any) => {
                 }
             });
             response = `END Cancelling, you will no longer be covered as from ${new Date(paidPolicies[0].policy_end_date).toDateString()}`
-            // You have CANCELLED your Ddwaliror cover. Your Policy will expire on DD/MM/YYYY. Dial *185*7*6# to reactivate. (138 char)                
+            // You have CANCELLED your Ddwaliror cover. Your Policy will expire on DD/MM/YYYY. Dial *185*7*6# to reactivate. (138 char)
             const claim_message = `You have CANCELLED your Dwaliro cover. Your Policy will expire on ${new Date(paidPolicies[0].policy_end_date).toDateString()}. Dial *185*7*6# to reactivate.`
             SMSMessenger.sendSMS(2, smsPhone, claim_message)
 
@@ -365,7 +365,7 @@ const accountMenu = async (args: any, db: any) => {
             } else if (allSteps[1] == '6' && userText == '2') {
                 response = "CON Please enter the dependant full name \n e.g John Mukasa \n 0.Back 00.Main Menu"
             } else {
-                response = "END Invalid option selected"
+                response = "END Invalid option selected";
             }
 
         } else if (allSteps[1] == '6') {
@@ -404,6 +404,53 @@ const accountMenu = async (args: any, db: any) => {
             response = paidPolicies.length > 0 ? `CON ${policyMessages[2]}` : "END You have no more paid policy"
 
         } else if ((allSteps[2] == "2" || allSteps[2] == "1") && allSteps[0] == "5") {
+            // let gender = allSteps[2] == "1" ? "MALE" : "FEMALE";
+            // let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
+            //
+            //
+            // const user = await db.users.findOne({
+            //     where: {
+            //         phone_number: trimmedPhoneNumber,
+            //     },
+            //     limit: 1,
+            // });
+            //
+            // user.dob = dob;
+            // user.gender = gender;
+            // user.save();
+            //
+            // const data = {
+            //     member_no: user.arr_member_number,
+            //     surname: user.last_name,
+            //     first_name: user.first_name,
+            //     other_names: user.middle_names || "",
+            //     gender: allSteps[2] || '1',
+            //     dob: dob || '1990-01-01',
+            //     tel_no: `256${user.phone_number}`,
+            //     email: user.email || "admin@bluewave.insure",
+            //     next_of_kin: {
+            //         surname: '',
+            //         first_name: '',
+            //         other_names: '',
+            //         tel_no: '',
+            //     },
+            //     member_status: "1",
+            //     reason_for_member_status: "gender and dob update",
+            // }
+            //
+            // await updateMember(data)
+            //
+            // // You have successfully added your Gender as XXX and Date of birth as dd/mm/yyyy
+            //
+            // response = `END You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
+            // const dob_message = `You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
+            // SMSMessenger.sendSMS(2, smsPhone, dob_message)
+
+
+        } else if (allSteps[1] == '4' && allSteps[0] == '4') {
+
+            response = 'CON Enter New Next of Kin  Phone number e.g 07XXXXXXXX \n 0.Back 00.Main Menu'
+        } else if (allSteps[0] == "4" && allSteps[1] == "5" && matchDate(userText)) {
             let gender = allSteps[2] == "1" ? "MALE" : "FEMALE";
             let dob = moment(allSteps[3], "DD/MM/YYYY").format("YYYY-MM-DD");
 
@@ -438,20 +485,15 @@ const accountMenu = async (args: any, db: any) => {
                 reason_for_member_status: "gender and dob update",
             }
 
-            await updateMember(data)
+            if(process.env.NODE_ENV === 'PROD') {
+              await updateMember(data)
+            }
 
             // You have successfully added your Gender as XXX and Date of birth as dd/mm/yyyy
 
             response = `END You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
             const dob_message = `You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
             SMSMessenger.sendSMS(2, smsPhone, dob_message)
-
-
-        } else if (allSteps[1] == '4' && allSteps[0] == '4') {
-
-            response = 'CON Enter New Next of Kin  Phone number e.g 07XXXXXXXX \n 0.Back 00.Main Menu'
-
-
 
         } else if (allSteps[1] == '6' && allSteps[0] == '4' && allSteps[2] == '2') {
 
@@ -545,6 +587,14 @@ const accountMenu = async (args: any, db: any) => {
     }
     return response
 }
+
+const matchDate = (input) => {
+        // Regular expression to match the date pattern dd/mm/yyyy
+        const datePattern = /^([0-2][0-9]|(3)[0-1])\/(0[1-9]|1[0-2])\/\d{4}$/;
+
+        // Test the input against the pattern
+        return datePattern.test(input);
+};
 
 export default accountMenu;
 
