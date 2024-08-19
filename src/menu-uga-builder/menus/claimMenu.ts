@@ -15,29 +15,27 @@ const claimMenu = async (args, db) => {
             "\n00. Main Menu"
     }
     else if (currentStep === 2) {
+        let user = await db.users.findOne({
+            where: {
+                phone_number: args.phoneNumber.replace('+', "")?.substring(3),
+            },
+            limit: 1,
+        });
+
+        policy = await db.policies.findOne({
+            where: {
+                user_id: user?.user_id,
+                policy_status: "paid",
+            },
+        });
         switch (userText) {
             case "1":
                 let claim_type = "Inpatient Claim";
-                let user = await db.users.findOne({
-                    where: {
-                        phone_number: args.phoneNumber.replace('+', "")?.substring(3),
-                    },
-                    limit: 1,
-                });
-
-
 
                 if (!user) {
                     response = "CON Sorry, you must buy a policy first to claim" + "\n0. Back \n00. Main Menu";
                     return response;
                 }
-
-                policy = await db.policies.findOne({
-                    where: {
-                        user_id: user?.user_id,
-                        policy_status: "paid",
-                    },
-                });
 
                 if (!policy) {
                     response = "CON Sorry you have no active policy" + "\n0. Back \n00. Main Menu";
