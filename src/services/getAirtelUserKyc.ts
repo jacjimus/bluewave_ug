@@ -63,8 +63,8 @@ async function getUserByPhoneNumber(phoneNumber: string, partner_id: number) {
 
 async function getAirtelUser(phoneNumber: string, partnerId: number) {
   try {
-    const countryCode = partnerId === 1 ? "KE" : "UG";
-    const currencyCode = partnerId === 1 ? "KES" : "UGX";
+    const countryCode = "UG";
+    const currencyCode =  "UGX";
 
     const headers = {
       Accept: "*/*",
@@ -77,7 +77,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     // Remove  the leading 256 from the phone number if it exists or 0 if it exists  or +256 if it exists
     phoneNumber = phoneNumber.replace(/^(\+256|256|0)/, "");
 
-    const baseUrl = partnerId === 1 ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
+    const baseUrl = process.env.IS_UAT == '1' ? process.env.UAT_KEN_AIRTEL_KYC_API_URL : process.env.PROD_AIRTEL_KYC_API_URL;
     const GET_USER_URL = `${baseUrl}/${phoneNumber}`;
 
     console.log("GET_USER_URL", GET_USER_URL, headers);
@@ -86,7 +86,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
     console.log("RESULT", response.data);
 
     let user: any;
-
+    console.log("response:", response.data.status.success, response.data.status.code);
     if (response.data.status.success === false || response.data.status.code !== "200") {
       // If user is not found, create a dummy user with phone number
       const userData = {
@@ -95,6 +95,7 @@ async function getAirtelUser(phoneNumber: string, partnerId: number) {
         msisdn: phoneNumber
       };
       user = await createUserIfNotExists(userData, phoneNumber, partnerId);
+
       console.log("User not found. Dummy user created:", user);
     } else {
       // If user is found, extract user data and create if not exists
