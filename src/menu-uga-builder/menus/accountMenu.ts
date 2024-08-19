@@ -316,7 +316,10 @@ const accountMenu = async (args: any, db: any) => {
             console.log("============== AFTER CATCH TIME - SELF ================ ", phoneNumber, moment().toDate());
 
 
-        } else if (allSteps[0] == "4" && allSteps[1] == "5" && currentStep == 3 ) {
+        } else if (allSteps[1] == '4' && allSteps[0] == '4' && allSteps[2] == "1" ) {
+
+            response = 'CON Enter  Next of Kin  fullname  \n 0.Back 00.Main Menu'
+        }  else if (allSteps[0] == "4" && allSteps[1] == "5" && currentStep == 3 ) {
             response = 'CON Enter your date of birth (dd/mm/yyyy)';
 
         } else if (allSteps[1] == '3' && userText.length == 4) {
@@ -445,6 +448,75 @@ const accountMenu = async (args: any, db: any) => {
             // response = `END You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
             // const dob_message = `You have successfully added your Gender as ${gender} and Date of birth as ${allSteps[3]}`
             // SMSMessenger.sendSMS(2, smsPhone, dob_message)
+
+        } else if (allSteps[0] == '4' && allSteps[1] == '4' && allSteps[2] == "1" &&  matchFullname(userText)) {
+
+            response = `CON Enter ${allSteps[3].split(" ")[0]}'s phone number e.g 07********* 0.Back 00.Main Menu`
+        } else if (allSteps[0] == "4" && allSteps[1] == "4" && allSteps[2] == "1" && matchPhone(userText)) {
+            let beneficiaries = await db.beneficiaries.findAll({
+                where: {
+                    principal_phone_number: trimmedPhoneNumber,
+                    beneficiary_type: "KIN"
+                },
+                limit: 1
+            });
+            let beneficiary: any;
+
+            if (beneficiaries.length > 0) {
+                beneficiary = await db.beneficiaries.update({
+                    full_name: allSteps[3],
+                    first_name: allSteps[3].split(" ")[0],
+                    last_name: allSteps[3].split(" ")[1],
+                    beneficiary_type: "KIN",
+                    phone_number: userText,
+                    user_id: currentUser.user_id,
+                    principal_phone_number: trimmedPhoneNumber
+                }, {
+                    where: {
+                        principal_phone_number: trimmedPhoneNumber,
+                        beneficiary_type: "KIN"
+                    }
+                })
+            } else {
+                beneficiary = await db.beneficiaries.create({
+                    beneficiary_id: uuidv4(),
+                    full_name: allSteps[3],
+                    first_name: allSteps[3].split(" ")[0],
+                    last_name: allSteps[3].split(" ")[1],
+                    beneficiary_type: "KIN",
+                    phone_number: userText,
+                    user_id: currentUser.user_id,
+                    principal_phone_number: trimmedPhoneNumber
+                })
+            }
+
+            let gender = currentUser.gender == "MALE" ? "1" : "2";
+            const data = {
+                member_no: currentUser.arr_member_number,
+                surname: currentUser.last_name,
+                first_name: currentUser.first_name,
+                other_names: currentUser.middle_names || "",
+                gender: gender || '1',
+                dob: currentUser.dob || '1990-01-01',
+                tel_no: `256${currentUser.phone_number}`,
+                email: currentUser.email || "admin@bluewave.insure",
+                next_of_kin: {
+                    surname: allSteps[3].split(" ")[1],
+                    first_name: allSteps[3].split(" ")[0],
+                    other_names: allSteps[3].split(" ")[1],
+                    tel_no: userText,
+                },
+                member_status: "1",
+                reason_for_member_status: "next of kin update",
+            }
+
+            if(process.env.ENVIROMENT === 'PROD') {
+                await updateMember(data)
+            }
+            const kin_message = `You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover. Any benefits on the cover will be payable to your next of kin.`
+            SMSMessenger.sendSMS(2, smsPhone, kin_message)
+            response = `END You have added ${allSteps[3]} as a next of kin on your Dwaliro Cover`
+
 
 
         } else if (allSteps[1] == '4' && allSteps[0] == '4') {
@@ -596,5 +668,20 @@ const matchDate = (input) => {
         return datePattern.test(input);
 };
 
+const matchFullname = (input) => {
+    // Regular expression to match the date pattern dd/mm/yyyy
+    const namePattern = /^[A-Za-z][a-z]*(?:\s[A-Za-z][a-z]*){1,2}$/;
+
+    // Test the input against the pattern
+    return namePattern.test(input);
+};
+
+const matchPhone = (input) => {
+    // Regular expression to match the date pattern dd/mm/yyyy
+    const phonePattern = /^07\d{8}$/;
+
+    // Test the input against the pattern
+    return phonePattern.test(input);
+};
 export default accountMenu;
 
