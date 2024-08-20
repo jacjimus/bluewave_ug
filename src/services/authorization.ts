@@ -5,12 +5,12 @@ dotenv.config();
 async function authTokenByPartner(partnerId: number) {
     const partnerConfig = {
       1: {
-        url: process.env.UAT_KEN_AIRTEL_AUTH_TOKEN_URL,
+        url: process.env.UAT_AIRTEL_AUTH_TOKEN_URL,
         clientId: process.env.UAT_AIRTEL_KEN_CLIENT_ID,
         clientSecret: process.env.UAT_AIRTEL_KEN_CLIENT_SECRET,
       },
       2: {
-        url: process.env.UAT_KEN_AIRTEL_AUTH_TOKEN_URL,
+        url: process.env.UAT_AIRTEL_AUTH_TOKEN_URL,
         clientId: process.env.UAT_AIRTEL_UGX_CLIENT_ID,
         clientSecret: process.env.UAT_AIRTEL_UGX_CLIENT_SECRET,
       },
@@ -43,7 +43,7 @@ async function authTokenByPartner(partnerId: number) {
         throw new Error(`Failed to retrieve access token. Status: ${response.status}, Text: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('An error occurred:', error.message);
+      console.error('Could not get auth token:', error.message);
       throw error;
     }
   }
