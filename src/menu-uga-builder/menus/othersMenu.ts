@@ -8,7 +8,7 @@ import moment from "moment";
 const othersMenu = async (args, db) => {
   let { phoneNumber, response, currentStep, userText, allSteps } = args;
 
-  function replaceLeadingZero(phoneNumber) {
+  function replaceLeadingZero(phoneNumber: string) {
     if (phoneNumber.startsWith('07')) {
       return '' + phoneNumber.substring(1);
     } else {
@@ -516,8 +516,8 @@ const othersMenu = async (args, db) => {
           existingOther.phone_number.toString(),
           preGeneratedTransactionId
         );
-
         const race_timeout = parseInt(process.env.AIRTEL_MONEY_RACE_TIMEOUT) || 3000;
+
         Promise.race([
           airtelMoneyPromise,
           new Promise((resolve, reject) => {

@@ -7,14 +7,15 @@ import SMSMessenger from './sendSMS';
 import authTokenByPartner from './authorization';
 import { logger } from '../middleware/loggingMiddleware';
 import moment from 'moment';
+
 dotenv.config();
 
 const Transaction = db.transactions;
 
 
-const createTransaction = async (user_id, partner_id, policy_id, transactionId, amount) => {
+const createTransaction = async (user_id: any, partner_id: number, policy_id: any, transactionId: string, amount: any) => {
   try {
-    const transaction = await Transaction.create({
+    return await Transaction.create({
       transaction_id: uuidv4(),
       amount,
       status: 'pending',
@@ -23,14 +24,13 @@ const createTransaction = async (user_id, partner_id, policy_id, transactionId, 
       policy_id,
       partner_id,
     });
-    return transaction;
   } catch (error) {
     logger.error('Failed to create a transaction:', error.message);
     throw new Error(`Failed to create a transaction: ${error.message}`);
   }
 };
 
-async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransactionId) {
+async function airtelMoney(phoneNumber: string, amount: any, reference: any, preGeneratedTransactionId: string) {
 
   const status = {
     code: 200,
@@ -42,7 +42,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
     const partnerId = 2;
 
     const token = await authTokenByPartner(partnerId);
-
+    console.log("TOKEN ID", token);
     const paymentData = {
       reference,
       subscriber: {
@@ -58,6 +58,7 @@ async function airtelMoney(phoneNumber, amount, reference, preGeneratedTransacti
       },
     };
 
+    console.log('Payment Data:', paymentData);
     const headers = {
       'Content-Type': 'application/json',
       Accept: '/',
@@ -648,11 +649,11 @@ async function sendCongratulatoryMessage(policy, user) {
   }
 }
 
-async function processPayment(policyObject, phoneNumber, existingOther) {
+async function processPayment(policyObject: any, phoneNumber: string, existingOther: { phone_number: { toString: () => any; }; }) {
   try {
     const preGeneratedTransactionId = uuidv4(); // Generate UUID once outside
     let policy = await db.policies.create(policyObject);
-    let response
+    let response =
 
     setTimeout(async () => {
 
