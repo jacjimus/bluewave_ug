@@ -57,7 +57,6 @@ async function airtelMoney(phoneNumber: string, amount: any, reference: any, pre
       },
     };
 
-    console.log('Payment Data:', paymentData);
     const headers = {
       'Content-Type': 'application/json',
       Accept: '/',
