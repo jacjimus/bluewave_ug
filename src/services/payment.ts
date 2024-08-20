@@ -42,7 +42,6 @@ async function airtelMoney(phoneNumber: string, amount: any, reference: any, pre
     const partnerId = 2;
 
     const token = await authTokenByPartner(partnerId);
-    console.log("TOKEN ID", token);
     const paymentData = {
       reference,
       subscriber: {
@@ -58,7 +57,6 @@ async function airtelMoney(phoneNumber: string, amount: any, reference: any, pre
       },
     };
 
-    console.log('Payment Data:', paymentData);
     const headers = {
       'Content-Type': 'application/json',
       Accept: '/',
@@ -74,8 +72,6 @@ async function airtelMoney(phoneNumber: string, amount: any, reference: any, pre
         process.env.PROD_AIRTEL_PAYMENT_URL;
 
     const paymentResponse = await axios.post(AIRTEL_PAYMENT_URL, paymentData, { headers });
-
-    console.log("Airtel Money" , paymentResponse);
 
     if (paymentResponse.data.status.success !== true) {
       status.code = 500;
