@@ -34,7 +34,7 @@ async function airtelMoney(phoneNumber: string, amount: any, reference: any, pre
 
   const status = {
     code: 200,
-    message: process.env.IS_UAT == 1 ?  'UAT Payment successfully initiated' : 'Payment successfully initiated',
+    message: process.env.IS_UAT === 1 ?  'UAT Payment successfully initiated' : 'Payment successfully initiated',
   };
 
   try {
@@ -65,7 +65,7 @@ async function airtelMoney(phoneNumber: string, amount: any, reference: any, pre
       Authorization: `Bearer ${token}`,
     };
 
-    const AIRTEL_PAYMENT_URL = process.env.IS_UAT == '1' ?
+    const AIRTEL_PAYMENT_URL = process.env.IS_UAT === 1 ?
         process.env.UAT_KEN_AIRTEL_PAYMENT_URL :
         process.env.PROD_AIRTEL_PAYMENT_URL;
 
