@@ -25,7 +25,7 @@ const sendResponse = (res, mode, data) => {
     res.setHeader('amount', '0');
   }
   res.setHeader('content-type', 'text/plain');
-  data = data.replace(/^(CON |END )/g, "").trim();
+  data = data.replace(/^(CON |END )/, "").trim();
   res.send(data);
 };
 
